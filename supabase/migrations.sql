@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS public.stores (
     banner_url TEXT,
     cor_primaria TEXT DEFAULT '#ff5722',
     asaas_subaccount_id TEXT, -- Campo reservado para integração futura com split de pagamento Asaas
+    whatsapp TEXT,
+    instagram TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

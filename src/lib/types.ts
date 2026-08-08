@@ -11,6 +11,8 @@ export interface Store {
   banner_url: string | null;
   cor_primaria: string; // Hex color code e.g. "#2563eb"
   asaas_subaccount_id: string | null; // Reserved for future payment split
+  whatsapp?: string | null;
+  instagram?: string | null;
   created_at: string;
   updated_at?: string;
 }

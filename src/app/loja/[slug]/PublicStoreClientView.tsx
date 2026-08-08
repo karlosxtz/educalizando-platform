@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap 
+  Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
+  Instagram, MessageCircle 
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
@@ -137,6 +138,21 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                 <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1.5 self-center shadow-xs">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> VERIFICADO EDUCALIZANDO
                 </span>
+
+                {/* Social Links Header */}
+                <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:ml-auto">
+                  {store.instagram && (
+                    <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#E1306C] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200">
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {store.whatsapp && (
+                    <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-[#25D366] text-white rounded-full text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-sm flex items-center gap-1.5">
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      WhatsApp
+                    </a>
+                  )}
+                </div>
               </div>
 
               {store.descricao && (
@@ -208,15 +224,18 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map(prod => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((prod, index) => {
               const catName = getCategoryName(prod.category_id);
               const edName = getEducationName(prod.education_level_id);
 
               return (
-                <div
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.06, duration: 0.4 }}
                   key={prod.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-all group"
+                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group hover:border-slate-300"
                 >
                   <div className="space-y-3">
                     {/* Product Cover with Fixed 3:4 Aspect Ratio */}
@@ -285,7 +304,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                       <span>Ver Detalhes</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -369,8 +388,36 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
         )}
       </AnimatePresence>
 
+      {/* Floating WhatsApp Button */}
+      {store.whatsapp && (
+        <a
+          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group"
+          title="Falar com a loja"
+        >
+          <MessageCircle className="w-7 h-7 fill-white" />
+          <span className="absolute right-full mr-3 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Falar com a loja
+          </span>
+        </a>
+      )}
+
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-2">
+      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4">
+        <div className="flex items-center justify-center gap-4">
+          {store.instagram && (
+            <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+              <Instagram className="w-4 h-4" /> Instagram
+            </a>
+          )}
+          {store.whatsapp && (
+            <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+              <MessageCircle className="w-4 h-4" /> WhatsApp
+            </a>
+          )}
+        </div>
         <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
         <p className="text-slate-500">Tecnologia e Entrega por <Link href="/" className="text-blue-400 font-bold hover:underline">Educalizando Plataforma Digital</Link></p>
       </footer>
