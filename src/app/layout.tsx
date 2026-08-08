@@ -50,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth`}>
-      <body className="antialiased bg-[#0b0f19] text-slate-100 min-h-screen">
+      <body className="antialiased bg-slate-50 text-slate-900 min-h-screen">
         {children}
       </body>
     </html>
