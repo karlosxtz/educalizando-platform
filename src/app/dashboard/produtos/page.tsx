@@ -19,6 +19,7 @@ import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { Product, Store, ProductType, Category, EducationLevel } from '@/lib/types';
 import ProductWizardModal from '@/components/dashboard/ProductWizardModal';
 import CategoryManagerModal from '@/components/dashboard/CategoryManagerModal';
+import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
 export default function ProductsManagementPage() {
   const [loading, setLoading] = useState(true);
@@ -172,6 +173,17 @@ export default function ProductsManagementPage() {
     return educationLevels.find(e => e.id === edId)?.nome || null;
   };
 
+  // Build Options for CustomSelect Filter Component
+  const categoryFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todas as Categorias' },
+    ...categories.map(c => ({ value: c.id, label: c.nome }))
+  ];
+
+  const educationFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todos os Níveis' },
+    ...educationLevels.map(e => ({ value: e.id, label: e.nome }))
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -219,39 +231,31 @@ export default function ProductsManagementPage() {
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-700">
+      {/* Styled Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
           <Filter className="w-4 h-4 text-blue-600" /> Filtrar Por:
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <Tags className="w-3.5 h-3.5 text-blue-600" />
-            <select
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {/* Custom Category Select */}
+          <div className="w-full sm:w-56">
+            <CustomSelect
+              options={categoryFilterOptions}
               value={selectedCategoryFilter}
-              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none"
-            >
-              <option value="all">Todas as Categorias</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedCategoryFilter(val)}
+              icon={<Tags className="w-4 h-4" />}
+            />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-            <select
+          {/* Custom Education Level Select */}
+          <div className="w-full sm:w-56">
+            <CustomSelect
+              options={educationFilterOptions}
               value={selectedEducationFilter}
-              onChange={(e) => setSelectedEducationFilter(e.target.value)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none"
-            >
-              <option value="all">Todos os Níveis</option>
-              {educationLevels.map(e => (
-                <option key={e.id} value={e.id}>{e.nome}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedEducationFilter(val)}
+              icon={<GraduationCap className="w-4 h-4" />}
+            />
           </div>
         </div>
       </div>
@@ -433,6 +437,7 @@ export default function ProductsManagementPage() {
         isOpen={isCategoryManagerOpen}
         onClose={() => setIsCategoryManagerOpen(false)}
         storeId={store?.id || 'store-demo'}
+        onCategoriesUpdated={loadData}
       />
     </div>
   );

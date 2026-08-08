@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Tags, Plus, Edit3, Trash2, X, Check, Loader2, 
-  AlertTriangle, AlertCircle, ShieldAlert 
+  AlertCircle, ShieldAlert 
 } from 'lucide-react';
 import { Category } from '@/lib/types';
 import { 
@@ -18,12 +18,14 @@ interface CategoryManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   storeId: string;
+  onCategoriesUpdated?: () => void;
 }
 
 export default function CategoryManagerModal({
   isOpen,
   onClose,
-  storeId
+  storeId,
+  onCategoriesUpdated
 }: CategoryManagerModalProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,7 @@ export default function CategoryManagerModal({
 
   const loadData = async () => {
     setLoading(true);
+    setActionError(null);
     try {
       const all = await getCategories(storeId);
       // Filter ONLY custom categories created for this store
@@ -72,6 +75,7 @@ export default function CategoryManagerModal({
       const created = await createCustomCategory(storeId, newCatName.trim());
       setCategories(prev => [...prev, created]);
       setNewCatName('');
+      if (onCategoriesUpdated) onCategoriesUpdated();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao criar categoria.');
     } finally {
@@ -91,6 +95,7 @@ export default function CategoryManagerModal({
       const updated = await updateCustomCategory(catId, editingName.trim());
       setCategories(prev => prev.map(c => (c.id === catId ? updated : c)));
       setEditingCatId(null);
+      if (onCategoriesUpdated) onCategoriesUpdated();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao editar categoria.');
     }
@@ -104,6 +109,7 @@ export default function CategoryManagerModal({
       await deleteCustomCategory(deletingCat.id);
       setCategories(prev => prev.filter(c => c.id !== deletingCat.id));
       setDeletingCat(null);
+      if (onCategoriesUpdated) onCategoriesUpdated();
     } catch (err: any) {
       setActionError(err.message || 'Esta categoria está em uso por produtos. Altere os produtos antes de excluir.');
       setDeletingCat(null);
@@ -127,7 +133,7 @@ export default function CategoryManagerModal({
             </div>
             <div>
               <h2 className="text-lg font-black text-slate-900">Gerenciar Minhas Categorias</h2>
-              <p className="text-xs text-slate-500 font-medium">Categorias exclusivas criadas para a sua loja</p>
+              <p className="text-xs text-slate-500 font-medium">Categorias customizadas exclusivas da sua loja</p>
             </div>
           </div>
 
@@ -144,22 +150,27 @@ export default function CategoryManagerModal({
         )}
 
         {/* Create Form */}
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newCatName}
-            onChange={(e) => setNewCatName(e.target.value)}
-            placeholder="Nome da nova categoria..."
-            className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-xs focus:outline-none"
-          />
-          <button
-            onClick={handleCreate}
-            disabled={isCreating || !newCatName.trim()}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 disabled:opacity-50 shadow-xs"
-          >
-            {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-            <span>Criar</span>
-          </button>
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+            Cadastrar Nova Categoria Customizada
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="Ex: Apostilas de Medicina 2026..."
+              className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-xs focus:outline-none"
+            />
+            <button
+              onClick={handleCreate}
+              disabled={isCreating || !newCatName.trim()}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 disabled:opacity-50 shadow-xs"
+            >
+              {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>Criar</span>
+            </button>
+          </div>
         </div>
 
         {/* Categories List */}
@@ -170,8 +181,8 @@ export default function CategoryManagerModal({
         ) : categories.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-500 space-y-2 bg-slate-50 rounded-2xl border border-slate-200 p-4">
             <Tags className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="font-bold text-slate-700">Sua loja ainda não possui categorias customizadas.</p>
-            <p className="text-[11px]">Categorias globais como "Matemática" e "Redação" continuam disponíveis no formulário de cadastro.</p>
+            <p className="font-bold text-slate-700">Você ainda não tem categorias customizadas.</p>
+            <p className="text-[11px]">As categorias globais (como "Matemática" e "Redação") continuam disponíveis na sua loja.</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -242,7 +253,7 @@ export default function CategoryManagerModal({
                 </div>
                 <h3 className="text-lg font-bold text-slate-900">Excluir Categoria "{deletingCat.nome}"?</h3>
                 <p className="text-xs text-slate-500">
-                  Esta categoria será removida das opções da sua loja. Apenas categorias que não estejam associadas a nenhum produto podem ser excluídas.
+                  Esta categoria será removida da sua loja. Se algum produto estiver usando esta categoria, a exclusão será bloqueada.
                 </p>
                 <div className="flex justify-end gap-3 pt-2">
                   <button
