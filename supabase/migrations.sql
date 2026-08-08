@@ -240,6 +240,13 @@ ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
 
 -- Exclusão de assets pelo próprio criador
+-- Exclusão de assets pelo próprio criador
 CREATE POLICY "Criadores podem deletar seus logos e banners"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
+
+-- 14. ADICIONAR COLUNAS DE WHATSAPP E INSTAGRAM EM TABELAS EXISTENTES (SE JÁ CRIADAS ANTES)
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS instagram TEXT;
+
+
