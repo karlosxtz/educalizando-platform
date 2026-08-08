@@ -154,19 +154,16 @@ CREATE INDEX IF NOT EXISTS idx_categories_store_id ON public.categories(store_id
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
--- Leitura pública de categorias globais OU da própria loja
 CREATE POLICY "Categorias globais e da loja são públicas para leitura" ON public.categories
     FOR SELECT USING (store_id IS NULL OR store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid() OR true
     ));
 
--- Inserção de categorias customizadas apenas pelo criador com seu próprio store_id
 CREATE POLICY "Criador pode criar sua categoria customizada" ON public.categories
     FOR INSERT WITH CHECK (store_id IS NOT NULL AND store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
     ));
 
--- Atualização/Exclusão apenas de categorias customizadas próprias
 CREATE POLICY "Criador pode editar/deletar suas categorias" ON public.categories
     FOR ALL USING (store_id IS NOT NULL AND store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
@@ -215,10 +212,32 @@ VALUES
     ('Idiomas & Cursos Livres', 'idiomas-cursos-livres', 8)
 ON CONFLICT DO NOTHING;
 
--- 12. ALTERAR TABELA PRODUCTS (Adicionar FKs category_id e education_level_id)
+-- 12. ALTERAR TABELA PRODUCTS
 ALTER TABLE public.products 
     ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS education_level_id UUID REFERENCES public.education_levels(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_education_level_id ON public.products(education_level_id);
+
+-- 13. BUCKET SUPABASE STORAGE PARA ASSETS DA LOJA (store-assets)
+-- Armazena o Logo (avatar) e o Banner principal da vitrine da loja
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('store-assets', 'store-assets', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Leitura pública de logos e banners
+CREATE POLICY "Assets de lojas são públicos para leitura"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'store-assets');
+
+-- Upload de logos e banners por criadores autenticados
+CREATE POLICY "Criadores podem fazer upload de logos e banners"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
+
+-- Exclusão de assets pelo próprio criador
+CREATE POLICY "Criadores podem deletar seus logos e banners"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'store-assets' AND auth.role() = 'authenticated');

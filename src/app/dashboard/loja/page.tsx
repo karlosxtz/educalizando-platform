@@ -5,25 +5,27 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Store as StoreIcon, Copy, ExternalLink, Check, Save, 
-  Palette, Image as ImageIcon, Sparkles, Loader2, AlertCircle 
+  Palette, ImageIcon, Sparkles, Loader2, AlertCircle 
 } from 'lucide-react';
 
 import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-schemas';
 import { getStoreByCreatorId, updateStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
+import FileUpload from '@/components/dashboard/FileUpload';
 
 export default function StoreSettingsPage() {
   const [loading, setLoading] = useState(true);
+  const [currentStore, setCurrentStore] = useState<Store | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [currentStore, setCurrentStore] = useState<Store | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     reset,
-    setValue,
     formState: { errors, isSubmitting }
   } = useForm<StoreSettingsFormValues>({
     resolver: zodResolver(storeSettingsSchema),
@@ -33,16 +35,16 @@ export default function StoreSettingsPage() {
       descricao: '',
       logo_url: '',
       banner_url: '',
-      cor_primaria: '#ff5722'
+      cor_primaria: '#2563eb'
     }
   });
 
-  const watchNome = watch('nome_loja');
-  const watchSlug = watch('slug');
-  const watchDescricao = watch('descricao');
-  const watchLogo = watch('logo_url');
-  const watchBanner = watch('banner_url');
-  const watchColor = watch('cor_primaria');
+  const watchedNomeLoja = watch('nome_loja');
+  const watchedSlug = watch('slug');
+  const watchedDescricao = watch('descricao');
+  const watchedCorPrimaria = watch('cor_primaria');
+  const watchedLogoUrl = watch('logo_url');
+  const watchedBannerUrl = watch('banner_url');
 
   useEffect(() => {
     async function loadStoreData() {
@@ -55,7 +57,7 @@ export default function StoreSettingsPage() {
           descricao: store.descricao || '',
           logo_url: store.logo_url || '',
           banner_url: store.banner_url || '',
-          cor_primaria: store.cor_primaria || '#ff5722'
+          cor_primaria: store.cor_primaria || '#2563eb'
         });
       } catch (err) {
         console.error(err);
@@ -66,15 +68,15 @@ export default function StoreSettingsPage() {
     loadStoreData();
   }, [reset]);
 
-  const publicUrl = `https://educalizando.com.br/loja/${watchSlug || 'sua-loja'}`;
+  const publicUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/loja/${watchedSlug || 'sua-loja'}`
+    : `https://educalizando.com.br/loja/${watchedSlug || 'sua-loja'}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
-
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<StoreSettingsFormValues> = async (values) => {
     if (!currentStore) return;
@@ -106,42 +108,46 @@ export default function StoreSettingsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+      {/* Title & Link Bar */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
-            <StoreIcon className="w-7 h-7 text-blue-600" /> Configuração da Sua Loja
+            <StoreIcon className="w-7 h-7 text-blue-600" /> Configurações da Sua Loja
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Personalize o nome, logo, cores e banner da sua vitrine exclusiva de materiais didáticos.
+          <p className="text-xs text-slate-500 mt-1 font-medium">
+            Personalize a identidade visual, logo, banner e o link da sua vitrine pública.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCopyLink}
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-2 transition-all"
-          >
-            {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
-            <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link da Loja'}</span>
-          </button>
-
-          <a
-            href={`/loja/${watchSlug || 'prof-ricardo'}`}
-            target="_blank"
-            rel="noreferrer"
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 shadow-md shadow-emerald-500/20 transition-all"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Abrir Loja Pública</span>
-          </a>
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs w-full sm:w-auto justify-between sm:justify-start">
+          <span className="font-mono text-slate-700 font-bold truncate max-w-[200px] sm:max-w-xs">
+            /loja/{watchedSlug}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleCopyLink}
+              className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-1 transition-colors"
+              title="Copiar Link da Loja"
+            >
+              {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+            </button>
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1 transition-colors"
+              title="Abrir Vitrine Pública"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Main Grid: Form Left, Live Preview Right */}
+      {/* Main Grid: Form Settings & Live Preview */}
       <div className="grid lg:grid-cols-12 gap-8">
         
-        {/* Left Form */}
+        {/* Form Container */}
         <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
@@ -239,123 +245,108 @@ export default function StoreSettingsPage() {
               </div>
             </div>
 
-            {/* URL da Logo */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-slate-500" /> URL da Foto / Logo
-              </label>
-              <input
-                type="text"
-                {...register('logo_url')}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
-                placeholder="https://..."
-              />
-            </div>
+            {/* Upload do Logo da Loja (Reutiliza FileUpload) */}
+            <FileUpload
+              label="Foto / Logo da Loja"
+              helperText="Upload do avatar da marca (JPG, PNG ou WEBP, máx. 2MB)."
+              bucket="store-assets"
+              accept="image/jpeg,image/png,image/webp"
+              maxSizeMB={2}
+              value={watchedLogoUrl}
+              onChange={(url) => setValue('logo_url', url || '')}
+              isImage={true}
+            />
 
-            {/* URL do Banner */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-slate-500" /> URL da Imagem do Banner
-              </label>
-              <input
-                type="text"
-                {...register('banner_url')}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
-                placeholder="https://..."
-              />
-            </div>
+            {/* Upload do Banner da Loja (Reutiliza FileUpload) */}
+            <FileUpload
+              label="Imagem do Banner Principal"
+              helperText="Upload da imagem de capa de topo da vitrine (JPG, PNG ou WEBP, máx. 5MB)."
+              bucket="store-assets"
+              accept="image/jpeg,image/png,image/webp"
+              maxSizeMB={5}
+              value={watchedBannerUrl}
+              onChange={(url) => setValue('banner_url', url || '')}
+              isImage={true}
+            />
 
             {/* Submit Button */}
-            <div className="pt-4 border-t border-slate-200">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>Salvar Alterações da Loja</span>
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Salvando Alterações...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  <span>Salvar Configurações da Loja</span>
+                </>
+              )}
+            </button>
 
           </form>
         </div>
 
-        {/* Right Live Preview Panel */}
+        {/* Live Preview Panel (Real-time updates as user types or uploads files) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-600" /> Live Preview da Vitrine
-            </span>
-            <span className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              Sincronizado
-            </span>
+          <div className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-wider">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span>Preview em Tempo Real da Sua Loja</span>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg sticky top-8">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg space-y-4 sticky top-6">
             {/* Banner Preview */}
-            <div className="h-32 relative bg-slate-100 overflow-hidden">
-              {watchBanner ? (
-                <img src={watchBanner} alt="Banner Preview" className="w-full h-full object-cover" />
+            <div className="h-32 bg-slate-800 relative overflow-hidden">
+              {watchedBannerUrl ? (
+                <img src={watchedBannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-slate-800 via-indigo-900 to-slate-800 flex items-center justify-center text-slate-400 text-xs font-semibold">
+                <div className="w-full h-full bg-gradient-to-r from-slate-900 to-indigo-950 flex items-center justify-center text-slate-400 text-xs font-bold">
                   Banner da Loja
                 </div>
               )}
             </div>
 
-            {/* Profile Info Preview */}
-            <div className="p-5 relative space-y-4 -mt-10 bg-white">
-              <div className="flex items-end gap-3">
-                <div className="w-16 h-16 rounded-full bg-white p-0.5 border-2 border-white shadow-md overflow-hidden flex-shrink-0">
-                  {watchLogo ? (
-                    <img src={watchLogo} alt="Logo Preview" className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">
-                      {watchNome ? watchNome.charAt(0).toUpperCase() : 'L'}
-                    </div>
-                  )}
-                </div>
-                <div className="pb-1">
-                  <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    {watchNome || 'Nome da Sua Loja'}
-                  </h3>
-                  <span 
-                    className="text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mt-0.5"
-                    style={{ backgroundColor: `${watchColor}15`, color: watchColor }}
+            {/* Profile Avatar & Info Preview */}
+            <div className="px-6 pb-6 pt-0 -mt-12 space-y-3 relative">
+              <div className="w-20 h-20 rounded-full bg-white p-1 border-4 border-white shadow-md overflow-hidden">
+                {watchedLogoUrl ? (
+                  <img src={watchedLogoUrl} alt="Logo Preview" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <div
+                    className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-2xl"
+                    style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
                   >
-                    LOJA VERIFICADA
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 line-clamp-2">
-                {watchDescricao || 'Descrição e bio da sua loja aparecerão aqui para os alunos...'}
-              </p>
-
-              {/* Sample Product Card */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex gap-3 items-center">
-                <div className="w-14 h-14 rounded-lg bg-slate-200 flex-shrink-0 overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=150&q=80" alt="Material" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: watchColor }}>
-                    PDF Didático
-                  </span>
-                  <h4 className="text-xs font-bold text-slate-900 truncate">Combo Exemplo de Apostila</h4>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs font-black text-slate-900">R$ 49,90</span>
-                    <button 
-                      className="px-2.5 py-1 rounded text-[10px] font-bold text-white shadow-xs"
-                      style={{ backgroundColor: watchColor }}
-                    >
-                      Comprar
-                    </button>
+                    {(watchedNomeLoja || 'L').charAt(0).toUpperCase()}
                   </div>
-                </div>
+                )}
               </div>
 
-            </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  {watchedNomeLoja || 'Nome da Sua Loja'}
+                </h3>
+                <p className="text-xs text-blue-600 font-mono font-bold">
+                  educalizando.com.br/loja/{watchedSlug || 'sua-loja'}
+                </p>
+                <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
+                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus alunos.'}
+                </p>
+              </div>
 
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Cor de Destaque:</span>
+                <span
+                  className="px-3 py-1 rounded-full text-white text-[10px] font-extrabold uppercase"
+                  style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
+                >
+                  Botão de Compra
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

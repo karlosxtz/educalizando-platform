@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 interface FileUploadProps {
   label: string;
   helperText?: string;
-  bucket: 'product-covers' | 'product-files';
+  bucket: 'product-covers' | 'product-files' | 'store-assets';
   accept: string;
   maxSizeMB: number;
   value?: string | null;
