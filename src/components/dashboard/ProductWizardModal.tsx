@@ -7,6 +7,7 @@ import {
   AlertTriangle, DollarSign, Sparkles, Loader2, Plus, Tags, GraduationCap 
 } from 'lucide-react';
 import FileUpload from './FileUpload';
+import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { Product, ProductType, Category, EducationLevel } from '@/lib/types';
 import { getCategories, getEducationLevels, createCustomCategory } from '@/lib/category-service';
 
@@ -309,31 +310,23 @@ export default function ProductWizardModal({
                     </button>
                   </div>
                   
-                  <select
+                  <CustomSelect
+                    options={[
+                      ...globalCats.map(cat => ({ value: cat.id, label: cat.nome, group: 'Categorias Globais' })),
+                      ...customCats.map(cat => ({ value: cat.id, label: cat.nome, group: 'Minhas Categorias Customizadas' })),
+                      { value: 'create_new', label: '+ Criar nova categoria...' }
+                    ]}
                     value={categoryId || ''}
-                    onChange={(e) => {
-                      if (e.target.value === 'create_new') {
+                    onChange={(val) => {
+                      if (val === 'create_new') {
                         setIsCreatingCategory(true);
                       } else {
-                        setCategoryId(e.target.value);
+                        setCategoryId(val);
                       }
                     }}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
-                  >
-                    <optgroup label="Categorias Globais">
-                      {globalCats.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.nome}</option>
-                      ))}
-                    </optgroup>
-                    {customCats.length > 0 && (
-                      <optgroup label="Minhas Categorias Customizadas">
-                        {customCats.map(cat => (
-                          <option key={cat.id} value={cat.id}>{cat.nome}</option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <option value="create_new">+ Criar nova categoria...</option>
-                  </select>
+                    placeholder="Selecione uma categoria..."
+                    size="lg"
+                  />
                   <p className="text-[11px] text-slate-500 font-medium">
                     💡 Agrupa seus materiais no filtro por assunto.
                   </p>
@@ -344,15 +337,13 @@ export default function ProductWizardModal({
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-1.5">
                     <GraduationCap className="w-3.5 h-3.5 text-indigo-600" /> Nível de Escolaridade *
                   </label>
-                  <select
+                  <CustomSelect
+                    options={educationLevels.map(ed => ({ value: ed.id, label: ed.nome }))}
                     value={educationLevelId || ''}
-                    onChange={(e) => setEducationLevelId(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
-                  >
-                    {educationLevels.map(ed => (
-                      <option key={ed.id} value={ed.id}>{ed.nome}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setEducationLevelId(val)}
+                    placeholder="Selecione a escolaridade..."
+                    size="lg"
+                  />
                   <p className="text-[11px] text-slate-500 font-medium">
                     💡 Permite que o aluno filtre por etapa de ensino.
                   </p>
@@ -365,17 +356,18 @@ export default function ProductWizardModal({
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     Tipo de Conteúdo Didático *
                   </label>
-                  <select
+                  <CustomSelect
+                    options={[
+                      { value: 'pdf', label: 'Apostila em PDF' },
+                      { value: 'ebook', label: 'E-Book Interativo' },
+                      { value: 'video', label: 'Videoaula (Link YouTube/Vimeo)' },
+                      { value: 'curso', label: 'Curso Completo (Módulos)' },
+                      { value: 'simulado', label: 'Simulado Gabaritado' }
+                    ]}
                     value={tipo}
-                    onChange={(e) => setTipo(e.target.value as ProductType)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
-                  >
-                    <option value="pdf">Apostila em PDF</option>
-                    <option value="ebook">E-Book Interativo</option>
-                    <option value="video">Videoaula (Link YouTube/Vimeo)</option>
-                    <option value="curso">Curso Completo (Módulos)</option>
-                    <option value="simulado">Simulado Gabaritado</option>
-                  </select>
+                    onChange={(val) => setTipo(val as ProductType)}
+                    size="lg"
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -470,14 +462,15 @@ export default function ProductWizardModal({
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     Status de Publicação *
                   </label>
-                  <select
+                  <CustomSelect
+                    options={[
+                      { value: 'publicado', label: 'Publicado (Visível na loja)' },
+                      { value: 'rascunho', label: 'Rascunho (Oculto da loja)' }
+                    ]}
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as 'publicado' | 'rascunho')}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
-                  >
-                    <option value="publicado">Publicado (Visível na loja)</option>
-                    <option value="rascunho">Rascunho (Oculto da loja)</option>
-                  </select>
+                    onChange={(val) => setStatus(val as 'publicado' | 'rascunho')}
+                    size="lg"
+                  />
                 </div>
               </div>
 
