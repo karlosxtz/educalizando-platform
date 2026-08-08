@@ -142,7 +142,7 @@ export default function StoreSettingsPage() {
             <StoreIcon className="w-7 h-7 text-blue-600" /> Configurações da Sua Loja
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Personalize a identidade visual, logo, banner e o link da sua vitrine pública.
+            Personalize a identidade visual, logo, banner e o link da sua vitrine pública. <span className="text-[10px] text-blue-600 font-mono font-bold">(v1.0.1 - Redes Sociais Ativas)</span>
           </p>
         </div>
 
