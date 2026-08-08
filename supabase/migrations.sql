@@ -109,3 +109,41 @@ BEGIN
     RETURN new_slug;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 9. SUPABASE STORAGE BUCKETS & RLS POLICIES
+-- Buckets para upload de capas e arquivos didáticos entregues aos alunos
+
+-- Criar bucket público 'product-covers'
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-covers', 'product-covers', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Criar bucket privado 'product-files'
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-files', 'product-files', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Leitura pública de capas
+CREATE POLICY "Capas de produtos são públicas para leitura"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'product-covers');
+
+-- Upload de capas por usuários autenticados
+CREATE POLICY "Criadores podem fazer upload de capas"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'product-covers' AND auth.role() = 'authenticated');
+
+-- Leitura de arquivos do produto pelo criador
+CREATE POLICY "Criadores podem ler seus arquivos didáticos"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'product-files' AND auth.role() = 'authenticated');
+
+-- Upload de arquivos por usuários autenticados
+CREATE POLICY "Criadores podem fazer upload de arquivos didáticos"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'product-files' AND auth.role() = 'authenticated');
+
+-- Exclusão de arquivos pelo dono
+CREATE POLICY "Criadores podem deletar seus arquivos e capas"
+ON storage.objects FOR DELETE
+USING ((bucket_id = 'product-covers' OR bucket_id = 'product-files') AND auth.role() = 'authenticated');
