@@ -112,6 +112,11 @@ export default function MockupPreview() {
             </div>
           </div>
         </div>
+
+        {/* Small Illustrative Badge Notice */}
+        <div className="bg-[#0b0f19] px-4 py-2 border-t border-white/5 text-center text-[11px] text-slate-400 italic">
+          💡 Exemplo ilustrativo de como a sua loja aparecerá para os alunos.
+        </div>
       </div>
     </motion.div>
   );

@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check, Sparkles, Store, Zap } from 'lucide-react';
+import { Check, Store, Zap } from 'lucide-react';
+import { PLATFORM_CONFIG } from '@/lib/config';
 
 export default function Pricing() {
   const scrollToRegister = () => {
@@ -49,7 +50,7 @@ export default function Pricing() {
               </div>
 
               <p className="mt-3 text-sm text-[#10b981] font-bold flex items-center justify-center gap-1.5">
-                <Zap className="w-4 h-4 fill-[#10b981]" /> Apenas uma pequena taxa de 9,9% + R$ 1,00 por venda efetuada
+                <Zap className="w-4 h-4 fill-[#10b981]" /> Apenas uma pequena taxa de {PLATFORM_CONFIG.feeFormatted} por venda efetuada
               </p>
             </div>
 
