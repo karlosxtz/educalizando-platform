@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Plus, Sparkles
+  MessageCircle, Plus, Sparkles, Search
 } from 'lucide-react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -209,55 +209,60 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
         </div>
       </header>
 
-      {/* Main Store Products Catalog */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-        
-        {/* Filter & Catalog Header with Styled CustomSelect Components */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" style={{ color: primaryColor }} />
-              Materiais Didáticos Publicados ({filteredProducts.length})
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5 font-medium">
-              Escolha seu material e receba acesso imediato na Área de Membros após o pagamento via PIX.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            {/* Search Input */}
-            <div className="w-full sm:w-56">
-              <input
-                type="text"
-                placeholder="Buscar material..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs font-medium"
-              />
+      {/* Sticky Filter & Search Bar */}
+      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md py-4 border-b border-slate-200 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" style={{ color: primaryColor }} />
+                Materiais Didáticos Publicados ({filteredProducts.length})
+              </h2>
+              <p className="text-xs text-slate-500 font-medium hidden sm:block">
+                Acesso imediato no e-mail e na Área de Membros após a compra.
+              </p>
             </div>
 
-            {/* Custom Category Select */}
-            <div className="w-full sm:w-52">
-              <CustomSelect
-                options={categoryFilterOptions}
-                value={selectedCategory}
-                onChange={(val) => setSelectedCategory(val)}
-                icon={<Tags className="w-3.5 h-3.5" />}
-              />
-            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+              {/* Full-width Search Input */}
+              <div className="relative w-full sm:w-64 md:w-72">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome ou tema..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs font-medium"
+                />
+              </div>
 
-            {/* Custom Education Level Select */}
-            <div className="w-full sm:w-52">
-              <CustomSelect
-                options={educationFilterOptions}
-                value={selectedEducation}
-                onChange={(val) => setSelectedEducation(val)}
-                icon={<GraduationCap className="w-3.5 h-3.5" />}
-              />
+              {/* Custom Category Select */}
+              <div className="w-full sm:w-48">
+                <CustomSelect
+                  options={categoryFilterOptions}
+                  value={selectedCategory}
+                  onChange={(val) => setSelectedCategory(val)}
+                  icon={<Tags className="w-3.5 h-3.5" />}
+                />
+              </div>
+
+              {/* Custom Education Level Select */}
+              <div className="w-full sm:w-48">
+                <CustomSelect
+                  options={educationFilterOptions}
+                  value={selectedEducation}
+                  onChange={(val) => setSelectedEducation(val)}
+                  icon={<GraduationCap className="w-3.5 h-3.5" />}
+                />
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Main Store Products Catalog */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
@@ -306,72 +311,80 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
                   key={prod.id}
-                  className="bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between space-y-4 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group hover:border-slate-300/80"
+                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
-                  <div className="space-y-3.5">
-                    {/* Product Cover with Fixed 3:4 Aspect Ratio */}
-                    <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
-                      {prod.capa_url ? (
-                        <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
-                          Material Didático Digital
-                        </div>
-                      )}
-                      <span 
-                        className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs"
+                  <Link 
+                    href={`/loja/${store.slug}/produto/${prod.id}`}
+                    className="flex-1 p-5 flex flex-col justify-between space-y-4 cursor-pointer"
+                  >
+                    <div className="space-y-3">
+                      {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
+                      <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
+                        {prod.capa_url ? (
+                          <img 
+                            src={prod.capa_url} 
+                            alt={prod.titulo} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
+                            Material Didático Digital
+                          </div>
+                        )}
+                        <span 
+                          className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {getTipoIcon(prod.tipo)}
+                          <span>{prod.tipo}</span>
+                        </span>
+                      </div>
+
+                      {/* Category & Education Level Badges */}
+                      <div className="flex flex-wrap items-center gap-1.5 min-h-[22px]">
+                        {catName && (
+                          <span className="bg-blue-50/80 text-blue-700 border border-blue-100/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                            <Tags className="w-3 h-3" /> {catName}
+                          </span>
+                        )}
+                        {edName && (
+                          <span className="bg-indigo-50/80 text-indigo-700 border border-indigo-100/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                            <GraduationCap className="w-3 h-3" /> {edName}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Title & Description */}
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                          {prod.titulo}
+                        </h3>
+                        {prod.descricao && (
+                          <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium leading-relaxed">
+                            {prod.descricao}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Price & Buy Action */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
+                        <span className="text-xl font-black tracking-tight text-slate-900">
+                          R$ {prod.preco.toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
+
+                      <span
+                        className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-white shadow-md group-hover:shadow-lg group-hover:brightness-110 transition-all flex items-center gap-1.5"
                         style={{ backgroundColor: primaryColor }}
                       >
-                        {getTipoIcon(prod.tipo)}
-                        <span>{prod.tipo}</span>
+                        <Zap className="w-3.5 h-3.5 fill-white" />
+                        <span>Ver Detalhes</span>
                       </span>
                     </div>
-
-                    {/* Category & Education Level Badges */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {catName && (
-                        <span className="bg-blue-50/80 text-blue-700 border border-blue-100/80 px-2.5 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1">
-                          <Tags className="w-3 h-3" /> {catName}
-                        </span>
-                      )}
-                      {edName && (
-                        <span className="bg-indigo-50/80 text-indigo-700 border border-indigo-100/80 px-2.5 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1">
-                          <GraduationCap className="w-3 h-3" /> {edName}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Title & Description */}
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-                        {prod.titulo}
-                      </h3>
-                      {prod.descricao && (
-                        <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 font-medium leading-relaxed">
-                          {prod.descricao}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Price & Buy Action */}
-                  <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
-                      <span className="text-2xl font-black tracking-tight text-slate-900">
-                        R$ {prod.preco.toFixed(2).replace('.', ',')}
-                      </span>
-                    </div>
-
-                    <Link
-                      href={`/loja/${store.slug}/produto/${prod.id}`}
-                      className="px-4 py-2.5 rounded-xl text-xs font-extrabold text-white shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Zap className="w-3.5 h-3.5 fill-white" />
-                      <span>Ver Detalhes</span>
-                    </Link>
-                  </div>
+                  </Link>
                 </motion.div>
               );
             })}
