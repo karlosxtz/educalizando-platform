@@ -1,86 +1,80 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, BookOpen, ShieldCheck, Headphones, Sparkles } from 'lucide-react';
-
-const TRUST_CARDS = [
-  {
-    icon: Zap,
-    title: 'Checkout PIX Instantâneo',
-    description: 'Pagamentos direto na sua conta com confirmação automática no checkout.',
-    color: 'text-[#10b981]',
-    bg: 'bg-[#10b981]/10',
-    border: 'border-[#10b981]/20'
-  },
-  {
-    icon: BookOpen,
-    title: 'Área de Membros Inclusa',
-    description: 'Entrega segura de PDFs e videoaulas no leitor digital sem custo adicional.',
-    color: 'text-[#6366f1]',
-    bg: 'bg-[#6366f1]/10',
-    border: 'border-[#6366f1]/20'
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Risco Zero (Sem Mensalidade)',
-    description: 'Você não paga nada para se cadastrar. Apenas uma taxa sobre as vendas efetuadas.',
-    color: 'text-[#ff5722]',
-    bg: 'bg-[#ff5722]/10',
-    border: 'border-[#ff5722]/20'
-  },
-  {
-    icon: Headphones,
-    title: 'Suporte Direto com o Fundador',
-    description: 'Atendimento próximo e acompanhamento ativo na criação da sua primeira loja.',
-    color: 'text-amber-400',
-    bg: 'bg-amber-400/10',
-    border: 'border-amber-400/20'
-  }
-];
+import { Zap, ShieldCheck, Headphones, Store, Sparkles } from 'lucide-react';
 
 export default function SocialProof() {
+  const TRUST_CARDS = [
+    {
+      icon: Zap,
+      color: 'text-amber-500 bg-amber-50 border-amber-200',
+      title: 'Checkout PIX Instantâneo',
+      description: 'O aluno paga via QR Code ou Copia e Cola e o dinheiro cai direto na sua conta, com liberação automática do material.'
+    },
+    {
+      icon: Store,
+      color: 'text-blue-600 bg-blue-50 border-blue-200',
+      title: 'Área de Membros Inclusa',
+      description: 'Entregue apostilas em PDF, simulados e videoaulas em um ambiente seguro e profissional sob o nome da sua marca.'
+    },
+    {
+      icon: ShieldCheck,
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      title: 'Risco Zero & Sem Mensalidade',
+      description: 'Crie sua loja e cadastre quantos materiais didáticos quiser sem pagar nada por mês. Você só paga taxa fixa quando vender.'
+    },
+    {
+      icon: Headphones,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      title: 'Suporte Direto com o Fundador',
+      description: 'Plataforma nova pensada para criadores. Você tem acesso direto à equipe para tirar dúvidas e sugerir melhorias.'
+    }
+  ];
+
   return (
-    <section className="py-12 relative z-10 border-y border-white/10 bg-slate-900/40 backdrop-blur-md">
+    <section className="py-16 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Early Stage Badge */}
-        <div className="text-center mb-8">
-          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/20 px-4 py-1.5 rounded-full">
-            <Sparkles className="w-4 h-4" /> Plataforma Nova — Seja um dos Primeiros Criadores
+        {/* Early-stage Trust Badge Banner */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> PLATAFORMA NOVA — SEJA UM DOS PRIMEIROS CRIADORES
           </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Construída sob medida para quem cria conteúdo educativo
+          </h2>
+          <p className="text-sm text-slate-600">
+            Transparência total desde o primeiro dia. Confira os diferenciais reais que você tem hoje no Educalizando:
+          </p>
         </div>
 
-        {/* Trust Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        {/* 4 Real Benefits Cards */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {TRUST_CARDS.map((card, idx) => {
             const Icon = card.icon;
             return (
               <motion.div
-                key={idx}
+                key={card.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className={`p-6 rounded-2xl glass-panel glass-panel-hover border ${card.border} flex flex-col justify-between`}
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl ${card.bg} ${card.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
+                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${card.color}`}>
+                  <Icon className="w-6 h-6" />
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight mb-1">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {card.description}
-                  </p>
-                </div>
+                <h3 className="text-base font-bold text-slate-900 leading-snug">
+                  {card.title}
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  {card.description}
+                </p>
               </motion.div>
             );
           })}
         </div>
+
       </div>
     </section>
   );

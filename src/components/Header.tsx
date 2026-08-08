@@ -28,7 +28,7 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-[#0b0f19]/90 backdrop-blur-md border-b border-white/10 py-3 shadow-xl'
+          ? 'bg-white/90 backdrop-blur-md border-b border-slate-200 py-3 shadow-xs'
           : 'bg-transparent py-5'
       }`}
     >
@@ -38,48 +38,48 @@ export default function Header() {
           href="/"
           className="flex items-center gap-2.5 cursor-pointer group"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff5722] to-[#6366f1] flex items-center justify-center shadow-lg shadow-[#ff5722]/25 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <span className="text-2xl font-black tracking-tight text-white">
-              Educa<span className="text-[#ff5722]">lizando</span>
+            <span className="text-2xl font-black tracking-tight text-slate-900">
+              Educa<span className="text-blue-600">lizando</span>
             </span>
-            <span className="block text-[0.65rem] font-bold text-slate-400 tracking-widest uppercase -mt-1">
+            <span className="block text-[0.65rem] font-bold text-slate-500 tracking-widest uppercase -mt-1">
               Para Criadores Didáticos
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
           <button
             onClick={() => scrollToSection('como-funciona')}
-            className="hover:text-white transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             Como Funciona
           </button>
           <button
             onClick={() => scrollToSection('para-quem')}
-            className="hover:text-white transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             Para Quem É
           </button>
           <button
             onClick={() => scrollToSection('beneficios')}
-            className="hover:text-white transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             Diferenciais
           </button>
           <button
             onClick={() => scrollToSection('precos')}
-            className="hover:text-white transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             Preços
           </button>
           <button
             onClick={() => scrollToSection('faq')}
-            className="hover:text-white transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             FAQ
           </button>
@@ -89,15 +89,15 @@ export default function Header() {
         <div className="hidden sm:flex items-center gap-3">
           <Link
             href="/login"
-            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-all flex items-center gap-2"
           >
-            <LogIn className="w-4 h-4 text-[#ff5722]" />
+            <LogIn className="w-4 h-4 text-blue-600" />
             <span>Entrar</span>
           </Link>
 
           <button
             onClick={() => scrollToSection('cadastro')}
-            className="px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#ff5722] to-[#ea580c] text-white shadow-lg shadow-[#ff5722]/25 hover:shadow-[#ff5722]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2"
           >
             <Store className="w-4 h-4" />
             <span>Criar minha loja grátis</span>
@@ -108,7 +108,7 @@ export default function Header() {
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 text-slate-300 hover:text-white focus:outline-none"
+          className="md:hidden p-2 text-slate-700 hover:text-blue-600 focus:outline-none"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -116,49 +116,49 @@ export default function Header() {
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0b0f19]/95 backdrop-blur-xl border-b border-white/10 px-4 pt-4 pb-6 space-y-3">
+        <div className="md:hidden bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 pt-4 pb-6 space-y-3 shadow-lg">
           <button
             onClick={() => scrollToSection('como-funciona')}
-            className="block w-full text-left py-2 text-slate-200 font-semibold"
+            className="block w-full text-left py-2 text-slate-700 font-semibold"
           >
             Como Funciona
           </button>
           <button
             onClick={() => scrollToSection('para-quem')}
-            className="block w-full text-left py-2 text-slate-200 font-semibold"
+            className="block w-full text-left py-2 text-slate-700 font-semibold"
           >
             Para Quem É
           </button>
           <button
             onClick={() => scrollToSection('beneficios')}
-            className="block w-full text-left py-2 text-slate-200 font-semibold"
+            className="block w-full text-left py-2 text-slate-700 font-semibold"
           >
             Diferenciais
           </button>
           <button
             onClick={() => scrollToSection('precos')}
-            className="block w-full text-left py-2 text-slate-200 font-semibold"
+            className="block w-full text-left py-2 text-slate-700 font-semibold"
           >
             Preços
           </button>
           <button
             onClick={() => scrollToSection('faq')}
-            className="block w-full text-left py-2 text-slate-200 font-semibold"
+            className="block w-full text-left py-2 text-slate-700 font-semibold"
           >
             FAQ
           </button>
           <div className="pt-2 flex flex-col gap-2">
             <Link
               href="/login"
-              className="w-full py-2.5 rounded-xl font-bold bg-white/5 border border-white/10 text-white flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2"
             >
-              <LogIn className="w-4 h-4 text-[#ff5722]" />
+              <LogIn className="w-4 h-4 text-blue-600" />
               <span>Entrar na Minha Conta</span>
             </Link>
 
             <button
               onClick={() => scrollToSection('cadastro')}
-              className="w-full py-3 rounded-xl font-bold bg-[#ff5722] text-white flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl font-bold bg-blue-600 text-white flex items-center justify-center gap-2"
             >
               <Store className="w-4 h-4" />
               <span>Criar minha loja grátis</span>

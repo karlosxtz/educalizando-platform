@@ -4,79 +4,64 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 
-const FAQS = [
-  {
-    q: 'Preciso pagar alguma mensalidade para cadastrar minha loja?',
-    a: 'Não! O cadastro no Educalizando é 100% gratuito. Não cobramos nenhuma taxa de adesão nem mensalidade recorrente. Você só paga uma pequena comissão (9,9% + R$ 1,00) por cada venda realizada.'
-  },
-  {
-    q: 'Como recebo o dinheiro das minhas vendas?',
-    a: 'Todas as vendas realizadas via PIX são processadas no checkout instantâneo e disponibilizadas no seu saldo do Educalizando. Você pode solicitar o saque direto para sua chave PIX a qualquer momento.'
-  },
-  {
-    q: 'Quais tipos de materiais didáticos posso vender?',
-    a: 'Você pode vender apostilas digitais em PDF, e-books esquematizados, cadernos de exercícios e simulados com gabarito, videoaulas preparatórias, modelos de redação, planos de aula e kits pedagógicos completos.'
-  },
-  {
-    q: 'Como é feita a entrega do material para o aluno?',
-    a: 'Assim que o pagamento é aprovado, o aluno recebe acesso imediato à Área de Membros do Educalizando. Lá ele pode visualizar e ler os e-books em PDF no nosso leitor digital, assistir a videoaulas e baixar os arquivos anexos de forma protegida.'
-  },
-  {
-    q: 'Como funciona a emissão de certificados?',
-    a: 'A plataforma gera automaticamente um certificado digital de conclusão em PDF quando o aluno conclui a leitura ou visualização das aulas do seu material, com carga horária e código de verificação único.'
-  },
-  {
-    q: 'Posso cadastrar afiliados para venderem meus materiais?',
-    a: 'Sim! Você pode ativar o programa de afiliados e definir qual percentual de comissão (ex: 50%) parceiros e outros professores receberão por indicar sua loja e seus materiais didáticos.'
-  }
-];
-
 export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
-  const toggle = (idx: number) => {
-    setOpenIdx(openIdx === idx ? null : idx);
-  };
+  const FAQS = [
+    {
+      q: 'Quanto custa para criar minha loja no Educalizando?',
+      a: 'Criar sua conta e sua loja no Educalizando é 100% gratuito. Não há taxa de adesão nem mensalidade fixa. Você só paga uma taxa de 9,9% + R$ 1,00 por venda efetuada.'
+    },
+    {
+      q: 'Como recebo o dinheiro das minhas vendas?',
+      a: 'Os pagamentos são processados via PIX instantâneo. O valor da venda fica disponível e pode ser transferido diretamente para a sua conta bancária via chave PIX.'
+    },
+    {
+      q: 'Quais tipos de materiais posso vender?',
+      a: 'Você pode vender apostilas digitais em PDF, e-books esquematizados, cadernos de questões, simulados gabaritados, videoaulas e cursos completos.'
+    },
+    {
+      q: 'Como o meu aluno acessa o conteúdo após a compra?',
+      a: 'Assim que o pagamento via PIX é confirmado (em poucos segundos), o aluno recebe acesso imediato à Área de Membros da sua loja para baixar os arquivos em PDF ou assistir aos vídeos.'
+    },
+    {
+      q: 'Posso personalizar as cores e o nome da minha loja?',
+      a: 'Sim! No seu painel de criador você define o nome da sua marca, adiciona sua logo, imagem de capa e escolhe a cor de destaque da sua vitrine pública.'
+    }
+  ];
 
   return (
-    <section id="faq" className="py-24 relative z-10 bg-slate-950/40 border-t border-white/10">
+    <section id="faq" className="py-20 relative z-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-[#6366f1] bg-[#6366f1]/10 border border-[#6366f1]/20 px-3.5 py-1.5 rounded-full inline-block">
-            Tire Suas Dúvidas
+        {/* Title */}
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-block">
+            PERGUNTAS FREQUENTES
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            Perguntas Frequentes de <span className="gradient-text-coral">Criadores</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Tire suas dúvidas sobre a plataforma
           </h2>
-          <p className="text-base text-slate-300">
-            Respostas claras para você começar a vender seus materiais com total segurança.
-          </p>
         </div>
 
-        {/* FAQ Accordion List */}
+        {/* Accordion List */}
         <div className="space-y-4">
-          {FAQS.map((item, idx) => {
+          {FAQS.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
               <div
-                key={idx}
-                className="bg-[#111827]/80 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-colors"
+                key={faq.q}
+                className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all"
               >
                 <button
-                  onClick={() => toggle(idx)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-white hover:text-[#ff5722] transition-colors"
+                  onClick={() => setOpenIdx(isOpen ? null : idx)}
+                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-base"
                 >
-                  <span className="text-base sm:text-lg flex items-center gap-3">
-                    <HelpCircle className="w-5 h-5 text-[#ff5722] flex-shrink-0" />
-                    {item.q}
+                  <span className="flex items-center gap-3">
+                    <HelpCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <span>{faq.q}</span>
                   </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-slate-400 transition-transform duration-300 flex-shrink-0 ${
-                      isOpen ? 'rotate-180 text-[#ff5722]' : ''
-                    }`}
-                  />
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -86,10 +71,9 @@ export default function FAQ() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
+                      className="px-6 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-100 font-medium"
                     >
-                      <div className="px-6 pb-6 pt-0 text-sm text-slate-300 leading-relaxed border-t border-white/5 mt-2">
-                        {item.a}
-                      </div>
+                      {faq.a}
                     </motion.div>
                   )}
                 </AnimatePresence>
