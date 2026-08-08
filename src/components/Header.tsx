@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, ArrowRight, Menu, X, Store } from 'lucide-react';
+import Link from 'next/link';
+import { Sparkles, ArrowRight, Menu, X, Store, LogIn } from 'lucide-react';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,8 +34,8 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Brand Logo */}
-        <div
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        <Link
+          href="/"
           className="flex items-center gap-2.5 cursor-pointer group"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff5722] to-[#6366f1] flex items-center justify-center shadow-lg shadow-[#ff5722]/25 group-hover:scale-105 transition-transform">
@@ -48,7 +49,7 @@ export default function Header() {
               Para Criadores Didáticos
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
@@ -84,14 +85,22 @@ export default function Header() {
           </button>
         </nav>
 
-        {/* CTA Button */}
-        <div className="hidden sm:flex items-center gap-4">
+        {/* CTA Buttons Header */}
+        <div className="hidden sm:flex items-center gap-3">
+          <Link
+            href="/login"
+            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all flex items-center gap-2"
+          >
+            <LogIn className="w-4 h-4 text-[#ff5722]" />
+            <span>Entrar</span>
+          </Link>
+
           <button
             onClick={() => scrollToSection('cadastro')}
             className="px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#ff5722] to-[#ea580c] text-white shadow-lg shadow-[#ff5722]/25 hover:shadow-[#ff5722]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2"
           >
             <Store className="w-4 h-4" />
-            Criar minha loja grátis
+            <span>Criar minha loja grátis</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -138,13 +147,23 @@ export default function Header() {
           >
             FAQ
           </button>
-          <button
-            onClick={() => scrollToSection('cadastro')}
-            className="w-full py-3 rounded-xl font-bold bg-[#ff5722] text-white flex items-center justify-center gap-2"
-          >
-            <Store className="w-4 h-4" />
-            Criar minha loja grátis
-          </button>
+          <div className="pt-2 flex flex-col gap-2">
+            <Link
+              href="/login"
+              className="w-full py-2.5 rounded-xl font-bold bg-white/5 border border-white/10 text-white flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4 text-[#ff5722]" />
+              <span>Entrar na Minha Conta</span>
+            </Link>
+
+            <button
+              onClick={() => scrollToSection('cadastro')}
+              className="w-full py-3 rounded-xl font-bold bg-[#ff5722] text-white flex items-center justify-center gap-2"
+            >
+              <Store className="w-4 h-4" />
+              <span>Criar minha loja grátis</span>
+            </button>
+          </div>
         </div>
       )}
     </header>

@@ -34,6 +34,21 @@ export const creatorSignupSchema = z.object({
 
 export type CreatorSignupFormValues = z.infer<typeof creatorSignupSchema>;
 
+// Login Schema
+export const loginSchema = z.object({
+  email: z.string().email({ message: 'Digite um e-mail válido.' }),
+  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres.' })
+});
+
+export type LoginFormValues = z.infer<typeof loginSchema>;
+
+// Reset Password Schema
+export const resetPasswordSchema = z.object({
+  email: z.string().email({ message: 'Digite um e-mail válido para recuperação.' })
+});
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
 // Store Customization Schema
 export const storeSettingsSchema = z.object({
   nome_loja: z.string().min(3, { message: 'O nome da loja deve ter pelo menos 3 caracteres.' }),

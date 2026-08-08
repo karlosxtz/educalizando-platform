@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import confetti from 'canvas-confetti';
@@ -13,6 +14,7 @@ import { creatorSignupSchema, type CreatorSignupFormValues } from '@/lib/zod-sch
 import { registerCreatorInSupabase } from '@/lib/supabase';
 
 export default function SignupForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -68,6 +70,11 @@ export default function SignupForm() {
       });
 
       setSuccessData({ storeSlug: res.storeSlug });
+
+      // Redirecionamento Automático para o Dashboard após 1.5s
+      setTimeout(() => {
+        router.push('/dashboard/loja');
+      }, 1500);
     } catch (err: any) {
       setServerError(err.message || 'Erro ao realizar o cadastro. Tente novamente.');
     }

@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Sparkles, Store, Package, ExternalLink, ArrowLeft } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Sparkles, Store, Package, ExternalLink, LogOut, Loader2 } from 'lucide-react';
+import { getCurrentUserSession, signOutUser } from '@/lib/supabase';
 
 export default function DashboardLayout({
   children,
@@ -10,6 +12,40 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    async function verifyAuth() {
+      try {
+        const session = await getCurrentUserSession();
+        if (!session) {
+          router.push('/login');
+        }
+      } catch (err) {
+        console.error('Erro na verificação de autenticação:', err);
+      } finally {
+        setCheckingAuth(false);
+      }
+    }
+    verifyAuth();
+  }, [router]);
+
+  const handleLogout = async () => {
+    await signOutUser();
+    router.push('/login');
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center text-slate-100">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 text-[#ff5722] animate-spin" />
+          <span className="text-sm font-semibold">Verificando sessão segura...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans">
@@ -69,14 +105,15 @@ export default function DashboardLayout({
             </Link>
           </nav>
 
-          {/* Back Home CTA */}
-          <Link
-            href="/"
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold transition-colors"
+          {/* Functional Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 rounded-lg border border-rose-500/20 flex items-center gap-1.5 font-bold transition-all"
+            title="Encerrar sessão no Educalizando"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5" />
             <span className="hidden lg:inline">Sair</span>
-          </Link>
+          </button>
         </div>
       </header>
 
