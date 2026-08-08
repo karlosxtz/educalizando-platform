@@ -45,7 +45,7 @@ ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 -- 6. Políticas de Segurança RLS para a Tabela STORES
--- Permissão de leitura pública da loja pelo slug (para quem for comprar)
+-- Permissão de leitura pública da loja pelo slug
 CREATE POLICY "Lojas são públicas para leitura" ON public.stores
     FOR SELECT USING (true);
 
@@ -113,37 +113,112 @@ $$ LANGUAGE plpgsql;
 -- 9. SUPABASE STORAGE BUCKETS & RLS POLICIES
 -- Buckets para upload de capas e arquivos didáticos entregues aos alunos
 
--- Criar bucket público 'product-covers'
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-covers', 'product-covers', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Criar bucket privado 'product-files'
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-files', 'product-files', false)
 ON CONFLICT (id) DO NOTHING;
 
--- Leitura pública de capas
 CREATE POLICY "Capas de produtos são públicas para leitura"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'product-covers');
 
--- Upload de capas por usuários autenticados
 CREATE POLICY "Criadores podem fazer upload de capas"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'product-covers' AND auth.role() = 'authenticated');
 
--- Leitura de arquivos do produto pelo criador
 CREATE POLICY "Criadores podem ler seus arquivos didáticos"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'product-files' AND auth.role() = 'authenticated');
 
--- Upload de arquivos por usuários autenticados
 CREATE POLICY "Criadores podem fazer upload de arquivos didáticos"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'product-files' AND auth.role() = 'authenticated');
 
--- Exclusão de arquivos pelo dono
 CREATE POLICY "Criadores podem deletar seus arquivos e capas"
 ON storage.objects FOR DELETE
 USING ((bucket_id = 'product-covers' OR bucket_id = 'product-files') AND auth.role() = 'authenticated');
+
+-- 10. TABELA DE CATEGORIAS / TEMAS (categories)
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nome TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE, -- NULL = Categoria Global, UUID = Categoria Customizada
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_categories_store_id ON public.categories(store_id);
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
+-- Leitura pública de categorias globais OU da própria loja
+CREATE POLICY "Categorias globais e da loja são públicas para leitura" ON public.categories
+    FOR SELECT USING (store_id IS NULL OR store_id IN (
+        SELECT id FROM public.stores WHERE creator_id = auth.uid() OR true
+    ));
+
+-- Inserção de categorias customizadas apenas pelo criador com seu próprio store_id
+CREATE POLICY "Criador pode criar sua categoria customizada" ON public.categories
+    FOR INSERT WITH CHECK (store_id IS NOT NULL AND store_id IN (
+        SELECT id FROM public.stores WHERE creator_id = auth.uid()
+    ));
+
+-- Atualização/Exclusão apenas de categorias customizadas próprias
+CREATE POLICY "Criador pode editar/deletar suas categorias" ON public.categories
+    FOR ALL USING (store_id IS NOT NULL AND store_id IN (
+        SELECT id FROM public.stores WHERE creator_id = auth.uid()
+    ));
+
+-- Seed de Categorias Globais Iniciais
+INSERT INTO public.categories (nome, slug, store_id)
+VALUES 
+    ('Matemática', 'matematica', NULL),
+    ('Português & Literatura', 'portugues-literatura', NULL),
+    ('Redação 1000', 'redacao-1000', NULL),
+    ('Ciências & Biologia', 'ciencias-biologia', NULL),
+    ('História & Geografia', 'historia-geografia', NULL),
+    ('Física & Química', 'fisica-quimica', NULL),
+    ('Concursos Públicos', 'concursos-publicos', NULL),
+    ('Idiomas & Inglês', 'idiomas-ingles', NULL),
+    ('Vestibular & ENEM', 'vestibular-enem', NULL),
+    ('Educação Infantil', 'educacao-infantil', NULL),
+    ('Outros Conteúdos', 'outros-conteudos', NULL)
+ON CONFLICT DO NOTHING;
+
+-- 11. TABELA DE NÍVEIS DE ESCOLARIDADE (education_levels)
+CREATE TABLE IF NOT EXISTS public.education_levels (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nome TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    ordem INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.education_levels ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Níveis de escolaridade são públicos para leitura" ON public.education_levels
+    FOR SELECT USING (true);
+
+-- Seed de Níveis de Escolaridade Globais
+INSERT INTO public.education_levels (nome, slug, ordem)
+VALUES 
+    ('Educação Infantil', 'educacao-infantil', 1),
+    ('Ensino Fundamental I', 'ensino-fundamental-1', 2),
+    ('Ensino Fundamental II', 'ensino-fundamental-2', 3),
+    ('Ensino Médio', 'ensino-medio', 4),
+    ('Pré-Vestibular / ENEM', 'pre-vestibular-enem', 5),
+    ('Ensino Superior & Pós', 'ensino-superior-pos', 6),
+    ('Concursos Públicos', 'concursos-publicos', 7),
+    ('Idiomas & Cursos Livres', 'idiomas-cursos-livres', 8)
+ON CONFLICT DO NOTHING;
+
+-- 12. ALTERAR TABELA PRODUCTS (Adicionar FKs category_id e education_level_id)
+ALTER TABLE public.products 
+    ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS education_level_id UUID REFERENCES public.education_levels(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_education_level_id ON public.products(education_level_id);

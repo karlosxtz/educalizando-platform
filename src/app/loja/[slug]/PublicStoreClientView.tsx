@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ShoppingBag, X, CheckCircle2 
+  Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap 
 } from 'lucide-react';
-import { Store, Product, ProductType } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
+import { getCategories, getEducationLevels } from '@/lib/category-service';
 
 interface PublicStoreClientViewProps {
   store: Store;
@@ -18,13 +19,32 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedEducation, setSelectedEducation] = useState<string>('all');
+
+  useEffect(() => {
+    loadMetadata();
+  }, [store.id]);
+
+  const loadMetadata = async () => {
+    const cats = await getCategories(store.id);
+    const edLevels = await getEducationLevels();
+    setCategories(cats);
+    setEducationLevels(edLevels);
+  };
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
-  const filteredProducts = initialProducts.filter(p => 
-    p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()))
-  );
+  const filteredProducts = initialProducts.filter(p => {
+    const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
+    const matchCategory = selectedCategory === 'all' || p.category_id === selectedCategory;
+    const matchEducation = selectedEducation === 'all' || p.education_level_id === selectedEducation;
+    return matchSearch && matchCategory && matchEducation;
+  });
 
   const getTipoIcon = (tipo: ProductType) => {
     switch (tipo) {
@@ -34,6 +54,16 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       case 'curso': return <Layers className="w-3.5 h-3.5" />;
       case 'simulado': return <HelpCircle className="w-3.5 h-3.5" />;
     }
+  };
+
+  const getCategoryName = (catId?: string | null) => {
+    if (!catId) return null;
+    return categories.find(c => c.id === catId)?.nome || null;
+  };
+
+  const getEducationName = (edId?: string | null) => {
+    if (!edId) return null;
+    return educationLevels.find(e => e.id === edId)?.nome || null;
   };
 
   const handleStartCheckout = () => {
@@ -110,7 +140,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         
         {/* Filter & Catalog Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" style={{ color: primaryColor }} />
@@ -121,14 +151,47 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
             </p>
           </div>
 
-          <div className="w-full sm:w-72">
-            <input
-              type="text"
-              placeholder="Buscar material didático..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs"
-            />
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            {/* Search Input */}
+            <div className="w-full sm:w-60">
+              <input
+                type="text"
+                placeholder="Buscar material didático..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs text-xs">
+              <Tags className="w-3.5 h-3.5 text-blue-600" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-transparent text-slate-900 font-bold focus:outline-none text-xs"
+              >
+                <option value="all">Todas as Categorias</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Education Level Filter */}
+            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs text-xs">
+              <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+              <select
+                value={selectedEducation}
+                onChange={(e) => setSelectedEducation(e.target.value)}
+                className="bg-transparent text-slate-900 font-bold focus:outline-none text-xs"
+              >
+                <option value="all">Todos os Níveis</option>
+                {educationLevels.map(e => (
+                  <option key={e.id} value={e.id}>{e.nome}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -138,71 +201,90 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
             <BookOpen className="w-10 h-10 text-slate-400 mx-auto" />
             <h3 className="text-base font-bold text-slate-900">Nenhum material encontrado</h3>
             <p className="text-xs text-slate-500">
-              Esta loja ainda não possui materiais didáticos publicados no catálogo.
+              Não foram encontrados materiais para o filtro selecionado nesta loja.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map(prod => (
-              <div
-                key={prod.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-all group"
-              >
-                <div className="space-y-3">
-                  {/* Product Cover */}
-                  <div className="h-44 rounded-xl overflow-hidden bg-slate-100 relative">
-                    {prod.capa_url ? (
-                      <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
-                        Material Didático Digital
-                      </div>
-                    )}
-                    <span 
-                      className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md flex items-center gap-1.5 uppercase shadow-md"
+            {filteredProducts.map(prod => {
+              const catName = getCategoryName(prod.category_id);
+              const edName = getEducationName(prod.education_level_id);
+
+              return (
+                <div
+                  key={prod.id}
+                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-all group"
+                >
+                  <div className="space-y-3">
+                    {/* Product Cover */}
+                    <div className="h-44 rounded-xl overflow-hidden bg-slate-100 relative">
+                      {prod.capa_url ? (
+                        <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
+                          Material Didático Digital
+                        </div>
+                      )}
+                      <span 
+                        className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md flex items-center gap-1.5 uppercase shadow-md"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {getTipoIcon(prod.tipo)}
+                        <span>{prod.tipo}</span>
+                      </span>
+                    </div>
+
+                    {/* Category & Education Level Badges */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {catName && (
+                        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                          <Tags className="w-3 h-3" /> {catName}
+                        </span>
+                      )}
+                      {edName && (
+                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                          <GraduationCap className="w-3 h-3" /> {edName}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Title & Description */}
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                        {prod.titulo}
+                      </h3>
+                      {prod.descricao && (
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                          {prod.descricao}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Price & Buy Action */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
+                      <span className="text-xl font-black text-slate-900">
+                        R$ {prod.preco.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setCheckoutSimulated(false);
+                        setSelectedProduct(prod);
+                      }}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-1.5 transition-transform active:scale-95"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      {getTipoIcon(prod.tipo)}
-                      <span>{prod.tipo}</span>
-                    </span>
-                  </div>
-
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-                      {prod.titulo}
-                    </h3>
-                    {prod.descricao && (
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-1">
-                        {prod.descricao}
-                      </p>
-                    )}
+                      <Zap className="w-3.5 h-3.5 fill-white" />
+                      <span>Ver Detalhes</span>
+                    </button>
                   </div>
                 </div>
-
-                {/* Price & Buy Action */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
-                    <span className="text-xl font-black text-slate-900">
-                      R$ {prod.preco.toFixed(2).replace('.', ',')}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setCheckoutSimulated(false);
-                      setSelectedProduct(prod);
-                    }}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-1.5 transition-transform active:scale-95"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <Zap className="w-3.5 h-3.5 fill-white" />
-                    <span>Ver Detalhes</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

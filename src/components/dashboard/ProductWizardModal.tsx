@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, CheckCircle2, ChevronRight, ChevronLeft, Package, 
-  FileText, Video, BookOpen, Layers, HelpCircle, AlertTriangle, 
-  DollarSign, Sparkles, Loader2, ShieldCheck 
+  AlertTriangle, DollarSign, Sparkles, Loader2, Plus, Tags, GraduationCap 
 } from 'lucide-react';
 import FileUpload from './FileUpload';
-import { Product, ProductType } from '@/lib/types';
+import { Product, ProductType, Category, EducationLevel } from '@/lib/types';
+import { getCategories, getEducationLevels, createCustomCategory } from '@/lib/category-service';
 
 interface ProductWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  storeId?: string;
   editingProduct?: Product | null;
   onSave: (productData: {
     titulo: string;
@@ -22,12 +23,15 @@ interface ProductWizardModalProps {
     capa_url: string | null;
     arquivo_url: string | null;
     status: 'publicado' | 'rascunho';
+    category_id: string | null;
+    education_level_id: string | null;
   }) => Promise<void>;
 }
 
 export default function ProductWizardModal({
   isOpen,
   onClose,
+  storeId,
   editingProduct,
   onSave
 }: ProductWizardModalProps) {
@@ -42,13 +46,38 @@ export default function ProductWizardModal({
   const [videoLink, setVideoLink] = useState<string>(editingProduct?.arquivo_url || '');
   const [preco, setPreco] = useState<number>(editingProduct?.preco || 49.90);
   const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status || 'publicado');
+  const [categoryId, setCategoryId] = useState<string | null>(editingProduct?.category_id || null);
+  const [educationLevelId, setEducationLevelId] = useState<string | null>(editingProduct?.education_level_id || null);
+
+  // Category & Education Level Database Options
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
+
+  // Create Inline Category Modal State
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
 
   // UI Errors & Loading State
   const [stepError, setStepError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Styled AlertDialog Close Confirmation State
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadOptions();
+    }
+  }, [isOpen, storeId]);
+
+  const loadOptions = async () => {
+    const cats = await getCategories(storeId);
+    const edLevels = await getEducationLevels();
+    setCategories(cats);
+    setEducationLevels(edLevels);
+
+    if (!categoryId && cats.length > 0) setCategoryId(cats[0].id);
+    if (!educationLevelId && edLevels.length > 0) setEducationLevelId(edLevels[0].id);
+  };
 
   if (!isOpen) return null;
 
@@ -67,6 +96,22 @@ export default function ProductWizardModal({
     onClose();
   };
 
+  const handleCreateNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCategoryLoading(true);
+    try {
+      const created = await createCustomCategory(storeId || 'store-demo', newCategoryName.trim());
+      setCategories(prev => [...prev, created]);
+      setCategoryId(created.id);
+      setIsCreatingCategory(false);
+      setNewCategoryName('');
+    } catch (err: any) {
+      setStepError(err.message || 'Erro ao criar categoria.');
+    } finally {
+      setIsCategoryLoading(false);
+    }
+  };
+
   // Step Validations
   const handleNextStep = () => {
     setStepError(null);
@@ -76,21 +121,25 @@ export default function ProductWizardModal({
         setStepError('Por favor, informe um título claro para o material (mínimo 4 caracteres).');
         return;
       }
-    }
-
-    if (currentStep === 2) {
-      // Cover is optional, but if provided is fine
+      if (!categoryId) {
+        setStepError('Por favor, selecione uma Categoria / Tema para o material.');
+        return;
+      }
+      if (!educationLevelId) {
+        setStepError('Por favor, selecione o Nível de Escolaridade.');
+        return;
+      }
     }
 
     if (currentStep === 3) {
       if (tipo === 'video' || tipo === 'curso') {
         if (!videoLink.trim() && !arquivoUrl) {
-          setStepError('Informe o link do vídeo (YouTube/Vimeo) ou faça upload do arquivo do curso.');
+          setStepError('Informe o link do vídeo (YouTube/Vimeo) ou faça upload do arquivo.');
           return;
         }
       } else {
         if (!arquivoUrl) {
-          setStepError('Por favor, faça upload do arquivo PDF ou digital do seu produto didático.');
+          setStepError('Por favor, faça upload do arquivo PDF ou digital do seu produto.');
           return;
         }
       }
@@ -116,25 +165,23 @@ export default function ProductWizardModal({
         preco: Number(preco) || 0,
         capa_url: capaUrl,
         arquivo_url: finalFileUrl,
-        status
+        status,
+        category_id: categoryId,
+        education_level_id: educationLevelId
       });
       onClose();
     } catch (err: any) {
-      setStepError(err.message || 'Erro ao cadastrar o produto.');
+      setStepError(err.message || 'Erro ao cadastrar produto.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getTipoLabel = (t: ProductType) => {
-    switch (t) {
-      case 'pdf': return 'Apostila PDF';
-      case 'ebook': return 'E-Book Interativo';
-      case 'video': return 'Videoaula / Vídeo';
-      case 'curso': return 'Curso Completo';
-      case 'simulado': return 'Simulado Gabaritado';
-    }
-  };
+  const globalCats = categories.filter(c => c.store_id === null);
+  const customCats = categories.filter(c => c.store_id !== null);
+
+  const selectedCategoryObj = categories.find(c => c.id === categoryId);
+  const selectedEducationObj = educationLevels.find(e => e.id === educationLevelId);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -159,7 +206,7 @@ export default function ProductWizardModal({
               </h2>
               <p className="text-xs text-slate-500 font-medium">
                 Passo {currentStep} de 4 — {
-                  currentStep === 1 ? 'Informações Básicas' :
+                  currentStep === 1 ? 'Informações & Categorização' :
                   currentStep === 2 ? 'Capa do Material' :
                   currentStep === 3 ? 'Arquivo Entregável' : 'Preço e Publicação'
                 }
@@ -224,7 +271,7 @@ export default function ProductWizardModal({
             </div>
           )}
 
-          {/* PASSO 1: Informações Básicas */}
+          {/* PASSO 1: Informações & Categorização */}
           {currentStep === 1 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
               
@@ -240,44 +287,109 @@ export default function ProductWizardModal({
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
                 />
                 <p className="text-[11px] text-slate-500 font-medium">
-                  💡 <strong>Dica:</strong> Use um nome claro e direto que os alunos procuram nas pesquisas (ex: "Combo 50 Simulado Gabaritado de Medicina").
+                  💡 <strong>Dica:</strong> Use um nome claro e direto que os alunos vão procurar (ex: 'Apostila de Matemática Básica ENEM').
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  Tipo de Conteúdo Didático *
-                </label>
-                <select
-                  value={tipo}
-                  onChange={(e) => setTipo(e.target.value as ProductType)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
-                >
-                  <option value="pdf">Apostila em PDF</option>
-                  <option value="ebook">E-Book Interativo</option>
-                  <option value="video">Videoaula (Link YouTube/Vimeo)</option>
-                  <option value="curso">Curso Completo (Módulos)</option>
-                  <option value="simulado">Simulado Gabaritado</option>
-                </select>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  💡 Define a etiqueta de exibição e o tipo de entregável na vitrine da sua loja.
-                </p>
+              {/* Categorização Grid */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                
+                {/* Category Select */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-1.5">
+                      <Tags className="w-3.5 h-3.5 text-blue-600" /> Categoria / Tema *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingCategory(true)}
+                      className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> + Criar nova
+                    </button>
+                  </div>
+                  
+                  <select
+                    value={categoryId || ''}
+                    onChange={(e) => {
+                      if (e.target.value === 'create_new') {
+                        setIsCreatingCategory(true);
+                      } else {
+                        setCategoryId(e.target.value);
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
+                  >
+                    <optgroup label="Categorias Globais">
+                      {globalCats.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                      ))}
+                    </optgroup>
+                    {customCats.length > 0 && (
+                      <optgroup label="Minhas Categorias Customizadas">
+                        {customCats.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="create_new">+ Criar nova categoria...</option>
+                  </select>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    💡 Agrupa seus materiais no filtro por assunto.
+                  </p>
+                </div>
+
+                {/* Education Level Select */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-indigo-600" /> Nível de Escolaridade *
+                  </label>
+                  <select
+                    value={educationLevelId || ''}
+                    onChange={(e) => setEducationLevelId(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
+                  >
+                    {educationLevels.map(ed => (
+                      <option key={ed.id} value={ed.id}>{ed.nome}</option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    💡 Permite que o aluno filtre por etapa de ensino.
+                  </p>
+                </div>
+
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  Descrição Detalhada do Conteúdo
-                </label>
-                <textarea
-                  rows={4}
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  placeholder="Descreva o que o aluno vai encontrar no material (quantidade de páginas, matérias cobertas, gabarito)..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
-                />
-                <p className="text-[11px] text-slate-500 font-medium">
-                  💡 Descreva os benefícios do conteúdo para aumentar as conversões no checkout PIX.
-                </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    Tipo de Conteúdo Didático *
+                  </label>
+                  <select
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value as ProductType)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
+                  >
+                    <option value="pdf">Apostila em PDF</option>
+                    <option value="ebook">E-Book Interativo</option>
+                    <option value="video">Videoaula (Link YouTube/Vimeo)</option>
+                    <option value="curso">Curso Completo (Módulos)</option>
+                    <option value="simulado">Simulado Gabaritado</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    Descrição Detalhada
+                  </label>
+                  <input
+                    type="text"
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    placeholder="Resumo do que o aluno encontrará..."
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
+                  />
+                </div>
               </div>
 
             </motion.div>
@@ -288,7 +400,7 @@ export default function ProductWizardModal({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
               <FileUpload
                 label="Upload da Imagem de Capa"
-                helperText="Envie uma imagem chamativa em alta qualidade. Formatos suportados: JPG, PNG ou WEBP."
+                helperText="Envie uma imagem chamativa do seu produto. Formatos: JPG, PNG ou WEBP (máx. 5MB)."
                 bucket="product-covers"
                 accept="image/jpeg,image/png,image/webp"
                 maxSizeMB={5}
@@ -314,14 +426,11 @@ export default function ProductWizardModal({
                     placeholder="https://www.youtube.com/watch?v=... ou Vimeo"
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
                   />
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    💡 Informe o link do vídeo não-listado ou restrito que será disponibilizado na Área de Membros do aluno.
-                  </p>
                 </div>
               ) : (
                 <FileUpload
                   label="Upload do Arquivo Didático Real (PDF / Material Digital)"
-                  helperText="Este é o arquivo seguro que o aluno poderá baixar após o pagamento via PIX. Máximo 100MB."
+                  helperText="Arquivo entregue na Área de Membros após a compra (máx. 100MB)."
                   bucket="product-files"
                   accept="application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/zip"
                   maxSizeMB={100}
@@ -353,9 +462,6 @@ export default function ProductWizardModal({
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-bold focus:outline-none"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    💡 Preço cobrado no checkout PIX instantâneo.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -367,7 +473,7 @@ export default function ProductWizardModal({
                     onChange={(e) => setStatus(e.target.value as 'publicado' | 'rascunho')}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none font-medium"
                   >
-                    <option value="publicado">Publicado (Visível na loja agora)</option>
+                    <option value="publicado">Publicado (Visível na loja)</option>
                     <option value="rascunho">Rascunho (Oculto da loja)</option>
                   </select>
                 </div>
@@ -377,7 +483,7 @@ export default function ProductWizardModal({
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-black uppercase text-blue-700">
                   <Sparkles className="w-4 h-4 text-blue-600" />
-                  <span>Resumo do Produto a ser Cadastrado</span>
+                  <span>Resumo Completo do Produto</span>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 text-xs">
@@ -386,18 +492,16 @@ export default function ProductWizardModal({
                     <span className="font-bold text-slate-900">{titulo}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block font-bold">Tipo:</span>
-                    <span className="font-bold text-slate-900">{getTipoLabel(tipo)}</span>
+                    <span className="text-slate-400 block font-bold">Categoria:</span>
+                    <span className="font-bold text-blue-600">{selectedCategoryObj?.nome || 'Não definida'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-bold">Escolaridade:</span>
+                    <span className="font-bold text-indigo-600">{selectedEducationObj?.nome || 'Não definido'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 block font-bold">Investimento:</span>
                     <span className="font-black text-emerald-600 text-sm">R$ {preco.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-bold">Capa e Arquivo:</span>
-                    <span className="font-bold text-slate-900">
-                      {capaUrl ? '✅ Capa anexada' : '⚠️ Sem capa'} | {arquivoUrl || videoLink ? '✅ Conteúdo pronto' : '⚠️ Sem arquivo'}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -450,6 +554,67 @@ export default function ProductWizardModal({
         </div>
 
       </motion.div>
+
+      {/* Mini Modal for Creating Custom Category */}
+      <AnimatePresence>
+        {isCreatingCategory && (
+          <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Tags className="w-4 h-4 text-blue-600" />
+                  Criar Nova Categoria Customizada
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCategory(false)}
+                  className="text-slate-400 hover:text-slate-700 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block uppercase">Nome da Categoria *</label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Ex: Apostilas de Medicina 2026"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm"
+                />
+                <p className="text-[11px] text-slate-500">
+                  Esta categoria será exclusiva da sua loja e aparecerá apenas nos seus produtos.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCategory(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateNewCategory}
+                  disabled={isCategoryLoading || !newCategoryName.trim()}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isCategoryLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span>Criar Categoria</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Close Confirmation AlertDialog */}
       <AnimatePresence>
