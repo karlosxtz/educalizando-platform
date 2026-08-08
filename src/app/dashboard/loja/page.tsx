@@ -5,7 +5,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Store as StoreIcon, Copy, ExternalLink, Check, Save, 
-  Palette, Image as ImageIcon, Sparkles, Loader2 
+  Palette, Image as ImageIcon, Sparkles, Loader2, AlertCircle 
 } from 'lucide-react';
 
 import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-schemas';
@@ -74,8 +74,11 @@ export default function StoreSettingsPage() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const onSubmit: SubmitHandler<StoreSettingsFormValues> = async (values) => {
     if (!currentStore) return;
+    setActionError(null);
     try {
       const updated = await updateStore(currentStore.id, {
         nome_loja: values.nome_loja,
@@ -89,7 +92,7 @@ export default function StoreSettingsPage() {
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar configurações da loja.');
+      setActionError(err.message || 'Erro ao salvar configurações da loja.');
     }
   };
 
@@ -142,6 +145,13 @@ export default function StoreSettingsPage() {
         <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
+            {actionError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
             {savedSuccess && (
               <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
                 <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />

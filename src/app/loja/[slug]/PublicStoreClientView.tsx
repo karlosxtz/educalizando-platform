@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Store as StoreIcon, ShieldCheck, Zap, Award, Star, 
-  FileText, Video, BookOpen, Layers, HelpCircle, ShoppingBag, X, Sparkles 
+  ShieldCheck, Zap, FileText, Video, BookOpen, 
+  Layers, HelpCircle, ShoppingBag, X, CheckCircle2 
 } from 'lucide-react';
 import { Store, Product, ProductType } from '@/lib/types';
 
@@ -16,6 +16,7 @@ interface PublicStoreClientViewProps {
 
 export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
 
   const primaryColor = store.cor_primaria || '#2563eb';
@@ -33,6 +34,14 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       case 'curso': return <Layers className="w-3.5 h-3.5" />;
       case 'simulado': return <HelpCircle className="w-3.5 h-3.5" />;
     }
+  };
+
+  const handleStartCheckout = () => {
+    setCheckoutSimulated(true);
+    setTimeout(() => {
+      setCheckoutSimulated(false);
+      setSelectedProduct(null);
+    }, 2500);
   };
 
   return (
@@ -145,7 +154,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                     {prod.capa_url ? (
                       <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
                         Material Didático Digital
                       </div>
                     )}
@@ -174,14 +183,17 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                 {/* Price & Buy Action */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Investimento</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
                     <span className="text-xl font-black text-slate-900">
                       R$ {prod.preco.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
 
                   <button
-                    onClick={() => setSelectedProduct(prod)}
+                    onClick={() => {
+                      setCheckoutSimulated(false);
+                      setSelectedProduct(prod);
+                    }}
                     className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-1.5 transition-transform active:scale-95"
                     style={{ backgroundColor: primaryColor }}
                   >
@@ -207,52 +219,66 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
               className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 space-y-5 relative overflow-hidden shadow-2xl"
             >
               <button
-                onClick={() => setSelectedProduct(null)}
+                onClick={() => {
+                  setSelectedProduct(null);
+                  setCheckoutSimulated(false);
+                }}
                 className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-3">
-                <span 
-                  className="p-2 rounded-lg text-white text-xs font-bold uppercase flex items-center gap-1"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {getTipoIcon(selectedProduct.tipo)} {selectedProduct.tipo}
-                </span>
-                <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> 7 Dias de Garantia
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">{selectedProduct.titulo}</h3>
-                <p className="text-xs text-slate-500 mt-1">Vendido por <strong>{store.nome_loja}</strong></p>
-              </div>
-
-              {selectedProduct.descricao && (
-                <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
-                  {selectedProduct.descricao}
-                </p>
-              )}
-
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-slate-500 block">Preço Final:</span>
-                  <span className="text-2xl font-black text-slate-900">R$ {selectedProduct.preco.toFixed(2).replace('.', ',')}</span>
+              {checkoutSimulated ? (
+                <div className="py-8 text-center space-y-4">
+                  <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">Simulação de PIX Gerada!</h3>
+                  <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                    Ambiente de testes do Educalizando. O split de pagamentos oficial via Asaas estará ativado nas vendas reais.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <span 
+                      className="p-2 rounded-lg text-white text-xs font-bold uppercase flex items-center gap-1"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {getTipoIcon(selectedProduct.tipo)} {selectedProduct.tipo}
+                    </span>
+                    <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" /> 7 Dias de Garantia
+                    </span>
+                  </div>
 
-                <button
-                  onClick={() => {
-                    alert(`Iniciando simulação de checkout para "${selectedProduct.titulo}". Em breve o checkout com PIX estará integrado com o Asaas!`);
-                    setSelectedProduct(null);
-                  }}
-                  className="px-6 py-3 rounded-xl font-extrabold text-sm text-white shadow-md flex items-center gap-2"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Zap className="w-4 h-4 fill-white" /> Comprar via PIX
-                </button>
-              </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedProduct.titulo}</h3>
+                    <p className="text-xs text-slate-500 mt-1">Vendido por <strong>{store.nome_loja}</strong></p>
+                  </div>
+
+                  {selectedProduct.descricao && (
+                    <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200 font-medium">
+                      {selectedProduct.descricao}
+                    </p>
+                  )}
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-slate-500 block">Preço Final:</span>
+                      <span className="text-2xl font-black text-slate-900">R$ {selectedProduct.preco.toFixed(2).replace('.', ',')}</span>
+                    </div>
+
+                    <button
+                      onClick={handleStartCheckout}
+                      className="px-6 py-3 rounded-xl font-extrabold text-sm text-white shadow-md flex items-center gap-2 active:scale-95 transition-transform"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      <Zap className="w-4 h-4 fill-white" /> Comprar via PIX
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}

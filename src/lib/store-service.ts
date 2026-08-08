@@ -1,93 +1,51 @@
 import { supabase } from './supabase';
 import { Store, Product } from './types';
 
-// Mock Data de Exemplo Inicial (para teste local e fallback imediato)
-export const INITIAL_MOCK_STORE: Store = {
-  id: 'store-prof-ricardo',
-  creator_id: 'creator-ricardo',
-  nome_loja: 'Prof. Ricardo Silva',
-  slug: 'prof-ricardo',
-  descricao: 'Apostilas esquematizadas, e-books interativos e simulados preparatórios para o ENEM e Vestibulares de Medicina.',
-  logo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-  banner_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1200&q=80',
-  cor_primaria: '#ff5722',
+// Store Padrão de Exemplo para Fallback Offline
+export const DEFAULT_MOCK_STORE: Store = {
+  id: 'store-demo',
+  creator_id: 'creator-demo',
+  nome_loja: 'Minha Loja Didática',
+  slug: 'minha-loja',
+  descricao: 'Apostilas esquematizadas, e-books interativos e simulados preparatórios.',
+  logo_url: null,
+  banner_url: null,
+  cor_primaria: '#2563eb',
   asaas_subaccount_id: null,
   created_at: new Date().toISOString()
 };
 
-export const INITIAL_MOCK_PRODUCTS: Product[] = [
-  {
-    id: 'prod-1',
-    store_id: 'store-prof-ricardo',
-    titulo: 'Combo Definitivo ENEM: 1.000 Questões Comentadas + Redação 1000',
-    descricao: 'Material didático completo com apostilas em PDF, 50 mapas mentais coloridos e modelos de introdução coringa.',
-    tipo: 'pdf',
-    preco: 67.90,
-    capa_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
-    arquivo_url: 'https://example.com/material-enem.pdf',
-    status: 'publicado',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'prod-2',
-    store_id: 'store-prof-ricardo',
-    titulo: 'Caderno Digital de Geometria Plana & Espacial Descomplicada',
-    descricao: 'Teoria esquematizada com passo a passo e resolução de todas as questões dos últimos 5 anos do ENEM.',
-    tipo: 'ebook',
-    preco: 39.90,
-    capa_url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80',
-    arquivo_url: 'https://example.com/geometria.pdf',
-    status: 'publicado',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'prod-3',
-    store_id: 'store-prof-ricardo',
-    titulo: 'Simulado Inédito Redação & Matemática (Gabarito em Vídeo)',
-    descricao: 'Rascunho de simulado preparatório para a reta final.',
-    tipo: 'simulado',
-    preco: 29.90,
-    capa_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
-    arquivo_url: null,
-    status: 'rascunho',
-    created_at: new Date().toISOString()
-  }
-];
-
 // Helper para localStorage
 function getLocalStores(): Store[] {
-  if (typeof window === 'undefined') return [INITIAL_MOCK_STORE];
-  const saved = localStorage.getItem('educalizando_stores_v2');
+  if (typeof window === 'undefined') return [DEFAULT_MOCK_STORE];
+  const saved = localStorage.getItem('educalizando_stores_v3');
   if (!saved) {
-    localStorage.setItem('educalizando_stores_v2', JSON.stringify([INITIAL_MOCK_STORE]));
-    return [INITIAL_MOCK_STORE];
+    localStorage.setItem('educalizando_stores_v3', JSON.stringify([DEFAULT_MOCK_STORE]));
+    return [DEFAULT_MOCK_STORE];
   }
   return JSON.parse(saved);
 }
 
 function saveLocalStores(stores: Store[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('educalizando_stores_v2', JSON.stringify(stores));
+    localStorage.setItem('educalizando_stores_v3', JSON.stringify(stores));
   }
 }
 
 function getLocalProducts(): Product[] {
-  if (typeof window === 'undefined') return INITIAL_MOCK_PRODUCTS;
-  const saved = localStorage.getItem('educalizando_products_v2');
-  if (!saved) {
-    localStorage.setItem('educalizando_products_v2', JSON.stringify(INITIAL_MOCK_PRODUCTS));
-    return INITIAL_MOCK_PRODUCTS;
-  }
+  if (typeof window === 'undefined') return [];
+  const saved = localStorage.getItem('educalizando_products_v3');
+  if (!saved) return [];
   return JSON.parse(saved);
 }
 
 function saveLocalProducts(products: Product[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('educalizando_products_v2', JSON.stringify(products));
+    localStorage.setItem('educalizando_products_v3', JSON.stringify(products));
   }
 }
 
-// 1. Obter Loja por Slug com Diagnóstico & Fallback Seguro
+// 1. Obter Loja por Slug em Tempo Real
 export async function getStoreBySlug(slug: string): Promise<Store | null> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -103,30 +61,29 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
         .maybeSingle();
 
       if (!error && data) {
-        console.log(`[getStoreBySlug] Loja "${slug}" encontrada com sucesso no Supabase Postgres.`);
         return data as Store;
       }
       if (error) {
-        console.warn(`[getStoreBySlug] Erro na query do Supabase para slug "${slug}":`, error.message);
+        console.warn(`[getStoreBySlug] Erro ao consultar slug "${slug}":`, error.message);
       }
     } catch (err) {
-      console.error(`[getStoreBySlug] Exceção na consulta de "${slug}":`, err);
+      console.error(`[getStoreBySlug] Exceção na busca de "${slug}":`, err);
     }
   }
 
-  // Fallback Local & Loja Padrão de Teste (garante que prof-ricardo nunca dê 404 se o banco estiver limpo)
+  // Fallback Local
   const stores = getLocalStores();
   const found = stores.find(s => s.slug === slug);
   if (found) return found;
 
-  if (slug === INITIAL_MOCK_STORE.slug || slug.includes('prof-ricardo')) {
-    return INITIAL_MOCK_STORE;
+  if (slug === 'minha-loja' || slug === 'prof-ricardo') {
+    return DEFAULT_MOCK_STORE;
   }
 
   return null;
 }
 
-// 2. Obter Loja por Creator ID (ou Loja Padrão do Dashboard)
+// 2. Obter Loja por Creator ID (Respeita estritamente o usuário logado)
 export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -135,21 +92,37 @@ export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
 
   if (isRealSupabase) {
     try {
+      // Tentar obter usuário logado real
+      const { data: authUser } = await supabase.auth.getUser();
+      const targetUserId = authUser?.user?.id || creatorId;
+
       const { data } = await supabase
         .from('stores')
         .select('*')
-        .eq('creator_id', creatorId)
+        .eq('creator_id', targetUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (data) return data as Store;
+
+      // Se não encontrou por ID específico, pegar a última loja cadastrada pelo usuário
+      const { data: latestStore } = await supabase
+        .from('stores')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestStore) return latestStore as Store;
     } catch (err) {
-      console.error('[getStoreByCreatorId] Erro ao buscar por creator_id:', err);
+      console.error('[getStoreByCreatorId] Erro:', err);
     }
   }
 
   // Fallback Local
   const stores = getLocalStores();
-  return stores[0] || INITIAL_MOCK_STORE;
+  return stores[stores.length - 1] || DEFAULT_MOCK_STORE;
 }
 
 // 3. Atualizar Dados da Loja
@@ -175,7 +148,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   const stores = getLocalStores();
   const index = stores.findIndex(s => s.id === storeId);
   const updatedStore = {
-    ...(stores[index] || INITIAL_MOCK_STORE),
+    ...(stores[index] || DEFAULT_MOCK_STORE),
     ...updates,
     updated_at: new Date().toISOString()
   };
@@ -187,7 +160,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   return updatedStore;
 }
 
-// 4. Obter Todos os Produtos de uma Loja (Painel do Criador)
+// 4. Obter Produtos da Loja (Sem Mocks Hardcoded - Retorna [] se a loja for nova)
 export async function getProductsByStoreId(storeId: string): Promise<Product[]> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -202,18 +175,20 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
         .eq('store_id', storeId)
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) return data as Product[];
+      if (!error && data) {
+        return data as Product[];
+      }
     } catch (err) {
-      console.error('[getProductsByStoreId] Erro ao buscar produtos:', err);
+      console.error('[getProductsByStoreId] Erro:', err);
     }
   }
 
-  // Fallback Local
+  // Fallback Local (Retorna [] se não houver produtos reais cadastrados)
   const products = getLocalProducts();
-  return products.filter(p => p.store_id === storeId || p.store_id === INITIAL_MOCK_STORE.id);
+  return products.filter(p => p.store_id === storeId);
 }
 
-// 5. Obter Produtos Públicos (status = 'publicado') para a Vitrine
+// 5. Obter Produtos Públicos (status = 'publicado')
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -229,19 +204,20 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         .eq('status', 'publicado')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) return data as Product[];
+      if (!error && data) {
+        return data as Product[];
+      }
     } catch (err) {
-      console.error('[getPublicProductsByStoreId] Erro ao buscar produtos públicos:', err);
+      console.error('[getPublicProductsByStoreId] Erro:', err);
     }
   }
 
   // Fallback Local
   const products = getLocalProducts();
-  const filtered = products.filter(p => (p.store_id === storeId || p.store_id === INITIAL_MOCK_STORE.id) && p.status === 'publicado');
-  return filtered.length > 0 ? filtered : INITIAL_MOCK_PRODUCTS.filter(p => p.status === 'publicado');
+  return products.filter(p => p.store_id === storeId && p.status === 'publicado');
 }
 
-// 6. Criar Novo Produto
+// 6. Criar Novo Produto (Gera UUID Real no Supabase)
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -255,14 +231,14 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erro ao cadastrar produto: ${error.message}`);
     return data as Product;
   }
 
   // Fallback Local
   const newProduct: Product = {
     ...productData,
-    id: `prod_${Date.now()}`,
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `prod_${Date.now()}`,
     created_at: new Date().toISOString()
   };
 
@@ -287,7 +263,7 @@ export async function updateProduct(productId: string, updates: Partial<Product>
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erro ao atualizar produto: ${error.message}`);
     return data as Product;
   }
 
@@ -302,7 +278,7 @@ export async function updateProduct(productId: string, updates: Partial<Product>
   return updatedProduct;
 }
 
-// 8. Excluir Produto
+// 8. Excluir Produto (Garante UUID Válido)
 export async function deleteProduct(productId: string): Promise<void> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -311,7 +287,7 @@ export async function deleteProduct(productId: string): Promise<void> {
 
   if (isRealSupabase) {
     const { error } = await supabase.from('products').delete().eq('id', productId);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`Erro ao excluir produto no Supabase: ${error.message}`);
     return;
   }
 

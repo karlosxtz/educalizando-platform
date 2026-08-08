@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, X, 
-  FileText, Video, BookOpen, HelpCircle, Layers, CheckCircle2, Loader2 
+  FileText, Video, BookOpen, HelpCircle, Layers, CheckCircle2, Loader2, AlertTriangle, AlertCircle 
 } from 'lucide-react';
 
 import { productFormSchema, type ProductFormValues } from '@/lib/zod-schemas';
@@ -24,9 +24,14 @@ export default function ProductsManagementPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   
-  // Modal State
+  // Create / Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Styled AlertDialog Delete Confirmation State (No browser native confirm!)
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
 
   const {
     register,
@@ -65,13 +70,14 @@ export default function ProductsManagementPage() {
 
   const handleOpenCreateModal = () => {
     setEditingProduct(null);
+    setActionError(null);
     reset({
       titulo: '',
       descricao: '',
       tipo: 'pdf',
       preco: 49.90,
-      capa_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
-      arquivo_url: 'https://example.com/material-didatico.pdf',
+      capa_url: '',
+      arquivo_url: '',
       status: 'publicado'
     });
     setIsModalOpen(true);
@@ -79,6 +85,7 @@ export default function ProductsManagementPage() {
 
   const handleOpenEditModal = (prod: Product) => {
     setEditingProduct(prod);
+    setActionError(null);
     reset({
       titulo: prod.titulo,
       descricao: prod.descricao || '',
@@ -91,14 +98,19 @@ export default function ProductsManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (prodId: string) => {
-    if (confirm('Tem certeza que deseja excluir este produto didático?')) {
-      try {
-        await deleteProduct(prodId);
-        setProducts(prev => prev.filter(p => p.id !== prodId));
-      } catch (err: any) {
-        alert(err.message || 'Erro ao excluir produto.');
-      }
+  // Styled Delete Execution (Replaces native confirm/alert)
+  const confirmDeleteProduct = async () => {
+    if (!deletingProduct) return;
+    setIsDeletingLoading(true);
+    setActionError(null);
+    try {
+      await deleteProduct(deletingProduct.id);
+      setProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
+      setDeletingProduct(null);
+    } catch (err: any) {
+      setActionError(err.message || 'Erro ao excluir produto no Supabase.');
+    } finally {
+      setIsDeletingLoading(false);
     }
   };
 
@@ -108,12 +120,13 @@ export default function ProductsManagementPage() {
       const updated = await updateProduct(prod.id, { status: newStatus });
       setProducts(prev => prev.map(p => (p.id === prod.id ? updated : p)));
     } catch (err: any) {
-      alert(err.message || 'Erro ao alterar status.');
+      setActionError(err.message || 'Erro ao alterar status do produto.');
     }
   };
 
   const onSubmit: SubmitHandler<ProductFormValues> = async (values) => {
     if (!store) return;
+    setActionError(null);
     try {
       if (editingProduct) {
         const updated = await updateProduct(editingProduct.id, {
@@ -141,7 +154,7 @@ export default function ProductsManagementPage() {
       }
       setIsModalOpen(false);
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar produto.');
+      setActionError(err.message || 'Erro ao salvar produto didático.');
     }
   };
 
@@ -185,17 +198,24 @@ export default function ProductsManagementPage() {
         </button>
       </div>
 
+      {actionError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
+          <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
+
       {/* Products Catalog Grid */}
       {products.length === 0 ? (
         <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-xs text-center max-w-lg mx-auto space-y-4">
           <Package className="w-12 h-12 text-slate-400 mx-auto" />
-          <h3 className="text-lg font-bold text-slate-900">Nenhum produto cadastrado ainda</h3>
+          <h3 className="text-lg font-bold text-slate-900">Você ainda não publicou nenhum produto</h3>
           <p className="text-sm text-slate-500">
-            Cadastre seu primeiro e-book ou apostila digital em PDF para começar a vender na sua loja.
+            Sua loja está pronta! Cadastre seu primeiro e-book ou apostila em PDF para começar a vender.
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md"
+            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md hover:bg-blue-700 transition-all"
           >
             <Plus className="w-4 h-4" /> Cadastrar Meu Primeiro Produto
           </button>
@@ -213,7 +233,7 @@ export default function ProductsManagementPage() {
                   {prod.capa_url ? (
                     <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
                       Sem Capa
                     </div>
                   )}
@@ -254,7 +274,7 @@ export default function ProductsManagementPage() {
               {/* Price & Actions Footer */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Preço de Venda</span>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Preço de Venda</span>
                   <span className="text-lg font-black text-slate-900">
                     R$ {prod.preco.toFixed(2).replace('.', ',')}
                   </span>
@@ -269,7 +289,7 @@ export default function ProductsManagementPage() {
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(prod.id)}
+                    onClick={() => setDeletingProduct(prod)}
                     className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"
                     title="Excluir produto"
                   >
@@ -282,10 +302,55 @@ export default function ProductsManagementPage() {
         </div>
       )}
 
+      {/* Styled AlertDialog Modal for Delete Confirmation (Replaces browser confirm) */}
+      <AnimatePresence>
+        {deletingProduct && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 space-y-5 shadow-2xl relative"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-bold text-slate-900">Excluir Produto Didático?</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Tem certeza que deseja remover <strong>"{deletingProduct.titulo}"</strong>? Esta ação é irreversível e o material será removido da sua vitrine pública.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeletingProduct(null)}
+                  disabled={isDeletingLoading}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteProduct}
+                  disabled={isDeletingLoading}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                >
+                  {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  <span>Excluir Produto</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Modal Form: Create / Edit Product */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
