@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import confetti from 'canvas-confetti';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Store, User, Mail, Lock, Eye, EyeOff, CheckCircle2, 
-  AlertCircle, Loader2, Sparkles, ExternalLink, ShieldCheck 
+  AlertCircle, Loader2 
 } from 'lucide-react';
 import { creatorSignupSchema, type CreatorSignupFormValues } from '@/lib/zod-schemas';
 import { registerCreatorInSupabase } from '@/lib/supabase';
@@ -78,7 +78,7 @@ export default function SignupForm() {
   };
 
   return (
-    <section id="cadastro" className="py-24 relative z-10">
+    <section id="cadastro" className="py-24 relative z-10 bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Title */}
@@ -89,7 +89,7 @@ export default function SignupForm() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
             Crie sua loja no <span className="gradient-text-coral">Educalizando</span>
           </h2>
-          <p className="text-base text-slate-600">
+          <p className="text-base text-slate-600 font-medium">
             Comece a vender suas apostilas, e-books e cursos hoje mesmo. É grátis e leva menos de 2 minutos.
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function SignupForm() {
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900">
                   Loja Criada com Sucesso! 🎉
                 </h3>
-                <p className="text-sm text-slate-600 max-w-md mx-auto">
+                <p className="text-sm text-slate-600 max-w-md mx-auto font-medium">
                   Sua loja já está ativa e seu link exclusivo foi gerado. Redirecionando para o seu painel...
                 </p>
               </div>
@@ -128,7 +128,7 @@ export default function SignupForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               
               {serverError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3">
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                   <span>{serverError}</span>
                 </div>

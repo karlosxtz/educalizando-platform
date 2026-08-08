@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { 
   Zap, Award, Store, ShieldCheck, Lock, 
-  Smartphone, BarChart3, Clock, CheckCircle2 
+  Smartphone, Clock 
 } from 'lucide-react';
 
 export default function Benefits() {
@@ -41,7 +41,7 @@ export default function Benefits() {
   ];
 
   return (
-    <section id="beneficios" className="py-20 relative z-10">
+    <section id="beneficios" className="py-20 relative z-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -52,7 +52,7 @@ export default function Benefits() {
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Tudo o que você precisa para monetizar seu conhecimento
           </h2>
-          <p className="text-base text-slate-600">
+          <p className="text-base text-slate-600 font-medium">
             Recursos projetados especificamente para criadores de conteúdo didático e professores.
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function Benefits() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.08 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
+                className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
               >
                 <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
                   <Icon className="w-6 h-6" />

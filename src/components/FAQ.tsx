@@ -31,7 +31,7 @@ export default function FAQ() {
   ];
 
   return (
-    <section id="faq" className="py-20 relative z-10">
+    <section id="faq" className="py-20 relative z-10 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -51,7 +51,7 @@ export default function FAQ() {
             return (
               <div
                 key={faq.q}
-                className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all"
+                className="bg-slate-50 rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all"
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
@@ -71,7 +71,7 @@ export default function FAQ() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="px-6 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-100 font-medium"
+                      className="px-6 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-200 font-medium"
                     >
                       {faq.a}
                     </motion.div>

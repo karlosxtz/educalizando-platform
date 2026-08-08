@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { UserPlus, Upload, Share2, Wallet, ArrowRight } from 'lucide-react';
+import { UserPlus, Upload, Share2, Wallet } from 'lucide-react';
 
 export default function HowItWorks() {
   const STEPS = [
@@ -32,7 +32,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section id="como-funciona" className="py-20 relative z-10">
+    <section id="como-funciona" className="py-20 relative z-10 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
@@ -43,7 +43,7 @@ export default function HowItWorks() {
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Como funciona o Educalizando?
           </h2>
-          <p className="text-base text-slate-600">
+          <p className="text-base text-slate-600 font-medium">
             Simplificamos todo o processo técnico para você focar no que faz de melhor: ensinar e criar conteúdo didático.
           </p>
         </div>

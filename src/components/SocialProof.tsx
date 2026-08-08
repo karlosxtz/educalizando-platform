@@ -7,7 +7,7 @@ export default function SocialProof() {
   const TRUST_CARDS = [
     {
       icon: Zap,
-      color: 'text-amber-500 bg-amber-50 border-amber-200',
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
       title: 'Checkout PIX Instantâneo',
       description: 'O aluno paga via QR Code ou Copia e Cola e o dinheiro cai direto na sua conta, com liberação automática do material.'
     },
@@ -32,7 +32,7 @@ export default function SocialProof() {
   ];
 
   return (
-    <section className="py-16 relative z-10">
+    <section className="py-16 relative z-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Early-stage Trust Badge Banner */}
@@ -43,7 +43,7 @@ export default function SocialProof() {
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Construída sob medida para quem cria conteúdo educativo
           </h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 font-medium">
             Transparência total desde o primeiro dia. Confira os diferenciais reais que você tem hoje no Educalizando:
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function SocialProof() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
+                className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
               >
                 <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${card.color}`}>
                   <Icon className="w-6 h-6" />

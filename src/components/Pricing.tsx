@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check, ShieldCheck, Zap, Sparkles, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { PLATFORM_CONFIG } from '@/lib/config';
 
 export default function Pricing() {
@@ -16,7 +16,7 @@ export default function Pricing() {
   const formattedFeeFixed = PLATFORM_CONFIG.feeFixed.toFixed(2).replace('.', ',');
 
   return (
-    <section id="precos" className="py-20 relative z-10">
+    <section id="precos" className="py-20 relative z-10 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -27,7 +27,7 @@ export default function Pricing() {
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Sem mensalidades. Você só paga quando vender.
           </h2>
-          <p className="text-base text-slate-600">
+          <p className="text-base text-slate-600 font-medium">
             Cadastre sua conta e publique materiais ilimitados. Cobramos apenas uma taxa por venda realizada.
           </p>
         </div>
