@@ -5,8 +5,27 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Store as StoreIcon, Copy, ExternalLink, Check, Save, 
-  Palette, ImageIcon, Sparkles, Loader2, AlertCircle 
+  Palette, ImageIcon, Sparkles, Loader2, AlertCircle, MessageCircle 
 } from 'lucide-react';
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
 
 import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-schemas';
 import { getStoreByCreatorId, updateStore } from '@/lib/store-service';
@@ -35,7 +54,9 @@ export default function StoreSettingsPage() {
       descricao: '',
       logo_url: '',
       banner_url: '',
-      cor_primaria: '#2563eb'
+      cor_primaria: '#2563eb',
+      whatsapp: '',
+      instagram: ''
     }
   });
 
@@ -45,6 +66,8 @@ export default function StoreSettingsPage() {
   const watchedCorPrimaria = watch('cor_primaria');
   const watchedLogoUrl = watch('logo_url');
   const watchedBannerUrl = watch('banner_url');
+  const watchedWhatsapp = watch('whatsapp');
+  const watchedInstagram = watch('instagram');
 
   useEffect(() => {
     async function loadStoreData() {
@@ -57,7 +80,9 @@ export default function StoreSettingsPage() {
           descricao: store.descricao || '',
           logo_url: store.logo_url || '',
           banner_url: store.banner_url || '',
-          cor_primaria: store.cor_primaria || '#2563eb'
+          cor_primaria: store.cor_primaria || '#2563eb',
+          whatsapp: store.whatsapp || '',
+          instagram: store.instagram || ''
         });
       } catch (err) {
         console.error(err);
@@ -88,7 +113,9 @@ export default function StoreSettingsPage() {
         descricao: values.descricao,
         logo_url: values.logo_url,
         banner_url: values.banner_url,
-        cor_primaria: values.cor_primaria
+        cor_primaria: values.cor_primaria,
+        whatsapp: values.whatsapp,
+        instagram: values.instagram
       });
       setCurrentStore(updated);
       setSavedSuccess(true);
@@ -215,6 +242,40 @@ export default function StoreSettingsPage() {
               />
             </div>
 
+            {/* WhatsApp para Contato */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                WhatsApp para Contato
+              </label>
+              <input
+                type="text"
+                {...register('whatsapp')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="(11) 91234-5678"
+              />
+              <p className="text-[11px] text-slate-500 font-medium mt-1">Os alunos poderão falar com você direto pelo WhatsApp através da sua loja.</p>
+              {errors.whatsapp && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.whatsapp.message}</p>
+              )}
+            </div>
+
+            {/* Instagram da Loja */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Instagram da Loja
+              </label>
+              <input
+                type="text"
+                {...register('instagram')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="@seuinstagram ou link completo"
+              />
+              <p className="text-[11px] text-slate-500 font-medium mt-1">Aparecerá como um ícone clicável na sua loja pública.</p>
+              {errors.instagram && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.instagram.message}</p>
+              )}
+            </div>
+
             {/* Cor Primária de Destaque da Loja */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-2">
@@ -339,6 +400,23 @@ export default function StoreSettingsPage() {
                 <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
                   {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus alunos.'}
                 </p>
+
+                {/* Preview Social Links */}
+                {(watchedWhatsapp || watchedInstagram) && (
+                  <div className="flex items-center gap-2 mt-3">
+                    {watchedInstagram && (
+                      <div className="p-1.5 bg-white rounded-full text-slate-400 border border-slate-200 flex items-center justify-center shadow-sm">
+                        <InstagramIcon className="w-4 h-4" />
+                      </div>
+                    )}
+                    {watchedWhatsapp && (
+                      <div className="px-3 py-1.5 bg-[#25D366] text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
+                        <MessageCircle className="w-3 h-3 fill-white" />
+                        WhatsApp
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -351,6 +429,13 @@ export default function StoreSettingsPage() {
                 </span>
               </div>
             </div>
+            
+            {/* Simulated Floating WhatsApp Button in Preview */}
+            {watchedWhatsapp && (
+              <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center shadow-md">
+                <MessageCircle className="w-5 h-5 text-white fill-white" />
+              </div>
+            )}
           </div>
         </div>
 

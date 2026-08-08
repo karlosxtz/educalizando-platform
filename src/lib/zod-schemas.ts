@@ -59,7 +59,9 @@ export const storeSettingsSchema = z.object({
   descricao: z.string().optional(),
   logo_url: z.string().url({ message: 'URL da imagem de logo inválida.' }).or(z.literal('')).optional(),
   banner_url: z.string().url({ message: 'URL da imagem do banner inválida.' }).or(z.literal('')).optional(),
-  cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' })
+  cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' }),
+  whatsapp: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: 'Use o formato (XX) XXXXX-XXXX' }).or(z.literal('')).optional(),
+  instagram: z.string().or(z.literal('')).optional()
 });
 
 export type StoreSettingsFormValues = z.infer<typeof storeSettingsSchema>;
