@@ -16,9 +16,9 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
-      {/* Subtle Background Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] pointer-events-none" />
+    <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden bg-slate-50">
+      {/* Subtle Light Radial Glow Background */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -36,10 +36,12 @@ export default function Hero() {
               <span>PLATAFORMA EXCLUSIVA PARA PROFESSORES & CRIADORES</span>
             </div>
 
-            {/* Main Headline */}
+            {/* Main Headline with High Contrast Slate-900 and Blue-600 Highlight */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
               Crie sua loja de <br />
-              <span className="gradient-text-coral">materiais didáticos</span> <br />
+              <span className="text-blue-600 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
+                materiais didáticos
+              </span> <br />
               e receba no PIX na hora.
             </h1>
 
