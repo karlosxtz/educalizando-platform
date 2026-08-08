@@ -296,3 +296,31 @@ export async function deleteProduct(productId: string): Promise<void> {
   const filtered = products.filter(p => p.id !== productId);
   saveLocalProducts(filtered);
 }
+
+// 9. Obter Produto por ID (Supabase + Fallback Local)
+export async function getProductById(productId: string): Promise<Product | null> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as Product;
+      }
+    } catch (err) {
+      console.error('[getProductById] Erro:', err);
+    }
+  }
+
+  // Fallback Local
+  const products = getLocalProducts();
+  return products.find(p => p.id === productId) || null;
+}

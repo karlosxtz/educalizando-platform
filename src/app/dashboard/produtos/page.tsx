@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
@@ -214,13 +215,13 @@ export default function ProductsManagementPage() {
             <span>Gerenciar Minhas Categorias</span>
           </button>
 
-          <button
-            onClick={handleOpenCreateWizard}
+          <Link
+            href="/dashboard/produtos/novo"
             className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Cadastrar Novo Produto (Wizard)</span>
-          </button>
+            <span>Cadastrar Novo Produto (Tela Cheia)</span>
+          </Link>
         </div>
       </div>
 
@@ -356,13 +357,13 @@ export default function ProductsManagementPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleOpenEditWizard(prod)}
+                    <Link
+                      href={`/dashboard/produtos/novo?edit=${prod.id}`}
                       className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
                       title="Editar produto via Wizard"
                     >
                       <Edit3 className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <button
                       onClick={() => setDeletingProduct(prod)}
                       className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"

@@ -363,18 +363,14 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCheckoutSimulated(false);
-                        setSelectedProduct(prod);
-                      }}
+                    <Link
+                      href={`/loja/${store.slug}/produto/${prod.id}`}
                       className="px-4 py-2.5 rounded-xl text-xs font-extrabold text-white shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
                       style={{ backgroundColor: primaryColor }}
                     >
                       <Zap className="w-3.5 h-3.5 fill-white" />
                       <span>Ver Detalhes</span>
-                    </button>
+                    </Link>
                   </div>
                 </motion.div>
               );
