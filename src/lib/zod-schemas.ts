@@ -33,3 +33,33 @@ export const creatorSignupSchema = z.object({
 });
 
 export type CreatorSignupFormValues = z.infer<typeof creatorSignupSchema>;
+
+// Store Customization Schema
+export const storeSettingsSchema = z.object({
+  nome_loja: z.string().min(3, { message: 'O nome da loja deve ter pelo menos 3 caracteres.' }),
+  slug: z
+    .string()
+    .min(3, { message: 'O link da loja (slug) deve ter pelo menos 3 caracteres.' })
+    .regex(/^[a-z0-9-]+$/, { message: 'O link deve conter apenas letras minúsculas, números e hífens.' }),
+  descricao: z.string().optional(),
+  logo_url: z.string().url({ message: 'URL da imagem de logo inválida.' }).or(z.literal('')).optional(),
+  banner_url: z.string().url({ message: 'URL da imagem do banner inválida.' }).or(z.literal('')).optional(),
+  cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' })
+});
+
+export type StoreSettingsFormValues = z.infer<typeof storeSettingsSchema>;
+
+// Product Form Schema
+export const productFormSchema = z.object({
+  titulo: z.string().min(4, { message: 'O título do material deve ter pelo menos 4 caracteres.' }),
+  descricao: z.string().optional(),
+  tipo: z.enum(['pdf', 'ebook', 'video', 'curso', 'simulado'], {
+    errorMap: () => ({ message: 'Selecione um tipo de produto válido.' })
+  }),
+  preco: z.coerce.number().min(0, { message: 'O preço não pode ser negativo.' }),
+  capa_url: z.string().url({ message: 'URL da capa inválida.' }).or(z.literal('')).optional(),
+  arquivo_url: z.string().url({ message: 'URL do arquivo inválida.' }).or(z.literal('')).optional(),
+  status: z.enum(['rascunho', 'publicado'])
+});
+
+export type ProductFormValues = z.infer<typeof productFormSchema>;
