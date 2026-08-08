@@ -6,8 +6,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  Instagram, MessageCircle 
+  MessageCircle 
 } from 'lucide-react';
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
 import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
@@ -143,7 +162,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                 <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:ml-auto">
                   {store.instagram && (
                     <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#E1306C] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200">
-                      <Instagram className="w-5 h-5" />
+                      <InstagramIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.whatsapp && (
@@ -409,7 +428,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
         <div className="flex items-center justify-center gap-4">
           {store.instagram && (
             <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
-              <Instagram className="w-4 h-4" /> Instagram
+              <InstagramIcon className="w-4 h-4" /> Instagram
             </a>
           )}
           {store.whatsapp && (
