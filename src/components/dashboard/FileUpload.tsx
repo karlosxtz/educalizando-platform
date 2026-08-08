@@ -1,29 +1,33 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { UploadCloud, File, CheckCircle2, AlertCircle, RefreshCw, X, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, File, CheckCircle2, AlertCircle, RefreshCw, X, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface FileUploadProps {
   label: string;
   helperText?: string;
+  recommendationText?: string;
   bucket: 'product-covers' | 'product-files' | 'store-assets';
   accept: string;
   maxSizeMB: number;
   value?: string | null;
   onChange: (url: string | null) => void;
   isImage?: boolean;
+  aspectRatio?: '1:1' | '3:1' | '3:4';
 }
 
 export default function FileUpload({
   label,
   helperText,
+  recommendationText,
   bucket,
   accept,
   maxSizeMB,
   value,
   onChange,
-  isImage = false
+  isImage = false,
+  aspectRatio = '1:1'
 }: FileUploadProps) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -126,6 +130,13 @@ export default function FileUpload({
         </p>
       )}
 
+      {recommendationText && (
+        <div className="bg-blue-50/70 border border-blue-200 text-blue-800 px-3 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+          <span>{recommendationText}</span>
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -134,25 +145,29 @@ export default function FileUpload({
         className="hidden"
       />
 
-      {/* State A: File Selected & Verified */}
+      {/* State A: File Selected & Verified with Cropped Aspect Ratio Preview */}
       {value && !uploading && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 overflow-hidden">
             {isImage ? (
-              <div className="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-white flex-shrink-0">
+              <div className={`overflow-hidden border-2 border-white shadow-md bg-slate-200 flex-shrink-0 ${
+                aspectRatio === '1:1' ? 'w-16 h-16 rounded-full' :
+                aspectRatio === '3:1' ? 'w-36 h-12 rounded-xl' :
+                'w-14 h-18 rounded-xl'
+              }`}>
                 <img src={value} alt="Preview" className="w-full h-full object-cover" />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center flex-shrink-0">
                 <File className="w-5 h-5" />
               </div>
             )}
             <div className="truncate">
               <span className="text-xs font-bold text-slate-900 block truncate">
-                {isImage ? 'Imagem de Capa Carregada' : 'Arquivo Didático Carregado'}
+                {isImage ? 'Imagem Recortada & Carregada' : 'Arquivo Didático Carregado'}
               </span>
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Upload concluído com sucesso
+                <CheckCircle2 className="w-3 h-3" /> Upload pronto no Supabase
               </span>
             </div>
           </div>

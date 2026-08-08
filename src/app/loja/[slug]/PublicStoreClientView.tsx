@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
+import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
 interface PublicStoreClientViewProps {
   store: Store;
@@ -74,6 +75,17 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     }, 2500);
   };
 
+  // Build Options for CustomSelect Component
+  const categoryFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todas as Categorias' },
+    ...categories.map(c => ({ value: c.id, label: c.nome }))
+  ];
+
+  const educationFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todos os Níveis' },
+    ...educationLevels.map(e => ({ value: e.id, label: e.nome }))
+  ];
+
   return (
     <div 
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
@@ -87,27 +99,28 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
 
       {/* Store Banner Hero Header */}
       <header className="relative bg-white border-b border-slate-200">
-        <div className="h-44 sm:h-60 relative overflow-hidden bg-slate-800">
+        <div className="h-48 sm:h-64 relative overflow-hidden bg-slate-900">
           {store.banner_url ? (
             <img src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center text-slate-400 font-bold text-sm">
-              Banner Oficial da Loja
+              Banner Oficial da Loja (1200x400)
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
         </div>
 
-        {/* Store Profile Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 pb-8">
+        {/* Store Profile Bar with Floating Circle Logo */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 text-center sm:text-left">
-            {/* Logo Avatar */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white p-1 border-4 border-white shadow-xl overflow-hidden flex-shrink-0">
+            
+            {/* Circular Logo Overlapping Banner */}
+            <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white p-1.5 border-4 border-white shadow-xl overflow-hidden flex-shrink-0 relative z-10">
               {store.logo_url ? (
                 <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
               ) : (
                 <div 
-                  className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-3xl shadow-inner"
+                  className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-3xl sm:text-4xl shadow-inner"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {store.nome_loja.charAt(0).toUpperCase()}
@@ -116,7 +129,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
             </div>
 
             {/* Store Name & Bio */}
-            <div className="space-y-2 flex-1">
+            <div className="space-y-2 flex-1 pt-2 sm:pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-center sm:justify-start">
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
                   {store.nome_loja}
@@ -139,7 +152,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       {/* Main Store Products Catalog */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         
-        {/* Filter & Catalog Header */}
+        {/* Filter & Catalog Header with Styled CustomSelect Components */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -153,44 +166,34 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {/* Search Input */}
-            <div className="w-full sm:w-60">
+            <div className="w-full sm:w-56">
               <input
                 type="text"
-                placeholder="Buscar material didático..."
+                placeholder="Buscar material..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className="w-full px-4 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs"
+                className="w-full px-4 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-slate-900 text-xs placeholder-slate-400 focus:outline-none shadow-xs font-medium"
               />
             </div>
 
-            {/* Category Filter */}
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs text-xs">
-              <Tags className="w-3.5 h-3.5 text-blue-600" />
-              <select
+            {/* Custom Category Select */}
+            <div className="w-full sm:w-52">
+              <CustomSelect
+                options={categoryFilterOptions}
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-transparent text-slate-900 font-bold focus:outline-none text-xs"
-              >
-                <option value="all">Todas as Categorias</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedCategory(val)}
+                icon={<Tags className="w-3.5 h-3.5" />}
+              />
             </div>
 
-            {/* Education Level Filter */}
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs text-xs">
-              <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-              <select
+            {/* Custom Education Level Select */}
+            <div className="w-full sm:w-52">
+              <CustomSelect
+                options={educationFilterOptions}
                 value={selectedEducation}
-                onChange={(e) => setSelectedEducation(e.target.value)}
-                className="bg-transparent text-slate-900 font-bold focus:outline-none text-xs"
-              >
-                <option value="all">Todos os Níveis</option>
-                {educationLevels.map(e => (
-                  <option key={e.id} value={e.id}>{e.nome}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedEducation(val)}
+                icon={<GraduationCap className="w-3.5 h-3.5" />}
+              />
             </div>
           </div>
         </div>
@@ -216,12 +219,12 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                   className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-all group"
                 >
                   <div className="space-y-3">
-                    {/* Product Cover */}
-                    <div className="h-44 rounded-xl overflow-hidden bg-slate-100 relative">
+                    {/* Product Cover with Fixed 3:4 Aspect Ratio */}
+                    <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative">
                       {prod.capa_url ? (
                         <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
+                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
                           Material Didático Digital
                         </div>
                       )}
@@ -316,7 +319,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-900">Simulação de PIX Gerada!</h3>
-                  <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                  <p className="text-xs text-slate-600 max-w-xs mx-auto font-medium">
                     Ambiente de testes do Educalizando. O split de pagamentos oficial via Asaas estará ativado nas vendas reais.
                   </p>
                 </div>
@@ -336,7 +339,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
 
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">{selectedProduct.titulo}</h3>
-                    <p className="text-xs text-slate-500 mt-1">Vendido por <strong>{store.nome_loja}</strong></p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">Vendido por <strong>{store.nome_loja}</strong></p>
                   </div>
 
                   {selectedProduct.descricao && (

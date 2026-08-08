@@ -401,12 +401,14 @@ export default function ProductWizardModal({
               <FileUpload
                 label="Upload da Imagem de Capa"
                 helperText="Envie uma imagem chamativa do seu produto. Formatos: JPG, PNG ou WEBP (máx. 5MB)."
+                recommendationText="Recomendado: proporção 3:4 (ex: 600x800px) para capas de apostilas e e-books"
                 bucket="product-covers"
                 accept="image/jpeg,image/png,image/webp"
                 maxSizeMB={5}
                 value={capaUrl}
                 onChange={(url) => setCapaUrl(url)}
                 isImage={true}
+                aspectRatio="3:4"
               />
             </motion.div>
           )}

@@ -249,24 +249,28 @@ export default function StoreSettingsPage() {
             <FileUpload
               label="Foto / Logo da Loja"
               helperText="Upload do avatar da marca (JPG, PNG ou WEBP, máx. 2MB)."
+              recommendationText="Recomendado: imagem quadrada (proporção 1:1, mínimo 400x400px)"
               bucket="store-assets"
               accept="image/jpeg,image/png,image/webp"
               maxSizeMB={2}
               value={watchedLogoUrl}
               onChange={(url) => setValue('logo_url', url || '')}
               isImage={true}
+              aspectRatio="1:1"
             />
 
             {/* Upload do Banner da Loja (Reutiliza FileUpload) */}
             <FileUpload
               label="Imagem do Banner Principal"
               helperText="Upload da imagem de capa de topo da vitrine (JPG, PNG ou WEBP, máx. 5MB)."
+              recommendationText="Recomendado: proporção 3:1 (ex: 1200x400px)"
               bucket="store-assets"
               accept="image/jpeg,image/png,image/webp"
               maxSizeMB={5}
               value={watchedBannerUrl}
               onChange={(url) => setValue('banner_url', url || '')}
               isImage={true}
+              aspectRatio="3:1"
             />
 
             {/* Submit Button */}
