@@ -7,25 +7,25 @@ export default function SocialProof() {
   const TRUST_CARDS = [
     {
       icon: Zap,
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
+      color: 'text-brand-amber bg-amber-50 border-amber-200',
       title: 'Checkout PIX Instantâneo',
       description: 'O aluno paga via QR Code ou Copia e Cola e o dinheiro cai direto na sua conta, com liberação automática do material.'
     },
     {
       icon: Store,
-      color: 'text-blue-600 bg-blue-50 border-blue-200',
+      color: 'text-brand-navy bg-slate-100 border-slate-200',
       title: 'Área de Membros Inclusa',
       description: 'Entregue apostilas em PDF, simulados e videoaulas em um ambiente seguro e profissional sob o nome da sua marca.'
     },
     {
       icon: ShieldCheck,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      color: 'text-brand-green bg-emerald-50 border-emerald-200',
       title: 'Risco Zero & Sem Mensalidade',
       description: 'Crie sua loja e cadastre quantos infoprodutos quiser sem pagar nada por mês. Você só paga taxa fixa quando vender.'
     },
     {
       icon: Headphones,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      color: 'text-brand-teal bg-cyan-50 border-cyan-200',
       title: 'Suporte Direto com o Fundador',
       description: 'Plataforma nova pensada para criadores. Você tem acesso direto à equipe para tirar dúvidas e sugerir melhorias.'
     }
@@ -37,8 +37,8 @@ export default function SocialProof() {
         
         {/* Early-stage Trust Badge Banner */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded-full">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> PLATAFORMA NOVA — SEJA UM DOS PRIMEIROS CRIADORES
+          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> PLATAFORMA NOVA — SEJA UM DOS PRIMEIROS CRIADORES
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Construída sob medida para quem cria conteúdo educativo

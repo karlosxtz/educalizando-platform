@@ -121,15 +121,15 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       <div className="bg-slate-900 py-2 px-4 text-xs text-slate-300">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-brand-green flex-shrink-0" />
             <span>Loja Oficial Habilitada na Plataforma <strong>Educalizando</strong> — Checkout PIX & Proteção</span>
           </div>
           <Link
-            href="/aluno/login"
-            className="text-blue-300 hover:text-white font-extrabold flex items-center gap-1.5 bg-blue-600/30 hover:bg-blue-600/50 px-3 py-1 rounded-full border border-blue-400/30 text-[11px] transition-all"
+            href={`/aluno/login?from=${store.slug}`}
+            className="text-brand-teal hover:text-white font-extrabold flex items-center gap-1.5 bg-brand-navy/60 hover:bg-brand-navy px-3 py-1 rounded-full border border-brand-teal/30 text-[11px] transition-all"
           >
-            <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
-            <span>Já comprou nesta loja? Acesse a Área do Aluno</span>
+            <GraduationCap className="w-3.5 h-3.5 text-brand-teal" />
+            <span>Já comprou nesta loja? Acesse seus materiais</span>
           </Link>
         </div>
       </div>

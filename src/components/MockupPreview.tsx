@@ -33,7 +33,7 @@ export default function MockupPreview() {
         {/* Store Body Mockup */}
         <div className="p-5 space-y-4">
           {/* Store Banner & Creator Profile */}
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 p-4 rounded-xl text-white shadow-sm flex items-center gap-4">
+          <div className="bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy p-4 rounded-xl text-white shadow-sm flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
@@ -45,13 +45,13 @@ export default function MockupPreview() {
               <div className="flex items-center gap-2">
                 <h4 className="text-white font-bold text-base">Prof. Ricardo Silva</h4>
                 <span className="bg-emerald-400/20 text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300/30 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> VERIFICADO
+                  <ShieldCheck className="w-3 h-3 text-emerald-300" /> VERIFICADO
                 </span>
               </div>
               <p className="text-xs text-blue-100">Especialista em Redação & Matemática ENEM</p>
               <div className="flex items-center gap-3 mt-1.5 text-[11px] text-blue-100">
-                <span className="flex items-center gap-1 text-amber-300 font-bold">
-                  <Star className="w-3 h-3 fill-amber-300" /> 4.9
+                <span className="flex items-center gap-1 text-brand-amber font-bold">
+                  <Star className="w-3 h-3 fill-brand-amber" /> 4.9
                 </span>
                 <span>•</span>
                 <span className="text-emerald-300 font-semibold">Entrega Garantida</span>
@@ -67,15 +67,15 @@ export default function MockupPreview() {
                 alt="Material"
                 className="w-full h-full object-cover"
               />
-              <span className="absolute top-1 left-1 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+              <span className="absolute top-1 left-1 bg-brand-navy text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                 PDF + VÍDEO
               </span>
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                <span className="text-blue-600 font-bold">Apostila Digital ENEM</span>
-                <span className="text-emerald-600 font-bold">Entrega Imediata</span>
+                <span className="text-brand-navy font-bold">Apostila Digital ENEM</span>
+                <span className="text-brand-green font-bold">Entrega Imediata</span>
               </div>
               <h5 className="text-slate-900 font-bold text-xs truncate">
                 Combo Definitivo ENEM: 1.000 Questões + Redação Nota 1000
@@ -89,7 +89,7 @@ export default function MockupPreview() {
                   <span className="text-[10px] text-slate-400 line-through mr-1">R$ 147,00</span>
                   <span className="text-slate-900 font-black text-sm">R$ 67,90</span>
                 </div>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs transition-transform active:scale-95">
+                <button className="bg-brand-green hover:bg-brand-green-hover text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs transition-transform active:scale-95">
                   <Zap className="w-3 h-3 fill-white" /> Comprar via PIX
                 </button>
               </div>
@@ -99,15 +99,15 @@ export default function MockupPreview() {
           {/* Floating Badges */}
           <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
             <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <Zap className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
+              <Zap className="w-3.5 h-3.5 text-brand-amber mx-auto mb-1" />
               <span className="text-slate-700 font-bold block">PIX na Hora</span>
             </div>
             <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <Award className="w-3.5 h-3.5 text-indigo-600 mx-auto mb-1" />
+              <Award className="w-3.5 h-3.5 text-brand-teal mx-auto mb-1" />
               <span className="text-slate-700 font-bold block">Certificados</span>
             </div>
             <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 mx-auto mb-1" />
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-green mx-auto mb-1" />
               <span className="text-slate-700 font-bold block">Garantia 7 Dias</span>
             </div>
           </div>

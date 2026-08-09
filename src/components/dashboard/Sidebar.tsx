@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
-  Sparkles, LayoutDashboard, Store, Package, Boxes, Tags, ShoppingCart, 
+  LayoutDashboard, Store, Package, Boxes, Tags, ShoppingCart, 
   Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User 
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
@@ -84,12 +85,10 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
     <>
       {/* Mobile Top Bar */}
       <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-xs">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <span className="text-lg font-black text-slate-900">
-            Educa<span className="text-blue-600">lizando</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/logo-icon.png" alt="Educalizando" width={32} height={32} className="w-8 h-8 object-contain" />
+          <span className="text-lg font-black text-brand-navy">
+            Educa<span className="text-brand-teal">lizando</span>
           </span>
         </Link>
 
@@ -97,7 +96,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
           <Link
             href={`/loja/${storeSlug}`}
             target="_blank"
-            className="p-2 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-200 flex items-center gap-1"
+            className="p-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Ver Loja</span>
@@ -123,12 +122,13 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
           {/* Top Brand Logo */}
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5" />
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
+                <Image src="/logo-icon.png" alt="Educalizando Logo" width={36} height={36} className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
               </div>
               <div>
-                <span className="text-xl font-black text-slate-900 tracking-tight">
-                  Educa<span className="text-blue-600">lizando</span>
+                <span className="text-xl font-black text-brand-navy tracking-tight">
+                  Educa<span className="text-brand-teal">lizando</span>
                 </span>
                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider -mt-1">
                   Painel do Criador
@@ -143,7 +143,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
 
           {/* Current Store Badge */}
           <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-brand-navy text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
               {storeName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
@@ -169,12 +169,12 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 font-bold shadow-xs border-l-4 border-blue-600'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-slate-100 text-brand-navy font-bold shadow-xs border-l-4 border-brand-navy'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-brand-navy'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-brand-navy' : 'text-slate-400'}`} />
                     <span>{item.label}</span>
                   </div>
 
@@ -183,7 +183,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
                       {item.badge}
                     </span>
                   ) : (
-                    isActive && <ChevronRight className="w-3.5 h-3.5 text-blue-600" />
+                    isActive && <ChevronRight className="w-3.5 h-3.5 text-brand-navy" />
                   )}
                 </Link>
               );
@@ -195,13 +195,13 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
             <Link
               href={`/loja/${storeSlug}`}
               target="_blank"
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition-all"
+              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-brand-green bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition-all"
             >
               <div className="flex items-center gap-2.5">
-                <ExternalLink className="w-4 h-4 text-emerald-600" />
+                <ExternalLink className="w-4 h-4 text-brand-green" />
                 <span>Ver Loja Pública</span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-emerald-600" />
+              <ChevronRight className="w-3.5 h-3.5 text-brand-green" />
             </Link>
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
         {/* Sidebar Footer: Creator Account & Logout */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
               <User className="w-4 h-4" />
             </div>
             <div className="min-w-0">

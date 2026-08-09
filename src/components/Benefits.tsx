@@ -46,7 +46,7 @@ export default function Benefits() {
         
         {/* Title */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full inline-block">
             POR QUE ESCOLHER O EDUCALIZANDO
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
@@ -70,7 +70,7 @@ export default function Benefits() {
                 transition={{ duration: 0.5, delay: idx * 0.08 }}
                 className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 text-brand-navy border border-slate-200 flex items-center justify-center">
                   <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900">

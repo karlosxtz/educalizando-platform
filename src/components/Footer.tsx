@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -11,12 +12,20 @@ export default function Footer() {
           
           {/* Logo & Tagline */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
-              <Sparkles className="w-5 h-5" />
+            <div className="relative flex items-center justify-center">
+              {/* Discrete amber glow behind icon in footer as requested */}
+              <div className="absolute inset-0 bg-brand-amber/25 blur-md rounded-full" />
+              <Image
+                src="/logo-icon.png"
+                alt="Educalizando Logo"
+                width={38}
+                height={38}
+                className="relative w-9 h-9 object-contain"
+              />
             </div>
             <div>
-              <span className="text-xl font-black text-slate-900">
-                Educa<span className="text-blue-600">lizando</span>
+              <span className="text-xl font-black text-brand-navy">
+                Educa<span className="text-brand-teal">lizando</span>
               </span>
               <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                 Plataforma de Monetização para Criadores de Infoprodutos
@@ -26,11 +35,12 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold text-slate-600">
-            <Link href="/login" className="hover:text-blue-600 transition-colors">Entrar</Link>
-            <a href="#como-funciona" className="hover:text-blue-600 transition-colors">Como Funciona</a>
-            <a href="#beneficios" className="hover:text-blue-600 transition-colors">Diferenciais</a>
-            <a href="#precos" className="hover:text-blue-600 transition-colors">Preços</a>
-            <a href="#faq" className="hover:text-blue-600 transition-colors">Perguntas Frequentes</a>
+            <Link href="/aluno" className="hover:text-brand-teal text-brand-navy font-extrabold transition-colors">Já é aluno? Acesse seus materiais aqui</Link>
+            <Link href="/login" className="hover:text-brand-navy transition-colors">Painel do Criador</Link>
+            <a href="#como-funciona" className="hover:text-brand-navy transition-colors">Como Funciona</a>
+            <a href="#beneficios" className="hover:text-brand-navy transition-colors">Diferenciais</a>
+            <a href="#precos" className="hover:text-brand-navy transition-colors">Preços</a>
+            <a href="#faq" className="hover:text-brand-navy transition-colors">Perguntas Frequentes</a>
           </div>
         </div>
 

@@ -1,18 +1,57 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-navy: #093b6c;
+  --color-brand-navy-hover: #072d53;
+  --color-brand-green: #139b69;
+  --color-brand-green-hover: #0f8559;
+  --color-brand-teal: #04a8d7;
+  --color-brand-teal-hover: #038ab2;
+  --color-brand-amber: #f67824;
+  --color-brand-amber-hover: #e06310;
+}
+
+/*
+  =============================================================================
+  EDUCA LIZANDO — DESIGN SYSTEM BRAND COLOR TOKENS
+  =============================================================================
+  Cores oficiais extraídas do arquivo vetorial / imagem da logo oficial:
+  
+  - --brand-navy (#093b6c): Azul-marinho escuro do texto "EDUCALIZANDO" na logo.
+    -> Cor PRIMÁRIA principal de marca. Usado para: botões CTA principais,
+       wordmark textual, títulos em destaque, links principais e elementos de foco.
+  
+  - --brand-green (#139b69): Verde esmeralda do gradiente da fita/livro na logo.
+    -> Ancorado para: badges de PIX instantâneo, status de sucesso, confirmações de pagamento.
+
+  - --brand-teal (#04a8d7): Azul-petróleo / cyan intermediário do gradiente do ícone.
+    -> Cor de APOIO SECUNDÁRIA: hover states de elementos interativos, ícones informativos,
+       destaques secundários sem sobrecarregar a cor primária navy.
+
+  - --brand-amber (#f67824): Laranja/dourado quente da chama e estrela da logo.
+    -> ACENTO PONTUAL APENAS: selos promocionais, badges "Novo", brilho/glow discreto
+       atrás do ícone da marca. NUNCA como cor de fundo de botões CTA ou grandes blocos.
+  =============================================================================
+*/
+
 @layer base {
   :root {
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     
-    /* Clean White & Trust Blue Design System Tokens */
+    /* Design System Tokens */
     --bg-primary: #f8fafc;
     --bg-secondary: #ffffff;
     --border-color: #e2e8f0;
     
-    --brand-blue: #2563eb;
-    --brand-blue-hover: #1d4ed8;
-    --brand-emerald: #10b981;
-    --brand-amber: #f59e0b;
+    --brand-navy: #093b6c;
+    --brand-navy-hover: #072d53;
+    --brand-green: #139b69;
+    --brand-green-hover: #0f8559;
+    --brand-teal: #04a8d7;
+    --brand-teal-hover: #038ab2;
+    --brand-amber: #f67824;
+    --brand-amber-hover: #e06310;
+
     --text-primary: #0f172a;
     --text-muted: #64748b;
   }
@@ -24,8 +63,8 @@
     min-height: 100vh;
     overflow-x: hidden;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(9, 59, 108, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(19, 155, 105, 0.04) 0px, transparent 50%);
     background-attachment: fixed;
   }
 }
@@ -45,17 +84,17 @@
   background: #ffffff;
   border-color: #cbd5e1;
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 12px 30px -4px rgba(9, 59, 108, 0.12);
 }
 
 .gradient-text-coral {
-  background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #093b6c 0%, #04a8d7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-emerald {
-  background: linear-gradient(135deg, #0f172a 0%, #10b981 100%);
+  background: linear-gradient(135deg, #093b6c 0%, #139b69 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

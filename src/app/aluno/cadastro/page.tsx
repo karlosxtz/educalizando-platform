@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Sparkles, GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, Store } from 'lucide-react';
 import { registerStudentInSupabase } from '@/lib/student-service';
 
-export default function StudentSignupPage() {
+function StudentSignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromSlug = searchParams.get('from');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -42,22 +45,132 @@ export default function StudentSignupPage() {
   };
 
   return (
+    <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 font-sans">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl p-8 shadow-2xl space-y-6 border border-slate-100"
+      >
+        {fromSlug && (
+          <div className="bg-slate-100 border border-slate-200 text-brand-navy px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Store className="w-4 h-4 text-brand-teal" />
+              <span>Cadastrando para acessar a loja <strong>/{fromSlug}</strong></span>
+            </span>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+              Nome Completo *
+            </label>
+            <div className="relative">
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ex: Maria Fernandes"
+                required
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+              E-mail de Aluno *
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu.email@exemplo.com"
+                required
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+              Senha de Acesso *
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-lg shadow-brand-navy/25 flex items-center justify-center gap-2 active:scale-95 transition-all"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <span>Criar Conta de Aluno</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-100 text-center space-y-2">
+          <p className="text-xs text-slate-500 font-medium">
+            Já tem uma conta de aluno?{' '}
+            <Link 
+              href={fromSlug ? `/aluno/login?from=${fromSlug}` : '/aluno/login'} 
+              className="text-brand-navy font-extrabold hover:underline"
+            >
+              Fazer login
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function StudentSignupPage() {
+  return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       {/* Background Glow Overlay */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center">
-        <Link href="/" className="inline-flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-8">
+        <Link href="/" className="inline-flex items-center gap-2.5 group">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
+            <Image src="/logo-icon.png" alt="Educalizando Logo" width={40} height={40} className="relative w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
           </div>
           <span className="text-2xl font-black tracking-tight text-white">
-            Educa<span className="text-blue-500">lizando</span>
+            Educa<span className="text-brand-teal">lizando</span>
           </span>
         </Link>
 
-        <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/15 text-blue-300 text-xs font-bold">
-          <GraduationCap className="w-4 h-4 text-blue-400" />
+        <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/15 text-brand-teal text-xs font-bold">
+          <GraduationCap className="w-4 h-4 text-brand-teal" />
           <span>Cadastro de Aluno</span>
         </div>
 
@@ -69,98 +182,11 @@ export default function StudentSignupPage() {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-8 shadow-2xl space-y-6 border border-slate-100"
-        >
-          {errorMsg && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                Nome Completo *
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ex: Maria Fernandes"
-                  required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                E-mail de Aluno *
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu.email@exemplo.com"
-                  required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                Senha de Acesso *
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                  minLength={6}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-95 transition-all"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <span>Criar Conta de Aluno</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="pt-4 border-t border-slate-100 text-center space-y-2">
-            <p className="text-xs text-slate-500 font-medium">
-              Já tem uma conta de aluno?{' '}
-              <Link href="/aluno/login" className="text-blue-600 font-extrabold hover:underline">
-                Fazer login
-              </Link>
-            </p>
-          </div>
-        </motion.div>
-      </div>
+      <Suspense fallback={
+        <div className="text-center text-white text-xs">Carregando formulário...</div>
+      }>
+        <StudentSignupForm />
+      </Suspense>
     </div>
   );
 }

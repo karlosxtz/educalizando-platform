@@ -21,7 +21,7 @@ export default function Pricing() {
         
         {/* Title */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full inline-block">
             TRANSPARÊNCIA TOTAL DE PREÇOS
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
@@ -38,9 +38,9 @@ export default function Pricing() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-xl mx-auto bg-white rounded-3xl border-2 border-blue-600 p-8 sm:p-10 shadow-xl relative overflow-hidden space-y-8"
+          className="max-w-xl mx-auto bg-white rounded-3xl border-2 border-brand-navy p-8 sm:p-10 shadow-xl relative overflow-hidden space-y-8"
         >
-          <div className="bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-widest py-1.5 px-4 rounded-full text-center w-max mx-auto shadow-sm">
+          <div className="bg-brand-navy text-white text-[11px] font-extrabold uppercase tracking-widest py-1.5 px-4 rounded-full text-center w-max mx-auto shadow-sm">
             PLANO CRIADOR SEM MENSALIDADE
           </div>
 
@@ -52,37 +52,37 @@ export default function Pricing() {
               <span className="text-5xl sm:text-6xl font-black text-slate-900">R$ 0</span>
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
-            <p className="text-xs text-blue-600 font-bold pt-1">
+            <p className="text-xs text-brand-navy font-bold pt-1">
               + {formattedFeePercent}% + R$ {formattedFeeFixed} por transação aprovada
             </p>
           </div>
 
           <div className="space-y-4 pt-6 border-t border-slate-200 text-xs font-bold text-slate-700">
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
               <span>Loja virtual própria com link exclusivo</span>
             </div>
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
               <span>Checkout com pagamento via PIX instantâneo</span>
             </div>
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
               <span>Upload ilimitado de apostilas em PDF e simulados</span>
             </div>
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
               <span>Área de membros para hospedagem de videoaulas</span>
             </div>
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
               <span>Gerador automático de certificados para os alunos</span>
             </div>
           </div>
 
           <button
             onClick={scrollToCadastro}
-            className="w-full py-4 rounded-xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-lg shadow-brand-navy/25 transition-all flex items-center justify-center gap-2"
           >
             <span>Começar Agora Gratuitamente</span>
             <ArrowRight className="w-4 h-4" />

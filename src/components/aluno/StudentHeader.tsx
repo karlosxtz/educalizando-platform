@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, GraduationCap, LogOut, BookOpen, User } from 'lucide-react';
+import Image from 'next/image';
+import { GraduationCap, LogOut, BookOpen } from 'lucide-react';
 import { signOutStudent } from '@/lib/student-service';
 
 interface StudentHeaderProps {
@@ -27,14 +28,21 @@ export default function StudentHeader({
         
         {/* Brand & Badge */}
         <Link href="/aluno/dashboard" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
+            <Image
+              src="/logo-icon.png"
+              alt="Educalizando"
+              width={36}
+              height={36}
+              className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+            />
           </div>
           <div>
-            <span className="text-xl font-black text-slate-900 tracking-tight">
-              Educa<span className="text-blue-600">lizando</span>
+            <span className="text-xl font-black text-brand-navy tracking-tight">
+              Educa<span className="text-brand-teal">lizando</span>
             </span>
-            <span className="block text-[10px] font-bold text-blue-600 uppercase tracking-widest -mt-1 flex items-center gap-1">
+            <span className="block text-[10px] font-bold text-brand-teal uppercase tracking-widest -mt-1 flex items-center gap-1">
               <GraduationCap className="w-3 h-3" /> Área do Aluno
             </span>
           </div>
@@ -44,9 +52,9 @@ export default function StudentHeader({
         <div className="flex items-center gap-4">
           <Link
             href="/aluno/dashboard"
-            className="text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors hidden sm:flex items-center gap-1.5"
+            className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
           >
-            <BookOpen className="w-4 h-4 text-blue-600" />
+            <BookOpen className="w-4 h-4 text-brand-teal" />
             <span>Meus Materiais</span>
           </Link>
 
@@ -54,7 +62,7 @@ export default function StudentHeader({
 
           {/* Student Profile Pill */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-extrabold flex items-center justify-center text-xs border border-blue-200">
+            <div className="w-8 h-8 rounded-full bg-brand-navy text-white font-extrabold flex items-center justify-center text-xs shadow-xs">
               {studentName.charAt(0).toUpperCase()}
             </div>
             <div className="hidden md:block text-left min-w-0">

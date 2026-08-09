@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Menu, X, Store, LogIn, GraduationCap } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, Menu, X, Store, LogIn, GraduationCap } from 'lucide-react';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,7 +29,7 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-white/90 backdrop-blur-md border-b border-slate-200 py-3 shadow-xs'
+          ? 'bg-white/95 backdrop-blur-md border-b border-slate-200 py-3 shadow-xs'
           : 'bg-transparent py-5'
       }`}
     >
@@ -36,14 +37,22 @@ export default function Header() {
         {/* Brand Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="relative flex items-center justify-center">
+            {/* Subtle amber glow behind icon as requested */}
+            <div className="absolute inset-0 bg-brand-amber/20 blur-md rounded-full group-hover:bg-brand-amber/35 transition-all" />
+            <Image
+              src="/logo-icon.png"
+              alt="Educalizando Logo"
+              width={42}
+              height={42}
+              className="relative w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+            />
           </div>
           <div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              Educa<span className="text-blue-600">lizando</span>
+            <span className="text-2xl font-black tracking-tight text-brand-navy">
+              Educa<span className="text-brand-teal">lizando</span>
             </span>
             <span className="block text-[0.65rem] font-bold text-slate-500 tracking-widest uppercase -mt-1">
               Para Criadores de Infoprodutos
@@ -55,31 +64,31 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
           <button
             onClick={() => scrollToSection('como-funciona')}
-            className="hover:text-blue-600 transition-colors"
+            className="hover:text-brand-navy transition-colors"
           >
             Como Funciona
           </button>
           <button
             onClick={() => scrollToSection('para-quem')}
-            className="hover:text-blue-600 transition-colors"
+            className="hover:text-brand-navy transition-colors"
           >
             Para Quem É
           </button>
           <button
             onClick={() => scrollToSection('beneficios')}
-            className="hover:text-blue-600 transition-colors"
+            className="hover:text-brand-navy transition-colors"
           >
             Diferenciais
           </button>
           <button
             onClick={() => scrollToSection('precos')}
-            className="hover:text-blue-600 transition-colors"
+            className="hover:text-brand-navy transition-colors"
           >
             Preços
           </button>
           <button
             onClick={() => scrollToSection('faq')}
-            className="hover:text-blue-600 transition-colors"
+            className="hover:text-brand-navy transition-colors"
           >
             FAQ
           </button>
@@ -89,9 +98,9 @@ export default function Header() {
         <div className="hidden sm:flex items-center gap-3">
           <Link
             href="/aluno/login"
-            className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-1.5"
+            className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-brand-navy border border-slate-200 transition-all flex items-center gap-1.5"
           >
-            <GraduationCap className="w-4 h-4 text-blue-600" />
+            <GraduationCap className="w-4 h-4 text-brand-teal" />
             <span>Área do Aluno</span>
           </Link>
 
@@ -105,7 +114,7 @@ export default function Header() {
 
           <button
             onClick={() => scrollToSection('cadastro')}
-            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5"
           >
             <Store className="w-4 h-4" />
             <span>Criar minha loja</span>
@@ -160,13 +169,13 @@ export default function Header() {
               href="/login"
               className="w-full py-2.5 rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2"
             >
-              <LogIn className="w-4 h-4 text-blue-600" />
+              <LogIn className="w-4 h-4 text-brand-teal" />
               <span>Entrar na Minha Conta</span>
             </Link>
 
             <button
               onClick={() => scrollToSection('cadastro')}
-              className="w-full py-3 rounded-xl font-bold bg-blue-600 text-white flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl font-bold bg-brand-navy text-white flex items-center justify-center gap-2 shadow-md shadow-brand-navy/20"
             >
               <Store className="w-4 h-4" />
               <span>Criar minha loja grátis</span>

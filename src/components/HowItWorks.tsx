@@ -37,7 +37,7 @@ export default function HowItWorks() {
         
         {/* Section Title */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full inline-block">
             PASSO A PASSO SIMPLES
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
@@ -62,7 +62,7 @@ export default function HowItWorks() {
                 className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-4 relative"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-brand-teal flex items-center justify-center font-bold">
                     <Icon className="w-6 h-6" />
                   </div>
                   <span className="text-2xl font-black text-slate-300">

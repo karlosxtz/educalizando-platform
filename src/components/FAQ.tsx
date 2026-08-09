@@ -36,7 +36,7 @@ export default function FAQ() {
         
         {/* Title */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full inline-block">
             PERGUNTAS FREQUENTES
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
@@ -58,10 +58,10 @@ export default function FAQ() {
                   className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-base"
                 >
                   <span className="flex items-center gap-3">
-                    <HelpCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <HelpCircle className="w-5 h-5 text-brand-teal flex-shrink-0" />
                     <span>{faq.q}</span>
                   </span>
-                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-brand-navy' : ''}`} />
                 </button>
 
                 <AnimatePresence>

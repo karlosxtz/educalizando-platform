@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
+
 import { 
-  Sparkles, Mail, Lock, Eye, EyeOff, LogIn, 
+  Mail, Lock, Eye, EyeOff, LogIn, 
   AlertCircle, Loader2, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck 
 } from 'lucide-react';
 
@@ -72,22 +74,23 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
       {/* Background Radial Glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/5 rounded-full blur-[120px] pointer-events-none" />
       
       {/* Top Header */}
       <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
+            <Image src="/logo-icon.png" alt="Educalizando Logo" width={36} height={36} className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
           </div>
-          <span className="text-2xl font-black tracking-tight text-slate-900">
-            Educa<span className="text-blue-600">lizando</span>
+          <span className="text-2xl font-black tracking-tight text-brand-navy">
+            Educa<span className="text-brand-teal">lizando</span>
           </span>
         </Link>
 
         <Link
           href="/"
-          className="text-xs text-slate-600 hover:text-blue-600 flex items-center gap-1 font-bold transition-colors"
+          className="text-xs text-slate-600 hover:text-brand-navy flex items-center gap-1 font-bold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar ao início</span>
@@ -106,7 +109,7 @@ export default function LoginPage() {
             /* Login Form Tab */
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-brand-navy border border-slate-200 flex items-center justify-center mx-auto">
                   <LogIn className="w-6 h-6" />
                 </div>
                 <h1 className="text-2xl font-black text-slate-900">Acesse o seu Painel</h1>
@@ -134,7 +137,7 @@ export default function LoginPage() {
                       placeholder="seuemail@exemplo.com"
                       {...registerLogin('email')}
                       className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${
-                        loginErrors.email ? 'border-rose-500' : 'border-slate-200 focus:border-blue-600'
+                        loginErrors.email ? 'border-rose-500' : 'border-slate-200 focus:border-brand-navy'
                       } rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all`}
                     />
                   </div>
@@ -155,7 +158,7 @@ export default function LoginPage() {
                         setResetSuccess(false);
                         setActiveTab('forgot');
                       }}
-                      className="text-xs text-blue-600 hover:underline font-bold"
+                      className="text-xs text-brand-navy hover:underline font-bold"
                     >
                       Esqueci minha senha
                     </button>
@@ -167,7 +170,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       {...registerLogin('password')}
                       className={`w-full pl-10 pr-10 py-3 bg-slate-50 border ${
-                        loginErrors.password ? 'border-rose-500' : 'border-slate-200 focus:border-blue-600'
+                        loginErrors.password ? 'border-rose-500' : 'border-slate-200 focus:border-brand-navy'
                       } rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all`}
                     />
                     <button
@@ -186,7 +189,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoginSubmitting}
-                  className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-lg shadow-brand-navy/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isLoginSubmitting ? (
                     <>
@@ -204,7 +207,7 @@ export default function LoginPage() {
 
               <div className="text-center pt-4 border-t border-slate-100 text-xs text-slate-600">
                 Ainda não possui uma loja?{' '}
-                <Link href="/#cadastro" className="text-blue-600 font-bold hover:underline">
+                <Link href="/#cadastro" className="text-brand-navy font-bold hover:underline">
                   Cadastre-se gratuitamente
                 </Link>
               </div>
@@ -213,7 +216,7 @@ export default function LoginPage() {
             /* Forgot Password Tab */
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-brand-amber border border-amber-200 flex items-center justify-center mx-auto">
                   <KeyRound className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-black text-slate-900">Recuperar Senha</h2>
@@ -224,14 +227,14 @@ export default function LoginPage() {
 
               {resetSuccess ? (
                 <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                  <CheckCircle2 className="w-8 h-8 text-brand-green mx-auto" />
                   <div>
                     <strong className="block text-sm font-bold text-slate-900 mb-1">E-mail de recuperação enviado!</strong>
                     <span>Verifique sua caixa de entrada e spam para redefinir sua senha.</span>
                   </div>
                   <button
                     onClick={() => setActiveTab('login')}
-                    className="mt-2 text-blue-600 font-bold text-xs underline block mx-auto"
+                    className="mt-2 text-brand-navy font-bold text-xs underline block mx-auto"
                   >
                     Voltar para o Login
                   </button>
@@ -256,7 +259,7 @@ export default function LoginPage() {
                         placeholder="seuemail@exemplo.com"
                         {...registerReset('email')}
                         className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${
-                          resetErrors.email ? 'border-rose-500' : 'border-slate-200 focus:border-blue-600'
+                          resetErrors.email ? 'border-rose-500' : 'border-slate-200 focus:border-brand-navy'
                         } rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all`}
                       />
                     </div>
@@ -268,7 +271,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isResetSubmitting}
-                    className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isResetSubmitting ? (
                       <>

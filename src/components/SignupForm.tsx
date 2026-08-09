@@ -106,14 +106,14 @@ export default function SignupForm() {
             href={`/loja/${successData.storeSlug}`}
             target="_blank"
             rel="noreferrer"
-            className="text-blue-600 font-mono text-sm font-extrabold break-all hover:underline block"
+            className="text-brand-navy font-mono text-sm font-extrabold break-all hover:underline block"
           >
             educalizando.com.br/loja/{successData.storeSlug}
           </a>
         </div>
 
         <div className="pt-2 text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+          <Loader2 className="w-4 h-4 text-brand-teal animate-spin" />
           <span>Redirecionando você para o seu Painel de Criador...</span>
         </div>
       </motion.div>
@@ -145,8 +145,8 @@ export default function SignupForm() {
         {/* Step 1: Personal Info */}
         <div className="space-y-4">
           <div className="border-b border-slate-100 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-2">
-              <User className="w-4 h-4" /> 1. Dados Pessoais & Login
+            <h3 className="text-xs font-bold uppercase tracking-wider text-brand-navy flex items-center gap-2">
+              <User className="w-4 h-4 text-brand-teal" /> 1. Dados Pessoais & Login
             </h3>
           </div>
 
@@ -159,7 +159,7 @@ export default function SignupForm() {
                 type="text"
                 {...register('fullName')}
                 placeholder="Ex: Prof. Ricardo Silva"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
               />
               {errors.fullName && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.fullName.message}</p>
@@ -174,7 +174,7 @@ export default function SignupForm() {
                 type="email"
                 {...register('email')}
                 placeholder="seu.email@exemplo.com"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
               />
               {errors.email && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.email.message}</p>
@@ -186,8 +186,8 @@ export default function SignupForm() {
         {/* Step 2: Store Info */}
         <div className="space-y-4">
           <div className="border-b border-slate-100 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-2">
-              <Store className="w-4 h-4" /> 2. Informações da Sua Loja
+            <h3 className="text-xs font-bold uppercase tracking-wider text-brand-navy flex items-center gap-2">
+              <Store className="w-4 h-4 text-brand-teal" /> 2. Informações da Sua Loja
             </h3>
           </div>
 
@@ -200,10 +200,10 @@ export default function SignupForm() {
                 type="text"
                 {...register('storeName')}
                 placeholder="Ex: Loja do Prof. Ricardo"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
               />
               <p className="text-[11px] text-slate-500 font-mono mt-1">
-                Link da sua loja: <strong className="text-blue-600">educalizando.com.br/loja/{generatedSlug}</strong>
+                Link da sua loja: <strong className="text-brand-navy">educalizando.com.br/loja/{generatedSlug}</strong>
               </p>
               {errors.storeName && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.storeName.message}</p>
@@ -235,8 +235,8 @@ export default function SignupForm() {
         {/* Step 3: Password Credentials */}
         <div className="space-y-4">
           <div className="border-b border-slate-100 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-2">
-              <Lock className="w-4 h-4" /> 3. Definição de Senha
+            <h3 className="text-xs font-bold uppercase tracking-wider text-brand-navy flex items-center gap-2">
+              <Lock className="w-4 h-4 text-brand-teal" /> 3. Definição de Senha
             </h3>
           </div>
 
@@ -250,7 +250,7 @@ export default function SignupForm() {
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
                 />
                 <button
                   type="button"
@@ -274,7 +274,7 @@ export default function SignupForm() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   {...register('confirmPassword')}
                   placeholder="Repita sua senha"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
                 />
                 <button
                   type="button"
@@ -295,7 +295,7 @@ export default function SignupForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 rounded-2xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/25 hover:shadow-blue-500/35 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+          className="w-full py-4 rounded-2xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-xl shadow-brand-navy/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
         >
           {isSubmitting ? (
             <>

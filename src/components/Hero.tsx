@@ -31,15 +31,15 @@ export default function Hero() {
             className="lg:col-span-7 space-y-8 text-center lg:text-left"
           >
             {/* Target Audience Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs shadow-xs">
-              <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-brand-navy font-bold text-xs shadow-xs">
+              <Sparkles className="w-4 h-4 text-brand-teal animate-pulse" />
               <span>PLATAFORMA EXCLUSIVA PARA PROFESSORES & CRIADORES</span>
             </div>
 
-            {/* Main Headline with High Contrast Slate-900 and Blue-600 Highlight */}
+            {/* Main Headline with High Contrast Slate-900 and Brand Navy Highlight */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
               Crie sua loja de <br />
-              <span className="text-blue-600 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
+              <span className="text-brand-navy bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy bg-clip-text text-transparent">
                 infoprodutos digitais
               </span> <br />
               e receba no PIX na hora.
@@ -55,7 +55,7 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
               <button
                 onClick={scrollToCadastro}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl font-extrabold text-base bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 group"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-extrabold text-base bg-brand-navy hover:bg-brand-navy-hover text-white shadow-lg shadow-brand-navy/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 group"
               >
                 <Store className="w-5 h-5" />
                 <span>Criar minha loja grátis</span>
@@ -76,15 +76,15 @@ export default function Hero() {
             {/* Key Trust Signals */}
             <div className="pt-6 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-600">
               <div className="flex items-center justify-center lg:justify-start gap-2">
-                <Zap className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <Zap className="w-4 h-4 text-brand-amber flex-shrink-0" />
                 <span>PIX Instantâneo</span>
               </div>
               <div className="flex items-center justify-center lg:justify-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-brand-green flex-shrink-0" />
                 <span>Sem Mensalidade</span>
               </div>
               <div className="flex items-center justify-center lg:justify-start gap-2 col-span-2 sm:col-span-1">
-                <Award className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <Award className="w-4 h-4 text-brand-teal flex-shrink-0" />
                 <span>Área de Membros</span>
               </div>
             </div>
