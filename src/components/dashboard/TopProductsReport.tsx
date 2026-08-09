@@ -8,9 +8,10 @@ import { getTopProductsReport } from '@/lib/sales-service';
 
 interface TopProductsReportProps {
   products: Product[];
+  storeId?: string;
 }
 
-export default function TopProductsReport({ products }: TopProductsReportProps) {
+export default function TopProductsReport({ products, storeId = 'store-demo' }: TopProductsReportProps) {
   const [stats, setStats] = useState<TopProductStat[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +19,7 @@ export default function TopProductsReport({ products }: TopProductsReportProps) 
     async function loadStats() {
       setLoading(true);
       try {
-        const res = await getTopProductsReport(products);
+        const res = await getTopProductsReport(products, storeId);
         setStats(res);
       } catch (err) {
         console.error('Erro ao carregar top produtos:', err);
@@ -27,7 +28,7 @@ export default function TopProductsReport({ products }: TopProductsReportProps) 
       }
     }
     loadStats();
-  }, [products]);
+  }, [products, storeId]);
 
   const getTipoIcon = (tipo: ProductType) => {
     switch (tipo) {

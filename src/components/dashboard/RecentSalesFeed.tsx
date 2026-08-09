@@ -6,7 +6,11 @@ import { ShoppingBag, CheckCircle2, Clock, XCircle, ArrowRight, QrCode, Loader2 
 import { RecentOrder } from '@/lib/types';
 import { getRecentOrdersFeed } from '@/lib/sales-service';
 
-export default function RecentSalesFeed() {
+interface RecentSalesFeedProps {
+  storeId?: string;
+}
+
+export default function RecentSalesFeed({ storeId = 'store-demo' }: RecentSalesFeedProps) {
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +18,7 @@ export default function RecentSalesFeed() {
     async function loadOrders() {
       setLoading(true);
       try {
-        const res = await getRecentOrdersFeed();
+        const res = await getRecentOrdersFeed(storeId);
         setOrders(res);
       } catch (err) {
         console.error('Erro ao carregar feed de pedidos:', err);
@@ -23,7 +27,7 @@ export default function RecentSalesFeed() {
       }
     }
     loadOrders();
-  }, []);
+  }, [storeId]);
 
   const getStatusBadge = (status: RecentOrder['statusPagamento']) => {
     switch (status) {

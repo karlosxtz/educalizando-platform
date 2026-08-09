@@ -7,10 +7,11 @@ import { PeriodFilter, SalesDataPoint } from '@/lib/types';
 import { getSalesDataByPeriod } from '@/lib/sales-service';
 
 interface SalesOverviewChartProps {
+  storeId?: string;
   onDataLoaded?: (totalRevenue: number, totalSalesCount: number) => void;
 }
 
-export default function SalesOverviewChart({ onDataLoaded }: SalesOverviewChartProps) {
+export default function SalesOverviewChart({ storeId = 'store-demo', onDataLoaded }: SalesOverviewChartProps) {
   const [period, setPeriod] = useState<PeriodFilter>('7d');
   const [viewMode, setViewMode] = useState<'revenue' | 'volume'>('revenue');
   const [data, setData] = useState<SalesDataPoint[]>([]);
@@ -21,7 +22,7 @@ export default function SalesOverviewChart({ onDataLoaded }: SalesOverviewChartP
     async function fetchChartData() {
       setLoading(true);
       try {
-        const res = await getSalesDataByPeriod(period);
+        const res = await getSalesDataByPeriod(storeId, period);
         setData(res);
         if (onDataLoaded) {
           const totRev = res.reduce((acc, curr) => acc + curr.revenue, 0);
@@ -35,7 +36,7 @@ export default function SalesOverviewChart({ onDataLoaded }: SalesOverviewChartP
       }
     }
     fetchChartData();
-  }, [period]);
+  }, [storeId, period]);
 
   const maxRevenue = Math.max(...data.map(d => d.revenue), 100);
   const maxSales = Math.max(...data.map(d => d.salesCount), 10);

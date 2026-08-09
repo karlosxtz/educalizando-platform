@@ -15,8 +15,8 @@ import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
 export default function DashboardOverviewPage() {
   const [store, setStore] = useState<StoreType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(3517.50);
-  const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(98);
+  const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(0);
+  const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(0);
 
   useEffect(() => {
     async function loadData() {
@@ -92,7 +92,9 @@ export default function DashboardOverviewPage() {
           </div>
           <div>
             <span className="text-2xl font-black text-slate-900">{chartTotalSalesCount}</span>
-            <span className="text-xs text-emerald-600 font-semibold block mt-0.5">+14.2% em relação ao período anterior</span>
+            <span className="text-xs text-emerald-600 font-semibold block mt-0.5">
+              {chartTotalSalesCount > 0 ? 'Vendas confirmadas via PIX' : 'Aguardando primeiras vendas'}
+            </span>
           </div>
         </div>
 
@@ -119,19 +121,21 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black text-purple-700">4.8%</span>
+            <span className="text-2xl font-black text-purple-700">
+              {chartTotalSalesCount > 0 ? '4.8%' : '0.0%'}
+            </span>
             <span className="text-xs text-slate-500 block mt-0.5">Visitas convertidas em compras</span>
           </div>
         </div>
       </div>
 
       {/* Interactive Sales Chart Component */}
-      <SalesOverviewChart onDataLoaded={handleChartDataLoaded} />
+      <SalesOverviewChart storeId={store?.id} onDataLoaded={handleChartDataLoaded} />
 
       {/* Top Products & Recent Sales Grid */}
       <div className="grid lg:grid-cols-2 gap-8">
-        <TopProductsReport products={products} />
-        <RecentSalesFeed />
+        <TopProductsReport products={products} storeId={store?.id} />
+        <RecentSalesFeed storeId={store?.id} />
       </div>
 
       {/* Quick Access Cards */}
