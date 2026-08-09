@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.stores (
     logo_url TEXT,
     banner_url TEXT,
     cor_primaria TEXT DEFAULT '#ff5722',
-    asaas_subaccount_id TEXT, -- Campo reservado para integração futura com split de pagamento Asaas
+    asaas_subaccount_id TEXT,
     whatsapp TEXT,
     instagram TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -47,42 +47,42 @@ ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 -- 6. Políticas de Segurança RLS para a Tabela STORES
--- Permissão de leitura pública da loja pelo slug
+DROP POLICY IF EXISTS "Lojas são públicas para leitura" ON public.stores;
 CREATE POLICY "Lojas são públicas para leitura" ON public.stores
     FOR SELECT USING (true);
 
--- Permissão de criação apenas para usuários autenticados
+DROP POLICY IF EXISTS "Criador pode criar sua própria loja" ON public.stores;
 CREATE POLICY "Criador pode criar sua própria loja" ON public.stores
     FOR INSERT WITH CHECK (auth.uid() = creator_id);
 
--- Permissão de atualização apenas pelo criador da loja
+DROP POLICY IF EXISTS "Criador pode editar sua própria loja" ON public.stores;
 CREATE POLICY "Criador pode editar sua própria loja" ON public.stores
     FOR UPDATE USING (auth.uid() = creator_id);
 
--- Permissão de exclusão apenas pelo criador
+DROP POLICY IF EXISTS "Criador pode deletar sua loja" ON public.stores;
 CREATE POLICY "Criador pode deletar sua loja" ON public.stores
     FOR DELETE USING (auth.uid() = creator_id);
 
 -- 7. Políticas de Segurança RLS para a Tabela PRODUCTS
--- Permissão de leitura pública dos produtos marcados como 'publicado'
+DROP POLICY IF EXISTS "Produtos publicados são públicos para leitura" ON public.products;
 CREATE POLICY "Produtos publicados são públicos para leitura" ON public.products
     FOR SELECT USING (status = 'publicado' OR store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
     ));
 
--- Permissão de criação de produto se o usuário for o criador da loja
+DROP POLICY IF EXISTS "Criador pode cadastrar produtos na sua loja" ON public.products;
 CREATE POLICY "Criador pode cadastrar produtos na sua loja" ON public.products
     FOR INSERT WITH CHECK (store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
     ));
 
--- Permissão de atualização de produto pelo criador
+DROP POLICY IF EXISTS "Criador pode editar produtos da sua loja" ON public.products;
 CREATE POLICY "Criador pode editar produtos da sua loja" ON public.products
     FOR UPDATE USING (store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
     ));
 
--- Permissão de exclusão de produto pelo criador
+DROP POLICY IF EXISTS "Criador pode deletar produtos da sua loja" ON public.products;
 CREATE POLICY "Criador pode deletar produtos da sua loja" ON public.products
     FOR DELETE USING (store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
@@ -113,8 +113,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 9. SUPABASE STORAGE BUCKETS & RLS POLICIES
--- Buckets para upload de capas e arquivos didáticos entregues aos alunos
-
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-covers', 'product-covers', true)
 ON CONFLICT (id) DO NOTHING;
@@ -123,22 +121,27 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-files', 'product-files', false)
 ON CONFLICT (id) DO NOTHING;
 
+DROP POLICY IF EXISTS "Capas de produtos são públicas para leitura" ON storage.objects;
 CREATE POLICY "Capas de produtos são públicas para leitura"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'product-covers');
 
+DROP POLICY IF EXISTS "Criadores podem fazer upload de capas" ON storage.objects;
 CREATE POLICY "Criadores podem fazer upload de capas"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'product-covers' AND auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Criadores podem ler seus arquivos didáticos" ON storage.objects;
 CREATE POLICY "Criadores podem ler seus arquivos didáticos"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'product-files' AND auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Criadores podem fazer upload de arquivos didáticos" ON storage.objects;
 CREATE POLICY "Criadores podem fazer upload de arquivos didáticos"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'product-files' AND auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Criadores podem deletar seus arquivos e capas" ON storage.objects;
 CREATE POLICY "Criadores podem deletar seus arquivos e capas"
 ON storage.objects FOR DELETE
 USING ((bucket_id = 'product-covers' OR bucket_id = 'product-files') AND auth.role() = 'authenticated');
@@ -148,7 +151,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nome TEXT NOT NULL,
     slug TEXT NOT NULL,
-    store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE, -- NULL = Categoria Global, UUID = Categoria Customizada
+    store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -156,16 +159,19 @@ CREATE INDEX IF NOT EXISTS idx_categories_store_id ON public.categories(store_id
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Categorias globais e da loja são públicas para leitura" ON public.categories;
 CREATE POLICY "Categorias globais e da loja são públicas para leitura" ON public.categories
     FOR SELECT USING (store_id IS NULL OR store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid() OR true
     ));
 
+DROP POLICY IF EXISTS "Criador pode criar sua categoria customizada" ON public.categories;
 CREATE POLICY "Criador pode criar sua categoria customizada" ON public.categories
     FOR INSERT WITH CHECK (store_id IS NOT NULL AND store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
     ));
 
+DROP POLICY IF EXISTS "Criador pode editar/deletar suas categorias" ON public.categories;
 CREATE POLICY "Criador pode editar/deletar suas categorias" ON public.categories
     FOR ALL USING (store_id IS NOT NULL AND store_id IN (
         SELECT id FROM public.stores WHERE creator_id = auth.uid()
@@ -198,6 +204,7 @@ CREATE TABLE IF NOT EXISTS public.education_levels (
 
 ALTER TABLE public.education_levels ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Níveis de escolaridade são públicos para leitura" ON public.education_levels;
 CREATE POLICY "Níveis de escolaridade são públicos para leitura" ON public.education_levels
     FOR SELECT USING (true);
 
@@ -223,24 +230,21 @@ CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_
 CREATE INDEX IF NOT EXISTS idx_products_education_level_id ON public.products(education_level_id);
 
 -- 13. BUCKET SUPABASE STORAGE PARA ASSETS DA LOJA (store-assets)
--- Armazena o Logo (avatar) e o Banner principal da vitrine da loja
-
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('store-assets', 'store-assets', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Leitura pública de logos e banners
+DROP POLICY IF EXISTS "Assets de lojas são públicos para leitura" ON storage.objects;
 CREATE POLICY "Assets de lojas são públicos para leitura"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'store-assets');
 
--- Upload de logos e banners por criadores autenticados
+DROP POLICY IF EXISTS "Criadores podem fazer upload de logos e banners" ON storage.objects;
 CREATE POLICY "Criadores podem fazer upload de logos e banners"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
 
--- Exclusão de assets pelo próprio criador
--- Exclusão de assets pelo próprio criador
+DROP POLICY IF EXISTS "Criadores podem deletar seus logos e banners" ON storage.objects;
 CREATE POLICY "Criadores podem deletar seus logos e banners"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
@@ -278,6 +282,7 @@ CREATE INDEX IF NOT EXISTS idx_kit_items_product_id ON public.kit_items(product_
 ALTER TABLE public.kits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kit_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Kits publicados sao publicos para leitura" ON public.kits;
 CREATE POLICY "Kits publicados sao publicos para leitura" ON public.kits
     FOR SELECT USING (
         status = 'publicado' OR store_id IN (
@@ -285,6 +290,7 @@ CREATE POLICY "Kits publicados sao publicos para leitura" ON public.kits
         )
     );
 
+DROP POLICY IF EXISTS "Criador pode cadastrar kits na sua loja" ON public.kits;
 CREATE POLICY "Criador pode cadastrar kits na sua loja" ON public.kits
     FOR INSERT WITH CHECK (
         store_id IN (
@@ -292,6 +298,7 @@ CREATE POLICY "Criador pode cadastrar kits na sua loja" ON public.kits
         )
     );
 
+DROP POLICY IF EXISTS "Criador pode editar kits da sua loja" ON public.kits;
 CREATE POLICY "Criador pode editar kits da sua loja" ON public.kits
     FOR UPDATE USING (
         store_id IN (
@@ -299,6 +306,7 @@ CREATE POLICY "Criador pode editar kits da sua loja" ON public.kits
         )
     );
 
+DROP POLICY IF EXISTS "Criador pode deletar kits da sua loja" ON public.kits;
 CREATE POLICY "Criador pode deletar kits da sua loja" ON public.kits
     FOR DELETE USING (
         store_id IN (
@@ -306,6 +314,7 @@ CREATE POLICY "Criador pode deletar kits da sua loja" ON public.kits
         )
     );
 
+DROP POLICY IF EXISTS "Itens de kits sao publicos para leitura" ON public.kit_items;
 CREATE POLICY "Itens de kits sao publicos para leitura" ON public.kit_items
     FOR SELECT USING (
         kit_id IN (
@@ -315,6 +324,7 @@ CREATE POLICY "Itens de kits sao publicos para leitura" ON public.kit_items
         )
     );
 
+DROP POLICY IF EXISTS "Criador pode inserir itens no kit" ON public.kit_items;
 CREATE POLICY "Criador pode inserir itens no kit" ON public.kit_items
     FOR INSERT WITH CHECK (
         kit_id IN (
@@ -324,6 +334,7 @@ CREATE POLICY "Criador pode inserir itens no kit" ON public.kit_items
         )
     );
 
+DROP POLICY IF EXISTS "Criador pode deletar itens no kit" ON public.kit_items;
 CREATE POLICY "Criador pode deletar itens no kit" ON public.kit_items
     FOR DELETE USING (
         kit_id IN (
@@ -355,18 +366,16 @@ CREATE INDEX IF NOT EXISTS idx_purchases_store_id ON public.purchases(store_id);
 
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Aluno pode visualizar suas proprias compras" ON public.purchases;
 CREATE POLICY "Aluno pode visualizar suas proprias compras" ON public.purchases
     FOR SELECT USING (
         student_id = auth.uid()
     );
 
+DROP POLICY IF EXISTS "Criador pode consultar compras da sua loja" ON public.purchases;
 CREATE POLICY "Criador pode consultar compras da sua loja" ON public.purchases
     FOR SELECT USING (
         store_id IN (
             SELECT id FROM public.stores WHERE creator_id = auth.uid()
         )
     );
-
-
-
-

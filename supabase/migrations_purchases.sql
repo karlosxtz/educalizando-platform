@@ -28,34 +28,16 @@ CREATE INDEX IF NOT EXISTS idx_purchases_store_id ON public.purchases(store_id);
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 
 -- 4. Políticas RLS para a Tabela PURCHASES
-
--- Leitura: O aluno só pode ler suas próprias compras
+DROP POLICY IF EXISTS "Aluno pode visualizar suas proprias compras" ON public.purchases;
 CREATE POLICY "Aluno pode visualizar suas proprias compras" ON public.purchases
     FOR SELECT USING (
         student_id = auth.uid()
     );
 
--- Leitura para o Criador: O criador da loja pode consultar compras efetuadas em sua loja
+DROP POLICY IF EXISTS "Criador pode consultar compras da sua loja" ON public.purchases;
 CREATE POLICY "Criador pode consultar compras da sua loja" ON public.purchases
     FOR SELECT USING (
         store_id IN (
             SELECT id FROM public.stores WHERE creator_id = auth.uid()
         )
     );
-
--- Inserção/Atualização: Sem política client-side (compras serão geradas por webhook do checkout ou Service Role Key)
-
--- ==========================================================
--- SEED SQL DE EXEMPLO PARA TESTE NO SQL EDITOR (OPCIONAL)
--- Substitua 'SEU_USER_ID_AQUI' pelo ID de um aluno cadastrado em auth.users
--- ==========================================================
-/*
-INSERT INTO public.purchases (student_id, product_id, store_id, status)
-SELECT 
-    'SEU_USER_ID_AQUI'::uuid, 
-    p.id, 
-    p.store_id, 
-    'liberado'
-FROM public.products p 
-LIMIT 1;
-*/

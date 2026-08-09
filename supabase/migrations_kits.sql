@@ -36,8 +36,7 @@ ALTER TABLE public.kits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kit_items ENABLE ROW LEVEL SECURITY;
 
 -- 5. Políticas RLS para a Tabela KITS
-
--- Leitura pública para kits publicados ou criados pelo próprio usuário logado
+DROP POLICY IF EXISTS "Kits publicados sao publicos para leitura" ON public.kits;
 CREATE POLICY "Kits publicados sao publicos para leitura" ON public.kits
     FOR SELECT USING (
         status = 'publicado' OR store_id IN (
@@ -45,7 +44,7 @@ CREATE POLICY "Kits publicados sao publicos para leitura" ON public.kits
         )
     );
 
--- Permissão de inserção se o usuário for o criador da loja
+DROP POLICY IF EXISTS "Criador pode cadastrar kits na sua loja" ON public.kits;
 CREATE POLICY "Criador pode cadastrar kits na sua loja" ON public.kits
     FOR INSERT WITH CHECK (
         store_id IN (
@@ -53,7 +52,7 @@ CREATE POLICY "Criador pode cadastrar kits na sua loja" ON public.kits
         )
     );
 
--- Permissão de atualização pelo criador da loja
+DROP POLICY IF EXISTS "Criador pode editar kits da sua loja" ON public.kits;
 CREATE POLICY "Criador pode editar kits da sua loja" ON public.kits
     FOR UPDATE USING (
         store_id IN (
@@ -61,7 +60,7 @@ CREATE POLICY "Criador pode editar kits da sua loja" ON public.kits
         )
     );
 
--- Permissão de exclusão pelo criador da loja
+DROP POLICY IF EXISTS "Criador pode deletar kits da sua loja" ON public.kits;
 CREATE POLICY "Criador pode deletar kits da sua loja" ON public.kits
     FOR DELETE USING (
         store_id IN (
@@ -70,8 +69,7 @@ CREATE POLICY "Criador pode deletar kits da sua loja" ON public.kits
     );
 
 -- 6. Políticas RLS para a Tabela KIT_ITEMS
-
--- Leitura pública para itens de kits cujos kits são visíveis
+DROP POLICY IF EXISTS "Itens de kits sao publicos para leitura" ON public.kit_items;
 CREATE POLICY "Itens de kits sao publicos para leitura" ON public.kit_items
     FOR SELECT USING (
         kit_id IN (
@@ -81,7 +79,7 @@ CREATE POLICY "Itens de kits sao publicos para leitura" ON public.kit_items
         )
     );
 
--- Criador pode inserir itens no kit de sua loja
+DROP POLICY IF EXISTS "Criador pode inserir itens no kit" ON public.kit_items;
 CREATE POLICY "Criador pode inserir itens no kit" ON public.kit_items
     FOR INSERT WITH CHECK (
         kit_id IN (
@@ -91,7 +89,7 @@ CREATE POLICY "Criador pode inserir itens no kit" ON public.kit_items
         )
     );
 
--- Criador pode deletar/modificar itens no kit de sua loja
+DROP POLICY IF EXISTS "Criador pode deletar itens no kit" ON public.kit_items;
 CREATE POLICY "Criador pode deletar itens no kit" ON public.kit_items
     FOR DELETE USING (
         kit_id IN (
