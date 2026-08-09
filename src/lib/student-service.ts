@@ -290,3 +290,44 @@ export async function generateSignedFileUrl(filePath: string): Promise<string> {
   // Fallback se for URL completa ou dev
   return filePath;
 }
+
+export interface GroupedStudentStore {
+  store: Store;
+  purchasesCount: number;
+  purchases: Purchase[];
+}
+
+// 8. Obter Lojas do Aluno Agrupadas com Contagem de Itens (Para a tela Minhas Lojas)
+export async function getStudentStoresGrouped(studentId: string): Promise<GroupedStudentStore[]> {
+  const purchases = await getStudentPurchases(studentId);
+  const storeMap = new Map<string, GroupedStudentStore>();
+
+  for (const pur of purchases) {
+    const store = pur.store;
+    if (!store) continue;
+
+    if (!storeMap.has(store.id)) {
+      storeMap.set(store.id, {
+        store,
+        purchasesCount: 1,
+        purchases: [pur]
+      });
+    } else {
+      const existing = storeMap.get(store.id)!;
+      existing.purchasesCount += 1;
+      existing.purchases.push(pur);
+    }
+  }
+
+  return Array.from(storeMap.values());
+}
+
+// 9. Obter Materiais Adquiridos pelo Aluno em uma Loja Específica
+export async function getStudentPurchasesByStoreId(studentId: string, storeId: string): Promise<{ store: Store | null; purchases: Purchase[] }> {
+  const purchases = await getStudentPurchases(studentId);
+  const filtered = purchases.filter(p => p.store_id === storeId);
+  const store = filtered[0]?.store || null;
+
+  return { store, purchases: filtered };
+}
+
