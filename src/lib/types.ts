@@ -105,3 +105,24 @@ export interface RecentOrder {
   metodoPagamento: 'PIX';
 }
 
+export interface Purchase {
+  id: string;
+  student_id: string;
+  product_id?: string | null;
+  kit_id?: string | null;
+  store_id: string;
+  status: 'liberado' | 'pendente' | 'pago' | 'estornado';
+  created_at: string;
+  product?: Product | null;
+  kit?: Kit | null;
+  store?: Store | null;
+}
+
+export interface StudentProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string | null;
+}
+
+

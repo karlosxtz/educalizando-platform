@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Menu, X, Store, LogIn } from 'lucide-react';
+import { Sparkles, ArrowRight, Menu, X, Store, LogIn, GraduationCap } from 'lucide-react';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -88,20 +88,28 @@ export default function Header() {
         {/* CTA Buttons Header */}
         <div className="hidden sm:flex items-center gap-3">
           <Link
-            href="/login"
-            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-all flex items-center gap-2"
+            href="/aluno/login"
+            className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-1.5"
           >
-            <LogIn className="w-4 h-4 text-blue-600" />
-            <span>Entrar</span>
+            <GraduationCap className="w-4 h-4 text-blue-600" />
+            <span>Área do Aluno</span>
+          </Link>
+
+          <Link
+            href="/login"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-all flex items-center gap-1.5"
+          >
+            <LogIn className="w-4 h-4 text-slate-600" />
+            <span>Criador</span>
           </Link>
 
           <button
             onClick={() => scrollToSection('cadastro')}
-            className="px-5 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5"
           >
             <Store className="w-4 h-4" />
-            <span>Criar minha loja grátis</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Criar minha loja</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
