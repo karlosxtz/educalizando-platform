@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -8,8 +8,10 @@ import {
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle
 } from 'lucide-react';
-import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, ProductReview } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
+import { getReviews } from '@/lib/review-service';
+import ProductReviewsSection from '@/components/ProductReviewsSection';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -50,6 +52,17 @@ export default function ProductDetailClientView({
   const [couponInput, setCouponInput] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
+
+  // Reviews State
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      const list = await getReviews('product', product.id);
+      setReviews(list);
+    }
+    fetchReviews();
+  }, [product.id]);
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
@@ -300,6 +313,9 @@ export default function ProductDetailClientView({
                 </div>
               </div>
             </div>
+
+            {/* Student Reviews & Testimonials Section */}
+            <ProductReviewsSection reviews={reviews} primaryColor={primaryColor} />
 
           </div>
 

@@ -151,9 +151,30 @@ export interface CouponValidationResult {
   discountAmount?: number;
 }
 
+export type ReviewStatus = 'aprovado' | 'pendente' | 'oculto';
+
+export interface ProductReview {
+  id: string;
+  product_id?: string | null;
+  kit_id?: string | null;
+  student_id: string;
+  student_name: string;
+  rating: number;
+  comment: string;
+  status: ReviewStatus;
+  created_at: string;
+}
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  ratingCounts: { [stars: number]: number };
+}
+
 export interface StudentProfile {
   id: string;
   email: string;
   full_name: string;
   avatar_url?: string | null;
 }
+

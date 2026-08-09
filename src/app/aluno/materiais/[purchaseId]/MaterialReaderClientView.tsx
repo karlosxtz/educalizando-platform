@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, Lock, Sparkles, Loader2, AlertCircle, ChevronRight, Check
+  HelpCircle, Boxes, ShieldCheck, Lock, Sparkles, Loader2, AlertCircle, ChevronRight, Check, Star, ThumbsUp 
 } from 'lucide-react';
 
 import { getCurrentStudentSession, getStudentPurchaseById, generateSignedFileUrl } from '@/lib/student-service';
+import { createReview } from '@/lib/review-service';
 import { Purchase, Product, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
 
@@ -26,6 +27,12 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
   const [activeKitProductIndex, setActiveKitProductIndex] = useState<number>(0);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Student Review Form State
+  const [userRating, setUserRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submittedReview, setSubmittedReview] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -71,6 +78,33 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       setSignedUrl(sUrl);
     } else {
       setSignedUrl(null);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewComment.trim() || !purchase || !studentSession) return;
+
+    setSubmittingReview(true);
+    try {
+      const isKit = Boolean(purchase.kit_id);
+      const targetId = isKit ? purchase.kit_id! : purchase.product_id!;
+      const targetType = isKit ? 'kit' : 'product';
+
+      await createReview({
+        targetType,
+        targetId,
+        studentId: studentSession.id,
+        studentName: studentSession.fullName,
+        rating: userRating,
+        comment: reviewComment
+      });
+
+      setSubmittedReview(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -318,11 +352,92 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
 
           {/* Reader Footer Protection Disclaimer */}
           <div className="p-3 bg-slate-900 border-t border-slate-800 text-center text-[11px] text-slate-400 flex items-center justify-center gap-2">
-            <Lock className="w-3.5 h-3.5 text-blue-400" />
+            <Lock className="w-3.5 h-3.5 text-brand-teal" />
             <span>Conteúdo protegido por Direitos Autorais e DRM Educalizando • Licença Pessoal de {studentSession?.fullName}</span>
           </div>
 
         </section>
+
+        {/* Student Review & Rating Card */}
+        <aside className="lg:w-80 bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 text-white shadow-xl flex-shrink-0">
+          <div className="space-y-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-teal block">
+              SUA OPINIÃO IMPORTA
+            </span>
+            <h3 className="text-sm font-black text-white flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              Avaliar este Material Didático
+            </h3>
+            <p className="text-xs text-slate-400 font-medium">
+              Sua avaliação ajuda outros alunos a escolherem os melhores materiais.
+            </p>
+          </div>
+
+          {submittedReview ? (
+            <div className="bg-emerald-950/60 border border-emerald-800 p-4 rounded-2xl text-center space-y-2">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+                <Check className="w-6 h-6" />
+              </div>
+              <h4 className="font-extrabold text-sm text-white">Avaliação Enviada com Sucesso!</h4>
+              <p className="text-xs text-emerald-300 font-medium">
+                Obrigado pelo seu depoimento. Ele já está visível na vitrine oficial da loja!
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              {/* Star Picker */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-300 block">Classificação por Estrelas:</label>
+                <div className="flex items-center gap-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800 justify-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setUserRating(star)}
+                      className="p-1 transition-transform hover:scale-125 focus:outline-none min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          star <= userRating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-700 fill-slate-800'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment Textarea */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-300 block">Seu Comentário / Feedback:</label>
+                <textarea
+                  rows={3}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Escreva sua opinião sobre a didática, organização do PDF ou videoaula..."
+                  className="w-full p-3 bg-slate-950 border border-slate-800 focus:border-brand-teal rounded-xl text-xs text-white placeholder:text-slate-600 focus:outline-none resize-none font-medium"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingReview || !reviewComment.trim()}
+                className="w-full py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-xs font-extrabold shadow-md flex items-center justify-center gap-2 disabled:opacity-50 transition-all min-h-[44px]"
+              >
+                {submittingReview ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <ThumbsUp className="w-4 h-4 text-brand-teal" />
+                    <span>Publicar Minha Avaliação</span>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+        </aside>
 
       </main>
     </div>

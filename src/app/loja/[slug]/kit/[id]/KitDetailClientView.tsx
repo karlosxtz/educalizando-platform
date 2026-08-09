@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -8,8 +8,10 @@ import {
   Layers, HelpCircle, ArrowLeft, CheckCircle2,
   MessageCircle, Sparkles, Lock, Check, Loader2, Boxes, Package, Tags, Ticket, AlertCircle 
 } from 'lucide-react';
-import { Store, Kit, ProductType, CouponValidationResult } from '@/lib/types';
+import { Store, Kit, ProductType, CouponValidationResult, ProductReview } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
+import { getReviews } from '@/lib/review-service';
+import ProductReviewsSection from '@/components/ProductReviewsSection';
 
 interface KitDetailClientViewProps {
   store: Store;
@@ -24,6 +26,17 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
   const [couponInput, setCouponInput] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
+
+  // Reviews State
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      const list = await getReviews('kit', kit.id);
+      setReviews(list);
+    }
+    fetchReviews();
+  }, [kit.id]);
 
   const primaryColor = store.cor_primaria || '#093b6c';
   const includedProducts = kit.products || [];
@@ -337,6 +350,9 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
                 </div>
               </div>
             </div>
+
+            {/* Student Reviews & Testimonials Section */}
+            <ProductReviewsSection reviews={reviews} primaryColor={primaryColor} />
 
           </div>
 
