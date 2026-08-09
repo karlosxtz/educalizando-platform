@@ -355,23 +355,22 @@ export default function ProductDetailClientView({
                   href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-2 bg-[#25D366] text-white rounded-xl text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-xs flex-shrink-0 flex items-center gap-1.5"
+                  className="px-3 py-2 bg-[#25D366] text-white rounded-xl text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-xs flex-shrink-0 flex items-center gap-1.5 min-h-[44px]"
                 >
                   <MessageCircle className="w-3.5 h-3.5 fill-white" /> Conversar
                 </a>
               </div>
             )}
-
           </div>
 
         </div>
       </main>
 
-      {/* Mobile Sticky Bottom Floating Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 shadow-2xl flex items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Preço Final</span>
-          <span className="text-2xl font-black text-slate-900">
+      {/* MOBILE STICKY BOTTOM BAR (Hotmart Style - Always visible during scroll on mobile) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3.5 shadow-2xl flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Preço Único</span>
+          <span className="text-xl font-black text-slate-900 tracking-tight block">
             R$ {product.preco.toFixed(2).replace('.', ',')}
           </span>
         </div>
@@ -380,11 +379,17 @@ export default function ProductDetailClientView({
           type="button"
           onClick={handleStartCheckout}
           disabled={isBuying}
-          className="px-6 py-3 rounded-xl font-extrabold text-sm text-white shadow-lg flex items-center gap-2 active:scale-95 transition-transform"
+          className="px-6 py-3 rounded-xl font-extrabold text-xs text-white shadow-lg flex items-center gap-1.5 transition-all active:scale-95 min-h-[44px]"
           style={{ backgroundColor: primaryColor }}
         >
-          {isBuying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-white" />}
-          <span>Comprar PIX</span>
+          {isBuying ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              <Zap className="w-4 h-4 fill-white" />
+              <span>Comprar via PIX</span>
+            </>
+          )}
         </button>
       </div>
 

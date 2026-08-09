@@ -618,11 +618,11 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
           href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group"
+          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group min-h-[44px] min-w-[44px]"
           title="Falar com a loja"
         >
           <MessageCircle className="w-7 h-7 fill-white" />
-          <span className="absolute right-full mr-3 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          <span className="hidden sm:block absolute right-full mr-3 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
             Falar com a loja
           </span>
         </a>

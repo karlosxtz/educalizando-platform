@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -8,10 +9,29 @@ const fontSans = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#093b6c',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   title: 'Educalizando — Venda seus Infoprodutos Digitais',
   description:
     'A plataforma definitiva para professores, criadores de conteúdo e editoras venderem apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo e área de membros.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Educalizando',
+  },
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/apple-touch-icon.png',
+  },
   keywords: [
     'venda de infoprodutos e e-books',
     'plataforma para professores',
@@ -52,6 +72,7 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth`}>
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen">
         {children}
+        <PWAInstallPrompt />
       </body>
     </html>
   );

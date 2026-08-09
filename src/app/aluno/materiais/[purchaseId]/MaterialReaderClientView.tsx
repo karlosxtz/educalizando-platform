@@ -275,16 +275,16 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
             ) : (
               /* Document / PDF / E-book Viewer */
               <div className="w-full h-full flex flex-col space-y-3">
-                <div className="flex-1 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative min-h-[550px] flex items-center justify-center shadow-inner">
+                <div className="flex-1 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative min-h-[420px] sm:min-h-[600px] flex items-center justify-center shadow-inner">
                   {signedUrl ? (
                     <iframe
                       src={`${signedUrl}#toolbar=0&navpanes=0`}
                       title={activeProduct.titulo}
-                      className="w-full h-[600px] border-0 rounded-2xl"
+                      className="w-full h-[450px] sm:h-[600px] border-0 rounded-2xl"
                     />
                   ) : (
                     <div className="text-center p-8 space-y-4 max-w-md">
-                      <FileText className="w-12 h-12 text-sky-400 mx-auto" />
+                      <FileText className="w-12 h-12 text-brand-teal mx-auto" />
                       <div>
                         <h3 className="text-base font-bold text-white">{activeProduct.titulo}</h3>
                         <p className="text-xs text-slate-400 mt-1">
@@ -297,6 +297,21 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
                     </div>
                   )}
                 </div>
+
+                {signedUrl && (
+                  <div className="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs">
+                    <span className="text-slate-400 font-medium hidden sm:inline">Dica: Use a visualização em tela cheia se preferir no seu celular.</span>
+                    <a
+                      href={signedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-brand-navy hover:bg-brand-navy-hover text-white font-bold flex items-center justify-center gap-1.5 min-h-[44px] transition-all"
+                    >
+                      <BookOpen className="w-4 h-4 text-brand-teal" />
+                      <span>Abrir Documento Completo</span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>

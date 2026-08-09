@@ -199,7 +199,7 @@ export default function ProductsManagementPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
-            <Package className="w-7 h-7 text-blue-600" /> Meus Produtos Didáticos ({products.length})
+            <Package className="w-7 h-7 text-brand-navy" /> Meus Produtos Didáticos ({products.length})
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-medium">
             Cadastre e gerencie suas apostilas, e-books e cursos categorizados por tema e escolaridade.
@@ -209,15 +209,15 @@ export default function ProductsManagementPage() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setIsCategoryManagerOpen(true)}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center gap-2 min-h-[44px]"
           >
-            <Tags className="w-4 h-4 text-blue-600" />
+            <Tags className="w-4 h-4 text-brand-teal" />
             <span>Gerenciar Minhas Categorias</span>
           </button>
 
           <Link
             href="/dashboard/produtos/novo"
-            className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
             <span>Cadastrar Novo Produto (Tela Cheia)</span>

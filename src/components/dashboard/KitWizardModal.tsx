@@ -474,12 +474,12 @@ export default function KitWizardModal({
           </div>
 
           {/* Footer Controls */}
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+          <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 sticky bottom-0 z-10 flex items-center justify-between gap-3 flex-shrink-0">
             <button
               type="button"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || saving}
-              className="px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 disabled:opacity-40 transition-all"
+              className="px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 disabled:opacity-40 transition-all min-h-[44px]"
             >
               Anterior
             </button>
@@ -488,7 +488,7 @@ export default function KitWizardModal({
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2 transition-all"
+                className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md flex items-center gap-2 transition-all min-h-[44px]"
               >
                 <span>Próximo Passo</span>
                 <ChevronRight className="w-4 h-4" />
@@ -498,7 +498,7 @@ export default function KitWizardModal({
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2.5 rounded-xl font-extrabold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 rounded-xl font-extrabold text-xs bg-brand-green hover:bg-brand-green-hover text-white shadow-md flex items-center gap-2 transition-all min-h-[44px]"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>{saving ? 'Salvando...' : editingKit ? 'Atualizar Kit' : 'Publicar Kit'}</span>

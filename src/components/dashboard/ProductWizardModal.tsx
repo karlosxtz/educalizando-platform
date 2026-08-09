@@ -507,21 +507,21 @@ export default function ProductWizardModal({
         </div>
 
         {/* Wizard Footer Controls */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 sticky bottom-0 z-10 flex items-center justify-between gap-2 shadow-xs">
           <button
             type="button"
             onClick={handlePrevStep}
             disabled={currentStep === 1 || isSubmitting}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1.5 transition-all"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1.5 transition-all min-h-[44px]"
           >
-            <ChevronLeft className="w-4 h-4" /> Voltar
+            <ChevronLeft className="w-4 h-4" /> <span>Voltar</span>
           </button>
 
           {currentStep < 4 ? (
             <button
               type="button"
               onClick={handleNextStep}
-              className="px-6 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-1.5 transition-all"
+              className="px-5 sm:px-6 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md flex items-center gap-1.5 transition-all min-h-[44px]"
             >
               <span>Próximo Passo</span>
               <ChevronRight className="w-4 h-4" />
@@ -531,17 +531,17 @@ export default function ProductWizardModal({
               type="button"
               onClick={handleSubmitFinal}
               disabled={isSubmitting}
-              className="px-7 py-3 rounded-xl font-extrabold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2 disabled:opacity-50 transition-all"
+              className="px-5 sm:px-7 py-3 rounded-xl font-extrabold text-xs bg-brand-green hover:bg-brand-green-hover text-white shadow-md flex items-center gap-2 disabled:opacity-50 transition-all min-h-[44px]"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Cadastrando no Supabase...</span>
+                  <span>Cadastrando...</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Concluir e Cadastrar Produto</span>
+                  <span>Concluir e Cadastrar</span>
                 </>
               )}
             </button>
