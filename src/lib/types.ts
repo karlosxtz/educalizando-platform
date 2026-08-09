@@ -50,3 +50,36 @@ export interface Product {
   created_at: string;
   updated_at?: string;
 }
+
+export type PeriodFilter = '7d' | '30d' | 'month' | 'year';
+
+export interface SalesDataPoint {
+  date: string;
+  label: string;
+  revenue: number;
+  salesCount: number;
+}
+
+export interface TopProductStat {
+  id: string;
+  titulo: string;
+  tipo: ProductType;
+  preco: number;
+  unidadesVendidas: number;
+  faturamentoTotal: number;
+  porcentagem: number;
+  capa_url: string | null;
+}
+
+export interface RecentOrder {
+  id: string;
+  clienteNome: string;
+  clienteEmail: string;
+  produtoTitulo: string;
+  tipoProduto: ProductType;
+  valorTotal: number;
+  statusPagamento: 'pago' | 'pendente_pix' | 'expirado';
+  dataCompra: string;
+  metodoPagamento: 'PIX';
+}
+

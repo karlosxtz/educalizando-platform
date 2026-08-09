@@ -4,14 +4,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Store, Package, DollarSign, TrendingUp, Sparkles, 
-  ArrowRight, ExternalLink, Plus, CheckCircle2 
+  ArrowRight, ExternalLink, Plus, CheckCircle2, ShoppingBag, Percent
 } from 'lucide-react';
 import { getStoreByCreatorId, getProductsByStoreId } from '@/lib/store-service';
 import { Store as StoreType, Product } from '@/lib/types';
+import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
+import TopProductsReport from '@/components/dashboard/TopProductsReport';
+import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
 
 export default function DashboardOverviewPage() {
   const [store, setStore] = useState<StoreType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(3517.50);
+  const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(98);
 
   useEffect(() => {
     async function loadData() {
@@ -25,6 +30,11 @@ export default function DashboardOverviewPage() {
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
 
+  const handleChartDataLoaded = (rev: number, count: number) => {
+    setChartTotalRevenue(rev);
+    setChartTotalSalesCount(count);
+  };
+
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
@@ -37,7 +47,7 @@ export default function DashboardOverviewPage() {
             Bem-vindo de volta, {store?.nome_loja || 'Prof. Ricardo'}!
           </h1>
           <p className="text-sm text-blue-100 leading-relaxed">
-            Sua loja exclusiva está ativa em <strong className="underline font-mono">educalizando.com.br/loja/{store?.slug || 'prof-ricardo'}</strong>. Cadastre novos materiais e comece a vender via PIX instantâneo.
+            Sua loja exclusiva está ativa em <strong className="underline font-mono">educalizando.com.br/loja/{store?.slug || 'prof-ricardo'}</strong>. Cadastre novos materiais e acompanhe os recebimentos via PIX instantâneo.
           </p>
 
           <div className="pt-2 flex flex-wrap gap-3">
@@ -81,8 +91,8 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900">0</span>
-            <span className="text-xs text-emerald-600 font-semibold block mt-0.5">Aguardando primeiras vendas</span>
+            <span className="text-2xl font-black text-slate-900">{chartTotalSalesCount}</span>
+            <span className="text-xs text-emerald-600 font-semibold block mt-0.5">+14.2% em relação ao período anterior</span>
           </div>
         </div>
 
@@ -94,25 +104,34 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black text-slate-900">R$ 0,00</span>
-            <span className="text-xs text-slate-500 block mt-0.5">Sem mensalidade na conta</span>
+            <span className="text-2xl font-black text-slate-900">
+              R$ {chartTotalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </span>
+            <span className="text-xs text-slate-500 block mt-0.5">Repasse automático sem mensalidade</span>
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider">Status da Loja</span>
-            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-              <CheckCircle2 className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider">Taxa de Conversão</span>
+            <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
+              <Percent className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full inline-block">
-              ATIVA & VERIFICADA
-            </span>
-            <span className="text-xs text-slate-500 block mt-1">Pronta para divulgação</span>
+            <span className="text-2xl font-black text-purple-700">4.8%</span>
+            <span className="text-xs text-slate-500 block mt-0.5">Visitas convertidas em compras</span>
           </div>
         </div>
+      </div>
+
+      {/* Interactive Sales Chart Component */}
+      <SalesOverviewChart onDataLoaded={handleChartDataLoaded} />
+
+      {/* Top Products & Recent Sales Grid */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        <TopProductsReport products={products} />
+        <RecentSalesFeed />
       </div>
 
       {/* Quick Access Cards */}
@@ -156,3 +175,4 @@ export default function DashboardOverviewPage() {
     </div>
   );
 }
+
