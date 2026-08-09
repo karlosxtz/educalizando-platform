@@ -21,7 +21,7 @@ export default function SocialProof() {
       icon: ShieldCheck,
       color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
       title: 'Risco Zero & Sem Mensalidade',
-      description: 'Crie sua loja e cadastre quantos materiais didáticos quiser sem pagar nada por mês. Você só paga taxa fixa quando vender.'
+      description: 'Crie sua loja e cadastre quantos infoprodutos quiser sem pagar nada por mês. Você só paga taxa fixa quando vender.'
     },
     {
       icon: Headphones,

@@ -9,11 +9,11 @@ const fontSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Educalizando — Venda seus Materiais Didáticos Digitais',
+  title: 'Educalizando — Venda seus Infoprodutos Digitais',
   description:
     'A plataforma definitiva para professores, criadores de conteúdo e editoras venderem apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo e área de membros.',
   keywords: [
-    'venda de e-books didáticos',
+    'venda de infoprodutos e e-books',
     'plataforma para professores',
     'vender apostilas em PDF',
     'Hotmart para educação',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Educalizando Plataforma Digital' }],
   openGraph: {
-    title: 'Educalizando — Venda seus Materiais Didáticos e Lucre Mais',
+    title: 'Educalizando — Venda seus Infoprodutos e Lucre Mais',
     description:
       'Transforme suas apostilas em PDF, e-books e videoaulas em uma fonte de renda recorrente com PIX instantâneo e loja própria.',
     url: 'https://educalizando.com.br',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Educalizando — Venda seus Materiais Didáticos',
+    title: 'Educalizando — Venda seus Infoprodutos',
     description:
       'Crie sua loja grátis e venda apostilas, e-books e cursos com PIX instantâneo.',
   },

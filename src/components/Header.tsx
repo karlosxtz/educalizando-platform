@@ -46,7 +46,7 @@ export default function Header() {
               Educa<span className="text-blue-600">lizando</span>
             </span>
             <span className="block text-[0.65rem] font-bold text-slate-500 tracking-widest uppercase -mt-1">
-              Para Criadores Didáticos
+              Para Criadores de Infoprodutos
             </span>
           </div>
         </Link>

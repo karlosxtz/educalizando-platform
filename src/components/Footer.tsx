@@ -19,7 +19,7 @@ export default function Footer() {
                 Educa<span className="text-blue-600">lizando</span>
               </span>
               <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                Plataforma de Monetização para Criadores Didáticos
+                Plataforma de Monetização para Criadores de Infoprodutos
               </span>
             </div>
           </div>

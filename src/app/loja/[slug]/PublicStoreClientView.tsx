@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Plus, Sparkles, Search
+  MessageCircle, Plus, Sparkles, Search, Boxes, Percent
 } from 'lucide-react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -27,8 +27,9 @@ const InstagramIcon = ({ className }: { className?: string }) => (
     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
   </svg>
 );
-import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
+import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
 interface PublicStoreClientViewProps {
@@ -43,6 +44,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
+  const [kits, setKits] = useState<Kit[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedEducation, setSelectedEducation] = useState<string>('all');
 
@@ -51,10 +53,14 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   }, [store.id]);
 
   const loadMetadata = async () => {
-    const cats = await getCategories(store.id);
-    const edLevels = await getEducationLevels();
+    const [cats, edLevels, storeKits] = await Promise.all([
+      getCategories(store.id),
+      getEducationLevels(),
+      getPublicKitsByStoreId(store.id)
+    ]);
     setCategories(cats);
     setEducationLevels(edLevels);
+    setKits(storeKits);
   };
 
   const primaryColor = store.cor_primaria || '#2563eb';
@@ -261,8 +267,134 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       </div>
 
       {/* Main Store Products Catalog */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         
+        {/* Kits & Combos Section */}
+        {kits.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Boxes className="w-6 h-6 text-blue-600" style={{ color: primaryColor }} />
+                  Kits e Combos Promocionais
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Leve o conjunto completo de materiais didáticos com desconto especial.
+                </p>
+              </div>
+              <span className="text-xs font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Maior Economia
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {kits.map((kit) => {
+                const prods = kit.products || [];
+                const somaPrecos = prods.reduce((sum, p) => sum + p.preco, 0);
+                const economia = Math.max(0, somaPrecos - kit.preco_kit);
+                const percentualOff = somaPrecos > 0 && kit.preco_kit < somaPrecos
+                  ? Math.round((economia / somaPrecos) * 100)
+                  : 0;
+
+                return (
+                  <Link
+                    key={kit.id}
+                    href={`/loja/${store.slug}/kit/${kit.id}`}
+                    className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
+                  >
+                    <div className="p-5 space-y-4">
+                      {/* Kit Cover Image */}
+                      <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
+                        {kit.capa_url ? (
+                          <img src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-tr from-slate-900 to-slate-800 text-white">
+                            <Boxes className="w-8 h-8 text-blue-400 mb-1" />
+                            <span>Combo de Materiais</span>
+                          </div>
+                        )}
+
+                        {/* Savings Badge */}
+                        {percentualOff > 0 ? (
+                          <span className="absolute top-3 left-3 bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-xl uppercase shadow-lg flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5" /> {percentualOff}% OFF
+                          </span>
+                        ) : (
+                          <span className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-md">
+                            Combo Especial
+                          </span>
+                        )}
+
+                        {/* Total Count Badge */}
+                        <span className="absolute bottom-3 right-3 bg-slate-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-xs flex items-center gap-1 border border-white/20">
+                          <Layers className="w-3 h-3 text-blue-400" /> {prods.length} itens inclusos
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-slate-900 text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                          {kit.titulo}
+                        </h4>
+                        {kit.descricao && (
+                          <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium leading-relaxed">
+                            {kit.descricao}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Included Items Pill List */}
+                      {prods.length > 0 && (
+                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-1">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                            Incluso neste Combo:
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {prods.slice(0, 3).map((p, i) => (
+                              <span key={i} className="text-[10px] font-bold bg-white text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 truncate max-w-[150px]">
+                                {p.titulo}
+                              </span>
+                            ))}
+                            {prods.length > 3 && (
+                              <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
+                                +{prods.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Price Footer */}
+                    <div className="p-5 pt-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento Combo</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-black text-slate-900">
+                            R$ {kit.preco_kit.toFixed(2).replace('.', ',')}
+                          </span>
+                          {somaPrecos > kit.preco_kit && (
+                            <span className="text-xs text-slate-400 line-through font-semibold">
+                              R$ {somaPrecos.toFixed(2).replace('.', ',')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className="px-4 py-2 rounded-xl text-xs font-black text-white shadow-md group-hover:brightness-110 transition-all flex items-center gap-1"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-white" />
+                        <span>Ver Combo</span>
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">

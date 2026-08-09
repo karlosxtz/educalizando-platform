@@ -21,7 +21,7 @@ export default function Benefits() {
     {
       icon: Award,
       title: 'Emissão de Certificados Automática',
-      desc: 'Certificados personalizados gerados automaticamente para alunos que concluírem seus cursos didáticos.'
+      desc: 'Certificados personalizados gerados automaticamente para alunos que concluírem seus cursos digitais.'
     },
     {
       icon: Lock,
@@ -53,7 +53,7 @@ export default function Benefits() {
             Tudo o que você precisa para monetizar seu conhecimento
           </h2>
           <p className="text-base text-slate-600 font-medium">
-            Recursos projetados especificamente para criadores de conteúdo didático e professores.
+            Recursos projetados especificamente para criadores de infoprodutos e conteúdos digitais.
           </p>
         </div>
 

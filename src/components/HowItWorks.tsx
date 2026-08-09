@@ -44,7 +44,7 @@ export default function HowItWorks() {
             Como funciona o Educalizando?
           </h2>
           <p className="text-base text-slate-600 font-medium">
-            Simplificamos todo o processo técnico para você focar no que faz de melhor: ensinar e criar conteúdo didático.
+            Simplificamos todo o processo técnico para você focar no que faz de melhor: criar e vender infoprodutos.
           </p>
         </div>
 

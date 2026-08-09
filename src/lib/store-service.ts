@@ -5,7 +5,7 @@ import { Store, Product } from './types';
 export const DEFAULT_MOCK_STORE: Store = {
   id: 'store-demo',
   creator_id: 'creator-demo',
-  nome_loja: 'Minha Loja Didática',
+  nome_loja: 'Minha Loja de Infoprodutos',
   slug: 'minha-loja',
   descricao: 'Apostilas esquematizadas, e-books interativos e simulados preparatórios.',
   logo_url: null,

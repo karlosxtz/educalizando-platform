@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
-  Sparkles, LayoutDashboard, Store, Package, Tags, ShoppingCart, 
+  Sparkles, LayoutDashboard, Store, Package, Boxes, Tags, ShoppingCart, 
   Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User 
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
@@ -46,6 +46,12 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       label: 'Meus Produtos',
       href: '/dashboard/produtos',
       icon: Package,
+      badge: null
+    },
+    {
+      label: 'Kits (Combos)',
+      href: '/dashboard/kits',
+      icon: Boxes,
       badge: null
     },
     {

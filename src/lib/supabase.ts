@@ -63,7 +63,7 @@ export async function registerCreatorInSupabase({
           creator_id: userId,
           nome_loja: storeName,
           slug: storeSlug,
-          descricao: `Loja oficial de materiais didáticos de ${fullName}.`,
+          descricao: `Loja oficial de infoprodutos de ${fullName}.`,
           cor_primaria: '#ff5722',
           created_at: new Date().toISOString()
         }
@@ -85,7 +85,7 @@ export async function registerCreatorInSupabase({
       creator_id: `creator_${Math.random().toString(36).substring(2, 9)}`,
       nome_loja: storeName,
       slug: storeSlug,
-      descricao: `Loja oficial de materiais didáticos de ${fullName}.`,
+      descricao: `Loja oficial de infoprodutos de ${fullName}.`,
       cor_primaria: '#ff5722',
       created_at: new Date().toISOString()
     };

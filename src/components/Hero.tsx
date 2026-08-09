@@ -40,7 +40,7 @@ export default function Hero() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
               Crie sua loja de <br />
               <span className="text-blue-600 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
-                materiais didáticos
+                infoprodutos digitais
               </span> <br />
               e receba no PIX na hora.
             </h1>

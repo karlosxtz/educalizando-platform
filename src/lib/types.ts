@@ -51,6 +51,28 @@ export interface Product {
   updated_at?: string;
 }
 
+export interface KitItem {
+  id: string;
+  kit_id: string;
+  product_id: string;
+  product?: Product;
+  created_at: string;
+}
+
+export interface Kit {
+  id: string;
+  store_id: string;
+  titulo: string;
+  descricao: string | null;
+  capa_url: string | null;
+  preco_kit: number;
+  status: ProductStatus;
+  items?: KitItem[];
+  products?: Product[];
+  created_at: string;
+  updated_at?: string;
+}
+
 export type PeriodFilter = '7d' | '30d' | 'month' | 'year';
 
 export interface SalesDataPoint {
