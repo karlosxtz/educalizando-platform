@@ -118,11 +118,42 @@ export interface Purchase {
   store?: Store | null;
 }
 
+export type CouponDiscountType = 'percentual' | 'valor_fixo';
+export type CouponStatus = 'ativo' | 'inativo';
+
+export interface CouponProduct {
+  id: string;
+  coupon_id: string;
+  product_id?: string | null;
+  kit_id?: string | null;
+}
+
+export interface Coupon {
+  id: string;
+  store_id: string;
+  codigo: string;
+  tipo_desconto: CouponDiscountType;
+  valor_desconto: number;
+  data_inicio: string;
+  data_expiracao?: string | null;
+  limite_de_usos?: number | null;
+  usos_atuais: number;
+  status: CouponStatus;
+  coupon_products?: CouponProduct[];
+  created_at: string;
+}
+
+export interface CouponValidationResult {
+  valid: boolean;
+  message: string;
+  coupon?: Coupon | null;
+  finalPrice?: number;
+  discountAmount?: number;
+}
+
 export interface StudentProfile {
   id: string;
   email: string;
   full_name: string;
   avatar_url?: string | null;
 }
-
-

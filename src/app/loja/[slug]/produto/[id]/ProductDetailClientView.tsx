@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle
 } from 'lucide-react';
-import { Store, Product, ProductType, Category, EducationLevel } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult } from '@/lib/types';
+import { validateCouponCode } from '@/lib/coupon-service';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -45,7 +46,30 @@ export default function ProductDetailClientView({
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
+  // Coupon State
+  const [couponInput, setCouponInput] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
+
   const primaryColor = store.cor_primaria || '#2563eb';
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    const result = await validateCouponCode(
+      store.id,
+      couponInput,
+      'product',
+      product.id,
+      product.preco
+    );
+    setValidatingCoupon(false);
+    setCouponResult(result);
+  };
+
+  const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
+    ? couponResult.finalPrice 
+    : product.preco;
 
   const getTipoIcon = (tipo: ProductType) => {
     switch (tipo) {
@@ -288,10 +312,15 @@ export default function ProductDetailClientView({
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
                   Investimento Único
                 </span>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    R$ {product.preco.toFixed(2).replace('.', ',')}
+                    R$ {currentPrice.toFixed(2).replace('.', ',')}
                   </span>
+                  {couponResult?.valid && (
+                    <span className="text-sm font-bold text-slate-400 line-through">
+                      R$ {product.preco.toFixed(2).replace('.', ',')}
+                    </span>
+                  )}
                   <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                     Sem Mensalidade
                   </span>
@@ -301,12 +330,49 @@ export default function ProductDetailClientView({
                 </p>
               </div>
 
+              {/* Coupon Box Input */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
+                  <Ticket className="w-4 h-4 text-brand-teal" />
+                  <span>Possui um cupom de desconto?</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Código do cupom"
+                    className="flex-1 px-3 py-2 bg-white border border-slate-200 focus:border-brand-navy rounded-xl text-xs font-mono font-black uppercase text-slate-900 focus:outline-none min-h-[40px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponInput.trim()}
+                    className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-xs font-extrabold disabled:opacity-50 transition-all min-h-[40px] flex items-center gap-1 flex-shrink-0"
+                  >
+                    {validatingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Aplicar'}
+                  </button>
+                </div>
+
+                {couponResult && (
+                  <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                    couponResult.valid 
+                      ? 'bg-emerald-50 text-brand-green border border-emerald-200' 
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}>
+                    {couponResult.valid ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                    <span>{couponResult.message}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Primary Call to Action Button */}
               <button
                 type="button"
                 onClick={handleStartCheckout}
                 disabled={isBuying}
-                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
                 style={{ backgroundColor: primaryColor }}
               >
                 {isBuying ? (
@@ -369,10 +435,17 @@ export default function ProductDetailClientView({
       {/* MOBILE STICKY BOTTOM BAR (Hotmart Style - Always visible during scroll on mobile) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3.5 shadow-2xl flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Preço Único</span>
-          <span className="text-xl font-black text-slate-900 tracking-tight block">
-            R$ {product.preco.toFixed(2).replace('.', ',')}
-          </span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Preço Final</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-slate-900 tracking-tight block">
+              R$ {currentPrice.toFixed(2).replace('.', ',')}
+            </span>
+            {couponResult?.valid && (
+              <span className="text-xs text-slate-400 line-through font-bold">
+                R$ {product.preco.toFixed(2).replace('.', ',')}
+              </span>
+            )}
+          </div>
         </div>
 
         <button

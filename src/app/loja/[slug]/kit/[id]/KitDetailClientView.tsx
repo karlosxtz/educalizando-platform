@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2,
-  MessageCircle, Sparkles, Lock, Check, Loader2, Boxes, Package, Tags
+  MessageCircle, Sparkles, Lock, Check, Loader2, Boxes, Package, Tags, Ticket, AlertCircle 
 } from 'lucide-react';
-import { Store, Kit, ProductType } from '@/lib/types';
+import { Store, Kit, ProductType, CouponValidationResult } from '@/lib/types';
+import { validateCouponCode } from '@/lib/coupon-service';
 
 interface KitDetailClientViewProps {
   store: Store;
@@ -19,12 +20,35 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
-  const primaryColor = store.cor_primaria || '#2563eb';
+  // Coupon State
+  const [couponInput, setCouponInput] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
+
+  const primaryColor = store.cor_primaria || '#093b6c';
   const includedProducts = kit.products || [];
 
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    const result = await validateCouponCode(
+      store.id,
+      couponInput,
+      'kit',
+      kit.id,
+      kit.preco_kit
+    );
+    setValidatingCoupon(false);
+    setCouponResult(result);
+  };
+
+  const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
+    ? couponResult.finalPrice 
+    : kit.preco_kit;
+
   const somaPrecosIndividuais = includedProducts.reduce((acc, p) => acc + p.preco, 0);
-  const economiaValor = Math.max(0, somaPrecosIndividuais - kit.preco_kit);
-  const economiaPercentual = somaPrecosIndividuais > 0 && kit.preco_kit < somaPrecosIndividuais
+  const economiaValor = Math.max(0, somaPrecosIndividuais - currentPrice);
+  const economiaPercentual = somaPrecosIndividuais > 0 && currentPrice < somaPrecosIndividuais
     ? Math.round((economiaValor / somaPrecosIndividuais) * 100)
     : 0;
 
@@ -336,11 +360,11 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
                   Investimento Único do Combo
                 </span>
 
-                <div className="flex items-baseline gap-3">
+                <div className="flex items-baseline gap-3 flex-wrap">
                   <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    R$ {kit.preco_kit.toFixed(2).replace('.', ',')}
+                    R$ {currentPrice.toFixed(2).replace('.', ',')}
                   </span>
-                  {somaPrecosIndividuais > kit.preco_kit && (
+                  {somaPrecosIndividuais > currentPrice && (
                     <span className="text-sm font-bold text-slate-400 line-through">
                       R$ {somaPrecosIndividuais.toFixed(2).replace('.', ',')}
                     </span>
@@ -351,12 +375,49 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
                 </p>
               </div>
 
+              {/* Coupon Box Input */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
+                  <Ticket className="w-4 h-4 text-brand-teal" />
+                  <span>Possui um cupom de desconto?</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Código do cupom"
+                    className="flex-1 px-3 py-2 bg-white border border-slate-200 focus:border-brand-navy rounded-xl text-xs font-mono font-black uppercase text-slate-900 focus:outline-none min-h-[40px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponInput.trim()}
+                    className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-xs font-extrabold disabled:opacity-50 transition-all min-h-[40px] flex items-center gap-1 flex-shrink-0"
+                  >
+                    {validatingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Aplicar'}
+                  </button>
+                </div>
+
+                {couponResult && (
+                  <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                    couponResult.valid 
+                      ? 'bg-emerald-50 text-brand-green border border-emerald-200' 
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}>
+                    {couponResult.valid ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                    <span>{couponResult.message}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Primary Call to Action Button */}
               <button
                 type="button"
                 onClick={handleStartCheckout}
                 disabled={isBuying}
-                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
                 style={{ backgroundColor: primaryColor }}
               >
                 {isBuying ? (
@@ -418,12 +479,19 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
       </main>
 
       {/* Mobile Sticky Bottom Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 shadow-2xl flex items-center justify-between gap-4">
-        <div>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3.5 z-40 shadow-2xl flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Preço do Combo</span>
-          <span className="text-2xl font-black text-slate-900">
-            R$ {kit.preco_kit.toFixed(2).replace('.', ',')}
-          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-slate-900">
+              R$ {currentPrice.toFixed(2).replace('.', ',')}
+            </span>
+            {couponResult?.valid && (
+              <span className="text-xs text-slate-400 line-through font-bold">
+                R$ {kit.preco_kit.toFixed(2).replace('.', ',')}
+              </span>
+            )}
+          </div>
         </div>
 
         <button
