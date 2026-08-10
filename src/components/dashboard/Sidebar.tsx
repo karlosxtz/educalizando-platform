@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart, 
-  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User 
+  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users 
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
@@ -72,6 +72,12 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       href: '/dashboard/pedidos',
       icon: ShoppingCart,
       badge: 'Em Breve'
+    },
+    {
+      label: 'Clientes',
+      href: '/dashboard/clientes',
+      icon: Users,
+      badge: null
     },
     {
       label: 'Financeiro',
