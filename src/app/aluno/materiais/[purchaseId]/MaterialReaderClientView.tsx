@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, Lock, Sparkles, Loader2, AlertCircle, ChevronRight, Check, Star, ThumbsUp 
+  HelpCircle, Boxes, ShieldCheck, Lock, Sparkles, Loader2, AlertCircle, ChevronRight, Check, Star, ThumbsUp, FolderCheck, Download, ExternalLink 
 } from 'lucide-react';
 
 import { getCurrentStudentSession, getStudentPurchaseById, generateSignedFileUrl } from '@/lib/student-service';
+import { getContentByProductId, authorizeStudentContentAccess, ContentItem } from '@/lib/content-delivery-service';
 import { createReview } from '@/lib/review-service';
 import { Purchase, Product, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
@@ -26,6 +27,8 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
   const [purchase, setPurchase] = useState<Purchase | null>(null);
   const [activeKitProductIndex, setActiveKitProductIndex] = useState<number>(0);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [digitalContents, setDigitalContents] = useState<ContentItem[]>([]);
+  const [accessNotice, setAccessNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Student Review Form State
@@ -52,11 +55,15 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
         }
         setPurchase(pur);
 
-        // Prepara URL inicial do primeiro produto
+        // Prepara URL inicial e busca conteúdos entregáveis do produto
         const initialProduct = pur.product || (pur.kit?.products?.[0]);
-        if (initialProduct?.arquivo_url) {
-          const sUrl = await generateSignedFileUrl(initialProduct.arquivo_url);
-          setSignedUrl(sUrl);
+        if (initialProduct) {
+          if (initialProduct.arquivo_url) {
+            const sUrl = await generateSignedFileUrl(initialProduct.arquivo_url);
+            setSignedUrl(sUrl);
+          }
+          const items = await getContentByProductId(pur.store_id, initialProduct.id);
+          setDigitalContents(items);
         }
       } catch (err: any) {
         console.error(err);
@@ -147,6 +154,36 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       </div>
     );
   }
+
+  const handleAccessContent = async (item: ContentItem) => {
+    setAccessNotice(null);
+    if (!studentSession || !purchase) return;
+
+    const grant = await authorizeStudentContentAccess({
+      storeId: purchase.store_id,
+      studentEmail: studentSession.email,
+      contentId: item.id,
+      productId: item.productId || purchase.product_id || undefined
+    });
+
+    if (!grant.authorized) {
+      setAccessNotice({
+        type: 'error',
+        message: grant.errorMessage || 'Acesso não autorizado ao conteúdo.'
+      });
+      return;
+    }
+
+    if (grant.url) {
+      window.open(grant.url, '_blank');
+      setAccessNotice({
+        type: 'success',
+        message: item.tipo === 'ARQUIVO' ? 'Download iniciado com sucesso!' : 'Acesso ao link externo liberado!'
+      });
+      const updated = await getContentByProductId(purchase.store_id, item.productId || purchase.product_id || '');
+      setDigitalContents(updated);
+    }
+  };
 
   const activeProduct: Product | null = purchase.product || (purchase.kit?.products?.[activeKitProductIndex]) || null;
   const isKit = Boolean(purchase.kit_id);
@@ -349,6 +386,55 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
               </div>
             )}
           </div>
+
+          {/* SECTION 25: Conteúdos Disponíveis no Produto Comprado */}
+          {digitalContents.length > 0 && (
+            <div className="p-5 bg-slate-900 border-t border-slate-800 space-y-3">
+              <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <FolderCheck className="w-4 h-4 text-brand-teal" /> Conteúdos Entregáveis Liberados ({digitalContents.length})
+              </h3>
+
+              {accessNotice && (
+                <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                  accessNotice.type === 'error' ? 'bg-rose-950/80 border border-rose-800 text-rose-300' : 'bg-emerald-950/80 border border-emerald-800 text-emerald-300'
+                }`}>
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{accessNotice.message}</span>
+                </div>
+              )}
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {digitalContents.map(cnt => (
+                  <div key={cnt.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-xs font-bold text-white truncate">{cnt.titulo}</h4>
+                        <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-md ${
+                          cnt.tipo === 'ARQUIVO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                        }`}>
+                          {cnt.tipo === 'ARQUIVO' ? 'ARQUIVO' : 'LINK'}
+                        </span>
+                      </div>
+                      {cnt.descricao && <p className="text-[11px] text-slate-400 font-medium line-clamp-1">{cnt.descricao}</p>}
+                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 pt-1 font-mono">
+                        <span>{cnt.downloadLimit ? `Downloads: ${cnt.downloadsCount} de ${cnt.downloadLimit}` : 'Downloads ilimitados'}</span>
+                        <span>•</span>
+                        <span>{cnt.validityDays ? `Validade: ${cnt.validityDays} dias` : 'Acesso vitalício'}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleAccessContent(cnt)}
+                      className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-slate-700 shadow-sm"
+                    >
+                      {cnt.tipo === 'ARQUIVO' ? <Download className="w-3.5 h-3.5 text-blue-400" /> : <ExternalLink className="w-3.5 h-3.5 text-purple-400" />}
+                      <span>{cnt.tipo === 'ARQUIVO' ? 'Baixar material' : 'Acessar link'}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Reader Footer Protection Disclaimer */}
           <div className="p-3 bg-slate-900 border-t border-slate-800 text-center text-[11px] text-slate-400 flex items-center justify-center gap-2">
