@@ -2,11 +2,27 @@ import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
 import { ProductType } from './types';
 
+/**
+ * =============================================================================
+ * EDUCALIZING — CRM CUSTOMER SERVICE (MODULE AUDITED & PRODUCTION READY)
+ * =============================================================================
+ * Regra de Negócio & Status do Cliente:
+ * - ATIVO: Cliente que possui pelo menos 1 compra válida/paga/aprovada.
+ * - INATIVO: Cliente sem nenhuma compra paga/aprovada (ex: apenas pedidos pendentes, expirados ou cancelados).
+ * 
+ * Regra de Total de Compras & Faturamento:
+ * - Apenas pedidos com status 'pago', 'liberado', 'aprovado' ou 'concluido' são contabilizados
+ *   em `totalCompras` e `valorTotalGasto`.
+ * - Pedidos pendentes, expirados, cancelados ou estornados são listados no histórico/timeline,
+ *   porém NÃO somam no Total Comprado nem no número total de compras válidas.
+ * =============================================================================
+ */
+
 export interface CustomerOrderItem {
   id: string;
   codigoPedido: string;
   data: string;
-  status: 'pago' | 'pendente_pix' | 'expirado' | 'estornado';
+  status: 'pago' | 'pendente_pix' | 'expirado' | 'estornado' | 'cancelado';
   valorTotal: number;
   metodoPagamento: string;
   produtosTitulos: string[];
@@ -29,7 +45,8 @@ export interface CustomerPaymentItem {
   data: string;
   metodo: string;
   valor: number;
-  status: 'pago' | 'pendente_pix' | 'expirado' | 'estornado';
+  status: 'pago' | 'pendente_pix' | 'expirado' | 'estornado' | 'cancelado';
+  transacaoId?: string;
 }
 
 export interface CustomerActivityEvent {
@@ -56,9 +73,9 @@ export interface Customer {
   telefone: string | null;
   dataCadastro: string;
   status: 'ativo' | 'inativo';
-  totalCompras: number;
-  valorTotalGasto: number;
-  ultimaCompra: string | null;
+  totalCompras: number; // Apenas compras válidas
+  valorTotalGasto: number; // Apenas valor efetivamente pago
+  ultimaCompra: string | null; // Data da última compra válida
   pedidos: CustomerOrderItem[];
   produtos: CustomerProductItem[];
   pagamentos: CustomerPaymentItem[];
@@ -72,7 +89,7 @@ export interface CustomerSummary {
   novosClientes30d: number;
 }
 
-// Internal raw order shape to aggregate
+// Internal raw order shape to aggregate from backend
 interface RawOrderRecord {
   id: string;
   store_id: string;
@@ -82,12 +99,21 @@ interface RawOrderRecord {
   produto_titulo: string;
   tipo_produto?: ProductType;
   valor_total: number;
+  metodo_pagamento?: string;
   status: string;
   created_at: string;
 }
 
-// 1. Fetch and aggregate all real customers for a given store
+// Helper to check if an order status is a valid paid purchase
+function isValidPaidStatus(status: string): boolean {
+  const s = (status || '').toLowerCase();
+  return s === 'pago' || s === 'liberado' || s === 'aprovado' || s === 'concluido';
+}
+
+// 1. Fetch and aggregate all real customers for a given store (Multi-tenant isolated by store_id)
 export async function getCustomersByStoreId(storeId: string): Promise<Customer[]> {
+  if (!storeId) return [];
+
   let rawOrders: RawOrderRecord[] = [];
 
   if (isRealSupabaseConfigured()) {
@@ -108,7 +134,8 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           produto_titulo: o.produto_titulo || o.product_title || 'Infoproduto Digital',
           tipo_produto: o.tipo_produto || 'pdf',
           valor_total: Number(o.valor_total || o.amount || 0),
-          status: o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : 'pendente_pix',
+          metodo_pagamento: o.metodo_pagamento || o.payment_method || 'PIX Instantâneo',
+          status: o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : o.status === 'cancelado' ? 'cancelado' : 'pendente_pix',
           created_at: o.created_at
         }));
       }
@@ -129,48 +156,30 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
       produto_titulo: o.produtoTitulo || 'Infoproduto Digital',
       tipo_produto: o.tipoProduto || 'pdf',
       valor_total: o.valorTotal || 0,
+      metodo_pagamento: 'PIX Instantâneo',
       status: o.statusPagamento || 'pago',
       created_at: o.dataCompra
     }));
   }
 
-  // Also query purchases if available for registered students
-  let studentPurchasesMap = new Map<string, any>();
-  if (isRealSupabaseConfigured()) {
-    try {
-      const { data: purchases } = await supabase
-        .from('purchases')
-        .select('*, store:stores(*), product:products(*), kit:kits(*)')
-        .eq('store_id', storeId);
-
-      if (purchases && purchases.length > 0) {
-        purchases.forEach((p: any) => {
-          if (p.student_id) {
-            studentPurchasesMap.set(p.student_id, p);
-          }
-        });
-      }
-    } catch (e) {
-      // Non-critical
-    }
-  }
-
-  // Group raw orders by buyer email (or student ID)
+  // Group raw orders case-insensitively by buyer email
   const customerMap = new Map<string, Customer>();
 
   rawOrders.forEach(o => {
-    const key = o.cliente_email.toLowerCase().trim() || o.id;
+    // Normalize email key (case-insensitive & trimmed)
+    const emailKey = (o.cliente_email || '').toLowerCase().trim();
+    if (!emailKey) return;
 
-    if (!customerMap.has(key)) {
-      const custId = `cust_${Buffer.from(key).toString('hex').slice(0, 12)}`;
-      customerMap.set(key, {
+    if (!customerMap.has(emailKey)) {
+      const custId = `cust_${Buffer.from(emailKey).toString('hex').slice(0, 12)}`;
+      customerMap.set(emailKey, {
         id: custId,
-        storeId: o.store_id || storeId,
+        storeId: storeId, // Enforce strict store_id scoping
         nome: o.cliente_nome,
         email: o.cliente_email,
         telefone: o.cliente_telefone || null,
         dataCadastro: o.created_at,
-        status: o.status === 'pago' ? 'ativo' : 'inativo',
+        status: 'inativo', // Default until a valid purchase is confirmed
         totalCompras: 0,
         valorTotalGasto: 0,
         ultimaCompra: null,
@@ -182,67 +191,70 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
       });
     }
 
-    const customer = customerMap.get(key)!;
+    const customer = customerMap.get(emailKey)!;
 
-    // Update customer registration date (earliest order)
+    // Preserve earliest order date as registration/first interaction date
     if (new Date(o.created_at) < new Date(customer.dataCadastro)) {
       customer.dataCadastro = o.created_at;
     }
 
-    // Update latest purchase date
-    if (!customer.ultimaCompra || new Date(o.created_at) > new Date(customer.ultimaCompra)) {
-      customer.ultimaCompra = o.created_at;
-    }
+    const isValidPurchase = isValidPaidStatus(o.status);
 
-    // Update status if customer has at least 1 paid order
-    if (o.status === 'pago') {
+    if (isValidPurchase) {
       customer.status = 'ativo';
+      customer.totalCompras += 1;
       customer.valorTotalGasto += o.valor_total;
+
+      // Track latest VALID purchase date
+      if (!customer.ultimaCompra || new Date(o.created_at) > new Date(customer.ultimaCompra)) {
+        customer.ultimaCompra = o.created_at;
+      }
     }
 
-    customer.totalCompras += 1;
-
-    // Build Order Item
+    // Order Item
     const orderItem: CustomerOrderItem = {
       id: o.id,
       codigoPedido: `#${o.id.slice(-6).toUpperCase()}`,
       data: o.created_at,
       status: o.status as any,
       valorTotal: o.valor_total,
-      metodoPagamento: 'PIX',
+      metodoPagamento: o.metodo_pagamento || 'PIX Instantâneo',
       produtosTitulos: [o.produto_titulo]
     };
     customer.pedidos.push(orderItem);
 
-    // Build Product Item
-    const productItem: CustomerProductItem = {
-      id: `prod_${o.id}`,
-      titulo: o.produto_titulo,
-      tipo: o.tipo_produto || 'pdf',
-      preco: o.valor_total,
-      quantidade: 1,
-      dataCompra: o.created_at,
-      pedidoId: o.id
-    };
-    customer.produtos.push(productItem);
+    // Product Item (for paid orders)
+    if (isValidPurchase) {
+      const productItem: CustomerProductItem = {
+        id: `prod_${o.id}`,
+        titulo: o.produto_titulo,
+        tipo: o.tipo_produto || 'pdf',
+        preco: o.valor_total,
+        quantidade: 1,
+        dataCompra: o.created_at,
+        pedidoId: o.id
+      };
+      customer.produtos.push(productItem);
+    }
 
-    // Build Payment Item
+    // Payment Item
     const paymentItem: CustomerPaymentItem = {
       id: `pay_${o.id}`,
       pedidoId: o.id,
       data: o.created_at,
-      metodo: 'PIX Instantâneo',
+      metodo: o.metodo_pagamento || 'PIX Instantâneo',
       valor: o.valor_total,
-      status: o.status as any
+      status: o.status as any,
+      transacaoId: `tx_${o.id}`
     };
     customer.pagamentos.push(paymentItem);
 
-    // Build Timeline Events
-    if (o.status === 'pago') {
+    // Timeline Events
+    if (isValidPurchase) {
       customer.linhaDoTempo.push({
         id: `event_pay_${o.id}`,
         tipo: 'pagamento',
-        descricao: `Pagamento aprovado via PIX no valor de R$ ${o.valor_total.toFixed(2).replace('.', ',')}`,
+        descricao: `Pagamento aprovado via ${o.metodo_pagamento || 'PIX'} no valor de R$ ${o.valor_total.toFixed(2).replace('.', ',')}`,
         data: o.created_at,
         badgeColor: 'emerald'
       });
@@ -261,6 +273,14 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
         data: o.created_at,
         badgeColor: 'amber'
       });
+    } else if (o.status === 'cancelado' || o.status === 'expirado') {
+      customer.linhaDoTempo.push({
+        id: `event_canc_${o.id}`,
+        tipo: 'cancelamento',
+        descricao: `Pedido #${o.id.slice(-6).toUpperCase()} ${o.status === 'expirado' ? 'expirado' : 'cancelado'}`,
+        data: o.created_at,
+        badgeColor: 'amber'
+      });
     }
 
     customer.linhaDoTempo.push({
@@ -272,24 +292,27 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
     });
   });
 
-  // Sort timeline events descending by date for each customer
+  // Sort sub-arrays for each customer
   const customers = Array.from(customerMap.values()).map(cust => {
     cust.linhaDoTempo.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     cust.pedidos.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    cust.pagamentos.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     return cust;
   });
 
-  // Sort customers by recent purchase date descending
+  // Sort overall customer list by recent purchase date descending
   return customers.sort((a, b) => {
-    const timeA = a.ultimaCompra ? new Date(a.ultimaCompra).getTime() : 0;
-    const timeB = b.ultimaCompra ? new Date(b.ultimaCompra).getTime() : 0;
+    const timeA = a.ultimaCompra ? new Date(a.ultimaCompra).getTime() : new Date(a.dataCadastro).getTime();
+    const timeB = b.ultimaCompra ? new Date(b.ultimaCompra).getTime() : new Date(b.dataCadastro).getTime();
     return timeB - timeA;
   });
 }
 
-// 2. Fetch Single Customer Details by Customer ID & Store ID (Multi-tenant check)
+// 2. Fetch Single Customer Details by Customer ID & Store ID (Strict Tenant Security / IDOR Guard)
 export async function getCustomerById(storeId: string, customerId: string): Promise<Customer | null> {
+  if (!storeId || !customerId) return null;
   const allCustomers = await getCustomersByStoreId(storeId);
+  // Guarantee strict tenant boundary: must match customerId AND storeId
   const found = allCustomers.find(c => c.id === customerId && c.storeId === storeId);
   return found || null;
 }

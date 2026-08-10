@@ -18,10 +18,12 @@ export default function CustomersPage() {
     novosClientes30d: 0
   });
 
-  // Filters
+  // Filters & Pagination State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'ativos' | 'inativos' | 'com_compras' | 'sem_compras'>('todos');
   const [periodFilter, setPeriodFilter] = useState<'todos' | '7d' | '30d' | '90d'>('todos');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Hardcoded store ID matching creator store context
   const storeId = 'store-demo';
@@ -44,6 +46,11 @@ export default function CustomersPage() {
     }
     loadData();
   }, [storeId]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, periodFilter]);
 
   // Filter Logic
   const filteredCustomers = customers.filter(cust => {
@@ -284,7 +291,7 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                  {filteredCustomers.map(cust => (
+                  {filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(cust => (
                     <tr key={cust.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* Customer Name & Avatar */}
                       <td className="py-4 px-6">
@@ -357,7 +364,7 @@ export default function CustomersPage() {
 
           {/* Mobile Card List View */}
           <div className="md:hidden space-y-4">
-            {filteredCustomers.map(cust => (
+            {filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(cust => (
               <div key={cust.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -403,6 +410,31 @@ export default function CustomersPage() {
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {Math.ceil(filteredCustomers.length / itemsPerPage) > 1 && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between text-xs font-bold text-slate-600">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200 transition-all"
+              >
+                ← Anterior
+              </button>
+
+              <span>
+                Página <strong>{currentPage}</strong> de <strong>{Math.ceil(filteredCustomers.length / itemsPerPage)}</strong>
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredCustomers.length / itemsPerPage)))}
+                disabled={currentPage === Math.ceil(filteredCustomers.length / itemsPerPage)}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200 transition-all"
+              >
+                Próxima →
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
