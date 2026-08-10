@@ -127,20 +127,30 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       >
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
           
-          {/* Top Brand Logo */}
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center group px-1">
+          {/* Top Brand Logo & Active Store Indicator */}
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <Link href="/" className="flex items-center group shrink-0">
               <img
                 src="/branding/logo-educalizando.png"
                 alt="Educalizando"
-                className="h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
-                style={{ width: 'auto', height: '40px' }}
+                className="h-[48px] sm:h-[50px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                style={{ width: 'auto', height: '50px' }}
               />
             </Link>
 
-            <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 p-1">
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-[10px] font-extrabold shrink-0 shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="hidden sm:inline">Loja ativa</span>
+              </div>
+
+              <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 p-1 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Current Store Badge */}
