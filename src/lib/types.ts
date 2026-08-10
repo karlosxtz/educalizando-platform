@@ -102,7 +102,7 @@ export interface RecentOrder {
   valorTotal: number;
   statusPagamento: 'pago' | 'pendente_pix' | 'expirado';
   dataCompra: string;
-  metodoPagamento: 'PIX';
+  metodoPagamento: 'PIX' | 'CREDIT_CARD' | 'BOLETO';
 }
 
 export interface Purchase {

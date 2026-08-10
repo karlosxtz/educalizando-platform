@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -45,6 +46,7 @@ export default function ProductDetailClientView({
   category, 
   educationLevel 
 }: ProductDetailClientViewProps) {
+  const router = useRouter();
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
@@ -96,10 +98,8 @@ export default function ProductDetailClientView({
 
   const handleStartCheckout = () => {
     setIsBuying(true);
-    setTimeout(() => {
-      setIsBuying(false);
-      setCheckoutSimulated(true);
-    }, 1000);
+    const cupomParam = couponResult?.valid ? `&cupom=${encodeURIComponent(couponInput)}` : '';
+    router.push(`/loja/${store.slug}/checkout?produtoId=${product.id}${cupomParam}`);
   };
 
   return (
