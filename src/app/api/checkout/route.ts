@@ -1,32 +1,59 @@
 import { NextResponse } from 'next/server';
 import { createOrGetAsaasCustomer, createAsaasPayment } from '@/lib/asaas-service';
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
+import { getAuthenticatedUserRole } from '@/lib/student-service';
 
 export async function POST(request: Request) {
   try {
+    // 1. REGRA FUNDAMENTAL: VALIDAÇÃO DE AUTENTICAÇÃO DO ALUNO NO SERVIDOR (Item 1, 10, 15, 16 & 17)
+    const authSession = await getAuthenticatedUserRole();
+
+    // Se o comprador NÃO estiver autenticado -> HTTP 401 UNAUTHORIZED (Item 16)
+    if (!authSession.isAuthenticated || !authSession.userId) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
+        },
+        { status: 401 }
+      );
+    }
+
+    // Se o comprador estiver logado como CRIADOR -> HTTP 403 FORBIDDEN (Item 11 & 17)
+    if (authSession.role === 'creator') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Esta conta é de Criador / Professor. Para comprar materiais, utilize uma conta de aluno.' 
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { 
       storeId, 
-      buyerName, 
-      buyerEmail, 
-      buyerCpf, 
-      buyerPhone, 
       paymentMethod = 'pix',
       items = [],
       creditCard,
       creditCardHolderInfo
     } = body;
 
-    // 1. Validação Estrita dos Campos Obrigatórios
-    if (!storeId || !buyerName || !buyerEmail || !buyerCpf || items.length === 0) {
+    // Usar Dados Invioláveis Obtidos da Sessão Autenticada do Aluno (Item 18 & 20)
+    const studentId = authSession.userId;
+    const buyerName = body.buyerName || authSession.fullName || 'Aluno Educalizando';
+    const buyerEmail = (body.buyerEmail || authSession.email || '').toLowerCase().trim();
+    const buyerCpf = (body.buyerCpf || authSession.cpf || '').replace(/\D/g, '');
+
+    // 2. Validação Estrita dos Campos Obrigatórios
+    if (!storeId || !buyerName || !buyerEmail || buyerCpf.length !== 11 || items.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Por favor, preencha todos os campos obrigatórios (Nome, E-mail, CPF).' },
+        { success: false, error: 'Por favor, informe seu Nome Completo, E-mail e CPF válido para o recibo da compra.' },
         { status: 400 }
       );
     }
 
-    // 2. REGRA FUNDAMENTAL (SERVIDOR): UMA COMPRA = UMA LOJA
-    // Todos os order_items obrigatoriamente precisam ter store_id === storeId
+    // 3. REGRA FUNDAMENTAL (SERVIDOR): UMA COMPRA = UMA LOJA
     const invalidStoreItem = items.find((it: any) => it.storeId !== storeId);
     if (invalidStoreItem) {
       return NextResponse.json(
@@ -35,15 +62,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const cleanCpf = buyerCpf.replace(/\D/g, '');
-    if (cleanCpf.length !== 11) {
-      return NextResponse.json(
-        { success: false, error: 'O CPF informado é inválido. Digite um CPF válido com 11 dígitos.' },
-        { status: 400 }
-      );
-    }
-
-    // 3. Método de Pagamento Normalizado
+    // 4. Método de Pagamento Normalizado
     const normalizedMethod: PaymentMethodType = 
       paymentMethod.toLowerCase() === 'credit_card' ? 'credit_card' : 
       paymentMethod.toLowerCase() === 'boleto' ? 'boleto' : 'pix';
@@ -52,20 +71,20 @@ export async function POST(request: Request) {
       normalizedMethod === 'credit_card' ? 'CREDIT_CARD' :
       normalizedMethod === 'boleto' ? 'BOLETO' : 'PIX';
 
-    // 4. Fonte Única da Verdade Financeira (Cálculo no Servidor)
+    // 5. Fonte Única da Verdade Financeira (Cálculo no Servidor)
     const financials = calculateOrderFinancials(items, 0);
 
-    // 5. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
+    // 6. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
     const asaasCustomerId = await createOrGetAsaasCustomer({
       name: buyerName,
       email: buyerEmail,
-      cpfCnpj: cleanCpf,
-      phone: buyerPhone
+      cpfCnpj: buyerCpf,
+      phone: body.buyerPhone
     });
 
     const tempOrderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     
-    // 6. Criar Cobrança Centralizada no Asaas (POST /payments)
+    // 7. Criar Cobrança Centralizada no Asaas (POST /payments)
     const asaasPayment = await createAsaasPayment({
       customerId: asaasCustomerId,
       billingType: asaasBillingType,
@@ -76,13 +95,13 @@ export async function POST(request: Request) {
       creditCardHolderInfo
     });
 
-    // 7. Persistir Pedido no Banco / Local com Taxas Definitivas
+    // 8. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
     const orderRecord = await createOrderRecord({
       storeId,
       buyerName,
       buyerEmail,
-      buyerCpf: cleanCpf,
-      buyerPhone,
+      buyerCpf,
+      buyerPhone: body.buyerPhone,
       paymentMethod: normalizedMethod,
       items,
       asaasPaymentId: asaasPayment.id,
@@ -94,6 +113,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       orderId: orderRecord.id,
+      studentId,
       status: orderRecord.status,
       asaasPaymentId: asaasPayment.id,
       paymentMethod: normalizedMethod,

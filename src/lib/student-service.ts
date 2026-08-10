@@ -3,29 +3,118 @@ import { Purchase, Product, Kit, Store } from './types';
 import { getPublicProductsByStoreId } from './store-service';
 import { getPublicKitsByStoreId } from './kit-service';
 
-// Mock/Default fallback for local testing
-function getLocalPurchases(): Purchase[] {
-  if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('educalizando_student_purchases_v1');
-  if (!saved) return [];
-  return JSON.parse(saved);
+export interface StudentAuthSession {
+  isAuthenticated: boolean;
+  role: 'student' | 'creator' | null;
+  userId?: string;
+  email?: string;
+  fullName?: string;
+  cpf?: string;
 }
 
-function saveLocalPurchases(purchases: Purchase[]) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('educalizando_student_purchases_v1', JSON.stringify(purchases));
+export interface StudentProductAccessRecord {
+  id: string;
+  studentId: string;
+  productId: string;
+  orderId?: string;
+  storeId: string;
+  status: 'ACTIVE' | 'REVOKED';
+  grantedAt: string;
+}
+
+export interface GroupedStudentStore {
+  store: Store;
+  purchasesCount: number;
+}
+
+const LOCAL_STUDENT_ACCESS_KEY = 'educalizando_student_product_access_v1';
+
+function getLocalStudentAccess(): StudentProductAccessRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STUDENT_ACCESS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
   }
 }
 
-// 1. Cadastrar Novo Aluno no Supabase Auth
+function saveLocalStudentAccess(list: StudentProductAccessRecord[]) {
+  if (typeof window === 'undefined') {
+    try {
+      localStorage.setItem(LOCAL_STUDENT_ACCESS_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+}
+
+// 1. Obter Papel e Sessão do Usuário Autenticado
+export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      return { isAuthenticated: false, role: null };
+    }
+
+    const userMetadata = data.user.user_metadata || {};
+    const rawRole = userMetadata.role || (userMetadata.is_creator ? 'creator' : 'student');
+    const role = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
+
+    return {
+      isAuthenticated: true,
+      role,
+      userId: data.user.id,
+      email: data.user.email || '',
+      fullName: userMetadata.full_name || 'Aluno Educalizando',
+      cpf: userMetadata.cpf || ''
+    };
+  } else {
+    if (typeof window !== 'undefined') {
+      const studentSess = localStorage.getItem('educalizando_student_session');
+      if (studentSess) {
+        const parsed = JSON.parse(studentSess);
+        return {
+          isAuthenticated: true,
+          role: 'student',
+          userId: parsed.id || 'student-demo',
+          email: parsed.email || 'aluno@educalizando.com',
+          fullName: parsed.user_metadata?.full_name || 'Aluno Demo',
+          cpf: parsed.user_metadata?.cpf || '12345678901'
+        };
+      }
+
+      const creatorSess = localStorage.getItem('educalizando_creator_session');
+      if (creatorSess) {
+        const parsed = JSON.parse(creatorSess);
+        return {
+          isAuthenticated: true,
+          role: 'creator',
+          userId: parsed.id || 'creator-demo',
+          email: parsed.email || 'prof.ricardo@gmail.com',
+          fullName: parsed.user_metadata?.full_name || 'Prof. Ricardo'
+        };
+      }
+    }
+
+    return { isAuthenticated: false, role: null };
+  }
+}
+
+// 2. Cadastrar Novo Aluno no Supabase Auth
 export async function registerStudentInSupabase({
   email,
   password,
-  fullName
+  fullName,
+  cpf
 }: {
   email: string;
   password: string;
   fullName: string;
+  cpf?: string;
 }) {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -39,6 +128,7 @@ export async function registerStudentInSupabase({
       options: {
         data: {
           full_name: fullName,
+          cpf: cpf ? cpf.replace(/\D/g, '') : undefined,
           role: 'student'
         }
       }
@@ -47,12 +137,11 @@ export async function registerStudentInSupabase({
     if (authError) throw new Error(authError.message);
     return { user: authData.user };
   } else {
-    // Fallback Local
     await new Promise(resolve => setTimeout(resolve, 600));
     const mockUser = {
       id: `student_${Date.now()}`,
       email,
-      user_metadata: { full_name: fullName, role: 'student' }
+      user_metadata: { full_name: fullName, cpf: cpf ? cpf.replace(/\D/g, '') : '12345678901', role: 'student' }
     };
     if (typeof window !== 'undefined') {
       localStorage.setItem('educalizando_student_session', JSON.stringify(mockUser));
@@ -61,7 +150,7 @@ export async function registerStudentInSupabase({
   }
 }
 
-// 2. Login de Aluno
+// 3. Login de Aluno
 export async function signInStudent({ email, password }: { email: string; password: string }) {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -79,12 +168,11 @@ export async function signInStudent({ email, password }: { email: string; passwo
     }
     return data;
   } else {
-    // Fallback Local
     await new Promise(resolve => setTimeout(resolve, 600));
     const mockUser = {
       id: 'student-demo',
       email,
-      user_metadata: { full_name: 'Aluno Educalizando', role: 'student' }
+      user_metadata: { full_name: 'Aluno Educalizando', cpf: '12345678901', role: 'student' }
     };
     if (typeof window !== 'undefined') {
       localStorage.setItem('educalizando_student_session', JSON.stringify(mockUser));
@@ -93,7 +181,7 @@ export async function signInStudent({ email, password }: { email: string; passwo
   }
 }
 
-// 3. Encerrar Sessão do Aluno
+// 4. Encerrar Sessão do Aluno
 export async function signOutStudent() {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -108,45 +196,79 @@ export async function signOutStudent() {
   }
 }
 
-// 4. Obter Sessão Atual do Aluno
+// 5. Obter Sessão Atual do Aluno
 export async function getCurrentStudentSession() {
+  const authSession = await getAuthenticatedUserRole();
+  if (authSession.isAuthenticated && authSession.role === 'student') {
+    return {
+      id: authSession.userId || 'student-demo',
+      email: authSession.email || 'aluno@educalizando.com',
+      fullName: authSession.fullName || 'Aluno Educalizando',
+      cpf: authSession.cpf || '12345678901'
+    };
+  }
+  return null;
+}
+
+// 6. Conceder Acesso ao Material Comprado (student_product_access)
+export async function grantStudentProductAccess(data: {
+  studentId: string;
+  productId: string;
+  orderId?: string;
+  storeId: string;
+}): Promise<StudentProductAccessRecord> {
+  const now = new Date().toISOString();
+  const recordId = `acc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+  const newRecord: StudentProductAccessRecord = {
+    id: recordId,
+    studentId: data.studentId,
+    productId: data.productId,
+    orderId: data.orderId,
+    storeId: data.storeId,
+    status: 'ACTIVE',
+    grantedAt: now
+  };
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
   if (isRealSupabase) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      return {
-        id: data.user.id,
-        email: data.user.email || '',
-        fullName: data.user.user_metadata?.full_name || 'Aluno Educalizando'
-      };
+    try {
+      await supabase.from('student_product_access').insert([{
+        id: newRecord.id,
+        student_id: newRecord.studentId,
+        product_id: newRecord.productId,
+        order_id: newRecord.orderId,
+        store_id: newRecord.storeId,
+        status: newRecord.status,
+        granted_at: newRecord.grantedAt
+      }]);
+    } catch (e) {
+      console.error('[grantStudentProductAccess] Erro Supabase:', e);
     }
-    return null;
-  } else {
-    if (typeof window !== 'undefined') {
-      const sess = localStorage.getItem('educalizando_student_session');
-      if (sess) {
-        const parsed = JSON.parse(sess);
-        return {
-          id: parsed.id || 'student-demo',
-          email: parsed.email || 'aluno@educalizando.com',
-          fullName: parsed.user_metadata?.full_name || 'Aluno Demo'
-        };
-      }
-    }
-    return {
-      id: 'student-demo',
-      email: 'aluno@educalizando.com',
-      fullName: 'Aluno Demo Educalizando'
-    };
   }
+
+  const local = getLocalStudentAccess();
+  const exists = local.some(l => l.studentId === data.studentId && l.productId === data.productId && l.status === 'ACTIVE');
+  if (!exists) {
+    local.unshift(newRecord);
+    saveLocalStudentAccess(local);
+  }
+
+  return newRecord;
 }
 
-// 5. Obter Compras/Matrículas do Aluno
-export async function getStudentPurchases(studentId: string): Promise<Purchase[]> {
+// 7. Verificar se o Aluno possui Acesso Ativo ao Material (Entitlement Check)
+export async function checkStudentProductAccess({
+  studentId,
+  productId
+}: {
+  studentId: string;
+  productId: string;
+}): Promise<boolean> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -155,179 +277,174 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
   if (isRealSupabase) {
     try {
       const { data, error } = await supabase
-        .from('purchases')
-        .select(`
-          *,
-          product:products (*),
-          kit:kits (
-            *,
-            kit_items (
-              id,
-              product_id,
-              products (*)
-            )
-          ),
-          store:stores (*)
-        `)
+        .from('student_product_access')
+        .select('*')
         .eq('student_id', studentId)
-        .eq('status', 'liberado')
-        .order('created_at', { ascending: false });
+        .eq('product_id', productId)
+        .eq('status', 'ACTIVE')
+        .maybeSingle();
 
-      if (!error && data) {
-        return data.map((p: any) => {
-          let kitObj = p.kit;
-          if (kitObj && kitObj.kit_items) {
-            const kitProds = kitObj.kit_items.map((item: any) => item.products).filter(Boolean);
-            kitObj = { ...kitObj, products: kitProds };
-          }
-          return {
-            ...p,
-            kit: kitObj
-          } as Purchase;
-        });
-      }
-      if (error) {
-        console.warn('[getStudentPurchases] Erro Supabase:', error.message);
-      }
-    } catch (err) {
-      console.error('[getStudentPurchases] Exceção:', err);
+      if (!error && data) return true;
+    } catch (e) {
+      console.error('[checkStudentProductAccess] Erro Supabase:', e);
     }
   }
 
-  // Fallback Local
-  const localPurchases = getLocalPurchases().filter(p => p.student_id === studentId);
-  if (localPurchases.length > 0) return localPurchases;
+  const local = getLocalStudentAccess();
+  return local.some(l => l.studentId === studentId && l.productId === productId && l.status === 'ACTIVE');
+}
 
-  // População automática de amostra de teste local se o aluno ainda não tiver compras criadas
-  const mockStore: Store = {
-    id: 'store-demo',
-    creator_id: 'creator-ricardo',
+// 8. Obter Compras/Matrículas do Aluno
+export async function getStudentPurchases(studentId: string): Promise<Purchase[]> {
+  const localAccess = getLocalStudentAccess().filter(a => a.studentId === studentId && a.status === 'ACTIVE');
+
+  if (localAccess.length === 0) {
+    const demoProd: Product = {
+      id: 'prod-demo-1',
+      store_id: 'store-demo',
+      titulo: 'Apostila de Matemática ENEM 2026',
+      descricao: 'Material completo com 500 questões resolvidas',
+      preco: 49.90,
+      tipo: 'pdf',
+      status: 'publicado',
+      capa_url: '/branding/logo-educalizando.png',
+      arquivo_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      created_at: new Date().toISOString()
+    };
+
+    const demoStore: Store = {
+      id: 'store-demo',
+      creator_id: 'creator-demo',
+      nome_loja: 'Prof. Ricardo Silva',
+      slug: 'prof-ricardo',
+      descricao: 'Apostilas e simulados preparatórios para vestibulares e concursos',
+      logo_url: '/branding/logo-educalizando.png',
+      banner_url: null,
+      cor_primaria: '#093b6c',
+      asaas_subaccount_id: null,
+      created_at: new Date().toISOString()
+    };
+
+    return [
+      {
+        id: 'pur_demo_1',
+        student_id: studentId,
+        store_id: 'store-demo',
+        product_id: 'prod-demo-1',
+        status: 'liberado',
+        created_at: new Date().toISOString(),
+        product: demoProd,
+        store: demoStore
+      }
+    ];
+  }
+
+  return localAccess.map(acc => {
+    const p: Product = {
+      id: acc.productId,
+      store_id: acc.storeId,
+      titulo: 'Material Didático Digital',
+      descricao: 'Material completo adquirido na plataforma',
+      preco: 49.90,
+      tipo: 'pdf',
+      status: 'publicado',
+      capa_url: '/branding/logo-educalizando.png',
+      arquivo_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      created_at: acc.grantedAt
+    };
+
+    const s: Store = {
+      id: acc.storeId,
+      creator_id: 'creator-demo',
+      nome_loja: 'Prof. Ricardo Silva',
+      slug: 'prof-ricardo',
+      descricao: 'Loja do Criador',
+      logo_url: '/branding/logo-educalizando.png',
+      banner_url: null,
+      cor_primaria: '#093b6c',
+      asaas_subaccount_id: null,
+      created_at: acc.grantedAt
+    };
+
+    return {
+      id: acc.id,
+      student_id: acc.studentId,
+      store_id: acc.storeId,
+      product_id: acc.productId,
+      status: 'liberado',
+      created_at: acc.grantedAt,
+      product: p,
+      store: s
+    };
+  });
+}
+
+// 9. Obter Lojas do Aluno Agrupadas
+export async function getStudentStoresGrouped(studentId: string): Promise<GroupedStudentStore[]> {
+  const purchases = await getStudentPurchases(studentId);
+  const storeMap = new Map<string, { store: Store; count: number }>();
+
+  purchases.forEach(pur => {
+    if (pur.store) {
+      const existing = storeMap.get(pur.store.id);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        storeMap.set(pur.store.id, { store: pur.store, count: 1 });
+      }
+    }
+  });
+
+  return Array.from(storeMap.values()).map(v => ({
+    store: v.store,
+    purchasesCount: v.count
+  }));
+}
+
+// 10. Obter Materiais Adquiridos por Loja Específica
+export async function getStudentPurchasesByStoreId(studentId: string, storeId: string): Promise<{ store: Store; purchases: Purchase[] }> {
+  const purchases = await getStudentPurchases(studentId);
+  const filtered = purchases.filter(p => p.store_id === storeId);
+  const store: Store = filtered[0]?.store || {
+    id: storeId,
+    creator_id: 'creator-demo',
     nome_loja: 'Prof. Ricardo Silva',
     slug: 'prof-ricardo',
-    descricao: 'Apostilas ilustradas e e-books esquematizados para ENEM e Vestibulares.',
-    logo_url: null,
+    descricao: 'Loja de materiais didáticos',
+    logo_url: '/branding/logo-educalizando.png',
     banner_url: null,
-    cor_primaria: '#2563eb',
+    cor_primaria: '#093b6c',
     asaas_subaccount_id: null,
     created_at: new Date().toISOString()
   };
 
-  const samplePurchases: Purchase[] = [
-    {
-      id: 'pur_demo_1',
-      student_id: studentId,
-      store_id: 'store-demo',
-      status: 'liberado',
-      created_at: new Date().toISOString(),
-      store: mockStore,
-      product: {
-        id: 'prod_demo_pdf',
-        store_id: 'store-demo',
-        titulo: 'Apostila Ilustrada de História do Brasil - ENEM 2026',
-        descricao: 'Resumo completo e esquematizado de toda a história do Brasil com mapas mentais e questões comentadas.',
-        tipo: 'pdf',
-        preco: 29.90,
-        capa_url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-        arquivo_url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
-        status: 'publicado',
-        created_at: new Date().toISOString()
-      }
-    },
-    {
-      id: 'pur_demo_2',
-      student_id: studentId,
-      store_id: 'store-demo',
-      status: 'liberado',
-      created_at: new Date().toISOString(),
-      store: mockStore,
-      product: {
-        id: 'prod_demo_video',
-        store_id: 'store-demo',
-        titulo: 'Curso em Vídeo: Técnica de Redação Nota 1000',
-        descricao: 'Videoaula passo a passo com estrutura pronta de introdução, desenvolvimento e proposta de intervenção.',
-        tipo: 'video',
-        preco: 49.90,
-        capa_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
-        arquivo_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-        status: 'publicado',
-        created_at: new Date().toISOString()
-      }
-    }
-  ];
-
-  saveLocalPurchases(samplePurchases);
-  return samplePurchases;
+  return { store, purchases: filtered };
 }
 
-// 6. Obter Detalhes de uma Compra Específica com Validação do Aluno
+// 11. Obter Detalhes de uma Compra por ID
 export async function getStudentPurchaseById(purchaseId: string, studentId: string): Promise<Purchase | null> {
-  const allPurchases = await getStudentPurchases(studentId);
-  const found = allPurchases.find(p => p.id === purchaseId && p.student_id === studentId);
-  return found || null;
+  const purchases = await getStudentPurchases(studentId);
+  return purchases.find(p => p.id === purchaseId || p.product_id === purchaseId) || purchases[0] || null;
 }
 
-// 7. Gerar URL Assinada Temporária para PDF (Segurança contra link direto)
-export async function generateSignedFileUrl(filePath: string): Promise<string> {
+// 12. Gerar Signed URL Seguro para Download de Arquivo Privado (Item 27 da Especificação)
+export async function generateSignedFileUrl(pathOrUrl: string): Promise<string> {
+  if (!pathOrUrl) return '';
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+    return pathOrUrl;
+  }
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  if (isRealSupabase && filePath && !filePath.startsWith('http')) {
+  if (isRealSupabase) {
     try {
-      const { data, error } = await supabase.storage
-        .from('product-files')
-        .createSignedUrl(filePath, 3600); // Válido por 1 hora (3600 segundos)
-
-      if (!error && data?.signedUrl) {
-        return data.signedUrl;
-      }
-    } catch (err) {
-      console.error('[generateSignedFileUrl] Erro ao assinar URL:', err);
+      const { data, error } = await supabase.storage.from('infoproducts').createSignedUrl(pathOrUrl, 3600);
+      if (!error && data?.signedUrl) return data.signedUrl;
+    } catch (e) {
+      console.error('[generateSignedFileUrl] Erro Supabase Storage:', e);
     }
   }
-
-  // Fallback se for URL completa ou dev
-  return filePath;
+  return pathOrUrl;
 }
-
-export interface GroupedStudentStore {
-  store: Store;
-  purchasesCount: number;
-  purchases: Purchase[];
-}
-
-// 8. Obter Lojas do Aluno Agrupadas com Contagem de Itens (Para a tela Minhas Lojas)
-export async function getStudentStoresGrouped(studentId: string): Promise<GroupedStudentStore[]> {
-  const purchases = await getStudentPurchases(studentId);
-  const storeMap = new Map<string, GroupedStudentStore>();
-
-  for (const pur of purchases) {
-    const store = pur.store;
-    if (!store) continue;
-
-    if (!storeMap.has(store.id)) {
-      storeMap.set(store.id, {
-        store,
-        purchasesCount: 1,
-        purchases: [pur]
-      });
-    } else {
-      const existing = storeMap.get(store.id)!;
-      existing.purchasesCount += 1;
-      existing.purchases.push(pur);
-    }
-  }
-
-  return Array.from(storeMap.values());
-}
-
-// 9. Obter Materiais Adquiridos pelo Aluno em uma Loja Específica
-export async function getStudentPurchasesByStoreId(studentId: string, storeId: string): Promise<{ store: Store | null; purchases: Purchase[] }> {
-  const purchases = await getStudentPurchases(studentId);
-  const filtered = purchases.filter(p => p.store_id === storeId);
-  const store = filtered[0]?.store || null;
-
-  return { store, purchases: filtered };
-}
-
