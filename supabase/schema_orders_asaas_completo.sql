@@ -1,7 +1,9 @@
 -- =============================================================================
--- EDUCALIZANDO — MIGRATION: CRIAÇÃO & ATUALIZAÇÃO DAS TABELAS ORDERS E ORDER_ITEMS
+-- EDUCALIZANDO — SCRIPT COMPLETO E IDEMPOTENTE: TABELAS ORDERS & ORDER_ITEMS
 -- =============================================================================
--- Execução Idempotente (Pode ser rodada em bancos novos ou existentes sem erro)
+-- Copie e cole todo este script diretamente no SQL Editor do seu projeto Supabase.
+-- Ele cria as tabelas 'orders' e 'order_items' caso não existam e aplica os campos
+-- financeiros definitivos (R$ 0,99/produto + 5% + Taxa Asaas real separada).
 -- =============================================================================
 
 -- 1. Criar Tabela orders (se ainda não existir)
@@ -41,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.order_items (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Adicionar Colunas Financeiras Detalhadas (Garantia de Atualização de Bancos Existentes)
+-- 3. Adicionar Colunas Financeiras Detalhadas (Garantia para Instâncias Existentes)
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal_amount NUMERIC(10, 2) DEFAULT 0;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS platform_fixed_fee_amount NUMERIC(10, 2) DEFAULT 0;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS platform_percentage_fee_amount NUMERIC(10, 2) DEFAULT 0;
