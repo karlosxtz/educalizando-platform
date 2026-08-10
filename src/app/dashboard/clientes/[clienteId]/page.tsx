@@ -439,9 +439,9 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
 
       {/* Tab 5: Downloads e Acessos */}
       {activeTab === 'acessos' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center space-y-5 shadow-xs">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
           {customer.acessos.length === 0 ? (
-            <>
+            <div className="text-center py-12 space-y-4">
               <div className="w-16 h-16 bg-blue-50 text-brand-navy rounded-2xl flex items-center justify-center mx-auto border border-blue-100">
                 <Download className="w-8 h-8 text-brand-teal" />
               </div>
@@ -451,23 +451,49 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                   Nenhum histórico de downloads ou acessos disponível para este cliente.
                 </p>
               </div>
-            </>
+            </div>
           ) : (
             <div className="overflow-x-auto text-left">
               <table className="w-full border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase">
-                    <th className="py-3 px-4">Recurso Acessado</th>
-                    <th className="py-3 px-4">Tipo</th>
-                    <th className="py-3 px-4">Data/Hora</th>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-3 px-4">Produto</th>
+                    <th className="py-3 px-4">Conteúdo</th>
+                    <th className="py-3 px-4 text-center">Tipo de Acesso</th>
+                    <th className="py-3 px-4">Data / Hora</th>
+                    <th className="py-3 px-4 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
                   {customer.acessos.map(acc => (
-                    <tr key={acc.id}>
-                      <td className="py-3 px-4 font-bold">{acc.recurso}</td>
-                      <td className="py-3 px-4">{acc.tipo}</td>
-                      <td className="py-3 px-4 text-slate-500">{new Date(acc.data).toLocaleString('pt-BR')}</td>
+                    <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                        {customer.produtos.length > 0 ? customer.produtos[0].titulo : 'Material Digital'}
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-slate-800">{acc.recurso}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        {acc.tipo === 'Download' ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
+                            <Download className="w-3 h-3 text-blue-600" /> Download
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-1">
+                            <ExternalLink className="w-3 h-3 text-purple-600" /> Acesso externo
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500">{new Date(acc.data).toLocaleString('pt-BR')}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        {acc.tipo === 'Download' ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Download Concluído
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                            Link Externo Aberto
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

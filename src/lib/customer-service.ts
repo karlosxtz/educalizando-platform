@@ -1,6 +1,7 @@
 import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
 import { ProductType } from './types';
+import { getCustomerAccessLogs } from './content-delivery-service';
 
 /**
  * =============================================================================
@@ -314,7 +315,21 @@ export async function getCustomerById(storeId: string, customerId: string): Prom
   const allCustomers = await getCustomersByStoreId(storeId);
   // Guarantee strict tenant boundary: must match customerId AND storeId
   const found = allCustomers.find(c => c.id === customerId && c.storeId === storeId);
-  return found || null;
+  if (!found) return null;
+
+  try {
+    const rawLogs = await getCustomerAccessLogs(storeId, found.email || found.id);
+    found.acessos = rawLogs.map(l => ({
+      id: l.id,
+      recurso: l.contentTitle,
+      tipo: l.tipoEvento === 'FILE_DOWNLOAD' ? 'Download' : 'Acesso externo',
+      data: l.data
+    }));
+  } catch (e) {
+    // Non-critical
+  }
+
+  return found;
 }
 
 // 3. Compute Summary Statistics for Store Customers
