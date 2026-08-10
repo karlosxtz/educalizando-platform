@@ -78,14 +78,13 @@ export default function LoginPage() {
       
       {/* Top Header */}
       <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
-            <Image src="/logo-icon.png" alt="Educalizando Logo" width={36} height={36} className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-brand-navy">
-            Educa<span className="text-brand-teal">lizando</span>
-          </span>
+        <Link href="/" className="flex items-center group">
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-10 w-auto object-contain"
+            style={{ width: 'auto', height: '40px' }}
+          />
         </Link>
 
         <Link
@@ -108,10 +107,13 @@ export default function LoginPage() {
           {activeTab === 'login' ? (
             /* Login Form Tab */
             <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-brand-navy border border-slate-200 flex items-center justify-center mx-auto">
-                  <LogIn className="w-6 h-6" />
-                </div>
+              <div className="text-center space-y-3">
+                <img
+                  src="/branding/logo-educalizando.png"
+                  alt="Educalizando"
+                  className="h-12 sm:h-14 w-auto object-contain mx-auto"
+                  style={{ width: 'auto', height: '56px' }}
+                />
                 <h1 className="text-2xl font-black text-slate-900">Acesse o seu Painel</h1>
                 <p className="text-xs text-slate-600">
                   Gerencie sua loja didática, acompanhe vendas e cadastre produtos.

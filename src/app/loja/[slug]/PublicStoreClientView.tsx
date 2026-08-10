@@ -122,7 +122,11 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center">
             <ShieldCheck className="w-4 h-4 text-brand-green flex-shrink-0" />
-            <span>Loja Oficial Habilitada na Plataforma <strong>Educalizando</strong> — Checkout PIX & Proteção</span>
+            <span className="flex items-center gap-1.5">
+              Loja Oficial Habilitada na Plataforma 
+              <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-5 w-auto object-contain inline-block" style={{ width: 'auto', height: '20px' }} />
+              — Checkout PIX & Proteção
+            </span>
           </div>
           <Link
             href={`/aluno/login?from=${store.slug}`}
@@ -546,6 +550,13 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 space-y-5 relative overflow-hidden shadow-2xl"
             >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
+                <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
+                <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Checkout Seguro
+                </span>
+              </div>
+
               <button
                 onClick={() => {
                   setSelectedProduct(null);
@@ -643,7 +654,12 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
           )}
         </div>
         <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
-        <p className="text-slate-500">Tecnologia e Entrega por <Link href="/" className="text-blue-400 font-bold hover:underline">Educalizando Plataforma Digital</Link></p>
+        <div className="flex items-center justify-center gap-2 text-slate-500 mt-1">
+          <span>Tecnologia e Entrega por</span>
+          <Link href="/">
+            <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+          </Link>
+        </div>
       </footer>
     </div>
   );

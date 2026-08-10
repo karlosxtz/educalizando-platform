@@ -68,7 +68,7 @@ export default function PWAInstallPrompt() {
         <div className="bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl border border-slate-800 shadow-2xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-brand-navy p-1.5 border border-brand-teal/30 flex items-center justify-center flex-shrink-0 shadow-xs">
-              <img src="/logo-icon.png" alt="Educalizando" className="w-full h-full object-contain" />
+              <img src="/branding/logo-educalizando-icon.png" alt="" aria-hidden="true" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0">
               <span className="text-xs font-bold text-white block truncate flex items-center gap-1">

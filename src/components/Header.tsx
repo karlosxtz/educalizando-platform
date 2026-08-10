@@ -37,27 +37,14 @@ export default function Header() {
         {/* Brand Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center cursor-pointer group shrink-0"
         >
-          <div className="relative flex items-center justify-center">
-            {/* Subtle amber glow behind icon as requested */}
-            <div className="absolute inset-0 bg-brand-amber/20 blur-md rounded-full group-hover:bg-brand-amber/35 transition-all" />
-            <Image
-              src="/logo-icon.png"
-              alt="Educalizando Logo"
-              width={42}
-              height={42}
-              className="relative w-10 h-10 object-contain group-hover:scale-105 transition-transform"
-            />
-          </div>
-          <div>
-            <span className="text-2xl font-black tracking-tight text-brand-navy">
-              Educa<span className="text-brand-teal">lizando</span>
-            </span>
-            <span className="block text-[0.65rem] font-bold text-slate-500 tracking-widest uppercase -mt-1">
-              Para Criadores de Infoprodutos
-            </span>
-          </div>
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            style={{ width: 'auto', height: '42px' }}
+          />
         </Link>
 
         {/* Desktop Navigation Links */}

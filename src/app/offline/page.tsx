@@ -8,11 +8,13 @@ export default function OfflinePage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between items-center p-6 font-sans">
       <header className="w-full max-w-7xl mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo-icon.png" alt="Educalizando" width={36} height={36} className="w-9 h-9 object-contain" />
-          <span className="text-xl font-black text-brand-navy">
-            Educa<span className="text-brand-teal">lizando</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-9 w-auto object-contain"
+            style={{ width: 'auto', height: '36px' }}
+          />
         </Link>
       </header>
 

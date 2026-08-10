@@ -142,14 +142,13 @@ export default function StudentLoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-8">
         {/* Brand Header */}
-        <Link href="/" className="inline-flex items-center gap-2.5 group">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
-            <Image src="/logo-icon.png" alt="Educalizando Logo" width={40} height={40} className="relative w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-white">
-            Educa<span className="text-brand-teal">lizando</span>
-          </span>
+        <Link href="/" className="inline-flex items-center justify-center group mb-2">
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-12 sm:h-14 w-auto object-contain mx-auto"
+            style={{ width: 'auto', height: '56px' }}
+          />
         </Link>
 
         <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/15 text-brand-teal text-xs font-bold">

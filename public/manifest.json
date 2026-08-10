@@ -1,13 +1,25 @@
 {
-  "name": "Educalizando — Plataforma para Criadores e Alunos",
+  "name": "Educalizando",
   "short_name": "Educalizando",
-  "description": "Crie sua loja de infoprodutos digitais e receba no PIX instantâneo. Área de membros para alunos.",
+  "description": "A Educalizando é uma plataforma de compra e venda de materiais e produtos digitais educacionais.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8fafc",
   "theme_color": "#093b6c",
   "icons": [
+    {
+      "src": "/branding/logo-educalizando-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/branding/logo-educalizando-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

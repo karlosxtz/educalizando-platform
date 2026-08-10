@@ -11,27 +11,14 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           
           {/* Logo & Tagline */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center">
-              {/* Discrete amber glow behind icon in footer as requested */}
-              <div className="absolute inset-0 bg-brand-amber/25 blur-md rounded-full" />
-              <Image
-                src="/logo-icon.png"
-                alt="Educalizando Logo"
-                width={38}
-                height={38}
-                className="relative w-9 h-9 object-contain"
-              />
-            </div>
-            <div>
-              <span className="text-xl font-black text-brand-navy">
-                Educa<span className="text-brand-teal">lizando</span>
-              </span>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                Plataforma de Monetização para Criadores de Infoprodutos
-              </span>
-            </div>
-          </div>
+          <Link href="/" className="flex items-center gap-3">
+            <img
+              src="/branding/logo-educalizando.png"
+              alt="Educalizando"
+              className="h-9 w-auto object-contain"
+              style={{ width: 'auto', height: '36px' }}
+            />
+          </Link>
 
           {/* Quick Links */}
           <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold text-slate-600">

@@ -11,13 +11,13 @@ export default function NotFound() {
 
       {/* Header */}
       <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-slate-900">
-            Educa<span className="text-blue-600">lizando</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-10 w-auto object-contain"
+            style={{ width: 'auto', height: '40px' }}
+          />
         </Link>
       </header>
 

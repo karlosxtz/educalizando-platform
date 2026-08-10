@@ -532,6 +532,13 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-8 text-center space-y-5 shadow-2xl relative"
             >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
+                <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
+                <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Checkout Seguro
+                </span>
+              </div>
+
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-inner">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
@@ -559,7 +566,12 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">
         <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
-        <p className="text-slate-500">Tecnologia e Entrega por <Link href="/" className="text-blue-400 font-bold hover:underline">Educalizando Plataforma Digital</Link></p>
+        <div className="flex items-center justify-center gap-2 text-slate-500">
+          <span>Tecnologia e Entrega por</span>
+          <Link href="/">
+            <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+          </Link>
+        </div>
       </footer>
     </div>
   );

@@ -18,44 +18,58 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Educalizando — Venda seus Infoprodutos Digitais',
+  title: 'Educalizando — Plataforma de Produtos Digitais Educacionais',
   description:
-    'A plataforma definitiva para professores, criadores de conteúdo e editoras venderem apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo e área de membros.',
+    'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais. Venda apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo.',
   manifest: '/manifest.json',
+  applicationName: 'Educalizando',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Educalizando',
   },
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/apple-touch-icon.png',
+    icon: [
+      { url: '/branding/favicon.ico' },
+      { url: '/branding/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/branding/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/branding/favicon-48.png', sizes: '48x48', type: 'image/png' },
+    ],
+    shortcut: '/branding/favicon.ico',
+    apple: '/branding/apple-touch-icon.png',
   },
   keywords: [
     'venda de infoprodutos e e-books',
     'plataforma para professores',
     'vender apostilas em PDF',
-    'Hotmart para educação',
-    'Kiwify para professores',
+    'materiais didaticos digitais',
     'Educalizando',
     'área de membros com certificado'
   ],
   authors: [{ name: 'Educalizando Plataforma Digital' }],
   openGraph: {
-    title: 'Educalizando — Venda seus Infoprodutos e Lucre Mais',
+    title: 'Educalizando — Plataforma Digital Educacional',
     description:
-      'Transforme suas apostilas em PDF, e-books e videoaulas em uma fonte de renda recorrente com PIX instantâneo e loja própria.',
+      'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais.',
     url: 'https://educalizando.com.br',
     siteName: 'Educalizando',
+    images: [
+      {
+        url: '/branding/logo-og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Educalizando',
+      },
+    ],
     locale: 'pt_BR',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Educalizando — Venda seus Infoprodutos',
+    title: 'Educalizando — Plataforma Digital Educacional',
     description:
-      'Crie sua loja grátis e venda apostilas, e-books e cursos com PIX instantâneo.',
+      'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais.',
+    images: ['/branding/logo-og.png'],
   },
   robots: {
     index: true,

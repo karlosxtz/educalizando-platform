@@ -28,24 +28,15 @@ export default function StudentHeader({
         
         {/* Brand & Badge */}
         <Link href="/aluno/dashboard" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
-            <Image
-              src="/logo-icon.png"
-              alt="Educalizando"
-              width={36}
-              height={36}
-              className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform"
-            />
-          </div>
-          <div>
-            <span className="text-xl font-black text-brand-navy tracking-tight">
-              Educa<span className="text-brand-teal">lizando</span>
-            </span>
-            <span className="block text-[10px] font-bold text-brand-teal uppercase tracking-widest -mt-1 flex items-center gap-1">
-              <GraduationCap className="w-3 h-3" /> Área do Aluno
-            </span>
-          </div>
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-9 sm:h-10 w-auto object-contain"
+            style={{ width: 'auto', height: '38px' }}
+          />
+          <span className="hidden sm:inline-flex text-[10px] font-bold text-brand-teal uppercase tracking-widest bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full items-center gap-1">
+            <GraduationCap className="w-3 h-3 text-brand-teal" /> Área do Aluno
+          </span>
         </Link>
 
         {/* User Account & Actions */}

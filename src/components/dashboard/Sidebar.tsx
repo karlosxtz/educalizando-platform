@@ -92,10 +92,12 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       {/* Mobile Top Bar */}
       <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-xs">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo-icon.png" alt="Educalizando" width={32} height={32} className="w-8 h-8 object-contain" />
-          <span className="text-lg font-black text-brand-navy">
-            Educa<span className="text-brand-teal">lizando</span>
-          </span>
+          <img
+            src="/branding/logo-educalizando.png"
+            alt="Educalizando"
+            className="h-9 w-auto object-contain"
+            style={{ width: 'auto', height: '36px' }}
+          />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -127,19 +129,13 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
           
           {/* Top Brand Logo */}
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="relative flex items-center justify-center">
-                <div className="absolute inset-0 bg-brand-amber/20 blur-sm rounded-full group-hover:bg-brand-amber/35 transition-all" />
-                <Image src="/logo-icon.png" alt="Educalizando Logo" width={36} height={36} className="relative w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
-              </div>
-              <div>
-                <span className="text-xl font-black text-brand-navy tracking-tight">
-                  Educa<span className="text-brand-teal">lizando</span>
-                </span>
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider -mt-1">
-                  Painel do Criador
-                </span>
-              </div>
+            <Link href="/" className="flex items-center group px-1">
+              <img
+                src="/branding/logo-educalizando.png"
+                alt="Educalizando"
+                className="h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                style={{ width: 'auto', height: '40px' }}
+              />
             </Link>
 
             <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 p-1">
