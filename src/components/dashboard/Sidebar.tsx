@@ -89,7 +89,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       label: 'Financeiro',
       href: '/dashboard/financeiro',
       icon: Wallet,
-      badge: 'Em Breve'
+      badge: null
     },
     {
       label: 'Configurações da Conta',

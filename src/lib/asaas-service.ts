@@ -59,18 +59,42 @@ export interface AsaasPaymentResult {
   pixCopyPastePayload?: string;
 }
 
+export interface AsaasPixKeyLookupResult {
+  valid: boolean;
+  key?: string;
+  keyType?: string;
+  accountHolderName?: string;
+  accountHolderCpfCnpj?: string;
+  errorMessage?: string;
+}
+
+export interface AsaasTransferParams {
+  value: number;
+  pixAddressKey: string;
+  pixAddressKeyType: 'CPF';
+  description: string;
+  externalReference: string; // withdrawal-{id}
+}
+
+export interface AsaasTransferResult {
+  id: string;
+  status: string;
+  value: number;
+  netValue?: number;
+  dateCreated: string;
+  scheduleDate?: string;
+}
+
 // 1. Criar ou Buscar Cliente no Asaas (Cache por CPF para evitar duplicatas)
 export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise<string> {
   const cleanCpf = data.cpfCnpj.replace(/\D/g, '');
 
   if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
-    // Sandbox / Mock Mode para Teste Local
     console.log('[Asaas Service] Modo Demo Ativo — simulando ID de cliente Asaas para CPF:', cleanCpf);
     return `cus_demo_${cleanCpf.substring(0, 8)}`;
   }
 
   try {
-    // A. Buscar cliente existente por CPF
     const searchRes = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`, {
       method: 'GET',
       headers: getHeaders()
@@ -83,7 +107,6 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
       }
     }
 
-    // B. Criar novo cliente se não encontrado
     const createRes = await fetch(`${ASAAS_API_URL}/customers`, {
       method: 'POST',
       headers: getHeaders(),
@@ -114,7 +137,6 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
   const dueDateStr = today.toISOString().split('T')[0];
 
   if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
-    // Sandbox / Mock Mode para Testes de Desenvolvimento
     console.log('[Asaas Service] Modo Demo Ativo — simulando cobrança Asaas para Order:', params.externalReference);
     const mockPaymentId = `pay_demo_${Date.now()}`;
     const mockCopyPaste = `00020101021226870014BR.GOV.BCB.PIX2565pix.asaas.com/qr/p/v2/${mockPaymentId}5204000053039865405${params.value.toFixed(2)}5802BR5925Educalizando Plataforma6009SAO PAULO62070503***6304E8A2`;
@@ -168,7 +190,6 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
       bankSlipUrl: payData.bankSlipUrl
     };
 
-    // Se a cobrança for PIX, buscar dados do QR Code imediato
     if (params.billingType === 'PIX') {
       const pixData = await getAsaasPixQrCode(payData.id);
       result.pixQrCodeBase64 = pixData.pixQrCodeBase64;
@@ -233,5 +254,99 @@ export async function getAsaasPaymentStatus(paymentId: string): Promise<{ status
     };
   } catch (err) {
     return { status: 'PENDING' };
+  }
+}
+
+// 5. Consulta de Titularidade da Chave PIX CPF no Asaas (GET /pix/addressKeys/external?type=CPF&key={cleanCpf})
+export async function lookupAsaasPixKey(cleanCpf: string): Promise<AsaasPixKeyLookupResult> {
+  if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
+    console.log('[Asaas Service] Modo Demo — Simulando validação de chave PIX CPF no Asaas:', cleanCpf);
+    return {
+      valid: true,
+      key: cleanCpf,
+      keyType: 'CPF',
+      accountHolderName: 'Professor Criador Educalizando',
+      accountHolderCpfCnpj: cleanCpf
+    };
+  }
+
+  try {
+    const res = await fetch(`${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${cleanCpf}`, {
+      method: 'GET',
+      headers: getHeaders()
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn('[lookupAsaasPixKey] Falha na consulta Asaas:', errText);
+      return {
+        valid: false,
+        errorMessage: 'Não foi possível confirmar a titularidade da chave PIX no Asaas. Verifique os dados e tente novamente.'
+      };
+    }
+
+    const data = await res.json();
+    return {
+      valid: true,
+      key: data.key || cleanCpf,
+      keyType: data.type || 'CPF',
+      accountHolderName: data.accountHolder?.name || data.accountHolderName,
+      accountHolderCpfCnpj: data.accountHolder?.cpfCnpj || data.accountHolderCpfCnpj || cleanCpf
+    };
+  } catch (err: any) {
+    console.error('[lookupAsaasPixKey] Erro API Asaas:', err);
+    return {
+      valid: false,
+      errorMessage: 'Erro de conexão ao consultar a chave PIX no Asaas.'
+    };
+  }
+}
+
+// 6. Criar Transferência PIX para Saque no Asaas (POST /transfers)
+export async function createAsaasTransfer(params: AsaasTransferParams): Promise<AsaasTransferResult> {
+  if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
+    console.log('[Asaas Service] Modo Demo — Simulando criação de transferência PIX Asaas:', params);
+    const mockId = `trf_demo_${Date.now()}`;
+    return {
+      id: mockId,
+      status: 'BANK_PROCESSING',
+      value: params.value,
+      dateCreated: new Date().toISOString()
+    };
+  }
+
+  try {
+    const payload = {
+      value: params.value,
+      pixAddressKey: params.pixAddressKey,
+      pixAddressKeyType: 'CPF',
+      operationType: 'PIX',
+      description: params.description,
+      externalReference: params.externalReference
+    };
+
+    const res = await fetch(`${ASAAS_API_URL}/transfers`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Erro ao gerar transferência no Asaas (${res.status}): ${errText}`);
+    }
+
+    const data = await res.json();
+    return {
+      id: data.id,
+      status: data.status || 'PENDING',
+      value: data.value,
+      netValue: data.netValue,
+      dateCreated: data.dateCreated || new Date().toISOString(),
+      scheduleDate: data.scheduleDate
+    };
+  } catch (err: any) {
+    console.error('[createAsaasTransfer] Erro:', err);
+    throw err;
   }
 }

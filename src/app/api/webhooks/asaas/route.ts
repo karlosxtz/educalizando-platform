@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '@/lib/order-service';
+import { handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
 
 export async function POST(request: Request) {
   try {
@@ -13,10 +14,17 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
-    const { event, payment } = payload;
+    const { event, payment, transfer } = payload;
 
+    // 2. PROCESSAMENTO DE WEBHOOKS DE TRANSFERÊNCIA DE SAQUE (FASE C - Item 20-25)
+    if (transfer || (event && event.startsWith('TRANSFER_'))) {
+      await handleAsaasTransferWebhook(payload);
+      return NextResponse.json({ received: true, type: 'transfer', event, transferId: transfer?.id });
+    }
+
+    // 3. PROCESSAMENTO DE WEBHOOKS DE COBRANÇAS / VENDAS (FASE A & B)
     if (!payment) {
-      return NextResponse.json({ received: true, message: 'Payload sem dados de pagamento.' }, { status: 200 });
+      return NextResponse.json({ received: true, message: 'Payload sem dados de pagamento ou transferência.' }, { status: 200 });
     }
 
     const orderId = payment.externalReference;
@@ -28,35 +36,29 @@ export async function POST(request: Request) {
       realAsaasFee = Math.max(0, Number(payment.value) - Number(payment.netValue));
     }
 
-    console.log(`[Asaas Webhook] Evento: ${event} | PaymentId: ${asaasPaymentId} | OrderId: ${orderId} | Taxa Asaas: ${realAsaasFee !== undefined ? `R$ ${realAsaasFee.toFixed(2)}` : 'Não informada'}`);
+    console.log(`[Asaas Webhook Payment] Evento: ${event} | PaymentId: ${asaasPaymentId} | OrderId: ${orderId} | Taxa Asaas: ${realAsaasFee !== undefined ? `R$ ${realAsaasFee.toFixed(2)}` : 'Não informada'}`);
 
-    // 2. Eventos de Confirmação de Pagamento
     if (
       event === 'PAYMENT_CONFIRMED' || 
       event === 'PAYMENT_RECEIVED' || 
       event === 'PAYMENT_DUNNING_RECEIVED'
     ) {
       if (orderId) {
-        // Atualiza pedido para 'paid' registrando a taxa Asaas REAL e garantindo IDEMPOTÊNCIA
         await updateOrderStatus(orderId, 'paid', asaasPaymentId, realAsaasFee);
       }
     } 
-
-    // 3. Evento de Vencimento / Falha
     else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') {
       if (orderId) {
         await updateOrderStatus(orderId, 'failed', asaasPaymentId, realAsaasFee);
       }
     } 
-
-    // 4. Evento de Reembolso / Estorno
     else if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_CHARGEBACK_REQUESTED') {
       if (orderId) {
         await updateOrderStatus(orderId, 'refunded', asaasPaymentId, realAsaasFee);
       }
     }
 
-    return NextResponse.json({ received: true, event, paymentId: asaasPaymentId });
+    return NextResponse.json({ received: true, type: 'payment', event, paymentId: asaasPaymentId });
 
   } catch (err: any) {
     console.error('[Asaas Webhook Handler Error]:', err);

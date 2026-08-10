@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { 
   Wallet, TrendingUp, Clock, CheckCircle2, AlertCircle, DollarSign, 
   ArrowUpRight, ArrowDownLeft, ShieldCheck, Search, Filter, Calendar, 
-  ChevronLeft, ChevronRight, Info, HelpCircle, Lock, Sparkles, RefreshCw, X, FileText 
+  ChevronLeft, ChevronRight, Info, HelpCircle, Lock, Sparkles, RefreshCw, X, FileText, Loader2, Key 
 } from 'lucide-react';
 import { 
   calculateCreatorWallet, 
@@ -12,7 +12,15 @@ import {
   CreatorWalletSummary, 
   WalletTransaction 
 } from '@/lib/wallet-service';
+import { 
+  getActiveCreatorPixKey, 
+  getWithdrawalsHistory, 
+  MIN_WITHDRAWAL_AMOUNT, 
+  CreatorPixKey, 
+  WithdrawalRecord 
+} from '@/lib/withdrawal-service';
 import CustomSelect from '@/components/ui/CustomSelect';
+import Link from 'next/link';
 
 export default function FinancialWalletDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -37,10 +45,23 @@ export default function FinancialWalletDashboardPage() {
   // Statement Data
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
 
-  // Sale Details Modal
+  // PIX Key & Withdrawals State
+  const [activePixKey, setActivePixKey] = useState<CreatorPixKey | null>(null);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRecord[]>([]);
+
+  // Modals State
   const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRecord | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+
+  // Withdrawal Form State
+  const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
+  const [withdrawSubmitting, setWithdrawSubmitting] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
   const storeId = 'store-demo';
+  const creatorProfileCpf = '12345678901';
 
   useEffect(() => {
     loadData();
@@ -49,7 +70,7 @@ export default function FinancialWalletDashboardPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [sumData, stmtData] = await Promise.all([
+      const [sumData, stmtData, pixData, wtdData] = await Promise.all([
         calculateCreatorWallet(storeId),
         getWalletTransactionsStatement({
           storeId,
@@ -58,13 +79,25 @@ export default function FinancialWalletDashboardPage() {
           search: searchQuery,
           page,
           limit: 15
-        })
+        }),
+        getActiveCreatorPixKey(storeId),
+        getWithdrawalsHistory(storeId)
       ]);
 
       setSummary(sumData);
       setTransactions(stmtData.transactions);
       setTotalPages(stmtData.totalPages);
       setTotalCount(stmtData.totalCount);
+      setActivePixKey(pixData);
+      setWithdrawals(wtdData);
+
+      // Calcular total recebido real a partir dos saques concluídos
+      const totalRec = wtdData
+        .filter(w => w.status === 'COMPLETED')
+        .reduce((sum, w) => sum + w.amount, 0);
+      
+      setSummary(prev => ({ ...prev, totalRecebido: Number(totalRec.toFixed(2)) }));
+
     } catch (err) {
       console.error('Erro ao carregar carteira financeira:', err);
     } finally {
@@ -74,6 +107,67 @@ export default function FinancialWalletDashboardPage() {
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const handleOpenWithdrawModal = () => {
+    setWithdrawError(null);
+    setWithdrawSuccess(null);
+    setWithdrawAmountInput(summary.saldoDisponivel > 0 ? summary.saldoDisponivel.toFixed(2) : '20.00');
+    setShowWithdrawModal(true);
+  };
+
+  const handleExecuteWithdrawal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setWithdrawError(null);
+    setWithdrawSuccess(null);
+
+    const val = Number(withdrawAmountInput.replace(',', '.'));
+    if (isNaN(val) || val <= 0) {
+      setWithdrawError('Por favor, informe um valor válido para o saque.');
+      return;
+    }
+
+    if (val < MIN_WITHDRAWAL_AMOUNT) {
+      setWithdrawError(`O valor mínimo para saque é de ${formatCurrency(MIN_WITHDRAWAL_AMOUNT)}.`);
+      return;
+    }
+
+    if (val > summary.saldoDisponivel) {
+      setWithdrawError(`Saldo disponível insuficiente. Seu saldo atual é ${formatCurrency(summary.saldoDisponivel)}.`);
+      return;
+    }
+
+    setWithdrawSubmitting(true);
+
+    try {
+      const res = await fetch('/api/financeiro/saque', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId,
+          creatorId: 'user-demo',
+          amount: val,
+          creatorProfileCpf
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao solicitar saque PIX.');
+      }
+
+      setWithdrawSuccess(`Saque de ${formatCurrency(val)} solicitado com sucesso! A transferência PIX foi enviada para o Asaas.`);
+      setTimeout(() => {
+        setShowWithdrawModal(false);
+        loadData();
+      }, 2500);
+
+    } catch (err: any) {
+      setWithdrawError(err.message || 'Falha ao processar a solicitação de saque.');
+    } finally {
+      setWithdrawSubmitting(false);
+    }
   };
 
   return (
@@ -86,10 +180,10 @@ export default function FinancialWalletDashboardPage() {
             <span className="p-2 rounded-xl bg-brand-navy/10 text-brand-navy">
               <Wallet className="w-5 h-5 text-brand-navy" />
             </span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Carteira Financeira & Extrato</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Carteira Financeira & Saques PIX</h1>
           </div>
           <p className="text-xs text-slate-600 font-medium">
-            Acompanhe suas vendas brutas, taxas descontadas e seu saldo líquido disponível para saque.
+            Acompanhe suas vendas brutas, saldo disponível e solicite saques automáticos para sua chave PIX CPF.
           </p>
         </div>
 
@@ -103,23 +197,18 @@ export default function FinancialWalletDashboardPage() {
             <span className="hidden sm:inline">Atualizar</span>
           </button>
 
-          {/* Solicitado no item 22: Botão de Saque Desabilitado (Fase C) */}
-          <div className="relative group">
-            <button
-              disabled
-              className="px-5 py-3 rounded-2xl bg-slate-200 text-slate-400 font-bold text-xs flex items-center gap-2 cursor-not-allowed border border-slate-300"
-            >
-              <ArrowUpRight className="w-4 h-4" />
-              <span>Solicitar Saque</span>
-              <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-300 text-slate-700 uppercase">
-                Em Breve (Fase C)
-              </span>
-            </button>
-          </div>
+          {/* Botão Solicitar Saque (Fase C — Ativo!) */}
+          <button
+            onClick={handleOpenWithdrawModal}
+            className="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95"
+          >
+            <ArrowUpRight className="w-4 h-4" />
+            <span>Solicitar Saque PIX</span>
+          </button>
         </div>
       </div>
 
-      {/* 4 Cards de Saldo Principal (Item 7 da Especificação) */}
+      {/* 4 Cards de Saldo Principal */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Card 1: Total Vendido (Bruto) */}
@@ -167,7 +256,7 @@ export default function FinancialWalletDashboardPage() {
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {formatCurrency(summary.saldoDisponivel)}
             </div>
-            <p className="text-[11px] text-slate-300 font-medium mt-1">Líquido liberado para futuro saque</p>
+            <p className="text-[11px] text-slate-300 font-medium mt-1">Pronto para saque imediato via PIX</p>
           </div>
         </div>
 
@@ -183,13 +272,46 @@ export default function FinancialWalletDashboardPage() {
             <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {formatCurrency(summary.totalRecebido)}
             </div>
-            <p className="text-[11px] text-slate-500 font-medium mt-1">Retirado via saques PIX</p>
+            <p className="text-[11px] text-slate-500 font-medium mt-1">Já transferido para sua chave PIX</p>
           </div>
         </div>
 
       </div>
 
-      {/* Resumo de Taxas Descontadas (Item 8 da Especificação) */}
+      {/* Banner / Card da Chave PIX Cadastrada */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+            <Key className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-extrabold uppercase text-slate-500">Chave PIX Cadastrada</span>
+              {activePixKey ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  ✓ Validada
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  Pendente
+                </span>
+              )}
+            </div>
+            <div className="text-sm font-black text-slate-900 font-mono mt-0.5">
+              {activePixKey ? `${activePixKey.pixKeyMasked} (Titular: ${activePixKey.holderName})` : 'Nenhuma chave PIX CPF cadastrada'}
+            </div>
+          </div>
+        </div>
+
+        <Link
+          href="/dashboard/conta"
+          className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center"
+        >
+          {activePixKey ? 'Gerenciar Chave PIX' : 'Cadastrar Chave PIX CPF'}
+        </Link>
+      </div>
+
+      {/* Resumo de Taxas Descontadas */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -203,7 +325,6 @@ export default function FinancialWalletDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
-          
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxas Educalizando</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
@@ -221,21 +342,90 @@ export default function FinancialWalletDashboardPage() {
             <div className="text-lg font-black text-rose-800">{formatCurrency(summary.totalTaxas)}</div>
             <span className="text-[10px] text-rose-600 font-medium block">Descontado do valor bruto das vendas</span>
           </div>
-
         </div>
       </div>
 
-      {/* Extrato Financeiro & Lançamentos (Item 9 da Especificação) */}
+      {/* Histórico de Saques Realizados (Item 26 & 27 da Especificação) */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              Histórico de Saques PIX
+            </h3>
+            <p className="text-xs text-slate-500 font-medium">
+              Acompanhe as solicitações e o processamento em tempo real via Asaas.
+            </p>
+          </div>
+        </div>
+
+        {withdrawals.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-400 font-medium bg-slate-50 rounded-2xl border border-slate-200">
+            Nenhum saque solicitado até o momento.
+          </div>
+        ) : (
+          <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+            <table className="w-full text-left border-collapse font-sans text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th className="py-3 px-4">Solicitado em</th>
+                  <th className="py-3 px-4">Valor</th>
+                  <th className="py-3 px-4">Chave PIX</th>
+                  <th className="py-3 px-4">ID Transferência Asaas</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {withdrawals.map(wtd => (
+                  <tr 
+                    key={wtd.id}
+                    onClick={() => setSelectedWithdrawal(wtd)}
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                      {new Date(wtd.requestedAt).toLocaleString('pt-BR')}
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                      {formatCurrency(wtd.amount)}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-slate-600">
+                      {wtd.pixKeyMasked}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                      {wtd.asaasTransferId || '—'}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {wtd.status === 'COMPLETED' ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          ✓ Concluído
+                        </span>
+                      ) : wtd.status === 'PROCESSING' || wtd.status === 'PENDING' ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Em Processamento
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                          Falhou
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Extrato Financeiro & Lançamentos */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="w-full lg:w-auto">
             <h3 className="text-lg font-black text-slate-900 tracking-tight">Extrato do Ledger Financeiro</h3>
             <p className="text-xs text-slate-500 font-medium">
-              Histórico imutável de lançamentos, vendas, estornos e atualizações de saldo.
+              Histórico imutável de lançamentos, vendas, estornos e saques.
             </p>
           </div>
 
-          {/* Search Input */}
           <div className="relative w-full lg:w-80">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -248,9 +438,8 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Filters Bar (Item 13 da Especificação) */}
+        {/* Filters Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-          
           <div className="space-y-1">
             <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Período</label>
             <CustomSelect
@@ -288,10 +477,9 @@ export default function FinancialWalletDashboardPage() {
               {totalCount} {totalCount === 1 ? 'registro encontrado' : 'registros encontrados'}
             </span>
           </div>
-
         </div>
 
-        {/* Extrato Statement Table */}
+        {/* Statement Table */}
         {loading ? (
           <div className="p-12 text-center text-slate-400 text-xs font-medium">
             Carregando extrato financeiro...
@@ -311,7 +499,7 @@ export default function FinancialWalletDashboardPage() {
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3.5 px-4">Data</th>
                   <th className="py-3.5 px-4">Descrição</th>
-                  <th className="py-3.5 px-4">Pedido</th>
+                  <th className="py-3.5 px-4">Pedido / Ref</th>
                   <th className="py-3.5 px-4 text-right">Valor Bruto</th>
                   <th className="py-3.5 px-4 text-right">Taxa Educalizando</th>
                   <th className="py-3.5 px-4 text-right">Taxa Asaas</th>
@@ -322,6 +510,7 @@ export default function FinancialWalletDashboardPage() {
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {transactions.map(tx => {
                   const isRefund = tx.type === 'REFUND';
+                  const isWithdrawal = tx.type === 'WITHDRAWAL';
                   const isPending = tx.status === 'PENDING';
 
                   return (
@@ -330,7 +519,6 @@ export default function FinancialWalletDashboardPage() {
                       onClick={() => setSelectedTx(tx)}
                       className="hover:bg-slate-50 transition-colors cursor-pointer"
                     >
-                      {/* Data */}
                       <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">
                         {new Date(tx.createdAt).toLocaleDateString('pt-BR', {
                           day: '2-digit',
@@ -341,42 +529,39 @@ export default function FinancialWalletDashboardPage() {
                         })}
                       </td>
 
-                      {/* Descrição */}
                       <td className="py-3.5 px-4">
                         <span className="font-bold text-slate-900 block truncate max-w-xs">{tx.description}</span>
                         {tx.buyerName && <span className="text-[11px] text-slate-400 block">{tx.buyerName}</span>}
                       </td>
 
-                      {/* Pedido */}
                       <td className="py-3.5 px-4 font-mono text-[11px]">
                         {tx.orderId ? `#${tx.orderId.substring(4, 10).toUpperCase()}` : '—'}
                       </td>
 
-                      {/* Valor Bruto */}
                       <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900">
                         {formatCurrency(tx.grossAmount)}
                       </td>
 
-                      {/* Taxa Educalizando */}
                       <td className="py-3.5 px-4 text-right font-mono text-slate-500">
-                        - {formatCurrency(tx.platformFeeAmount)}
+                        {tx.platformFeeAmount > 0 ? `- ${formatCurrency(tx.platformFeeAmount)}` : '—'}
                       </td>
 
-                      {/* Taxa Asaas */}
                       <td className="py-3.5 px-4 text-right font-mono text-slate-500">
-                        - {formatCurrency(tx.asaasFeeAmount)}
+                        {tx.asaasFeeAmount > 0 ? `- ${formatCurrency(tx.asaasFeeAmount)}` : '—'}
                       </td>
 
-                      {/* Valor Líquido (Destaque) */}
                       <td className={`py-3.5 px-4 text-right font-mono font-black text-sm ${
-                        isRefund ? 'text-rose-600' : isPending ? 'text-amber-600' : 'text-emerald-600'
+                        isRefund || isWithdrawal ? 'text-rose-600' : isPending ? 'text-amber-600' : 'text-emerald-600'
                       }`}>
-                        {isRefund ? '' : '+'}{formatCurrency(tx.netAmount)}
+                        {formatCurrency(tx.netAmount)}
                       </td>
 
-                      {/* Status */}
                       <td className="py-3.5 px-4 text-center">
-                        {isRefund ? (
+                        {isWithdrawal ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                            Saque PIX
+                          </span>
+                        ) : isRefund ? (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                             Estornado
                           </span>
@@ -398,7 +583,7 @@ export default function FinancialWalletDashboardPage() {
           </div>
         )}
 
-        {/* Pagination Controls (Item 14 da Especificação) */}
+        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs font-medium text-slate-500">
             <span>Página {page} de {totalPages}</span>
@@ -420,10 +605,116 @@ export default function FinancialWalletDashboardPage() {
             </div>
           </div>
         )}
-
       </div>
 
-      {/* Modal Detalhes da Venda (Item 12 da Especificação) */}
+      {/* MODAL 1: Solicitar Saque PIX (Item 10, 11, 12, 13 & 16) */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+                  Saque Automático PIX
+                </span>
+                <h3 className="text-lg font-black text-slate-900">Solicitar Saque</h3>
+              </div>
+              <button onClick={() => setShowWithdrawModal(false)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {withdrawError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{withdrawError}</span>
+              </div>
+            )}
+
+            {withdrawSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{withdrawSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleExecuteWithdrawal} className="space-y-4 text-xs font-sans">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex justify-between text-slate-600">
+                  <span>Saldo Disponível:</span>
+                  <strong className="text-slate-900 font-mono text-sm">{formatCurrency(summary.saldoDisponivel)}</strong>
+                </div>
+
+                <div className="flex justify-between text-slate-600">
+                  <span>Chave PIX (CPF):</span>
+                  <strong className="text-slate-900 font-mono">
+                    {activePixKey ? activePixKey.pixKeyMasked : 'Nenhuma chave cadastrada'}
+                  </strong>
+                </div>
+
+                {activePixKey && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Titular Confirmado:</span>
+                    <strong className="text-slate-900">{activePixKey.holderName}</strong>
+                  </div>
+                )}
+              </div>
+
+              {!activePixKey ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl space-y-2">
+                  <p className="font-bold">Chave PIX não cadastrada!</p>
+                  <p className="text-[11px]">Você precisa cadastrar e validar sua chave PIX CPF em Configurações da Conta antes de solicitar um saque.</p>
+                  <Link
+                    href="/dashboard/conta"
+                    className="inline-block mt-2 px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold text-[11px]"
+                  >
+                    Cadastrar Chave PIX Agora
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                      Valor do Saque (R$) *
+                    </label>
+                    <input
+                      type="text"
+                      value={withdrawAmountInput}
+                      onChange={(e) => setWithdrawAmountInput(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none"
+                    />
+                    <span className="text-[10px] text-slate-500 block font-medium">
+                      Valor mínimo: {formatCurrency(MIN_WITHDRAWAL_AMOUNT)}. Sem taxas adicionais de saque.
+                    </span>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={withdrawSubmitting || summary.saldoDisponivel < MIN_WITHDRAWAL_AMOUNT}
+                      className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {withdrawSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Processando Transferência Asaas...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowUpRight className="w-4 h-4" />
+                          <span>Confirmar Saque PIX Implícito</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Detalhes da Venda no Extrato */}
       {selectedTx && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
@@ -436,10 +727,7 @@ export default function FinancialWalletDashboardPage() {
                   {selectedTx.orderId ? `Pedido #${selectedTx.orderId.substring(4, 10).toUpperCase()}` : 'Lançamento Financeiro'}
                 </h3>
               </div>
-              <button
-                onClick={() => setSelectedTx(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-700"
-              >
+              <button onClick={() => setSelectedTx(null)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -458,39 +746,31 @@ export default function FinancialWalletDashboardPage() {
                 )}
                 <div className="flex justify-between text-slate-600">
                   <span>Data da Transação:</span>
-                  <strong className="text-slate-900">
-                    {new Date(selectedTx.createdAt).toLocaleString('pt-BR')}
-                  </strong>
+                  <strong className="text-slate-900">{new Date(selectedTx.createdAt).toLocaleString('pt-BR')}</strong>
                 </div>
               </div>
 
-              {/* Financial Calculation Breakdown */}
               <div className="space-y-2.5 pt-2 border-t border-slate-100">
                 <div className="flex justify-between text-slate-700 font-bold">
                   <span>Valor Bruto da Venda:</span>
                   <span className="font-mono text-sm">{formatCurrency(selectedTx.grossAmount)}</span>
                 </div>
-
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
                   <span>Taxa Fixa Educalizando (R$ 0,99/unid):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformFixedFeeAmount)}</span>
                 </div>
-
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
                   <span>Taxa 5% Educalizando (Subtotal):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformPercentageFeeAmount)}</span>
                 </div>
-
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
                   <span>Total Taxas Educalizando:</span>
                   <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.platformFeeAmount)}</span>
                 </div>
-
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
                   <span>Taxa Real Asaas:</span>
                   <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.asaasFeeAmount)}</span>
                 </div>
-
                 <div className="flex justify-between font-black text-slate-900 text-base pt-3 border-t border-slate-200">
                   <span>Valor Líquido do Criador:</span>
                   <span className="font-mono text-emerald-600">{formatCurrency(selectedTx.netAmount)}</span>
@@ -501,6 +781,68 @@ export default function FinancialWalletDashboardPage() {
             <div className="pt-4 border-t border-slate-100">
               <button
                 onClick={() => setSelectedTx(null)}
+                className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+              >
+                Fechar Detalhes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Detalhes do Saque (Item 27 da Especificação) */}
+      {selectedWithdrawal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+                  Detalhes da Transferência PIX
+                </span>
+                <h3 className="text-lg font-black text-slate-900">
+                  Saque #{selectedWithdrawal.id.substring(4, 10).toUpperCase()}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedWithdrawal(null)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-sans">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex justify-between text-slate-600">
+                  <span>Valor do Saque:</span>
+                  <strong className="text-slate-900 font-mono text-sm">{formatCurrency(selectedWithdrawal.amount)}</strong>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Chave PIX:</span>
+                  <strong className="text-slate-900 font-mono">{selectedWithdrawal.pixKeyMasked}</strong>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Solicitado em:</span>
+                  <strong className="text-slate-900">{new Date(selectedWithdrawal.requestedAt).toLocaleString('pt-BR')}</strong>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Status:</span>
+                  <strong className="text-emerald-700">{selectedWithdrawal.status}</strong>
+                </div>
+                {selectedWithdrawal.asaasTransferId && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>ID Transferência Asaas:</span>
+                    <strong className="text-slate-900 font-mono">{selectedWithdrawal.asaasTransferId}</strong>
+                  </div>
+                )}
+                {selectedWithdrawal.failureReason && (
+                  <div className="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] font-medium mt-2">
+                    Motivo da falha: {selectedWithdrawal.failureReason}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setSelectedWithdrawal(null)}
                 className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
               >
                 Fechar Detalhes
