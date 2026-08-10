@@ -1,6 +1,5 @@
 import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders, saveLocalOrders } from './sales-service';
-import { ContentItem } from './content-delivery-service';
 
 export type PaymentMethodType = 'pix' | 'credit_card' | 'boleto';
 export type OrderStatusType = 'pending' | 'paid' | 'failed' | 'refunded';
@@ -12,8 +11,8 @@ export interface OrderItemRecord {
   productTitle?: string;
   storeId: string;
   unitPrice: number;
-  platformFeeAmount: number;
-  creatorNetAmount: number;
+  quantity: number;
+  subtotalAmount: number;
 }
 
 export interface OrderRecord {
@@ -23,9 +22,13 @@ export interface OrderRecord {
   buyerEmail: string;
   buyerCpf: string;
   buyerPhone?: string | null;
+  subtotalAmount: number;
   totalAmount: number;
-  platformFeeAmount: number; // 10% + R$ 1,00 por produto (congelado no pedido)
-  creatorNetAmount: number; // Valor líquido do criador
+  platformFixedFeeAmount: number; // R$ 0,99 x quantidade de produtos
+  platformPercentageFeeAmount: number; // 5% do subtotal do pedido
+  platformFeeAmount: number; // Fixa + Percentual
+  asaasFeeAmount: number; // Taxa real cobrada pelo Asaas (repassada ao criador)
+  creatorNetAmount: number; // Valor líquido que vai para o saldo do criador
   status: OrderStatusType;
   asaasPaymentId?: string | null;
   asaasCustomerId?: string | null;
@@ -37,49 +40,95 @@ export interface OrderRecord {
   paidAt?: string | null;
 }
 
-// 1. Cálculo Congelado de Taxas da Plataforma (10% + R$ 1,00 por produto)
-export function calculateOrderFees(items: Array<{ productId: string; productTitle?: string; unitPrice: number; storeId: string }>) {
-  let totalAmount = 0;
-  let totalPlatformFee = 0;
-  let totalCreatorNet = 0;
+export interface OrderItemInput {
+  productId: string;
+  productTitle?: string;
+  unitPrice: number;
+  quantity?: number;
+  storeId: string;
+}
 
-  const itemRecords: Array<{
+export interface FinancialCalculationResult {
+  subtotalAmount: number;
+  totalAmount: number;
+  productCount: number;
+  platformFixedFeeAmount: number;
+  platformPercentageFeeAmount: number;
+  platformFeeAmount: number;
+  asaasFeeAmount: number;
+  creatorNetAmount: number;
+  items: Array<{
     productId: string;
     productTitle?: string;
     storeId: string;
     unitPrice: number;
-    platformFeeAmount: number;
-    creatorNetAmount: number;
-  }> = items.map(item => {
-    const price = Number(item.unitPrice || 0);
-    // Regra: R$ 1,00 fixo por item de produto + 10% sobre o preço do item
-    const fee = 1.0 + (price * 0.10);
-    const net = Math.max(0, price - fee);
+    quantity: number;
+    subtotalAmount: number;
+  }>;
+}
 
-    totalAmount += price;
-    totalPlatformFee += fee;
-    totalCreatorNet += net;
+/**
+ * =============================================================================
+ * FONTE ÚNICA DA VERDADE — CÁLCULO FINANCEIRO DEFINITIVO EDUCALIZANDO
+ * =============================================================================
+ * Fórmula:
+ * subtotal = soma (unit_price * quantity)
+ * platform_fixed_fee = productCount * 0.99
+ * platform_percentage_fee = subtotal * 0.05
+ * platform_fee = platform_fixed_fee + platform_percentage_fee
+ * creator_net_amount = subtotal - platform_fee - asaas_fee
+ * =============================================================================
+ */
+export function calculateOrderFinancials(
+  items: OrderItemInput[],
+  asaasFee: number = 0
+): FinancialCalculationResult {
+  const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-    return {
-      productId: item.productId,
-      productTitle: item.productTitle,
-      storeId: item.storeId,
-      unitPrice: price,
-      platformFeeAmount: Number(fee.toFixed(2)),
-      creatorNetAmount: Number(net.toFixed(2))
-    };
-  });
+  // Regra Definitiva: R$ 0,99 por unidade de produto + 5% sobre o subtotal do pedido
+  const platformFixedFee = Number((productCount * 0.99).toFixed(2));
+  const platformPercentageFee = Number((subtotal * 0.05).toFixed(2));
+  const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
+  const creatorNet = Number(Math.max(0, subtotal - platformFee - asaasFee).toFixed(2));
 
   return {
-    totalAmount: Number(totalAmount.toFixed(2)),
-    platformFeeAmount: Number(totalPlatformFee.toFixed(2)),
-    creatorNetAmount: Number(totalCreatorNet.toFixed(2)),
-    items: itemRecords
+    subtotalAmount: Number(subtotal.toFixed(2)),
+    totalAmount: Number(subtotal.toFixed(2)),
+    productCount,
+    platformFixedFeeAmount: platformFixedFee,
+    platformPercentageFeeAmount: platformPercentageFee,
+    platformFeeAmount: platformFee,
+    asaasFeeAmount: Number(asaasFee.toFixed(2)),
+    creatorNetAmount: creatorNet,
+    items: items.map(it => ({
+      productId: it.productId,
+      productTitle: it.productTitle,
+      storeId: it.storeId,
+      unitPrice: Number(it.unitPrice),
+      quantity: it.quantity || 1,
+      subtotalAmount: Number((Number(it.unitPrice) * (it.quantity || 1)).toFixed(2))
+    }))
+  };
+}
+
+// Legacy alias helper for backwards compatibility
+export function calculateOrderFees(items: OrderItemInput[]) {
+  const fin = calculateOrderFinancials(items, 0);
+  return {
+    totalAmount: fin.totalAmount,
+    platformFeeAmount: fin.platformFeeAmount,
+    creatorNetAmount: fin.creatorNetAmount,
+    items: fin.items.map(it => ({
+      ...it,
+      platformFeeAmount: 0,
+      creatorNetAmount: 0
+    }))
   };
 }
 
 // Key LocalStorage para persistência de pedidos completos do Asaas
-const LOCAL_ASAAS_ORDERS_KEY = 'educalizando_asaas_orders_v1';
+const LOCAL_ASAAS_ORDERS_KEY = 'educalizando_asaas_orders_v2';
 
 function getLocalAsaasOrders(): OrderRecord[] {
   if (typeof window === 'undefined') return [];
@@ -100,7 +149,7 @@ function saveLocalAsaasOrders(orders: OrderRecord[]) {
   }
 }
 
-// 2. Criar Registro do Pedido (Banco Real Supabase + LocalStorage Fallback)
+// 2. Criar Registro do Pedido (Validação Estrita de Loja Única + Cálculo Servidor)
 export async function createOrderRecord(data: {
   storeId: string;
   buyerName: string;
@@ -108,25 +157,33 @@ export async function createOrderRecord(data: {
   buyerCpf: string;
   buyerPhone?: string;
   paymentMethod: PaymentMethodType;
-  items: Array<{ productId: string; productTitle?: string; unitPrice: number; storeId: string }>;
+  items: OrderItemInput[];
   asaasPaymentId?: string;
   asaasCustomerId?: string;
+  asaasFeeAmount?: number;
   pixCopyPaste?: string;
   pixQrCodeBase64?: string;
 }): Promise<OrderRecord> {
-  const fees = calculateOrderFees(data.items);
+
+  // REGRA FUNDAMENTAL: Todos os produtos devem pertencer à mesma loja
+  const invalidItem = data.items.find(it => it.storeId !== data.storeId);
+  if (invalidItem) {
+    throw new Error('Todos os produtos do pedido devem pertencer exclusivamente à mesma loja.');
+  }
+
+  const financials = calculateOrderFinancials(data.items, data.asaasFeeAmount || 0);
   const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
-  const formattedItems: OrderItemRecord[] = fees.items.map((it, idx) => ({
+  const formattedItems: OrderItemRecord[] = financials.items.map((it, idx) => ({
     id: `item_${orderId}_${idx}`,
     orderId,
     productId: it.productId,
     productTitle: it.productTitle,
     storeId: it.storeId,
     unitPrice: it.unitPrice,
-    platformFeeAmount: it.platformFeeAmount,
-    creatorNetAmount: it.creatorNetAmount
+    quantity: it.quantity,
+    subtotalAmount: it.subtotalAmount
   }));
 
   const newOrder: OrderRecord = {
@@ -136,9 +193,13 @@ export async function createOrderRecord(data: {
     buyerEmail: data.buyerEmail.toLowerCase().trim(),
     buyerCpf: data.buyerCpf,
     buyerPhone: data.buyerPhone || null,
-    totalAmount: fees.totalAmount,
-    platformFeeAmount: fees.platformFeeAmount,
-    creatorNetAmount: fees.creatorNetAmount,
+    subtotalAmount: financials.subtotalAmount,
+    totalAmount: financials.totalAmount,
+    platformFixedFeeAmount: financials.platformFixedFeeAmount,
+    platformPercentageFeeAmount: financials.platformPercentageFeeAmount,
+    platformFeeAmount: financials.platformFeeAmount,
+    asaasFeeAmount: financials.asaasFeeAmount,
+    creatorNetAmount: financials.creatorNetAmount,
     status: 'pending',
     asaasPaymentId: data.asaasPaymentId || null,
     asaasCustomerId: data.asaasCustomerId || null,
@@ -160,8 +221,12 @@ export async function createOrderRecord(data: {
         buyer_email: newOrder.buyerEmail,
         buyer_cpf: newOrder.buyerCpf,
         buyer_phone: newOrder.buyerPhone,
+        subtotal_amount: newOrder.subtotalAmount,
         total_amount: newOrder.totalAmount,
+        platform_fixed_fee_amount: newOrder.platformFixedFeeAmount,
+        platform_percentage_fee_amount: newOrder.platformPercentageFeeAmount,
         platform_fee_amount: newOrder.platformFeeAmount,
+        asaas_fee_amount: newOrder.asaasFeeAmount,
         creator_net_amount: newOrder.creatorNetAmount,
         status: 'pending',
         asaas_payment_id: newOrder.asaasPaymentId,
@@ -179,8 +244,8 @@ export async function createOrderRecord(data: {
           product_id: it.productId,
           store_id: it.storeId,
           unit_price: it.unitPrice,
-          platform_fee_amount: it.platformFeeAmount,
-          creator_net_amount: it.creatorNetAmount,
+          quantity: it.quantity,
+          subtotal_amount: it.subtotalAmount,
           created_at: now
         })));
       }
@@ -230,8 +295,12 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           buyerEmail: data.buyer_email || '',
           buyerCpf: data.buyer_cpf || '',
           buyerPhone: data.buyer_phone || null,
+          subtotalAmount: Number(data.subtotal_amount || data.total_amount || 0),
           totalAmount: Number(data.total_amount || 0),
+          platformFixedFeeAmount: Number(data.platform_fixed_fee_amount || 0),
+          platformPercentageFeeAmount: Number(data.platform_percentage_fee_amount || 0),
           platformFeeAmount: Number(data.platform_fee_amount || 0),
+          asaasFeeAmount: Number(data.asaas_fee_amount || 0),
           creatorNetAmount: Number(data.creator_net_amount || 0),
           status: data.status as OrderStatusType,
           asaasPaymentId: data.asaas_payment_id || null,
@@ -253,31 +322,46 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
   return local.find(o => o.id === orderId) || null;
 }
 
-// 4. Atualizar Status do Pedido (com Idempotência e Liberação de Acesso Automático)
-export async function updateOrderStatus(orderId: string, newStatus: OrderStatusType, asaasPaymentId?: string): Promise<OrderRecord | null> {
-  const order = await getOrderRecordById(orderId);
-  if (!order) {
-    // Tentar localizar por asaas_payment_id
+// 4. Atualizar Status do Pedido + Registrar Taxa Asaas Real + Idempotência
+export async function updateOrderStatus(
+  orderId: string, 
+  newStatus: OrderStatusType, 
+  asaasPaymentId?: string,
+  realAsaasFee?: number
+): Promise<OrderRecord | null> {
+  let order = await getOrderRecordById(orderId);
+  if (!order && asaasPaymentId) {
     const localAll = getLocalAsaasOrders();
-    const byAsaas = localAll.find(o => o.asaasPaymentId === asaasPaymentId || o.id === orderId);
-    if (!byAsaas) return null;
-    return updateOrderStatus(byAsaas.id, newStatus);
+    order = localAll.find(o => o.asaasPaymentId === asaasPaymentId || o.id === orderId) || null;
   }
 
-  // IDEMPOTÊNCIA: Se já estava pago e veio novamente como paid, ignora re-processamento
-  if (order.status === 'paid' && newStatus === 'paid') {
-    console.log(`[updateOrderStatus] Pedido ${orderId} já está confirmado como PAGO (Evento Idempotente).`);
+  if (!order) return null;
+
+  // IDEMPOTÊNCIA: Se já estava pago e veio novamente como paid sem nova taxa Asaas, ignora
+  if (order.status === 'paid' && newStatus === 'paid' && (realAsaasFee === undefined || realAsaasFee === order.asaasFeeAmount)) {
+    console.log(`[updateOrderStatus] Pedido ${order.id} já está confirmado como PAGO (Evento Idempotente).`);
     return order;
   }
 
   const nowPaidAt = newStatus === 'paid' ? new Date().toISOString() : order.paidAt;
+
+  // Se uma taxa Asaas real foi informada pelo webhook, recalcular creator_net_amount
+  let updatedAsaasFee = order.asaasFeeAmount;
+  let updatedCreatorNet = order.creatorNetAmount;
+
+  if (realAsaasFee !== undefined && realAsaasFee >= 0) {
+    updatedAsaasFee = Number(realAsaasFee.toFixed(2));
+    updatedCreatorNet = Number(Math.max(0, order.subtotalAmount - order.platformFeeAmount - updatedAsaasFee).toFixed(2));
+  }
 
   // Atualizar Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
       await supabase.from('orders').update({
         status: newStatus,
-        paid_at: nowPaidAt
+        paid_at: nowPaidAt,
+        asaas_fee_amount: updatedAsaasFee,
+        creator_net_amount: updatedCreatorNet
       }).eq('id', order.id);
     } catch (err) {
       console.error('[updateOrderStatus] Erro Supabase:', err);
@@ -286,22 +370,24 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatusT
 
   // Atualizar LocalStorage Asaas Orders
   const localAsaas = getLocalAsaasOrders();
-  const idx = localAsaas.findIndex(o => o.id === order.id);
+  const idx = localAsaas.findIndex(o => o.id === order!.id);
   if (idx !== -1) {
     localAsaas[idx].status = newStatus;
     localAsaas[idx].paidAt = nowPaidAt;
+    localAsaas[idx].asaasFeeAmount = updatedAsaasFee;
+    localAsaas[idx].creatorNetAmount = updatedCreatorNet;
     saveLocalAsaasOrders(localAsaas);
   }
 
   // Atualizar Lista Geral de Vendas Vendedor (RecentOrder)
   const recentOrders = getLocalOrders();
-  const recIdx = recentOrders.findIndex(r => r.id === order.id);
+  const recIdx = recentOrders.findIndex(r => r.id === order!.id);
   if (recIdx !== -1) {
     recentOrders[recIdx].statusPagamento = newStatus === 'paid' ? 'pago' : newStatus === 'refunded' ? 'expirado' : 'pendente_pix';
     saveLocalOrders(recentOrders);
   }
 
-  // Se confirmado como PAGO, criar matrícula do aluno para liberar acesso imediato!
+  // Se confirmado como PAGO, liberar matrícula do aluno
   if (newStatus === 'paid') {
     try {
       if (typeof window !== 'undefined') {
@@ -309,8 +395,7 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatusT
         const rawPurchases = localStorage.getItem(studentPurchasesKey);
         const purchases = rawPurchases ? JSON.parse(rawPurchases) : [];
 
-        // Adicionar matrícula do aluno se ainda não existir
-        const exists = purchases.some((p: any) => p.order_id === order.id);
+        const exists = purchases.some((p: any) => p.order_id === order!.id);
         if (!exists) {
           purchases.unshift({
             id: `pur_${Date.now()}`,
@@ -326,13 +411,15 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatusT
         }
       }
     } catch (e) {
-      console.error('[updateOrderStatus] Erro ao liberar acesso do comprador:', e);
+      console.error('[updateOrderStatus] Erro ao liberar acesso:', e);
     }
   }
 
   return {
     ...order,
     status: newStatus,
-    paidAt: nowPaidAt
+    paidAt: nowPaidAt,
+    asaasFeeAmount: updatedAsaasFee,
+    creatorNetAmount: updatedCreatorNet
   };
 }

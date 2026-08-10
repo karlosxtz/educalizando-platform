@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus, getOrderRecordById } from '@/lib/order-service';
+import { updateOrderStatus } from '@/lib/order-service';
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +22,13 @@ export async function POST(request: Request) {
     const orderId = payment.externalReference;
     const asaasPaymentId = payment.id;
 
-    console.log(`[Asaas Webhook] Evento: ${event} | PaymentId: ${asaasPaymentId} | OrderId: ${orderId}`);
+    // Tentar obter a taxa REAL efetivamente cobrada pelo Asaas
+    let realAsaasFee: number | undefined = undefined;
+    if (payment.value !== undefined && payment.netValue !== undefined) {
+      realAsaasFee = Math.max(0, Number(payment.value) - Number(payment.netValue));
+    }
+
+    console.log(`[Asaas Webhook] Evento: ${event} | PaymentId: ${asaasPaymentId} | OrderId: ${orderId} | Taxa Asaas: ${realAsaasFee !== undefined ? `R$ ${realAsaasFee.toFixed(2)}` : 'Não informada'}`);
 
     // 2. Eventos de Confirmação de Pagamento
     if (
@@ -31,22 +37,22 @@ export async function POST(request: Request) {
       event === 'PAYMENT_DUNNING_RECEIVED'
     ) {
       if (orderId) {
-        // Atualiza pedido para 'paid' com verificação de IDEMPOTÊNCIA
-        await updateOrderStatus(orderId, 'paid', asaasPaymentId);
+        // Atualiza pedido para 'paid' registrando a taxa Asaas REAL e garantindo IDEMPOTÊNCIA
+        await updateOrderStatus(orderId, 'paid', asaasPaymentId, realAsaasFee);
       }
     } 
 
     // 3. Evento de Vencimento / Falha
     else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') {
       if (orderId) {
-        await updateOrderStatus(orderId, 'failed', asaasPaymentId);
+        await updateOrderStatus(orderId, 'failed', asaasPaymentId, realAsaasFee);
       }
     } 
 
     // 4. Evento de Reembolso / Estorno
     else if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_CHARGEBACK_REQUESTED') {
       if (orderId) {
-        await updateOrderStatus(orderId, 'refunded', asaasPaymentId);
+        await updateOrderStatus(orderId, 'refunded', asaasPaymentId, realAsaasFee);
       }
     }
 
