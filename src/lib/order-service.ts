@@ -387,9 +387,26 @@ export async function updateOrderStatus(
     saveLocalOrders(recentOrders);
   }
 
-  // Se confirmado como PAGO, liberar matrícula do aluno
+  // Se confirmado como PAGO, liberar matrícula do aluno e registrar lançamento de venda no ledger da carteira
   if (newStatus === 'paid') {
     try {
+      // Registrar transação SALE no ledger imutável da carteira
+      const { recordWalletTransaction } = await import('./wallet-service');
+      await recordWalletTransaction({
+        storeId: order.storeId,
+        orderId: order.id,
+        buyerName: order.buyerName,
+        productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+        type: 'SALE',
+        grossAmount: order.totalAmount,
+        platformFixedFeeAmount: order.platformFixedFeeAmount,
+        platformPercentageFeeAmount: order.platformPercentageFeeAmount,
+        platformFeeAmount: order.platformFeeAmount,
+        asaasFeeAmount: updatedAsaasFee,
+        netAmount: updatedCreatorNet,
+        description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
+      });
+
       if (typeof window !== 'undefined') {
         const studentPurchasesKey = 'educalizando_student_purchases_v2';
         const rawPurchases = localStorage.getItem(studentPurchasesKey);
@@ -411,7 +428,28 @@ export async function updateOrderStatus(
         }
       }
     } catch (e) {
-      console.error('[updateOrderStatus] Erro ao liberar acesso:', e);
+      console.error('[updateOrderStatus] Erro ao liberar acesso ou registrar lançamento no ledger:', e);
+    }
+  } else if (newStatus === 'refunded') {
+    try {
+      // Registrar ajuste negativo de reembolso no ledger da carteira
+      const { recordWalletTransaction } = await import('./wallet-service');
+      await recordWalletTransaction({
+        storeId: order.storeId,
+        orderId: order.id,
+        buyerName: order.buyerName,
+        productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+        type: 'REFUND',
+        grossAmount: -order.totalAmount,
+        platformFixedFeeAmount: -order.platformFixedFeeAmount,
+        platformPercentageFeeAmount: -order.platformPercentageFeeAmount,
+        platformFeeAmount: -order.platformFeeAmount,
+        asaasFeeAmount: -updatedAsaasFee,
+        netAmount: -updatedCreatorNet,
+        description: `Estorno / Reembolso do Pedido #${order.id.substring(4, 10).toUpperCase()}`
+      });
+    } catch (e) {
+      console.error('[updateOrderStatus] Erro ao registrar estorno no ledger:', e);
     }
   }
 
