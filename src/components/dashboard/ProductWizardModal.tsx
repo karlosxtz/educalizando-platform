@@ -411,7 +411,7 @@ export default function ProductWizardModal({
               {(tipo === 'video' || tipo === 'curso') ? (
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                    Link da Videoaula / Plataforma de Transmissão *
+                    Link Externo da Videoaula / Plataforma de Transmissão *
                   </label>
                   <input
                     type="url"
@@ -420,14 +420,17 @@ export default function ProductWizardModal({
                     placeholder="https://www.youtube.com/watch?v=... ou Vimeo"
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
                   />
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Insira o link externo (YouTube, Vimeo, Google Drive). A Educalizando não faz upload de arquivos de vídeo.
+                  </p>
                 </div>
               ) : (
                 <FileUpload
                   label="Upload do Arquivo Didático Real (PDF / Material Digital)"
-                  helperText="Arquivo entregue na Área de Membros após a compra (máx. 100MB)."
+                  helperText="Arquivo entregue na Área de Membros após a compra (máx. 15MB)."
                   bucket="product-files"
-                  accept="application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/zip"
-                  maxSizeMB={100}
+                  accept="application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+                  maxSizeMB={15}
                   value={arquivoUrl}
                   onChange={(url) => setArquivoUrl(url)}
                   isImage={false}

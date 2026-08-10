@@ -396,12 +396,12 @@ function ProductWizardContent() {
 
               <FileUpload
                 bucket="product-files"
-                accept=".pdf,.epub,.zip,.rar"
-                maxSizeMB={50}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
+                maxSizeMB={15}
                 value={arquivoUrl}
                 onChange={(url: string | null) => setArquivoUrl(url)}
-                label="Upload do Arquivo (PDF / ZIP)"
-                helperText="Formatos suportados: PDF, EPUB, ZIP (máx 50MB)"
+                label="Upload do Arquivo Didático Digital"
+                helperText="Formatos suportados: PDF, DOCX, XLSX, ZIP, etc. (máx. 15MB). Vídeos não são permitidos via upload."
               />
             </motion.div>
           )}
