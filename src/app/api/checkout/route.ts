@@ -5,8 +5,19 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 
 export async function POST(request: Request) {
   try {
-    // 1. DADOS DE AUTENTICAÇÃO DO COMPRADOR (SE LOGADO) OU COMPRA DIRETA
+    // 1. REGRA MANDATÓRIA: É OBRIGATÓRIO ESTAR LOGADO EM UMA CONTA DE ALUNO
     const authSession = await getAuthenticatedUserRole();
+
+    if (!authSession.isAuthenticated || !authSession.userId || authSession.role !== 'student') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Para realizar compras na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { 
       storeId, 
@@ -16,12 +27,8 @@ export async function POST(request: Request) {
       creditCardHolderInfo
     } = body;
 
-    // Se estiver logado como aluno, prioriza a sessão do aluno, caso contrário usa os dados informados no formulário
-    const studentId = (authSession.isAuthenticated && authSession.role === 'student' && authSession.userId)
-      ? authSession.userId 
-      : (body.buyerEmail || '').toLowerCase().trim();
-
-    const buyerName = body.buyerName || authSession.fullName || 'Comprador Educalizando';
+    const studentId = authSession.userId;
+    const buyerName = body.buyerName || authSession.fullName || 'Aluno Educalizando';
     const buyerEmail = (body.buyerEmail || authSession.email || '').toLowerCase().trim();
     const buyerCpf = (body.buyerCpf || authSession.cpf || '').replace(/\D/g, '');
 

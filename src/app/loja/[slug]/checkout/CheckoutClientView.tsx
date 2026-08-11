@@ -157,6 +157,12 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       }
     }
 
+    if (isStudentLoggedIn === false) {
+      setIsAuthError(true);
+      setErrorMessage('Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO. Utilize um dos botões abaixo para entrar ou criar sua conta.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -205,6 +211,9 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (res.status === 401 || (data.error && data.error.includes('ALUNO'))) {
+          setIsAuthError(true);
+        }
         throw new Error(data.error || 'Não foi possível processar o pagamento.');
       }
 
@@ -278,30 +287,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <span>Você está conectado como Aluno. Seu acesso será liberado automaticamente após o pagamento.</span>
                 </div>
               ) : (
-                <div className="bg-blue-50/70 border border-blue-200 text-slate-800 p-4 rounded-2xl space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-blue-600" />
-                      Possui conta de aluno ou quer se cadastrar?
+                <div className="bg-rose-50 border border-rose-200 text-rose-900 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <LogIn className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-extrabold text-rose-950">
+                      É necessário estar conectado em uma conta de ALUNO para comprar
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                    Você pode entrar na sua conta ou preencher seus dados diretamente abaixo para comprar agora:
+                  <p className="text-xs text-rose-800 font-medium leading-relaxed">
+                    Escolha abaixo uma das opções para entrar ou criar sua conta de aluno em poucos segundos e retornar ao pagamento:
                   </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2.5 pt-1">
                     <Link
                       href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
-                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                      className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs"
                     >
-                      <LogIn className="w-3.5 h-3.5" />
-                      <span>Fazer Login</span>
+                      <LogIn className="w-4 h-4" />
+                      <span>Fazer Login de Aluno</span>
                     </Link>
                     <Link
                       href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
-                      className="px-3.5 py-1.5 bg-white border border-blue-300 text-blue-900 hover:bg-blue-100 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                      className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                     >
-                      <UserPlus className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Criar Conta de Aluno</span>
+                      <UserPlus className="w-4 h-4 text-rose-600" />
+                      <span>Criar Conta de Aluno Grátis</span>
                     </Link>
                   </div>
                 </div>

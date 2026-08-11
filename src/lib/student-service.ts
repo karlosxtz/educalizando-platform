@@ -55,40 +55,53 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
   );
 
   if (isRealSupabase) {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
-      return { isAuthenticated: false, role: null };
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data && data.user) {
+        const userMetadata = data.user.user_metadata || {};
+        const rawRole = userMetadata.role || (userMetadata.is_creator ? 'creator' : 'student');
+        const role = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
+
+        // Sincronizar localmente no navegador
+        if (typeof window !== 'undefined' && role === 'student') {
+          localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
+        }
+
+        return {
+          isAuthenticated: true,
+          role,
+          userId: data.user.id,
+          email: data.user.email || '',
+          fullName: userMetadata.full_name || 'Aluno Educalizando',
+          cpf: userMetadata.cpf || ''
+        };
+      }
+    } catch (e) {
+      console.warn('[getAuthenticatedUserRole] Supabase error:', e);
     }
+  }
 
-    const userMetadata = data.user.user_metadata || {};
-    const rawRole = userMetadata.role || (userMetadata.is_creator ? 'creator' : 'student');
-    const role = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
-
-    return {
-      isAuthenticated: true,
-      role,
-      userId: data.user.id,
-      email: data.user.email || '',
-      fullName: userMetadata.full_name || 'Aluno Educalizando',
-      cpf: userMetadata.cpf || ''
-    };
-  } else {
-    if (typeof window !== 'undefined') {
-      const studentSess = localStorage.getItem('educalizando_student_session');
-      if (studentSess) {
+  // Fallback para sessão gravada no navegador
+  if (typeof window !== 'undefined') {
+    const studentSess = localStorage.getItem('educalizando_student_session');
+    if (studentSess) {
+      try {
         const parsed = JSON.parse(studentSess);
+        const userMeta = parsed.user_metadata || {};
         return {
           isAuthenticated: true,
           role: 'student',
           userId: parsed.id || 'student-demo',
           email: parsed.email || 'aluno@educalizando.com',
-          fullName: parsed.user_metadata?.full_name || 'Aluno Demo',
-          cpf: parsed.user_metadata?.cpf || '12345678901'
+          fullName: userMeta.full_name || 'Aluno Educalizando',
+          cpf: userMeta.cpf || ''
         };
-      }
+      } catch (e) {}
+    }
 
-      const creatorSess = localStorage.getItem('educalizando_creator_session');
-      if (creatorSess) {
+    const creatorSess = localStorage.getItem('educalizando_creator_session');
+    if (creatorSess) {
+      try {
         const parsed = JSON.parse(creatorSess);
         return {
           isAuthenticated: true,
@@ -97,11 +110,11 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
           email: parsed.email || 'prof.ricardo@gmail.com',
           fullName: parsed.user_metadata?.full_name || 'Prof. Ricardo'
         };
-      }
+      } catch (e) {}
     }
-
-    return { isAuthenticated: false, role: null };
   }
+
+  return { isAuthenticated: false, role: null };
 }
 
 // 2. Cadastrar Novo Aluno no Supabase Auth
@@ -135,6 +148,11 @@ export async function registerStudentInSupabase({
     });
 
     if (authError) throw new Error(authError.message);
+
+    if (typeof window !== 'undefined' && authData.user) {
+      localStorage.setItem('educalizando_student_session', JSON.stringify(authData.user));
+    }
+
     return { user: authData.user };
   } else {
     await new Promise(resolve => setTimeout(resolve, 600));
@@ -166,6 +184,11 @@ export async function signInStudent({ email, password }: { email: string; passwo
     if (error) {
       throw new Error(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
     }
+
+    if (typeof window !== 'undefined' && data.user) {
+      localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
+    }
+
     return data;
   } else {
     await new Promise(resolve => setTimeout(resolve, 600));
