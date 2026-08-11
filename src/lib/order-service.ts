@@ -88,8 +88,8 @@ export function estimateAsaasFee(paymentMethod: PaymentMethodType | string, amou
     // Boleto Bancário: R$ 1,99
     return 1.99;
   } else {
-    // Pix: R$ 0,99 por cobrança recebida
-    return 0.99;
+    // Pix Asaas: R$ 1,99 por cobrança recebida
+    return 1.99;
   }
 }
 
@@ -100,12 +100,12 @@ export function calculateOrderFinancials(
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-  // Regra Definitiva: R$ 0,99 por unidade de produto + 5% sobre o subtotal do pedido
+  // Nova Regra Solicitada: APENAS R$ 0,99 fixo por produto vendido (0% de comissão de vendas)
   const platformFixedFee = Number((productCount * 0.99).toFixed(2));
-  const platformPercentageFee = Number((subtotal * 0.05).toFixed(2));
-  const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
+  const platformPercentageFee = 0;
+  const platformFee = platformFixedFee;
 
-  // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento
+  // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento (PIX = R$ 1,99)
   const realFee = asaasFee > 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
   const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee).toFixed(2));
 
@@ -114,7 +114,7 @@ export function calculateOrderFinancials(
     totalAmount: Number(subtotal.toFixed(2)),
     productCount,
     platformFixedFeeAmount: platformFixedFee,
-    platformPercentageFeeAmount: platformPercentageFee,
+    platformPercentageFeeAmount: 0,
     platformFeeAmount: platformFee,
     asaasFeeAmount: Number(realFee.toFixed(2)),
     creatorNetAmount: creatorNet,

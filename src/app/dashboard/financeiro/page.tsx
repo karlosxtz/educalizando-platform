@@ -350,13 +350,13 @@ export default function FinancialWalletDashboardPage() {
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">R$ 0,99 por produto + 5% sobre a venda</span>
+            <span className="text-[10px] text-slate-500 font-medium block">Apenas R$ 0,99 por produto (0% de comissão de vendas)</span>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa do Meio de Pagamento</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasAsaas)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">Custo operacional da forma de pagamento (Pix/Cartão)</span>
+            <span className="text-[10px] text-slate-500 font-medium block">R$ 1,99 por transação PIX / Boleto no Asaas</span>
           </div>
 
           <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-2xl space-y-1">

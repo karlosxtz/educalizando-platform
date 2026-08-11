@@ -156,12 +156,10 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     
-    // Taxa Educalizando: R$ 0,99 por produto + 5% do valor bruto
-    const platformFixed = Number((productCount * 0.99).toFixed(2));
-    const platformPct = Number((gross * 0.05).toFixed(2));
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (platformFixed + platformPct));
+    // Taxa Educalizando: APENAS R$ 0,99 fixo por produto (0% de comissão de vendas)
+    const platformFee = Number((productCount * 0.99).toFixed(2));
 
-    // Taxa do Meio de Pagamento (Gateway Asaas)
+    // Taxa do Meio de Pagamento (Gateway Asaas - PIX = R$ 1,99)
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
     if (paymentFee <= 0) {
       const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
@@ -170,7 +168,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
       } else if (method === 'boleto') {
         paymentFee = 1.99;
       } else {
-        paymentFee = 0.99;
+        paymentFee = 1.99; // PIX Asaas = R$ 1,99
       }
     }
 
@@ -185,14 +183,14 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || ((productCount * 0.99) + (gross * 0.05)));
+    const platformFee = Number((productCount * 0.99).toFixed(2));
     
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
     if (paymentFee <= 0) {
       const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
       if (method === 'credit_card' || method === 'cartao') paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
       else if (method === 'boleto') paymentFee = 1.99;
-      else paymentFee = 0.99;
+      else paymentFee = 1.99;
     }
 
     const net = Number(Math.max(0, gross - platformFee - paymentFee).toFixed(2));
