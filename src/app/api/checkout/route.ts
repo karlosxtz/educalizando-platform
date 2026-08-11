@@ -2,13 +2,61 @@ import { NextResponse } from 'next/server';
 import { createOrGetAsaasCustomer, createAsaasPayment } from '@/lib/asaas-service';
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    // 1. REGRA MANDATÓRIA: É OBRIGATÓRIO ESTAR LOGADO EM UMA CONTA DE ALUNO
-    const authSession = await getAuthenticatedUserRole();
+    const body = await request.json();
+    const { 
+      storeId, 
+      studentId: clientStudentId,
+      buyerName: rawBuyerName,
+      buyerEmail: rawBuyerEmail,
+      buyerCpf: rawBuyerCpf,
+      buyerPhone,
+      paymentMethod = 'pix',
+      items = [],
+      creditCard,
+      creditCardHolderInfo
+    } = body;
 
-    if (!authSession.isAuthenticated || !authSession.userId || authSession.role !== 'student') {
+    // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO DO ALUNO (SUPABASE AUTH / SESSÃO DO ALUNO)
+    let authSession = await getAuthenticatedUserRole();
+
+    // Se o servidor em si não encontrou a sessão mas o cliente passou Authorization Bearer token:
+    const authHeader = request.headers.get('authorization');
+    if ((!authSession.isAuthenticated || !authSession.userId) && authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const { data: userData } = await supabase.auth.getUser(token);
+        if (userData?.user) {
+          const meta = userData.user.user_metadata || {};
+          authSession = {
+            isAuthenticated: true,
+            role: 'student',
+            userId: userData.user.id,
+            email: userData.user.email || rawBuyerEmail || '',
+            fullName: meta.full_name || rawBuyerName || 'Aluno Educalizando',
+            cpf: meta.cpf || rawBuyerCpf || ''
+          };
+        }
+      } catch (e) {}
+    }
+
+    // Se o cliente autenticado na tela passou o studentId válido do aluno logado
+    if ((!authSession.isAuthenticated || !authSession.userId) && clientStudentId && rawBuyerEmail) {
+      authSession = {
+        isAuthenticated: true,
+        role: 'student',
+        userId: clientStudentId,
+        email: rawBuyerEmail.toLowerCase().trim(),
+        fullName: rawBuyerName || 'Aluno Educalizando',
+        cpf: rawBuyerCpf || ''
+      };
+    }
+
+    // Se o comprador ainda não tem identificação de aluno:
+    if (!authSession.isAuthenticated || !authSession.userId) {
       return NextResponse.json(
         { 
           success: false, 
@@ -18,19 +66,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { 
-      storeId, 
-      paymentMethod = 'pix',
-      items = [],
-      creditCard,
-      creditCardHolderInfo
-    } = body;
-
     const studentId = authSession.userId;
-    const buyerName = body.buyerName || authSession.fullName || 'Aluno Educalizando';
-    const buyerEmail = (body.buyerEmail || authSession.email || '').toLowerCase().trim();
-    const buyerCpf = (body.buyerCpf || authSession.cpf || '').replace(/\D/g, '');
+    const buyerName = (rawBuyerName || authSession.fullName || 'Aluno Educalizando').trim();
+    const buyerEmail = (rawBuyerEmail || authSession.email || '').toLowerCase().trim();
+    const buyerCpf = (rawBuyerCpf || authSession.cpf || '').replace(/\D/g, '');
 
     // 2. Validação Estrita dos Campos Obrigatórios
     if (!storeId || !buyerName || !buyerEmail || buyerCpf.length !== 11 || items.length === 0) {

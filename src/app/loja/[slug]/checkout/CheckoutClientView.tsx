@@ -23,6 +23,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
   // Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
+  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string } | null>(null);
 
   // Form State
   const [buyerName, setBuyerName] = useState('');
@@ -58,15 +59,23 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         const session = await getAuthenticatedUserRole();
         if (session.isAuthenticated && session.role === 'student') {
           setIsStudentLoggedIn(true);
+          setStudentSession({
+            id: session.userId || 'student-demo',
+            email: session.email || '',
+            fullName: session.fullName || 'Aluno Educalizando',
+            cpf: session.cpf
+          });
           if (session.fullName && session.fullName !== 'Aluno Educalizando') setBuyerName(session.fullName);
           if (session.email) setBuyerEmail(session.email);
           if (session.cpf) setBuyerCpf(session.cpf);
         } else {
           setIsStudentLoggedIn(false);
+          setStudentSession(null);
         }
       } catch (err) {
         console.error(err);
         setIsStudentLoggedIn(false);
+        setStudentSession(null);
       }
     }
     checkStudentAuth();
@@ -168,6 +177,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
     try {
       const payload: any = {
         storeId: store.id,
+        studentId: studentSession?.id,
         buyerName: buyerName.trim(),
         buyerEmail: buyerEmail.trim().toLowerCase(),
         buyerCpf: cleanCpf,
@@ -282,9 +292,16 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
               {/* Status de Login ou Opções Rápidas */}
               {isStudentLoggedIn === true ? (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span>Você está conectado como Aluno. Seu acesso será liberado automaticamente após o pagamento.</span>
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 p-4 rounded-2xl text-xs font-bold space-y-1.5 shadow-xs">
+                  <div className="flex items-center gap-2 text-emerald-800">
+                    <UserCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <span className="font-extrabold text-sm text-emerald-950">
+                      Conectado como Aluno: {studentSession?.fullName || buyerName || 'Aluno'} ({studentSession?.email || buyerEmail})
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 font-medium pl-7">
+                    Seu acesso ao material será liberado automaticamente nesta conta após a confirmação do pagamento.
+                  </p>
                 </div>
               ) : (
                 <div className="bg-rose-50 border border-rose-200 text-rose-900 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
