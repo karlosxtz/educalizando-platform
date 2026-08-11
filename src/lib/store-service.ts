@@ -375,24 +375,43 @@ function cleanProductPayload<T extends Record<string, any>>(data: T): T {
   return cleaned as T;
 }
 
-// 6. Criar Novo Produto (Gera UUID Real no Supabase com Fallback Seguro para RLS)
+// 6. Criar Novo Produto (Persiste diretamente no Supabase via backend API /api/produtos)
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
+  let payload = cleanProductPayload(productData);
+
+  // 1. Tentar gravar via API Route backend (/api/produtos) para ignorar restrições de RLS de cliente
+  try {
+    const res = await fetch('/api/produtos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.product) {
+        const products = getLocalProducts();
+        products.unshift(result.product as Product);
+        saveLocalProducts(products);
+        return result.product as Product;
+      }
+    }
+  } catch (err: any) {
+    console.warn('[createProduct] Tentando inserção direta via Supabase client...', err);
+  }
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  let payload = cleanProductPayload(productData);
-
   if (isRealSupabase) {
     try {
-      // 1. Garantir que a loja vinculada no Supabase pertence ao usuário autenticado atual
       const { data: authUser } = await supabase.auth.getUser();
       if (authUser?.user) {
         const userId = authUser.user.id;
         const userEmail = (authUser.user.email || '').toLowerCase().trim();
 
-        // Buscar a loja real vinculada no Supabase
         const { data: userStore } = await supabase
           .from('stores')
           .select('id')
@@ -403,25 +422,6 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 
         if (userStore?.id) {
           payload.store_id = userStore.id;
-        } else {
-          // Se não existir loja para o criador no Supabase, auto-criar a loja real no banco
-          const storeName = authUser.user.user_metadata?.full_name ? `Loja de ${authUser.user.user_metadata.full_name}` : 'Minha Loja';
-          const storeSlug = storeName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-          const { data: newStore } = await supabase
-            .from('stores')
-            .insert([{
-              creator_id: userId,
-              nome_loja: storeName,
-              slug: storeSlug,
-              descricao: `Loja oficial de infoprodutos de ${storeName}.`,
-              cor_primaria: '#093b6c'
-            }])
-            .select()
-            .single();
-
-          if (newStore?.id) {
-            payload.store_id = newStore.id;
-          }
         }
       }
 
@@ -432,15 +432,10 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
         .single();
 
       if (!error && data) {
-        // Salvar cópia local para sincronismo instantâneo da UI
         const products = getLocalProducts();
         products.unshift(data as Product);
         saveLocalProducts(products);
         return data as Product;
-      }
-
-      if (error) {
-        console.warn('[createProduct] Supabase RLS/Insert notice:', error.message);
       }
     } catch (err: any) {
       console.warn('[createProduct] Supabase sync fallback:', err.message);
@@ -462,12 +457,34 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 
 // 7. Atualizar Produto
 export async function updateProduct(productId: string, updates: Partial<Product>): Promise<Product> {
+  const payload = cleanProductPayload(updates);
+
+  try {
+    const res = await fetch('/api/produtos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: productId, updates: payload })
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.product) {
+        const products = getLocalProducts();
+        const idx = products.findIndex(p => p.id === productId);
+        if (idx >= 0) products[idx] = result.product as Product;
+        else products.unshift(result.product as Product);
+        saveLocalProducts(products);
+        return result.product as Product;
+      }
+    }
+  } catch (err: any) {
+    console.warn('[updateProduct] Tentando atualização direta via Supabase client...', err);
+  }
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
-
-  const payload = cleanProductPayload(updates);
 
   if (isRealSupabase) {
     try {
