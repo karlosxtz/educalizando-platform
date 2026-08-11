@@ -333,36 +333,36 @@ export default function FinancialWalletDashboardPage() {
         </Link>
       </div>
 
-      {/* Resumo de Taxas Descontadas */}
+      {/* Resumo Transparente de Taxas Descontadas */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Detalhamento de Taxas Descontadas
+              Detalhamento Transparente de Taxas
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              Transparência total: taxas da Educalizando e custos operacionais do Asaas separados.
+              Transparência total no repasse: você visualiza exatamente a taxa da plataforma e os custos de processamento.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxas Educalizando</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">R$ 0,99/produto + 5% sobre o subtotal</span>
+            <span className="text-[10px] text-slate-500 font-medium block">R$ 0,99 por produto + 5% sobre a venda</span>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxas Asaas</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa do Meio de Pagamento</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasAsaas)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">Taxa real cobrada por transação no gateway</span>
+            <span className="text-[10px] text-slate-500 font-medium block">Custo operacional da forma de pagamento (Pix/Cartão)</span>
           </div>
 
           <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-rose-700 uppercase block">Total de Taxas Retidas</span>
             <div className="text-lg font-black text-rose-800">{formatCurrency(summary.totalTaxas)}</div>
-            <span className="text-[10px] text-rose-600 font-medium block">Descontado do valor bruto das vendas</span>
+            <span className="text-[10px] text-rose-600 font-medium block">Descontado do valor bruto das suas vendas</span>
           </div>
         </div>
       </div>

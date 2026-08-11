@@ -129,37 +129,79 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     transactions = getLocalWalletTransactions().filter(t => t.storeId === storeId);
   }
 
-  // 1. Total Vendido (Bruto de vendas confirmadas como 'paid')
-  const paidOrders = orders.filter((o: any) => o.status === 'paid' || o.statusPagamento === 'pago');
-  const totalVendido = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount || o.totalAmount || o.valorTotal || 0), 0);
+  // 1. Total Vendido (Bruto de vendas confirmadas)
+  const isOrderPaid = (o: any) => {
+    const st = (o.status || o.statusPagamento || '').toString().toLowerCase();
+    return st === 'paid' || st === 'pago' || st === 'received' || st === 'confirmed';
+  };
 
-  // 2. Saldo Pendente (Líquido de vendas com pagamento pendente)
-  const pendingOrders = orders.filter((o: any) => o.status === 'pending' || o.statusPagamento === 'pendente_pix');
-  const saldoPendente = pendingOrders.reduce((sum: number, o: any) => sum + Number(o.creator_net_amount || o.creatorNetAmount || 0), 0);
+  const isOrderPending = (o: any) => {
+    const st = (o.status || o.statusPagamento || '').toString().toLowerCase();
+    return st === 'pending' || st === 'pendente_pix' || st === 'waiting_payment';
+  };
 
-  // 3. Saldo Disponível (Soma do ledger imutável de transações COMPLETED: Vendas menos Estornos)
-  // Se ainda não houver lançamentos no ledger, calcula a partir dos pedidos 'paid'
-  let saldoDisponivel = 0;
+  const paidOrders = orders.filter(isOrderPaid);
+  const pendingOrders = orders.filter(isOrderPending);
+
+  const totalVendido = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0), 0);
+
+  // 2. Cálculo Estrito de Taxas e Saldo Líquido do Criador (Regra Mandatória)
+  // Fórmula: R$ 0,99 fixo por produto + 5% sobre subtotal + taxa de processamento do meio de pagamento
+  let calculatedTaxasEducalizando = 0;
+  let calculatedTaxasPagamento = 0;
+  let calculatedSaldoDisponivel = 0;
+  let calculatedSaldoPendente = 0;
+
+  paidOrders.forEach((o: any) => {
+    const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
+    const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
+    
+    // Taxa Educalizando: R$ 0,99 por produto + 5% do valor bruto
+    const platformFixed = Number((productCount * 0.99).toFixed(2));
+    const platformPct = Number((gross * 0.05).toFixed(2));
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (platformFixed + platformPct));
+
+    // Taxa do Meio de Pagamento (Gateway)
+    const paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0.99);
+
+    // Saldo Líquido do Criador
+    let net = Number(o.creator_net_amount || o.creatorNetAmount || 0);
+    if (net <= 0) {
+      net = Number(Math.max(0, gross - platformFee - paymentFee).toFixed(2));
+    }
+
+    calculatedTaxasEducalizando += platformFee;
+    calculatedTaxasPagamento += paymentFee;
+    calculatedSaldoDisponivel += net;
+  });
+
+  pendingOrders.forEach((o: any) => {
+    const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (0.99 + gross * 0.05));
+    const paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0.99);
+    const net = Number(o.creator_net_amount || o.creatorNetAmount || Math.max(0, gross - platformFee - paymentFee));
+    calculatedSaldoPendente += net;
+  });
+
+  // 3. Se houver transações no ledger imutável, utilizar o saldo consolidado COMPLETED
   if (transactions.length > 0) {
-    saldoDisponivel = transactions
+    const ledgerNet = transactions
       .filter(t => t.status === 'COMPLETED')
       .reduce((sum, t) => sum + t.netAmount, 0);
-  } else {
-    saldoDisponivel = paidOrders.reduce((sum: number, o: any) => sum + Number(o.creator_net_amount || o.creatorNetAmount || 0), 0);
+    if (ledgerNet > 0) {
+      calculatedSaldoDisponivel = ledgerNet;
+    }
   }
 
-  // 4. Taxas Descontadas (Separadas no banco)
-  const taxasEducalizando = paidOrders.reduce((sum: number, o: any) => sum + Number(o.platform_fee_amount || o.platformFeeAmount || 0), 0);
-  const taxasAsaas = paidOrders.reduce((sum: number, o: any) => sum + Number(o.asaas_fee_amount || o.asaasFeeAmount || 0), 0);
-  const totalTaxas = Number((taxasEducalizando + taxasAsaas).toFixed(2));
+  const totalTaxas = Number((calculatedTaxasEducalizando + calculatedTaxasPagamento).toFixed(2));
 
   return {
     totalVendido: Number(totalVendido.toFixed(2)),
-    saldoPendente: Number(saldoPendente.toFixed(2)),
-    saldoDisponivel: Number(Math.max(0, saldoDisponivel).toFixed(2)),
-    totalRecebido: 0, // Inicia em R$ 0,00 até a Fase C
-    taxasEducalizando: Number(taxasEducalizando.toFixed(2)),
-    taxasAsaas: Number(taxasAsaas.toFixed(2)),
+    saldoPendente: Number(calculatedSaldoPendente.toFixed(2)),
+    saldoDisponivel: Number(Math.max(0, calculatedSaldoDisponivel).toFixed(2)),
+    totalRecebido: 0,
+    taxasEducalizando: Number(calculatedTaxasEducalizando.toFixed(2)),
+    taxasAsaas: Number(calculatedTaxasPagamento.toFixed(2)),
     totalTaxas
   };
 }
