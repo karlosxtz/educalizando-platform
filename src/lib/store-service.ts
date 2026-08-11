@@ -258,6 +258,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
 
 // 4. Obter Produtos da Loja (Sem Mocks Hardcoded - Retorna [] se a loja for nova)
 export async function getProductsByStoreId(storeId: string): Promise<Product[]> {
+  const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -268,7 +269,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('store_id', storeId)
+        .or(`store_id.eq.${storeId},store_id.eq.${cleanStoreId}`)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -279,13 +280,14 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     }
   }
 
-  // Fallback Local (Retorna [] se não houver produtos reais cadastrados)
+  // Fallback Local
   const products = getLocalProducts();
-  return products.filter(p => p.store_id === storeId);
+  return products.filter(p => p.store_id === storeId || p.store_id === cleanStoreId);
 }
 
 // 5. Obter Produtos Públicos (status = 'publicado')
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
+  const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -296,7 +298,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('store_id', storeId)
+        .or(`store_id.eq.${storeId},store_id.eq.${cleanStoreId}`)
         .eq('status', 'publicado')
         .order('created_at', { ascending: false });
 
@@ -310,21 +312,35 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
   // Fallback Local
   const products = getLocalProducts();
-  return products.filter(p => p.store_id === storeId && p.status === 'publicado');
+  return products.filter(p => (p.store_id === storeId || p.store_id === cleanStoreId) && p.status === 'publicado');
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  const clean = str.replace(/^store_/i, '');
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
+};
+
+const sanitizeUUID = (str: string | null | undefined): string | null => {
+  if (!str) return null;
+  const clean = str.replace(/^store_/i, '');
+  return isValidUUID(clean) ? clean : null;
 };
 
 function cleanProductPayload<T extends Record<string, any>>(data: T): T {
   const cleaned: any = { ...data };
+  if ('store_id' in cleaned && cleaned.store_id) {
+    const rawStoreId = cleaned.store_id.toString();
+    const cleanId = rawStoreId.replace(/^store_/i, '');
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId)) {
+      cleaned.store_id = cleanId;
+    }
+  }
   if ('category_id' in cleaned) {
-    cleaned.category_id = isValidUUID(cleaned.category_id) ? cleaned.category_id : null;
+    cleaned.category_id = sanitizeUUID(cleaned.category_id);
   }
   if ('education_level_id' in cleaned) {
-    cleaned.education_level_id = isValidUUID(cleaned.education_level_id) ? cleaned.education_level_id : null;
+    cleaned.education_level_id = sanitizeUUID(cleaned.education_level_id);
   }
   return cleaned as T;
 }
