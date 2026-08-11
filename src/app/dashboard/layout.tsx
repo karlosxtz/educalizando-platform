@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import { getCurrentUserSession, isRealSupabaseConfigured } from '@/lib/supabase';
-import { getStoreByCreatorId } from '@/lib/store-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
 
 export default function DashboardLayout({
@@ -16,7 +16,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
-  const [creatorEmail, setCreatorEmail] = useState('prof.ricardo@gmail.com');
+  const [creatorEmail, setCreatorEmail] = useState('criador@educalizando.com.br');
 
   useEffect(() => {
     async function verifyAuthAndLoadStore() {
@@ -31,7 +31,7 @@ export default function DashboardLayout({
           setCreatorEmail(session.user.email);
         }
 
-        const storeData = await getStoreByCreatorId('creator-ricardo');
+        const storeData = await getCurrentCreatorStore();
         setStore(storeData);
       } catch (err) {
         console.error('Erro ao verificar autenticação:', err);

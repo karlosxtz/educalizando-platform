@@ -35,7 +35,7 @@ export async function registerCreatorInSupabase({
     .replace(/^-|-$/g, '');
 
   if (isRealSupabaseConfigured()) {
-    // A. Supabase Auth signUp
+    // A. Supabase Auth signUp com Metadata de Criador
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -43,7 +43,9 @@ export async function registerCreatorInSupabase({
         data: {
           full_name: fullName,
           store_name: storeName,
-          store_slug: storeSlug
+          store_slug: storeSlug,
+          role: 'creator',
+          is_creator: true
         }
       }
     });
@@ -74,6 +76,35 @@ export async function registerCreatorInSupabase({
     if (storeError) {
       console.error('Erro ao salvar loja no banco:', storeError);
       throw new Error(`Conta criada, mas ocorreu um erro ao registrar sua loja: ${storeError.message}`);
+    }
+
+    const createdStore = {
+      id: storeData.id,
+      creator_id: userId,
+      nome_loja: storeData.nome_loja,
+      slug: storeData.slug,
+      descricao: storeData.descricao || `Loja oficial de infoprodutos de ${fullName}.`,
+      logo_url: storeData.logo_url || null,
+      banner_url: storeData.banner_url || null,
+      cor_primaria: storeData.cor_primaria || '#ff5722',
+      asaas_subaccount_id: storeData.asaas_subaccount_id || null,
+      created_at: storeData.created_at || new Date().toISOString()
+    };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('educalizando_creator_session', JSON.stringify({
+        id: userId,
+        email,
+        storeId: createdStore.id,
+        storeSlug: createdStore.slug,
+        fullName,
+        storeName
+      }));
+
+      const existingStoresKey = 'educalizando_stores_v3';
+      const existingStores = JSON.parse(localStorage.getItem(existingStoresKey) || '[]');
+      existingStores.push(createdStore);
+      localStorage.setItem(existingStoresKey, JSON.stringify(existingStores));
     }
 
     return { user: authData.user, storeSlug: storeData.slug };

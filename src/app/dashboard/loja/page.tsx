@@ -28,7 +28,7 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 );
 
 import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-schemas';
-import { getStoreByCreatorId, updateStore } from '@/lib/store-service';
+import { getCurrentCreatorStore, updateStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 
@@ -72,7 +72,7 @@ export default function StoreSettingsPage() {
   useEffect(() => {
     async function loadStoreData() {
       try {
-        const store = await getStoreByCreatorId('creator-ricardo');
+        const store = await getCurrentCreatorStore();
         setCurrentStore(store);
         reset({
           nome_loja: store.nome_loja,

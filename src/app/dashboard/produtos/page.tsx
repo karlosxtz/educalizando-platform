@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 import { 
-  getStoreByCreatorId, 
+  getCurrentCreatorStore, 
   getProductsByStoreId, 
   createProduct, 
   updateProduct, 
@@ -45,7 +45,7 @@ export default function ProductsManagementPage() {
 
   const loadData = async () => {
     try {
-      const currentStore = await getStoreByCreatorId('creator-ricardo');
+      const currentStore = await getCurrentCreatorStore();
       setStore(currentStore);
       const prods = await getProductsByStoreId(currentStore.id);
       setProducts(prods);

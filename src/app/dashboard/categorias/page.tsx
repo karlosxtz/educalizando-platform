@@ -7,7 +7,7 @@ import {
   AlertCircle, ShieldAlert, Globe, Layers, Package, X 
 } from 'lucide-react';
 
-import { getStoreByCreatorId, getProductsByStoreId } from '@/lib/store-service';
+import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { 
   getCategories, 
   createCustomCategory, 
@@ -40,7 +40,7 @@ export default function CategoriesManagementPage() {
 
   const loadData = async () => {
     try {
-      const currentStore = await getStoreByCreatorId('creator-ricardo');
+      const currentStore = await getCurrentCreatorStore();
       setStore(currentStore);
 
       const cats = await getCategories(currentStore.id);

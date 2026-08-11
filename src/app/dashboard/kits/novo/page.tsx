@@ -9,7 +9,7 @@ import {
   UploadCloud, Package, DollarSign, Eye, Sparkles, Loader2, AlertCircle, Save, Check
 } from 'lucide-react';
 
-import { getStoreByCreatorId, getPublicProductsByStoreId } from '@/lib/store-service';
+import { getCurrentCreatorStore, getPublicProductsByStoreId } from '@/lib/store-service';
 import { createKit, updateKit, getKitById } from '@/lib/kit-service';
 import { Product, Store, Kit } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
@@ -39,7 +39,7 @@ function KitWizardContent() {
   useEffect(() => {
     async function initData() {
       try {
-        const currentStore = await getStoreByCreatorId('creator-ricardo');
+        const currentStore = await getCurrentCreatorStore();
         setStore(currentStore);
 
         const prods = await getPublicProductsByStoreId(currentStore.id);

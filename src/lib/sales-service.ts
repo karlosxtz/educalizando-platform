@@ -28,17 +28,23 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
         .order('created_at', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        realOrders = data.map(o => ({
-          id: o.id,
-          clienteNome: o.cliente_nome || o.buyer_name || 'Comprador',
-          clienteEmail: o.cliente_email || o.buyer_email || '',
-          produtoTitulo: o.produto_titulo || o.product_title || 'Infoproduto Digital',
-          tipoProduto: o.tipo_produto || 'pdf',
-          valorTotal: Number(o.valor_total || o.amount || 0),
-          statusPagamento: o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : 'pendente_pix',
-          dataCompra: o.created_at,
-          metodoPagamento: 'PIX'
-        }));
+        realOrders = data.map(o => {
+          const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
+          const isRefunded = o.status === 'refunded' || o.status === 'expirado';
+          const statusPagamento: RecentOrder['statusPagamento'] = isPaid ? 'pago' : isRefunded ? 'expirado' : 'pendente_pix';
+
+          return {
+            id: o.id,
+            clienteNome: o.buyer_name || o.cliente_nome || 'Comprador',
+            clienteEmail: o.buyer_email || o.cliente_email || '',
+            produtoTitulo: o.product_title || o.produto_titulo || 'Infoproduto Digital',
+            tipoProduto: 'pdf',
+            valorTotal: Number(o.total_amount || o.subtotal_amount || o.valor_total || 0),
+            statusPagamento,
+            dataCompra: o.created_at,
+            metodoPagamento: 'PIX'
+          };
+        });
       }
     } catch (err) {
       console.error('[getSalesDataByPeriod] Erro ao buscar pedidos no Supabase:', err);
@@ -122,42 +128,41 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
   }));
 
   paidOrders.forEach(o => {
-    const mIdx = new Date(o.dataCompra).getMonth();
-    if (mIdx >= 0 && mIdx < 12) {
-      months[mIdx].revenue += o.valorTotal;
-      months[mIdx].salesCount += 1;
-    }
+    const monthIdx = new Date(o.dataCompra).getMonth();
+    months[monthIdx].revenue += o.valorTotal;
+    months[monthIdx].salesCount += 1;
   });
 
   return months;
 }
 
-// 2. Fetch Real Top Products Report (strictly calculated from actual registered products and real orders)
-export async function getTopProductsReport(products: Product[], storeId: string): Promise<TopProductStat[]> {
-  if (products.length === 0) return [];
-
+// 2. Fetch Top Performing Products Report
+export async function getTopProductsReport(storeId: string, products: Product[]): Promise<TopProductStat[]> {
   let realOrders: RecentOrder[] = [];
 
   if (isRealSupabaseConfigured()) {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('orders')
         .select('*')
         .eq('store_id', storeId)
-        .eq('status', 'pago');
+        .order('created_at', { ascending: false });
 
-      if (data && data.length > 0) {
-        realOrders = data.map(o => ({
-          id: o.id,
-          clienteNome: o.cliente_nome || '',
-          clienteEmail: o.cliente_email || '',
-          produtoTitulo: o.produto_titulo || '',
-          tipoProduto: o.tipo_produto || 'pdf',
-          valorTotal: Number(o.valor_total || 0),
-          statusPagamento: 'pago',
-          dataCompra: o.created_at,
-          metodoPagamento: 'PIX'
-        }));
+      if (!error && data && data.length > 0) {
+        realOrders = data.map(o => {
+          const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
+          return {
+            id: o.id,
+            clienteNome: o.buyer_name || o.cliente_nome || '',
+            clienteEmail: o.buyer_email || o.cliente_email || '',
+            produtoTitulo: o.product_title || o.produto_titulo || '',
+            tipoProduto: 'pdf',
+            valorTotal: Number(o.total_amount || o.subtotal_amount || o.valor_total || 0),
+            statusPagamento: isPaid ? 'pago' : 'pendente_pix',
+            dataCompra: o.created_at,
+            metodoPagamento: 'PIX'
+          };
+        });
       }
     } catch (err) {
       console.error('[getTopProductsReport] Erro:', err);
@@ -205,22 +210,28 @@ export async function getRecentOrdersFeed(storeId: string): Promise<RecentOrder[
         .limit(10);
 
       if (!error && data && data.length > 0) {
-        return data.map(o => ({
-          id: o.id,
-          clienteNome: o.cliente_nome || 'Comprador',
-          clienteEmail: o.cliente_email || '',
-          produtoTitulo: o.produto_titulo || 'Infoproduto Digital',
-          tipoProduto: o.tipo_produto || 'pdf',
-          valorTotal: Number(o.valor_total || 0),
-          statusPagamento: o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : 'pendente_pix',
-          dataCompra: new Date(o.created_at).toLocaleDateString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit'
-          }),
-          metodoPagamento: 'PIX'
-        }));
+        return data.map(o => {
+          const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
+          const isRefunded = o.status === 'refunded' || o.status === 'expirado';
+          const statusPagamento: RecentOrder['statusPagamento'] = isPaid ? 'pago' : isRefunded ? 'expirado' : 'pendente_pix';
+
+          return {
+            id: o.id,
+            clienteNome: o.buyer_name || o.cliente_nome || 'Comprador',
+            clienteEmail: o.buyer_email || o.cliente_email || '',
+            produtoTitulo: o.product_title || o.produto_titulo || 'Infoproduto Digital',
+            tipoProduto: 'pdf',
+            valorTotal: Number(o.total_amount || o.subtotal_amount || o.valor_total || 0),
+            statusPagamento,
+            dataCompra: new Date(o.created_at).toLocaleDateString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            metodoPagamento: 'PIX'
+          };
+        });
       }
     } catch (err) {
       console.error('[getRecentOrdersFeed] Erro ao buscar no Supabase:', err);

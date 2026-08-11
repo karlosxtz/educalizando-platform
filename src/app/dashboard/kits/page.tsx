@@ -8,7 +8,7 @@ import {
   Package, Loader2, AlertTriangle, AlertCircle, Sparkles, Tag, Layers 
 } from 'lucide-react';
 
-import { getStoreByCreatorId } from '@/lib/store-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 import { getKitsByStoreId, createKit, updateKit, deleteKit } from '@/lib/kit-service';
 import { Kit, Store, Product } from '@/lib/types';
 import KitWizardModal from '@/components/dashboard/KitWizardModal';
@@ -29,7 +29,7 @@ export default function KitsManagementPage() {
 
   const loadData = async () => {
     try {
-      const currentStore = await getStoreByCreatorId('creator-ricardo');
+      const currentStore = await getCurrentCreatorStore();
       setStore(currentStore);
       const storeKits = await getKitsByStoreId(currentStore.id);
       setKits(storeKits);

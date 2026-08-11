@@ -83,8 +83,8 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   return null;
 }
 
-// 2. Obter Loja por Creator ID (Respeita estritamente o usuário logado)
-export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
+// 2. Obter a Loja do Criador Atualmente Autenticado (100% Dinâmico por Usuário Logado)
+export async function getCurrentCreatorStore(): Promise<Store> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -92,37 +92,67 @@ export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
 
   if (isRealSupabase) {
     try {
-      // Tentar obter usuário logado real
       const { data: authUser } = await supabase.auth.getUser();
-      const targetUserId = authUser?.user?.id || creatorId;
+      if (authUser?.user?.id) {
+        const { data } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('creator_id', authUser.user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
+        if (data) return data as Store;
+      }
+    } catch (err) {
+      console.error('[getCurrentCreatorStore] Erro:', err);
+    }
+  }
+
+  // Tentar buscar sessão gravada no localStorage para o criador
+  if (typeof window !== 'undefined') {
+    const rawCreatorSession = localStorage.getItem('educalizando_creator_session');
+    if (rawCreatorSession) {
+      try {
+        const session = JSON.parse(rawCreatorSession);
+        const stores = getLocalStores();
+        const found = stores.find(s => s.creator_id === session.id || s.id === session.storeId || s.slug === session.storeSlug);
+        if (found) return found;
+      } catch (e) {}
+    }
+  }
+
+  const stores = getLocalStores();
+  return stores[stores.length - 1] || DEFAULT_MOCK_STORE;
+}
+
+export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
+  if (!creatorId || creatorId === 'creator-ricardo' || creatorId === 'creator-demo') {
+    return getCurrentCreatorStore();
+  }
+  
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
       const { data } = await supabase
         .from('stores')
         .select('*')
-        .eq('creator_id', targetUserId)
+        .eq('creator_id', creatorId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (data) return data as Store;
-
-      // Se não encontrou por ID específico, pegar a última loja cadastrada pelo usuário
-      const { data: latestStore } = await supabase
-        .from('stores')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (latestStore) return latestStore as Store;
     } catch (err) {
       console.error('[getStoreByCreatorId] Erro:', err);
     }
   }
 
-  // Fallback Local
-  const stores = getLocalStores();
-  return stores[stores.length - 1] || DEFAULT_MOCK_STORE;
+  return getCurrentCreatorStore();
 }
 
 // 3. Atualizar Dados da Loja

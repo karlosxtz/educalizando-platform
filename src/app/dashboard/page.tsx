@@ -6,7 +6,7 @@ import {
   Store, Package, DollarSign, TrendingUp, Sparkles, 
   ArrowRight, ExternalLink, Plus, CheckCircle2, ShoppingBag, Percent
 } from 'lucide-react';
-import { getStoreByCreatorId, getProductsByStoreId } from '@/lib/store-service';
+import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
@@ -20,7 +20,7 @@ export default function DashboardOverviewPage() {
 
   useEffect(() => {
     async function loadData() {
-      const s = await getStoreByCreatorId('creator-ricardo');
+      const s = await getCurrentCreatorStore();
       setStore(s);
       const prods = await getProductsByStoreId(s.id);
       setProducts(prods);

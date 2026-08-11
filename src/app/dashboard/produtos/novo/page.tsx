@@ -10,7 +10,7 @@ import {
   Sparkles, ShieldCheck, Loader2, AlertCircle, Save
 } from 'lucide-react';
 
-import { getStoreByCreatorId, createProduct, updateProduct, getProductById } from '@/lib/store-service';
+import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { ProductType, Category, EducationLevel, Store, Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
@@ -45,7 +45,7 @@ function ProductWizardContent() {
   useEffect(() => {
     async function initData() {
       try {
-        const currentStore = await getStoreByCreatorId('creator-ricardo');
+        const currentStore = await getCurrentCreatorStore();
         setStore(currentStore);
 
         const [cats, edLevels] = await Promise.all([
