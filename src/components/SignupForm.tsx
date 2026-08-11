@@ -8,7 +8,7 @@ import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import { 
   Store, User, Mail, Lock, Eye, EyeOff, CheckCircle2, 
-  AlertCircle, Loader2 
+  AlertCircle, Loader2, ArrowRight 
 } from 'lucide-react';
 import { creatorSignupSchema, type CreatorSignupFormValues } from '@/lib/zod-schemas';
 import { registerCreatorInSupabase } from '@/lib/supabase';
@@ -113,16 +113,27 @@ export default function SignupForm() {
           </a>
         </div>
 
-        <div className="pt-2 text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 text-brand-teal animate-spin" />
-          <span>Redirecionando você para o seu Painel de Criador...</span>
+        <div className="pt-2 space-y-3">
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="w-full py-3.5 px-6 rounded-2xl bg-brand-navy hover:bg-slate-900 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+          >
+            <span>Acessar Meu Painel de Criador Agora</span>
+            <ArrowRight className="w-4 h-4 text-brand-teal" />
+          </button>
+
+          <div className="text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 text-brand-teal animate-spin" />
+            <span>Redirecionando automaticamente...</span>
+          </div>
         </div>
       </motion.div>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl max-w-2xl mx-auto space-y-8 relative overflow-hidden">
+    <section id="cadastro" className="py-12 px-4 scroll-mt-24">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl max-w-2xl mx-auto space-y-8 relative overflow-hidden">
       
       {/* Form Header */}
       <div className="text-center space-y-2">
@@ -337,5 +348,6 @@ export default function SignupForm() {
 
       </form>
     </div>
+    </section>
   );
 }

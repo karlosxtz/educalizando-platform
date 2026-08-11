@@ -160,16 +160,46 @@ export async function signInUser({ email, password }: { email: string; password:
       throw new Error(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
     }
 
+    if (typeof window !== 'undefined' && data?.user) {
+      // Limpar qualquer sessão antiga gravada no navegador
+      localStorage.removeItem('educalizando_creator_session');
+      localStorage.removeItem('educalizando_session');
+      localStorage.removeItem('educalizando_student_session');
+
+      const userMeta = data.user.user_metadata || {};
+      const cleanStoreName = userMeta.store_name && !userMeta.store_name.includes('@')
+        ? userMeta.store_name
+        : (userMeta.full_name ? `Loja de ${userMeta.full_name}` : `Loja de ${email.split('@')[0]}`);
+
+      const cleanStoreSlug = userMeta.store_slug || cleanStoreName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+      localStorage.setItem('educalizando_creator_session', JSON.stringify({
+        id: data.user.id,
+        email: data.user.email,
+        cpf: userMeta.cpf || '',
+        fullName: userMeta.full_name || email.split('@')[0],
+        storeName: cleanStoreName,
+        storeSlug: cleanStoreSlug
+      }));
+    }
+
     return data;
   } else {
     // Fallback de Simulação Local
     await new Promise((resolve) => setTimeout(resolve, 800));
     
     if (typeof window !== 'undefined') {
-      localStorage.setItem('educalizando_session', JSON.stringify({ email, userId: 'creator-ricardo' }));
+      localStorage.removeItem('educalizando_creator_session');
+      localStorage.setItem('educalizando_session', JSON.stringify({ email, userId: `creator_${email.replace(/[^a-z0-9]/g, '_')}` }));
+      localStorage.setItem('educalizando_creator_session', JSON.stringify({
+        id: `creator_${email.replace(/[^a-z0-9]/g, '_')}`,
+        email,
+        storeName: `Loja de ${email.split('@')[0]}`,
+        storeSlug: email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-')
+      }));
     }
 
-    return { user: { email, id: 'creator-ricardo' } };
+    return { user: { email, id: `creator_${email.replace(/[^a-z0-9]/g, '_')}` } };
   }
 }
 
@@ -180,6 +210,9 @@ export async function signOutUser() {
   }
   if (typeof window !== 'undefined') {
     localStorage.removeItem('educalizando_session');
+    localStorage.removeItem('educalizando_creator_session');
+    localStorage.removeItem('educalizando_student_session');
+    localStorage.removeItem('educalizando_stores_v3');
   }
 }
 

@@ -53,7 +53,7 @@ export default function Pricing() {
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
             <p className="text-xs text-brand-navy font-bold pt-1">
-              + {formattedFeePercent}% + R$ {formattedFeeFixed} por transação aprovada
+              Apenas R$ 0,99 por produto vendido (0% de comissão sobre vendas)
             </p>
           </div>
 

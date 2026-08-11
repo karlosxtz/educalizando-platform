@@ -2,12 +2,11 @@
 
 export const PLATFORM_CONFIG = {
   name: 'Educalizando',
-  feePercent: 9.9, // Porcentagem da comissão por venda (ex: 9.9%)
-  feeFixed: 1.00,  // Valor fixo por venda em Reais (ex: R$ 1,00)
+  feePercent: 0,   // 0% de comissão sobre vendas
+  feeFixed: 0.99,  // Apenas R$ 0,99 fixo por produto vendido
   currencySymbol: 'R$',
   
-  // Formatador auxiliar de exibição da taxa
   get feeFormatted() {
-    return `${this.feePercent.toString().replace('.', ',')}% + R$ ${this.feeFixed.toFixed(2).replace('.', ',')}`;
+    return `R$ ${this.feeFixed.toFixed(2).replace('.', ',')} por produto (0% comissão)`;
   }
 };
