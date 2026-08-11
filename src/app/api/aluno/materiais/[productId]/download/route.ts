@@ -64,7 +64,7 @@ export async function GET(
         if (prod.titulo) productTitle = prod.titulo;
         if (prod.arquivo_url) {
           fileUrl = prod.arquivo_url;
-          const match = fileUrl.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+          const match = prod.arquivo_url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
           if (match && match[1]) {
             fileExt = match[1].toLowerCase();
           }
@@ -77,9 +77,10 @@ export async function GET(
     const humanFilename = sanitizeFilename(productTitle, fileExt);
 
     // 4. Buscar e Servir o Arquivo Real do Storage caso exista
-    if (fileUrl && fileUrl.startsWith('http')) {
+    if (fileUrl && typeof fileUrl === 'string' && fileUrl.startsWith('http')) {
+      const activeUrl: string = fileUrl;
       try {
-        const fileRes = await fetch(fileUrl);
+        const fileRes = await fetch(activeUrl);
         if (fileRes.ok) {
           const arrayBuffer = await fileRes.arrayBuffer();
           const contentType = fileRes.headers.get('content-type') || 'application/pdf';
