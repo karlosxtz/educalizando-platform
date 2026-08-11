@@ -161,25 +161,41 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const platformPct = Number((gross * 0.05).toFixed(2));
     const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (platformFixed + platformPct));
 
-    // Taxa do Meio de Pagamento (Gateway)
-    const paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0.99);
-
-    // Saldo Líquido do Criador
-    let net = Number(o.creator_net_amount || o.creatorNetAmount || 0);
-    if (net <= 0) {
-      net = Number(Math.max(0, gross - platformFee - paymentFee).toFixed(2));
+    // Taxa do Meio de Pagamento (Gateway Asaas)
+    let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
+    if (paymentFee <= 0) {
+      const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
+      if (method === 'credit_card' || method === 'cartao') {
+        paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
+      } else if (method === 'boleto') {
+        paymentFee = 1.99;
+      } else {
+        paymentFee = 0.99;
+      }
     }
+
+    // Saldo Líquido do Criador (Sempre o Valor Bruto menos as Duas Taxas)
+    const net = Number((gross - platformFee - paymentFee).toFixed(2));
 
     calculatedTaxasEducalizando += platformFee;
     calculatedTaxasPagamento += paymentFee;
-    calculatedSaldoDisponivel += net;
+    calculatedSaldoDisponivel += Math.max(0, net);
   });
 
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (0.99 + gross * 0.05));
-    const paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0.99);
-    const net = Number(o.creator_net_amount || o.creatorNetAmount || Math.max(0, gross - platformFee - paymentFee));
+    const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || ((productCount * 0.99) + (gross * 0.05)));
+    
+    let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
+    if (paymentFee <= 0) {
+      const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
+      if (method === 'credit_card' || method === 'cartao') paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
+      else if (method === 'boleto') paymentFee = 1.99;
+      else paymentFee = 0.99;
+    }
+
+    const net = Number(Math.max(0, gross - platformFee - paymentFee).toFixed(2));
     calculatedSaldoPendente += net;
   });
 

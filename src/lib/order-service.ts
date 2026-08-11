@@ -79,6 +79,20 @@ export interface FinancialCalculationResult {
  * creator_net_amount = subtotal - platform_fee - asaas_fee
  * =============================================================================
  */
+export function estimateAsaasFee(paymentMethod: PaymentMethodType | string, amount: number): number {
+  const method = (paymentMethod || 'pix').toString().toLowerCase();
+  if (method === 'credit_card' || method === 'cartao') {
+    // Cartão de Crédito: R$ 0,49 + 2,99%
+    return Number((0.49 + (amount * 0.0299)).toFixed(2));
+  } else if (method === 'boleto') {
+    // Boleto Bancário: R$ 1,99
+    return 1.99;
+  } else {
+    // Pix: R$ 0,99 por cobrança recebida
+    return 0.99;
+  }
+}
+
 export function calculateOrderFinancials(
   items: OrderItemInput[],
   asaasFee: number = 0
@@ -90,7 +104,10 @@ export function calculateOrderFinancials(
   const platformFixedFee = Number((productCount * 0.99).toFixed(2));
   const platformPercentageFee = Number((subtotal * 0.05).toFixed(2));
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
-  const creatorNet = Number(Math.max(0, subtotal - platformFee - asaasFee).toFixed(2));
+
+  // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento
+  const realFee = asaasFee > 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
+  const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee).toFixed(2));
 
   return {
     subtotalAmount: Number(subtotal.toFixed(2)),
@@ -99,7 +116,7 @@ export function calculateOrderFinancials(
     platformFixedFeeAmount: platformFixedFee,
     platformPercentageFeeAmount: platformPercentageFee,
     platformFeeAmount: platformFee,
-    asaasFeeAmount: Number(asaasFee.toFixed(2)),
+    asaasFeeAmount: Number(realFee.toFixed(2)),
     creatorNetAmount: creatorNet,
     items: items.map(it => ({
       productId: it.productId,
@@ -171,7 +188,12 @@ export async function createOrderRecord(data: {
     throw new Error('Todos os produtos do pedido devem pertencer exclusivamente à mesma loja.');
   }
 
-  const financials = calculateOrderFinancials(data.items, data.asaasFeeAmount || 0);
+  const subtotal = data.items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
+  const feeToUse = data.asaasFeeAmount !== undefined && data.asaasFeeAmount > 0
+    ? data.asaasFeeAmount
+    : estimateAsaasFee(data.paymentMethod, subtotal);
+
+  const financials = calculateOrderFinancials(data.items, feeToUse);
   const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
