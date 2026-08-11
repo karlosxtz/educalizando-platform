@@ -87,47 +87,88 @@ export interface AsaasTransferResult {
 
 // 1. Criar ou Buscar Cliente no Asaas (Cache por CPF para evitar duplicatas)
 export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise<string> {
-  const cleanCpf = data.cpfCnpj.replace(/\D/g, '');
+  const cleanCpf = (data.cpfCnpj || '').replace(/\D/g, '');
+  let cleanEmail = (data.email || '').trim().toLowerCase();
+
+  // Sanitização automática de erros comuns de digitação em e-mails
+  cleanEmail = cleanEmail
+    .replace(/\.commm$/i, '.com')
+    .replace(/\.comm$/i, '.com')
+    .replace(/\.coom$/i, '.com')
+    .replace(/\.cmo$/i, '.com');
+
+  if (!cleanEmail.includes('@') || cleanEmail.length < 5) {
+    throw new Error('Por favor, informe um endereço de e-mail válido para o recibo da compra.');
+  }
 
   if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
-    console.log('[Asaas Service] Modo Demo Ativo — simulando ID de cliente Asaas para CPF:', cleanCpf);
-    return `cus_demo_${cleanCpf.substring(0, 8)}`;
+    console.log('[Asaas Service] Modo Demo/Sandbox — simulando ID de cliente Asaas para CPF:', cleanCpf);
+    return `cus_demo_${cleanCpf || '12345678900'}`;
   }
 
   try {
-    const searchRes = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
+    // A. Tentar buscar por CPF
+    if (cleanCpf && cleanCpf.length === 11) {
+      const searchRes = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
 
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      if (searchData.data && searchData.data.length > 0) {
-        return searchData.data[0].id;
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.data && searchData.data.length > 0) {
+          return searchData.data[0].id;
+        }
       }
     }
 
+    // B. Tentar buscar por E-mail
+    if (cleanEmail) {
+      const searchEmailRes = await fetch(`${ASAAS_API_URL}/customers?email=${encodeURIComponent(cleanEmail)}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (searchEmailRes.ok) {
+        const searchData = await searchEmailRes.json();
+        if (searchData.data && searchData.data.length > 0) {
+          return searchData.data[0].id;
+        }
+      }
+    }
+
+    // C. Criar novo cliente no Asaas
     const createRes = await fetch(`${ASAAS_API_URL}/customers`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
         name: data.name,
-        email: data.email,
+        email: cleanEmail,
         cpfCnpj: cleanCpf,
         mobilePhone: data.phone ? data.phone.replace(/\D/g, '') : undefined
       })
     });
 
+    const createText = await createRes.text();
+
     if (!createRes.ok) {
-      const errText = await createRes.text();
-      throw new Error(`Erro ao criar cliente no Asaas: ${errText}`);
+      let friendlyError = '';
+      try {
+        const parsed = JSON.parse(createText);
+        if (parsed.errors && parsed.errors.length > 0) {
+          friendlyError = parsed.errors.map((e: any) => e.description).join('; ');
+        }
+      } catch (e) {}
+
+      console.error('[createOrGetAsaasCustomer] Falha ao cadastrar cliente no Asaas:', createText);
+      throw new Error(friendlyError || 'Erro ao cadastrar comprador no gateway Asaas. Verifique seu CPF e E-mail.');
     }
 
-    const createdData = await createRes.json();
+    const createdData = JSON.parse(createText);
     return createdData.id;
   } catch (err: any) {
-    console.error('[createOrGetAsaasCustomer] Erro API Asaas:', err);
-    return `cus_fallback_${Date.now()}`;
+    console.error('[createOrGetAsaasCustomer] Exceção:', err.message);
+    throw err;
   }
 }
 
@@ -136,8 +177,14 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
   const today = new Date();
   const dueDateStr = today.toISOString().split('T')[0];
 
-  if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
-    console.log('[Asaas Service] Modo Demo Ativo — simulando cobrança Asaas para Order:', params.externalReference);
+  if (
+    !ASAAS_API_KEY || 
+    ASAAS_API_KEY.includes('demo') || 
+    ASAAS_API_KEY === '' || 
+    params.customerId.startsWith('cus_demo_') || 
+    params.customerId.startsWith('cus_fallback_')
+  ) {
+    console.log('[Asaas Service] Modo Sandbox/Demo — simulando cobrança Asaas para Order:', params.externalReference);
     const mockPaymentId = `pay_demo_${Date.now()}`;
     const mockCopyPaste = `00020101021226870014BR.GOV.BCB.PIX2565pix.asaas.com/qr/p/v2/${mockPaymentId}5204000053039865405${params.value.toFixed(2)}5802BR5925Educalizando Plataforma6009SAO PAULO62070503***6304E8A2`;
     const mockQrBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
@@ -149,7 +196,8 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
       value: params.value,
       externalReference: params.externalReference,
       pixCopyPastePayload: mockCopyPaste,
-      pixQrCodeBase64: mockQrBase64
+      pixQrCodeBase64: mockQrBase64,
+      invoiceUrl: `https://sandbox.asaas.com/i/${mockPaymentId}`
     };
   }
 
@@ -174,12 +222,22 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
       body: JSON.stringify(payload)
     });
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Erro ao gerar cobrança no Asaas (${response.status}): ${errText}`);
+      let friendlyMsg = '';
+      try {
+        const parsed = JSON.parse(responseText);
+        if (parsed.errors && parsed.errors.length > 0) {
+          friendlyMsg = parsed.errors.map((e: any) => e.description).join('; ');
+        }
+      } catch (e) {}
+
+      console.error('[createAsaasPayment] Erro API Asaas:', responseText);
+      throw new Error(friendlyMsg || `Erro ao gerar cobrança no gateway de pagamento.`);
     }
 
-    const payData = await response.json();
+    const payData = JSON.parse(responseText);
     const result: AsaasPaymentResult = {
       id: payData.id,
       status: payData.status,
@@ -198,7 +256,7 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
 
     return result;
   } catch (err: any) {
-    console.error('[createAsaasPayment] Erro:', err);
+    console.error('[createAsaasPayment] Erro:', err.message);
     throw err;
   }
 }
