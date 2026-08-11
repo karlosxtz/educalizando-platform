@@ -17,15 +17,18 @@ export async function registerCreatorInSupabase({
   email,
   password,
   fullName,
+  cpf,
   storeName,
   category
 }: {
   email: string;
   password: string;
   fullName: string;
+  cpf: string;
   storeName: string;
   category: string;
 }) {
+  const cleanCpf = cpf.replace(/\D/g, '');
   const storeSlug = storeName
     .toLowerCase()
     .normalize('NFD')
@@ -42,6 +45,7 @@ export async function registerCreatorInSupabase({
       options: {
         data: {
           full_name: fullName,
+          cpf: cleanCpf,
           store_name: storeName,
           store_slug: storeSlug,
           role: 'creator',
@@ -95,6 +99,7 @@ export async function registerCreatorInSupabase({
       localStorage.setItem('educalizando_creator_session', JSON.stringify({
         id: userId,
         email,
+        cpf: cleanCpf,
         storeId: createdStore.id,
         storeSlug: createdStore.slug,
         fullName,

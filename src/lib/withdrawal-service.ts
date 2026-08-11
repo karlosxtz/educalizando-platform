@@ -91,7 +91,7 @@ function saveLocalWithdrawals(withdrawals: WithdrawalRecord[]) {
 }
 
 // 1. Obter Chave PIX Ativa do Criador
-export async function getActiveCreatorPixKey(storeId: string): Promise<CreatorPixKey | null> {
+export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: string): Promise<CreatorPixKey | null> {
   if (isRealSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
@@ -124,7 +124,30 @@ export async function getActiveCreatorPixKey(storeId: string): Promise<CreatorPi
   }
 
   const local = getLocalPixKeys();
-  return local.find(k => k.storeId === storeId && k.isActive) || null;
+  const found = local.find(k => k.storeId === storeId && k.isActive);
+  if (found) return found;
+
+  if (creatorCpf && creatorCpf.replace(/\D/g, '').length === 11) {
+    const cleanCpf = creatorCpf.replace(/\D/g, '');
+    const defaultKey: CreatorPixKey = {
+      id: `pix_${storeId.substring(0, 6)}_${cleanCpf.substring(7)}`,
+      creatorId: `creator_${storeId}`,
+      storeId,
+      pixKeyType: 'CPF',
+      pixKey: cleanCpf,
+      pixKeyMasked: maskCPF(cleanCpf),
+      holderName: 'Criador Educalizando',
+      holderCpf: cleanCpf,
+      validationStatus: 'VALID',
+      validatedAt: new Date().toISOString(),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    return defaultKey;
+  }
+
+  return null;
 }
 
 // 2. Cadastrar e Validar Chave PIX CPF (Com consulta de titularidade Asaas no Servidor)

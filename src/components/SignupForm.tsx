@@ -59,6 +59,7 @@ export default function SignupForm() {
         email: data.email,
         password: data.password,
         fullName: data.fullName,
+        cpf: data.cpf,
         storeName: data.storeName,
         category: data.category
       });
@@ -178,6 +179,33 @@ export default function SignupForm() {
               />
               {errors.email && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                CPF do Criador (para recebimentos PIX) *
+              </label>
+              <input
+                type="text"
+                {...register('cpf')}
+                placeholder="000.000.000-00"
+                maxLength={14}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/\D/g, '');
+                  if (v.length > 11) v = v.substring(0, 11);
+                  v = v.replace(/(\d{3})(\d)/, '$1.$2')
+                       .replace(/(\d{3})(\d)/, '$1.$2')
+                       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                  setValue('cpf', v);
+                }}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all font-mono"
+              />
+              <p className="text-[11px] text-slate-500 font-medium">
+                O CPF é utilizado obrigatoriamente para registrar sua chave PIX de transferência no Asaas.
+              </p>
+              {errors.cpf && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.cpf.message}</p>
               )}
             </div>
           </div>

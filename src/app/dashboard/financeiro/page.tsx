@@ -20,9 +20,13 @@ import {
   WithdrawalRecord 
 } from '@/lib/withdrawal-service';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 import Link from 'next/link';
 
 export default function FinancialWalletDashboardPage() {
+  const [storeId, setStoreId] = useState<string>('');
+  const [creatorProfileCpf, setCreatorProfileCpf] = useState<string>('');
+
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<CreatorWalletSummary>({
     totalVendido: 0,
@@ -60,11 +64,29 @@ export default function FinancialWalletDashboardPage() {
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
-  const storeId = 'store-demo';
-  const creatorProfileCpf = '12345678901';
+  useEffect(() => {
+    async function initCreatorStore() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) {
+        setStoreId(store.id);
+      }
+      if (typeof window !== 'undefined') {
+        const rawSession = localStorage.getItem('educalizando_creator_session');
+        if (rawSession) {
+          try {
+            const sess = JSON.parse(rawSession);
+            if (sess.cpf) setCreatorProfileCpf(sess.cpf);
+          } catch (e) {}
+        }
+      }
+    }
+    initCreatorStore();
+  }, []);
 
   useEffect(() => {
-    loadData();
+    if (storeId) {
+      loadData();
+    }
   }, [storeId, periodFilter, statusFilter, searchQuery, page]);
 
   async function loadData() {
@@ -80,7 +102,7 @@ export default function FinancialWalletDashboardPage() {
           page,
           limit: 15
         }),
-        getActiveCreatorPixKey(storeId),
+        getActiveCreatorPixKey(storeId, creatorProfileCpf),
         getWithdrawalsHistory(storeId)
       ]);
 
