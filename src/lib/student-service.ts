@@ -317,89 +317,122 @@ export async function checkStudentProductAccess({
   return local.some(l => l.studentId === studentId && l.productId === productId && l.status === 'ACTIVE');
 }
 
-// 8. Obter Compras/Matrículas do Aluno
+// 8. Obter Compras/Matrículas do Aluno (Estritamente Materiais Pagos/Ativos)
 export async function getStudentPurchases(studentId: string): Promise<Purchase[]> {
-  const localAccess = getLocalStudentAccess().filter(a => a.studentId === studentId && a.status === 'ACTIVE');
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
 
-  if (localAccess.length === 0) {
-    const demoProd: Product = {
-      id: 'prod-demo-1',
-      store_id: 'store-demo',
-      titulo: 'Apostila de Matemática ENEM 2026',
-      descricao: 'Material completo com 500 questões resolvidas',
-      preco: 49.90,
-      tipo: 'pdf',
-      status: 'publicado',
-      capa_url: '/branding/logo-educalizando.png',
-      arquivo_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      created_at: new Date().toISOString()
-    };
+  const realPurchases: Purchase[] = [];
 
-    const demoStore: Store = {
-      id: 'store-demo',
-      creator_id: 'creator-demo',
-      nome_loja: 'Prof. Ricardo Silva',
-      slug: 'prof-ricardo',
-      descricao: 'Apostilas e simulados preparatórios para vestibulares e concursos',
-      logo_url: '/branding/logo-educalizando.png',
-      banner_url: null,
-      cor_primaria: '#093b6c',
-      asaas_subaccount_id: null,
-      created_at: new Date().toISOString()
-    };
+  if (isRealSupabase) {
+    try {
+      // Buscar registros ativos de acesso do aluno em student_product_access
+      const { data: accesses, error } = await supabase
+        .from('student_product_access')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('status', 'ACTIVE');
 
-    return [
-      {
-        id: 'pur_demo_1',
-        student_id: studentId,
-        store_id: 'store-demo',
-        product_id: 'prod-demo-1',
-        status: 'liberado',
-        created_at: new Date().toISOString(),
-        product: demoProd,
-        store: demoStore
+      if (!error && accesses && accesses.length > 0) {
+        for (const acc of accesses) {
+          // Buscar Produto
+          const { data: prodData } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', acc.product_id)
+            .maybeSingle();
+
+          // Buscar Loja
+          const { data: storeData } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', acc.store_id)
+            .maybeSingle();
+
+          if (prodData) {
+            realPurchases.push({
+              id: acc.id,
+              student_id: acc.student_id,
+              store_id: acc.store_id,
+              product_id: acc.product_id,
+              status: 'liberado',
+              created_at: acc.granted_at || acc.created_at || new Date().toISOString(),
+              product: {
+                id: prodData.id,
+                store_id: prodData.store_id,
+                titulo: prodData.titulo,
+                descricao: prodData.descricao || '',
+                preco: Number(prodData.preco || 0),
+                tipo: prodData.tipo || 'pdf',
+                status: prodData.status || 'publicado',
+                capa_url: prodData.capa_url,
+                arquivo_url: prodData.arquivo_url,
+                created_at: prodData.created_at
+              },
+              store: storeData ? {
+                id: storeData.id,
+                creator_id: storeData.creator_id,
+                nome_loja: storeData.nome_loja,
+                slug: storeData.slug,
+                descricao: storeData.descricao,
+                logo_url: storeData.logo_url,
+                banner_url: storeData.banner_url,
+                cor_primaria: storeData.cor_primaria || '#093b6c',
+                asaas_subaccount_id: storeData.asaas_subaccount_id,
+                created_at: storeData.created_at
+              } : undefined
+            });
+          }
+        }
       }
-    ];
+    } catch (err) {
+      console.error('[getStudentPurchases] Erro ao buscar acessos no Supabase:', err);
+    }
   }
 
-  return localAccess.map(acc => {
-    const p: Product = {
-      id: acc.productId,
-      store_id: acc.storeId,
-      titulo: 'Material Didático Digital',
-      descricao: 'Material completo adquirido na plataforma',
-      preco: 49.90,
-      tipo: 'pdf',
-      status: 'publicado',
-      capa_url: '/branding/logo-educalizando.png',
-      arquivo_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      created_at: acc.grantedAt
-    };
-
-    const s: Store = {
-      id: acc.storeId,
-      creator_id: 'creator-demo',
-      nome_loja: 'Prof. Ricardo Silva',
-      slug: 'prof-ricardo',
-      descricao: 'Loja do Criador',
-      logo_url: '/branding/logo-educalizando.png',
-      banner_url: null,
-      cor_primaria: '#093b6c',
-      asaas_subaccount_id: null,
-      created_at: acc.grantedAt
-    };
-
-    return {
-      id: acc.id,
-      student_id: acc.studentId,
-      store_id: acc.storeId,
-      product_id: acc.productId,
-      status: 'liberado',
-      created_at: acc.grantedAt,
-      product: p,
-      store: s
-    };
+  // Buscar acessos gravados no localStorage para compras locais
+  const localAccess = getLocalStudentAccess().filter(a => a.studentId === studentId && a.status === 'ACTIVE');
+  localAccess.forEach(acc => {
+    const existsInReal = realPurchases.some(rp => rp.product_id === acc.productId);
+    if (!existsInReal) {
+      realPurchases.push({
+        id: acc.id,
+        student_id: acc.studentId,
+        store_id: acc.storeId,
+        product_id: acc.productId,
+        status: 'liberado',
+        created_at: acc.grantedAt,
+        product: {
+          id: acc.productId,
+          store_id: acc.storeId,
+          titulo: 'Material Adquirido',
+          descricao: 'Acesso liberado após confirmação do pagamento.',
+          preco: 0,
+          tipo: 'pdf',
+          status: 'publicado',
+          capa_url: '/branding/logo-educalizando.png',
+          arquivo_url: '',
+          created_at: acc.grantedAt
+        },
+        store: {
+          id: acc.storeId,
+          creator_id: 'creator-owner',
+          nome_loja: 'Loja Educalizando',
+          slug: 'loja',
+          descricao: 'Loja Oficial',
+          logo_url: '/branding/logo-educalizando.png',
+          banner_url: null,
+          cor_primaria: '#093b6c',
+          asaas_subaccount_id: null,
+          created_at: acc.grantedAt
+        }
+      });
+    }
   });
+
+  return realPurchases;
 }
 
 // 9. Obter Lojas do Aluno Agrupadas
