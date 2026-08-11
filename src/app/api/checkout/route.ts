@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createOrGetAsaasCustomer, createAsaasPayment } from '@/lib/asaas-service';
+import { createOrGetAsaasCustomer, createAsaasPayment, isValidCPF } from '@/lib/asaas-service';
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
@@ -71,10 +71,10 @@ export async function POST(request: Request) {
     const buyerEmail = (rawBuyerEmail || authSession.email || '').toLowerCase().trim();
     const buyerCpf = (rawBuyerCpf || authSession.cpf || '').replace(/\D/g, '');
 
-    // 2. Validação Estrita dos Campos Obrigatórios
-    if (!storeId || !buyerName || !buyerEmail || buyerCpf.length !== 11 || items.length === 0) {
+    // 2. Validação Estrita dos Campos Obrigatórios e Validação do CPF
+    if (!storeId || !buyerName || !buyerEmail || !isValidCPF(buyerCpf) || items.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Por favor, informe seu Nome Completo, E-mail e CPF válido para o recibo da compra.' },
+        { success: false, error: 'Por favor, informe seu Nome Completo, E-mail e um CPF válido para a emissão do recibo.' },
         { status: 400 }
       );
     }

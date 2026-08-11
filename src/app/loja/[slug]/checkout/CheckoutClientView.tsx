@@ -12,6 +12,8 @@ import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 
+import { isValidCPF } from '@/lib/asaas-service';
+
 interface CheckoutClientViewProps {
   store: Store;
   product: Product;
@@ -154,8 +156,8 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
     }
 
     const cleanCpf = buyerCpf.replace(/\D/g, '');
-    if (cleanCpf.length !== 11) {
-      setErrorMessage('Por favor, informe um CPF válido com 11 dígitos.');
+    if (!isValidCPF(cleanCpf)) {
+      setErrorMessage('O CPF informado é inválido. Por favor, verifique os dígitos digitados para a emissão do recibo.');
       return;
     }
 

@@ -85,6 +85,32 @@ export interface AsaasTransferResult {
   scheduleDate?: string;
 }
 
+export function isValidCPF(cpf: string): boolean {
+  const clean = (cpf || '').replace(/\D/g, '');
+  if (clean.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(clean)) return false;
+
+  let sum = 0;
+  let remainder = 0;
+
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(clean.substring(i - 1, i), 10) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(clean.substring(9, 10), 10)) return false;
+
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(clean.substring(i - 1, i), 10) * (12 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(clean.substring(10, 11), 10)) return false;
+
+  return true;
+}
+
 // 1. Criar ou Buscar Cliente no Asaas (Cache por CPF para evitar duplicatas)
 export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise<string> {
   const cleanCpf = (data.cpfCnpj || '').replace(/\D/g, '');
@@ -101,12 +127,19 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
     throw new Error('Por favor, informe um endereço de e-mail válido para o recibo da compra.');
   }
 
+  // Validação estrita do CPF antes de chamar a API do Asaas
+  if (!isValidCPF(cleanCpf)) {
+    throw new Error('O CPF informado é inválido. Por favor, verifique os dígitos do CPF.');
+  }
+
   if (!ASAAS_API_KEY || ASAAS_API_KEY.includes('demo') || ASAAS_API_KEY === '') {
     console.log('[Asaas Service] Modo Demo/Sandbox — simulando ID de cliente Asaas para CPF:', cleanCpf);
     return `cus_demo_${cleanCpf || '12345678900'}`;
   }
 
   try {
+    console.log(`[createOrGetAsaasCustomer] Pesquisando cliente no Asaas para CPF=${cleanCpf}...`);
+
     // A. Tentar buscar por CPF
     if (cleanCpf && cleanCpf.length === 11) {
       const searchRes = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`, {
@@ -116,8 +149,10 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
 
       if (searchRes.ok) {
         const searchData = await searchRes.json();
-        if (searchData.data && searchData.data.length > 0) {
-          return searchData.data[0].id;
+        if (searchData.data && searchData.data.length > 0 && searchData.data[0].id) {
+          const foundId = searchData.data[0].id;
+          console.log(`[createOrGetAsaasCustomer] Cliente localizado por CPF no Asaas: ID=${foundId}`);
+          return foundId;
         }
       }
     }
@@ -131,11 +166,15 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
 
       if (searchEmailRes.ok) {
         const searchData = await searchEmailRes.json();
-        if (searchData.data && searchData.data.length > 0) {
-          return searchData.data[0].id;
+        if (searchData.data && searchData.data.length > 0 && searchData.data[0].id) {
+          const foundId = searchData.data[0].id;
+          console.log(`[createOrGetAsaasCustomer] Cliente localizado por E-mail no Asaas: ID=${foundId}`);
+          return foundId;
         }
       }
     }
+
+    console.log(`[createOrGetAsaasCustomer] Cliente não encontrado. Criando novo cliente no Asaas para "${data.name}" (${cleanEmail})...`);
 
     // C. Criar novo cliente no Asaas
     const createRes = await fetch(`${ASAAS_API_URL}/customers`, {
@@ -165,6 +204,11 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
     }
 
     const createdData = JSON.parse(createText);
+    if (!createdData?.id) {
+      throw new Error('Falha ao obter ID do cliente gerado pelo Asaas.');
+    }
+
+    console.log(`[createOrGetAsaasCustomer] Cliente criado com sucesso no Asaas: ID=${createdData.id}`);
     return createdData.id;
   } catch (err: any) {
     console.error('[createOrGetAsaasCustomer] Exceção:', err.message);
