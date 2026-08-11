@@ -321,7 +321,8 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
       if (!error && data) {
         list = (data as Product[]).filter(p => {
-          const isPublished = !p.status || p.status === 'publicado' || p.status === 'published' || p.status === 'ativo';
+          const statusStr = (p.status as string) || '';
+          const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
           if (!isPublished) return false;
           if (!p.store_id) return true;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
@@ -336,7 +337,8 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   // Sempre mesclar com produtos locais salvos no navegador
   if (typeof window !== 'undefined') {
     const localProds = getLocalProducts().filter(p => {
-      const isPublished = !p.status || p.status === 'publicado' || p.status === 'published' || p.status === 'ativo';
+      const statusStr = (p.status as string) || '';
+      const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
       if (!p.store_id) return true;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
