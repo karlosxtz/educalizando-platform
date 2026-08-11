@@ -4,7 +4,11 @@ import { requestCreatorWithdrawal, getWithdrawalsHistory } from '@/lib/withdrawa
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const storeId = searchParams.get('storeId') || 'store-demo';
+    const storeId = searchParams.get('storeId');
+
+    if (!storeId) {
+      return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
+    }
 
     const history = await getWithdrawalsHistory(storeId);
     return NextResponse.json({
@@ -19,7 +23,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { storeId = 'store-demo', creatorId = 'user-demo', amount, creatorProfileCpf } = body;
+    const { storeId, creatorId = 'user-creator', amount, creatorProfileCpf } = body;
+
+    if (!storeId) {
+      return NextResponse.json(
+        { success: false, error: 'Identificador da loja (storeId) é obrigatório.' },
+        { status: 400 }
+      );
+    }
 
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
       return NextResponse.json(

@@ -437,7 +437,7 @@ export default function ProductsManagementPage() {
       <CategoryManagerModal
         isOpen={isCategoryManagerOpen}
         onClose={() => setIsCategoryManagerOpen(false)}
-        storeId={store?.id || 'store-demo'}
+        storeId={store?.id || ''}
         onCategoriesUpdated={loadData}
       />
     </div>

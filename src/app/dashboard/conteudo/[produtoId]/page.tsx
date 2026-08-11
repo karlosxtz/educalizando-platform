@@ -17,7 +17,7 @@ import {
   ContentItem, 
   ContentType 
 } from '@/lib/content-delivery-service';
-import { getProductById } from '@/lib/store-service';
+import { getProductById, getCurrentCreatorStore } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -48,10 +48,20 @@ export default function ProductContentManagementPage({ params }: ProductContentP
   const [formValidityDays, setFormValidityDays] = useState<string>('unlimited');
   const [formError, setFormError] = useState<string | null>(null);
 
-  const storeId = 'store-demo';
+  const [storeId, setStoreId] = useState('');
 
   useEffect(() => {
-    loadData();
+    async function initStore() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) setStoreId(store.id);
+    }
+    initStore();
+  }, []);
+
+  useEffect(() => {
+    if (storeId && resolvedParams.produtoId) {
+      loadData();
+    }
   }, [storeId, resolvedParams.produtoId]);
 
   async function loadData() {

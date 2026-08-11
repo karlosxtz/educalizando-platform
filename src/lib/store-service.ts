@@ -17,11 +17,10 @@ export const DEFAULT_MOCK_STORE: Store = {
 
 // Helper para localStorage
 function getLocalStores(): Store[] {
-  if (typeof window === 'undefined') return [DEFAULT_MOCK_STORE];
+  if (typeof window === 'undefined') return [];
   const saved = localStorage.getItem('educalizando_stores_v3');
   if (!saved) {
-    localStorage.setItem('educalizando_stores_v3', JSON.stringify([DEFAULT_MOCK_STORE]));
-    return [DEFAULT_MOCK_STORE];
+    return [];
   }
   return JSON.parse(saved);
 }
@@ -93,23 +92,53 @@ export async function getCurrentCreatorStore(): Promise<Store> {
   if (isRealSupabase) {
     try {
       const { data: authUser } = await supabase.auth.getUser();
-      if (authUser?.user?.id) {
-        const { data } = await supabase
+      if (authUser?.user) {
+        const userId = authUser.user.id;
+        const userEmail = (authUser.user.email || '').toLowerCase().trim();
+        const userMeta = authUser.user.user_metadata || {};
+
+        // 1. Tentar buscar no Supabase por creator_id (UUID ou Email)
+        let { data: storeData } = await supabase
           .from('stores')
           .select('*')
-          .eq('creator_id', authUser.user.id)
+          .or(`creator_id.eq.${userId},creator_id.eq.${userEmail}`)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (data) return data as Store;
+        if (storeData) {
+          return storeData as Store;
+        }
+
+        // 2. Se a conta de criador existe no Supabase Auth mas ainda não tinha registro em stores, criar a loja real agora:
+        const storeName = userMeta.store_name || userMeta.full_name || userEmail.split('@')[0] || 'Minha Loja';
+        const storeSlug = userMeta.store_slug || userEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') || 'loja';
+
+        const { data: newStore, error: createErr } = await supabase
+          .from('stores')
+          .insert([
+            {
+              creator_id: userId,
+              nome_loja: storeName,
+              slug: storeSlug,
+              descricao: `Loja oficial de infoprodutos de ${userMeta.full_name || storeName}.`,
+              cor_primaria: '#093b6c',
+              created_at: new Date().toISOString()
+            }
+          ])
+          .select()
+          .single();
+
+        if (!createErr && newStore) {
+          return newStore as Store;
+        }
       }
     } catch (err) {
       console.error('[getCurrentCreatorStore] Erro:', err);
     }
   }
 
-  // Tentar buscar sessão gravada no localStorage para o criador
+  // Tentar buscar a sessão gravada no localStorage para o criador logado
   if (typeof window !== 'undefined') {
     const rawCreatorSession = localStorage.getItem('educalizando_creator_session');
     if (rawCreatorSession) {
@@ -118,12 +147,40 @@ export async function getCurrentCreatorStore(): Promise<Store> {
         const stores = getLocalStores();
         const found = stores.find(s => s.creator_id === session.id || s.id === session.storeId || s.slug === session.storeSlug);
         if (found) return found;
+
+        // Se a sessão local existe mas a loja ainda não foi salva no array local:
+        const newLocalStore: Store = {
+          id: session.storeId || `store_${session.id || Date.now()}`,
+          creator_id: session.id || 'creator-active',
+          nome_loja: session.storeName || session.fullName || 'Minha Loja',
+          slug: session.storeSlug || 'loja',
+          descricao: `Loja oficial de infoprodutos de ${session.fullName || 'Criador'}.`,
+          logo_url: null,
+          banner_url: null,
+          cor_primaria: '#093b6c',
+          asaas_subaccount_id: null,
+          created_at: new Date().toISOString()
+        };
+        stores.push(newLocalStore);
+        saveLocalStores(stores);
+        return newLocalStore;
       } catch (e) {}
     }
   }
 
-  const stores = getLocalStores();
-  return stores[stores.length - 1] || DEFAULT_MOCK_STORE;
+  // Se o usuário é um novo criador sem sessão configurada ainda
+  return {
+    id: 'store-active-user',
+    creator_id: 'creator-active-user',
+    nome_loja: 'Minha Loja',
+    slug: 'minha-loja',
+    descricao: 'Cadastre seus produtos e comece a vender no Educalizando.',
+    logo_url: null,
+    banner_url: null,
+    cor_primaria: '#093b6c',
+    asaas_subaccount_id: null,
+    created_at: new Date().toISOString()
+  };
 }
 
 export async function getStoreByCreatorId(creatorId: string): Promise<Store> {

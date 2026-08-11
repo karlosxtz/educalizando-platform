@@ -4,7 +4,11 @@ import { registerCreatorPixKey, getActiveCreatorPixKey } from '@/lib/withdrawal-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const storeId = searchParams.get('storeId') || 'store-demo';
+    const storeId = searchParams.get('storeId');
+
+    if (!storeId) {
+      return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
+    }
 
     const activeKey = await getActiveCreatorPixKey(storeId);
     return NextResponse.json({
@@ -26,7 +30,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { storeId = 'store-demo', creatorId = 'user-demo', creatorProfileCpf, inputPixKey, holderName } = body;
+    const { storeId, creatorId = 'user-creator', creatorProfileCpf, inputPixKey, holderName } = body;
+
+    if (!storeId) {
+      return NextResponse.json(
+        { success: false, error: 'Identificador da loja (storeId) é obrigatório.' },
+        { status: 400 }
+      );
+    }
 
     if (!inputPixKey || !creatorProfileCpf) {
       return NextResponse.json(

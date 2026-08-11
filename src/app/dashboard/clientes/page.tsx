@@ -7,9 +7,11 @@ import {
   ShoppingBag, DollarSign, Calendar, ArrowRight, ShieldCheck, RefreshCw 
 } from 'lucide-react';
 import { getCustomersByStoreId, getCustomerSummaryStats, Customer, CustomerSummary } from '@/lib/customer-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function CustomersPage() {
+  const [storeId, setStoreId] = useState('');
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [summary, setSummary] = useState<CustomerSummary>({
@@ -25,10 +27,16 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Hardcoded store ID matching creator store context
-  const storeId = 'store-demo';
+  useEffect(() => {
+    async function initStore() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) setStoreId(store.id);
+    }
+    initStore();
+  }, []);
 
   useEffect(() => {
+    if (!storeId) return;
     async function loadData() {
       setLoading(true);
       try {

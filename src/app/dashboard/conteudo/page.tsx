@@ -14,13 +14,12 @@ import {
   ContentItem, 
   ContentDeliveryMetrics 
 } from '@/lib/content-delivery-service';
-import { getProductsByStoreId } from '@/lib/store-service';
-import { Product } from '@/lib/types';
-import CustomSelect from '@/components/ui/CustomSelect';
+import { getProductsByStoreId, getCurrentCreatorStore } from '@/lib/store-service';
 
 export default function ContentDeliveryDashboardPage() {
   const router = useRouter();
 
+  const [storeId, setStoreId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [contents, setContents] = useState<ContentItem[]>([]);
@@ -38,10 +37,18 @@ export default function ContentDeliveryDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<'todos' | 'com_conteudo' | 'sem_conteudo' | 'ativo' | 'inativo'>('todos');
   const [tipoFilter, setTipoFilter] = useState<'todos' | 'ARQUIVO' | 'LINK_EXTERNO'>('todos');
 
-  const storeId = 'store-demo';
+  useEffect(() => {
+    async function initStore() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) setStoreId(store.id);
+    }
+    initStore();
+  }, []);
 
   useEffect(() => {
-    loadData();
+    if (storeId) {
+      loadData();
+    }
   }, [storeId]);
 
   async function loadData() {

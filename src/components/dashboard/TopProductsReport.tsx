@@ -11,7 +11,7 @@ interface TopProductsReportProps {
   storeId?: string;
 }
 
-export default function TopProductsReport({ products, storeId = 'store-demo' }: TopProductsReportProps) {
+export default function TopProductsReport({ products, storeId }: TopProductsReportProps) {
   const [stats, setStats] = useState<TopProductStat[]>([]);
   const [loading, setLoading] = useState(true);
 

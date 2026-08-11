@@ -10,7 +10,7 @@ interface RecentSalesFeedProps {
   storeId?: string;
 }
 
-export default function RecentSalesFeed({ storeId = 'store-demo' }: RecentSalesFeedProps) {
+export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
 

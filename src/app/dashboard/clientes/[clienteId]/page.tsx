@@ -9,6 +9,7 @@ import {
   CheckCircle2, AlertCircle, ExternalLink, Download, Lock, Package, Layers 
 } from 'lucide-react';
 import { getCustomerById, Customer } from '@/lib/customer-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 
 interface CustomerDetailPageProps {
   params: Promise<{ clienteId: string }>;
@@ -17,14 +18,21 @@ interface CustomerDetailPageProps {
 export default function CustomerDetailPage({ params }: CustomerDetailPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const [storeId, setStoreId] = useState('');
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [activeTab, setActiveTab] = useState<'visao_geral' | 'compras' | 'produtos' | 'pagamentos' | 'acessos'>('visao_geral');
 
-  // Hardcoded store ID matching creator store context
-  const storeId = 'store-demo';
+  useEffect(() => {
+    async function initStore() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) setStoreId(store.id);
+    }
+    initStore();
+  }, []);
 
   useEffect(() => {
+    if (!storeId || !resolvedParams.clienteId) return;
     async function loadCustomer() {
       setLoading(true);
       try {

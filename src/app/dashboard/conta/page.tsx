@@ -5,9 +5,12 @@ import { Settings, Mail, Lock, Check, Save, ShieldCheck, Key, RefreshCw, AlertCi
 import { getCurrentUserSession } from '@/lib/supabase';
 import { maskCPF } from '@/lib/withdrawal-service';
 
+import { getCurrentCreatorStore } from '@/lib/store-service';
+
 export default function AccountSettingsPage() {
-  const [email, setEmail] = useState('prof.ricardo@gmail.com');
-  const [userCpf, setUserCpf] = useState('12345678901'); // CPF do Perfil do Criador
+  const [email, setEmail] = useState('');
+  const [userCpf, setUserCpf] = useState('');
+  const [storeId, setStoreId] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // PIX Key State
@@ -20,22 +23,38 @@ export default function AccountSettingsPage() {
   const [pixSuccess, setPixSuccess] = useState<string | null>(null);
   const [editingPix, setEditingPix] = useState(false);
 
-  const storeId = 'store-demo';
-
   useEffect(() => {
     async function loadData() {
+      const store = await getCurrentCreatorStore();
+      if (store?.id) setStoreId(store.id);
+
       const sess = await getCurrentUserSession();
       if (sess?.user?.email) {
         setEmail(sess.user.email);
       }
-      fetchPixKey();
+      if (typeof window !== 'undefined') {
+        const rawCreatorSession = localStorage.getItem('educalizando_creator_session');
+        if (rawCreatorSession) {
+          try {
+            const parsed = JSON.parse(rawCreatorSession);
+            if (parsed.email) setEmail(parsed.email);
+            if (parsed.cpf) setUserCpf(parsed.cpf);
+          } catch (e) {}
+        }
+      }
     }
     loadData();
   }, []);
 
-  async function fetchPixKey() {
+  useEffect(() => {
+    if (storeId) {
+      fetchPixKey(storeId);
+    }
+  }, [storeId]);
+
+  async function fetchPixKey(activeStoreId: string) {
     try {
-      const res = await fetch(`/api/financeiro/pix-key?storeId=${storeId}`);
+      const res = await fetch(`/api/financeiro/pix-key?storeId=${activeStoreId}`);
       const data = await res.json();
       if (data.success && data.hasKey && data.pixKey) {
         setHasPixKey(true);

@@ -11,7 +11,7 @@ interface SalesOverviewChartProps {
   onDataLoaded?: (totalRevenue: number, totalSalesCount: number) => void;
 }
 
-export default function SalesOverviewChart({ storeId = 'store-demo', onDataLoaded }: SalesOverviewChartProps) {
+export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverviewChartProps) {
   const [period, setPeriod] = useState<PeriodFilter>('7d');
   const [viewMode, setViewMode] = useState<'revenue' | 'volume'>('revenue');
   const [data, setData] = useState<SalesDataPoint[]>([]);
