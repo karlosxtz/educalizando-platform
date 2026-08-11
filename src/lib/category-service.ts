@@ -2,26 +2,27 @@ import { supabase } from './supabase';
 import { Category, EducationLevel } from './types';
 
 // Initial Mock Seed Data for Local Development
+// Initial Global Seed Data with valid UUIDs
 export const INITIAL_GLOBAL_CATEGORIES: Category[] = [
-  { id: 'cat-matematica', nome: 'Matemática', slug: 'matematica', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-portugues', nome: 'Português & Literatura', slug: 'portugues-literatura', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-redacao', nome: 'Redação 1000', slug: 'redacao-1000', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-ciencias', nome: 'Ciências & Biologia', slug: 'ciencias-biologia', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-historia', nome: 'História & Geografia', slug: 'historia-geografia', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-concursos', nome: 'Concursos Públicos', slug: 'concursos-publicos', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-enem', nome: 'Vestibular & ENEM', slug: 'vestibular-enem', store_id: null, created_at: new Date().toISOString() },
-  { id: 'cat-outros', nome: 'Outros Conteúdos', slug: 'outros-conteudos', store_id: null, created_at: new Date().toISOString() }
+  { id: '11111111-1111-4111-a111-111111111101', nome: 'Matemática', slug: 'matematica', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111102', nome: 'Português & Literatura', slug: 'portugues-literatura', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111103', nome: 'Redação 1000', slug: 'redacao-1000', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111104', nome: 'Ciências & Biologia', slug: 'ciencias-biologia', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111105', nome: 'História & Geografia', slug: 'historia-geografia', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111106', nome: 'Concursos Públicos', slug: 'concursos-publicos', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111107', nome: 'Vestibular & ENEM', slug: 'vestibular-enem', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111108', nome: 'Outros Conteúdos', slug: 'outros-conteudos', store_id: null, created_at: new Date().toISOString() }
 ];
 
 export const INITIAL_EDUCATION_LEVELS: EducationLevel[] = [
-  { id: 'ed-infantil', nome: 'Educação Infantil', slug: 'educacao-infantil', ordem: 1, created_at: new Date().toISOString() },
-  { id: 'ed-fundamental1', nome: 'Ensino Fundamental I', slug: 'ensino-fundamental-1', ordem: 2, created_at: new Date().toISOString() },
-  { id: 'ed-fundamental2', nome: 'Ensino Fundamental II', slug: 'ensino-fundamental-2', ordem: 3, created_at: new Date().toISOString() },
-  { id: 'ed-medio', nome: 'Ensino Médio', slug: 'ensino-medio', ordem: 4, created_at: new Date().toISOString() },
-  { id: 'ed-enem', nome: 'Pré-Vestibular / ENEM', slug: 'pre-vestibular-enem', ordem: 5, created_at: new Date().toISOString() },
-  { id: 'ed-superior', nome: 'Ensino Superior & Pós', slug: 'ensino-superior-pos', ordem: 6, created_at: new Date().toISOString() },
-  { id: 'ed-concursos', nome: 'Concursos Públicos', slug: 'concursos-publicos', ordem: 7, created_at: new Date().toISOString() },
-  { id: 'ed-idiomas', nome: 'Idiomas & Cursos Livres', slug: 'idiomas-cursos-livres', ordem: 8, created_at: new Date().toISOString() }
+  { id: '22222222-2222-4222-a222-222222222201', nome: 'Educação Infantil', slug: 'educacao-infantil', ordem: 1, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222202', nome: 'Ensino Fundamental I', slug: 'ensino-fundamental-1', ordem: 2, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222203', nome: 'Ensino Fundamental II', slug: 'ensino-fundamental-2', ordem: 3, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222204', nome: 'Ensino Médio', slug: 'ensino-medio', ordem: 4, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222205', nome: 'Pré-Vestibular / ENEM', slug: 'pre-vestibular-enem', ordem: 5, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222206', nome: 'Ensino Superior & Pós', slug: 'ensino-superior-pos', ordem: 6, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222207', nome: 'Concursos Públicos', slug: 'concursos-publicos', ordem: 7, created_at: new Date().toISOString() },
+  { id: '22222222-2222-4222-a222-222222222208', nome: 'Idiomas & Cursos Livres', slug: 'idiomas-cursos-livres', ordem: 8, created_at: new Date().toISOString() }
 ];
 
 function getLocalCustomCategories(): Category[] {

@@ -313,6 +313,22 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   return products.filter(p => p.store_id === storeId && p.status === 'publicado');
 }
 
+const isValidUUID = (str: string | null | undefined): boolean => {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
+function cleanProductPayload<T extends Record<string, any>>(data: T): T {
+  const cleaned: any = { ...data };
+  if ('category_id' in cleaned) {
+    cleaned.category_id = isValidUUID(cleaned.category_id) ? cleaned.category_id : null;
+  }
+  if ('education_level_id' in cleaned) {
+    cleaned.education_level_id = isValidUUID(cleaned.education_level_id) ? cleaned.education_level_id : null;
+  }
+  return cleaned as T;
+}
+
 // 6. Criar Novo Produto (Gera UUID Real no Supabase)
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
   const isRealSupabase = Boolean(
@@ -320,10 +336,12 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  const payload = cleanProductPayload(productData);
+
   if (isRealSupabase) {
     const { data, error } = await supabase
       .from('products')
-      .insert([productData])
+      .insert([payload])
       .select()
       .single();
 
@@ -333,7 +351,7 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 
   // Fallback Local
   const newProduct: Product = {
-    ...productData,
+    ...payload,
     id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `prod_${Date.now()}`,
     created_at: new Date().toISOString()
   };
@@ -351,10 +369,12 @@ export async function updateProduct(productId: string, updates: Partial<Product>
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  const payload = cleanProductPayload(updates);
+
   if (isRealSupabase) {
     const { data, error } = await supabase
       .from('products')
-      .update(updates)
+      .update(payload)
       .eq('id', productId)
       .select()
       .single();
