@@ -32,12 +32,15 @@ import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
+import { getPublicProductsByStoreId } from '@/lib/store-service';
+
 interface PublicStoreClientViewProps {
   store: Store;
   initialProducts: Product[];
 }
 
 export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -53,19 +56,23 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   }, [store.id]);
 
   const loadMetadata = async () => {
-    const [cats, edLevels, storeKits] = await Promise.all([
+    const [cats, edLevels, storeKits, storeProducts] = await Promise.all([
       getCategories(store.id),
       getEducationLevels(),
-      getPublicKitsByStoreId(store.id)
+      getPublicKitsByStoreId(store.id),
+      getPublicProductsByStoreId(store.id)
     ]);
     setCategories(cats);
     setEducationLevels(edLevels);
     setKits(storeKits);
+    if (storeProducts && storeProducts.length > 0) {
+      setProducts(storeProducts);
+    }
   };
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
-  const filteredProducts = initialProducts.filter(p => {
+  const filteredProducts = products.filter(p => {
     const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
     const matchCategory = selectedCategory === 'all' || p.category_id === selectedCategory;

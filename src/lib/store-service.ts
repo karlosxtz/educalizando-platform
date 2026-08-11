@@ -256,7 +256,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   return updatedStore;
 }
 
-// 4. Obter Produtos da Loja (Sem Mocks Hardcoded - Retorna [] se a loja for nova)
+// 4. Obter Produtos da Loja (Dashboard)
 export async function getProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const isRealSupabase = Boolean(
@@ -264,28 +264,43 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  let list: Product[] = [];
+
   if (isRealSupabase) {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .or(`store_id.eq.${storeId},store_id.eq.${cleanStoreId}`)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data as Product[];
+        list = (data as Product[]).filter(p => 
+          p.store_id === storeId || 
+          p.store_id === cleanStoreId || 
+          p.store_id?.replace(/^store_/i, '') === cleanStoreId
+        );
       }
     } catch (err) {
-      console.error('[getProductsByStoreId] Erro:', err);
+      console.error('[getProductsByStoreId] Erro Supabase:', err);
     }
   }
 
-  // Fallback Local
-  const products = getLocalProducts();
-  return products.filter(p => p.store_id === storeId || p.store_id === cleanStoreId);
+  // Sempre mesclar com produtos locais salvos no navegador do criador/loja
+  if (typeof window !== 'undefined') {
+    const localProds = getLocalProducts().filter(
+      p => p.store_id === storeId || p.store_id === cleanStoreId || p.store_id?.replace(/^store_/i, '') === cleanStoreId
+    );
+    for (const lp of localProds) {
+      if (!list.some(item => item.id === lp.id || item.titulo === lp.titulo)) {
+        list.unshift(lp);
+      }
+    }
+  }
+
+  return list;
 }
 
-// 5. Obter Produtos Públicos (status = 'publicado')
+// 5. Obter Produtos Públicos (Vitrine - status = 'publicado')
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const isRealSupabase = Boolean(
@@ -293,26 +308,41 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  let list: Product[] = [];
+
   if (isRealSupabase) {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .or(`store_id.eq.${storeId},store_id.eq.${cleanStoreId}`)
         .eq('status', 'publicado')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data as Product[];
+        list = (data as Product[]).filter(p => 
+          p.store_id === storeId || 
+          p.store_id === cleanStoreId || 
+          p.store_id?.replace(/^store_/i, '') === cleanStoreId
+        );
       }
     } catch (err) {
-      console.error('[getPublicProductsByStoreId] Erro:', err);
+      console.error('[getPublicProductsByStoreId] Erro Supabase:', err);
     }
   }
 
-  // Fallback Local
-  const products = getLocalProducts();
-  return products.filter(p => (p.store_id === storeId || p.store_id === cleanStoreId) && p.status === 'publicado');
+  // Sempre mesclar com produtos locais salvos no navegador
+  if (typeof window !== 'undefined') {
+    const localProds = getLocalProducts().filter(
+      p => (p.store_id === storeId || p.store_id === cleanStoreId || p.store_id?.replace(/^store_/i, '') === cleanStoreId) && p.status === 'publicado'
+    );
+    for (const lp of localProds) {
+      if (!list.some(item => item.id === lp.id || item.titulo === lp.titulo)) {
+        list.unshift(lp);
+      }
+    }
+  }
+
+  return list;
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
