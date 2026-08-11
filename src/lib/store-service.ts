@@ -107,12 +107,21 @@ export async function getCurrentCreatorStore(): Promise<Store> {
           .maybeSingle();
 
         if (storeData) {
+          if (storeData.nome_loja && storeData.nome_loja.includes('@')) {
+            const cleanName = userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja';
+            storeData.nome_loja = cleanName;
+          }
           return storeData as Store;
         }
 
         // 2. Se a conta de criador existe no Supabase Auth mas ainda não tinha registro em stores, criar a loja real agora:
-        const storeName = userMeta.store_name || userMeta.full_name || userEmail.split('@')[0] || 'Minha Loja';
-        const storeSlug = userMeta.store_slug || userEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') || 'loja';
+        let storeName = userMeta.store_name || (userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja');
+        if (storeName.includes('@')) {
+          storeName = userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja';
+        }
+
+        let storeSlug = userMeta.store_slug || storeName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+        if (!storeSlug || storeSlug.length < 2) storeSlug = `loja-${Math.random().toString(36).substring(2, 7)}`;
 
         const { data: newStore, error: createErr } = await supabase
           .from('stores')

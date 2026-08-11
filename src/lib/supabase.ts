@@ -29,13 +29,24 @@ export async function registerCreatorInSupabase({
   category: string;
 }) {
   const cleanCpf = cpf.replace(/\D/g, '');
-  const storeSlug = storeName
+  
+  // Garantir que o nome da loja seja humano e não o e-mail
+  let realStoreName = storeName && !storeName.includes('@') ? storeName.trim() : `Loja de ${fullName.split(' ')[0]}`;
+  if (!realStoreName || realStoreName.length < 2) {
+    realStoreName = `Loja de ${fullName}`;
+  }
+
+  let storeSlug = realStoreName
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+
+  if (!storeSlug || storeSlug.length < 2) {
+    storeSlug = `loja-${Math.random().toString(36).substring(2, 7)}`;
+  }
 
   if (isRealSupabaseConfigured()) {
     // A. Supabase Auth signUp com Metadata de Criador
@@ -46,7 +57,7 @@ export async function registerCreatorInSupabase({
         data: {
           full_name: fullName,
           cpf: cleanCpf,
-          store_name: storeName,
+          store_name: realStoreName,
           store_slug: storeSlug,
           role: 'creator',
           is_creator: true
@@ -67,7 +78,7 @@ export async function registerCreatorInSupabase({
       .insert([
         {
           creator_id: userId,
-          nome_loja: storeName,
+          nome_loja: realStoreName,
           slug: storeSlug,
           descricao: `Loja oficial de infoprodutos de ${fullName}.`,
           cor_primaria: '#ff5722',
