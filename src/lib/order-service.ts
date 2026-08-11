@@ -288,6 +288,23 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
         .maybeSingle();
 
       if (!error && data) {
+        // Buscar itens do pedido na tabela order_items
+        const { data: itemsData } = await supabase
+          .from('order_items')
+          .select('*')
+          .eq('order_id', orderId);
+
+        const mappedItems: OrderItemRecord[] = (itemsData || []).map((it: any) => ({
+          id: it.id,
+          orderId: it.order_id,
+          productId: it.product_id,
+          productTitle: it.product_title || 'Infoproduto Digital',
+          storeId: it.store_id,
+          unitPrice: Number(it.unit_price || 0),
+          quantity: Number(it.quantity || 1),
+          subtotalAmount: Number(it.subtotal_amount || 0)
+        }));
+
         return {
           id: data.id,
           storeId: data.store_id,
@@ -308,7 +325,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           paymentMethod: (data.payment_method || 'pix') as PaymentMethodType,
           pixCopyPaste: data.pix_copy_paste || null,
           pixQrCodeBase64: data.pix_qr_code_base64 || null,
-          items: [],
+          items: mappedItems,
           createdAt: data.created_at,
           paidAt: data.paid_at || null
         };
@@ -390,7 +407,7 @@ export async function updateOrderStatus(
   // Se confirmado como PAGO, liberar matrícula do aluno e registrar lançamento de venda no ledger da carteira
   if (newStatus === 'paid') {
     try {
-      // Registrar transação SALE no ledger imutável da carteira
+      // 1. Registrar transação SALE no ledger imutável da carteira
       const { recordWalletTransaction } = await import('./wallet-service');
       await recordWalletTransaction({
         storeId: order.storeId,
@@ -407,25 +424,27 @@ export async function updateOrderStatus(
         description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
       });
 
-      if (typeof window !== 'undefined') {
-        const studentPurchasesKey = 'educalizando_student_purchases_v2';
-        const rawPurchases = localStorage.getItem(studentPurchasesKey);
-        const purchases = rawPurchases ? JSON.parse(rawPurchases) : [];
+      // 2. Conceder Acesso Real ao Material (student_product_access) no Supabase e LocalStorage
+      const { grantStudentProductAccess } = await import('./student-service');
+      const studentEmail = (order.buyerEmail || '').toLowerCase().trim();
 
-        const exists = purchases.some((p: any) => p.order_id === order!.id);
-        if (!exists) {
-          purchases.unshift({
-            id: `pur_${Date.now()}`,
-            order_id: order.id,
-            student_id: `stu_${order.buyerEmail}`,
-            store_id: order.storeId,
-            product_id: order.items[0]?.productId || 'prod_1',
-            status: 'liberado',
-            valor_pago: order.totalAmount,
-            created_at: new Date().toISOString()
+      if (order.items && order.items.length > 0) {
+        for (const item of order.items) {
+          await grantStudentProductAccess({
+            studentId: studentEmail,
+            productId: item.productId,
+            orderId: order.id,
+            storeId: order.storeId
           });
-          localStorage.setItem(studentPurchasesKey, JSON.stringify(purchases));
         }
+      } else {
+        // Fallback caso seja pedido sem item específico na lista
+        await grantStudentProductAccess({
+          studentId: studentEmail,
+          productId: 'prod-combo-1',
+          orderId: order.id,
+          storeId: order.storeId
+        });
       }
     } catch (e) {
       console.error('[updateOrderStatus] Erro ao liberar acesso ou registrar lançamento no ledger:', e);

@@ -326,14 +326,28 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
 
   const realPurchases: Purchase[] = [];
 
+  // Tentar obter o e-mail associado ao aluno para garantir correspondência total
+  let studentEmail = studentId.includes('@') ? studentId.toLowerCase().trim() : '';
+  if (!studentEmail) {
+    const session = await getCurrentStudentSession();
+    if (session?.email) studentEmail = session.email.toLowerCase().trim();
+  }
+
   if (isRealSupabase) {
     try {
-      // Buscar registros ativos de acesso do aluno em student_product_access
-      const { data: accesses, error } = await supabase
+      // Buscar registros ativos de acesso no student_product_access por ID ou Email
+      let query = supabase
         .from('student_product_access')
         .select('*')
-        .eq('student_id', studentId)
         .eq('status', 'ACTIVE');
+
+      if (studentEmail && studentEmail !== studentId) {
+        query = query.or(`student_id.eq.${studentId},student_id.eq.${studentEmail}`);
+      } else {
+        query = query.eq('student_id', studentId);
+      }
+
+      const { data: accesses, error } = await query;
 
       if (!error && accesses && accesses.length > 0) {
         for (const acc of accesses) {
@@ -393,7 +407,11 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
   }
 
   // Buscar acessos gravados no localStorage para compras locais
-  const localAccess = getLocalStudentAccess().filter(a => a.studentId === studentId && a.status === 'ACTIVE');
+  const localAccess = getLocalStudentAccess().filter(a => 
+    (a.studentId === studentId || (studentEmail && a.studentId === studentEmail)) && 
+    a.status === 'ACTIVE'
+  );
+
   localAccess.forEach(acc => {
     const existsInReal = realPurchases.some(rp => rp.product_id === acc.productId);
     if (!existsInReal) {
