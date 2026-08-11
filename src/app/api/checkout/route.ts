@@ -5,31 +5,8 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 
 export async function POST(request: Request) {
   try {
-    // 1. REGRA FUNDAMENTAL: VALIDAÇÃO DE AUTENTICAÇÃO DO ALUNO NO SERVIDOR (Item 1, 10, 15, 16 & 17)
+    // 1. DADOS DE AUTENTICAÇÃO DO COMPRADOR (SE LOGADO) OU COMPRA DIRETA
     const authSession = await getAuthenticatedUserRole();
-
-    // Se o comprador NÃO estiver autenticado -> HTTP 401 UNAUTHORIZED (Item 16)
-    if (!authSession.isAuthenticated || !authSession.userId) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
-        },
-        { status: 401 }
-      );
-    }
-
-    // Se o comprador estiver logado como CRIADOR -> HTTP 403 FORBIDDEN (Item 11 & 17)
-    if (authSession.role === 'creator') {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Esta conta é de Criador / Professor. Para comprar materiais, utilize uma conta de aluno.' 
-        },
-        { status: 403 }
-      );
-    }
-
     const body = await request.json();
     const { 
       storeId, 
@@ -39,9 +16,12 @@ export async function POST(request: Request) {
       creditCardHolderInfo
     } = body;
 
-    // Usar Dados Invioláveis Obtidos da Sessão Autenticada do Aluno (Item 18 & 20)
-    const studentId = authSession.userId;
-    const buyerName = body.buyerName || authSession.fullName || 'Aluno Educalizando';
+    // Se estiver logado como aluno, prioriza a sessão do aluno, caso contrário usa os dados informados no formulário
+    const studentId = (authSession.isAuthenticated && authSession.role === 'student' && authSession.userId)
+      ? authSession.userId 
+      : (body.buyerEmail || '').toLowerCase().trim();
+
+    const buyerName = body.buyerName || authSession.fullName || 'Comprador Educalizando';
     const buyerEmail = (body.buyerEmail || authSession.email || '').toLowerCase().trim();
     const buyerCpf = (body.buyerCpf || authSession.cpf || '').replace(/\D/g, '');
 

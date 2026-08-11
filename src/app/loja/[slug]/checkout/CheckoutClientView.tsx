@@ -205,20 +205,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        if (res.status === 401 || (data.error && data.error.includes('ALUNO'))) {
-          setIsAuthError(true);
-          const authErrorText = data.error || 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.';
-          setErrorMessage(`${authErrorText} Redirecionando para a tela de login...`);
-          setSubmitting(false);
-
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            setTimeout(() => {
-              router.push(`/aluno/login?returnTo=${encodeURIComponent(currentPath)}&action=buy`);
-            }, 1200);
-          }
-          return;
-        }
         throw new Error(data.error || 'Não foi possível processar o pagamento.');
       }
 
@@ -285,31 +271,36 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                 </div>
               </div>
 
-              {/* Notice se não estiver logado como aluno */}
-              {isStudentLoggedIn === false && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl space-y-2">
+              {/* Status de Login ou Opções Rápidas */}
+              {isStudentLoggedIn === true ? (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>Você está conectado como Aluno. Seu acesso será liberado automaticamente após o pagamento.</span>
+                </div>
+              ) : (
+                <div className="bg-blue-50/70 border border-blue-200 text-slate-800 p-4 rounded-2xl space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <LogIn className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                      <span className="text-xs font-bold">Atenção: É necessário estar conectado em uma conta de Aluno</span>
-                    </div>
+                    <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      Possui conta de aluno ou quer se cadastrar?
+                    </span>
                   </div>
-                  <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
-                    Para comprar este material e ter seu acesso garantido na Área do Aluno, faça login ou crie sua conta grátis.
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                    Você pode entrar na sua conta ou preencher seus dados diretamente abaixo para comprar agora:
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     <Link
                       href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
-                      className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs"
+                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
                     >
                       <LogIn className="w-3.5 h-3.5" />
                       <span>Fazer Login</span>
                     </Link>
                     <Link
                       href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
-                      className="px-3.5 py-2 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-1.5 bg-white border border-blue-300 text-blue-900 hover:bg-blue-100 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
                     >
-                      <UserPlus className="w-3.5 h-3.5 text-amber-600" />
+                      <UserPlus className="w-3.5 h-3.5 text-blue-600" />
                       <span>Criar Conta de Aluno</span>
                     </Link>
                   </div>
