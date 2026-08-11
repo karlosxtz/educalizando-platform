@@ -274,11 +274,11 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        list = (data as Product[]).filter(p => 
-          p.store_id === storeId || 
-          p.store_id === cleanStoreId || 
-          p.store_id?.replace(/^store_/i, '') === cleanStoreId
-        );
+        list = (data as Product[]).filter(p => {
+          if (!p.store_id) return true;
+          const pStoreClean = p.store_id.replace(/^store_/i, '');
+          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+        });
       }
     } catch (err) {
       console.error('[getProductsByStoreId] Erro Supabase:', err);
@@ -287,9 +287,11 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
   // Sempre mesclar com produtos locais salvos no navegador do criador/loja
   if (typeof window !== 'undefined') {
-    const localProds = getLocalProducts().filter(
-      p => p.store_id === storeId || p.store_id === cleanStoreId || p.store_id?.replace(/^store_/i, '') === cleanStoreId
-    );
+    const localProds = getLocalProducts().filter(p => {
+      if (!p.store_id) return true;
+      const pStoreClean = p.store_id.replace(/^store_/i, '');
+      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+    });
     for (const lp of localProds) {
       if (!list.some(item => item.id === lp.id || item.titulo === lp.titulo)) {
         list.unshift(lp);
@@ -300,7 +302,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   return list;
 }
 
-// 5. Obter Produtos Públicos (Vitrine - status = 'publicado')
+// 5. Obter Produtos Públicos (Vitrine - status publicado/ativo)
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const isRealSupabase = Boolean(
@@ -315,15 +317,16 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('status', 'publicado')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        list = (data as Product[]).filter(p => 
-          p.store_id === storeId || 
-          p.store_id === cleanStoreId || 
-          p.store_id?.replace(/^store_/i, '') === cleanStoreId
-        );
+        list = (data as Product[]).filter(p => {
+          const isPublished = !p.status || p.status === 'publicado' || p.status === 'published' || p.status === 'ativo';
+          if (!isPublished) return false;
+          if (!p.store_id) return true;
+          const pStoreClean = p.store_id.replace(/^store_/i, '');
+          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+        });
       }
     } catch (err) {
       console.error('[getPublicProductsByStoreId] Erro Supabase:', err);
@@ -332,9 +335,13 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
   // Sempre mesclar com produtos locais salvos no navegador
   if (typeof window !== 'undefined') {
-    const localProds = getLocalProducts().filter(
-      p => (p.store_id === storeId || p.store_id === cleanStoreId || p.store_id?.replace(/^store_/i, '') === cleanStoreId) && p.status === 'publicado'
-    );
+    const localProds = getLocalProducts().filter(p => {
+      const isPublished = !p.status || p.status === 'publicado' || p.status === 'published' || p.status === 'ativo';
+      if (!isPublished) return false;
+      if (!p.store_id) return true;
+      const pStoreClean = p.store_id.replace(/^store_/i, '');
+      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+    });
     for (const lp of localProds) {
       if (!list.some(item => item.id === lp.id || item.titulo === lp.titulo)) {
         list.unshift(lp);

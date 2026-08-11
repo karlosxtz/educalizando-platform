@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
@@ -35,6 +36,23 @@ export async function POST(request: Request) {
 
     const cleanStoreId = (store_id || '').toString().replace(/^store_/i, '');
 
+    // Tentar resolver o ID real da loja no Supabase se um slug ou alias foi informado
+    let targetStoreId: string | null = isValidUUID(cleanStoreId) ? cleanStoreId : null;
+    if (!targetStoreId && cleanStoreId) {
+      try {
+        const { data: storeRow } = await supabase
+          .from('stores')
+          .select('id')
+          .or(`slug.eq.${cleanStoreId},id.eq.${cleanStoreId},creator_id.eq.${cleanStoreId}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (storeRow?.id) {
+          targetStoreId = storeRow.id;
+        }
+      } catch (e) {}
+    }
+
     const productPayload: Record<string, any> = {
       titulo: titulo.trim(),
       descricao: descricao || null,
@@ -48,12 +66,13 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString()
     };
 
-    if (isValidUUID(cleanStoreId)) {
-      productPayload.store_id = cleanStoreId;
+    if (targetStoreId) {
+      productPayload.store_id = targetStoreId;
     }
 
     console.log('[API /api/produtos POST] Criando produto no Supabase:', productPayload);
 
+    let insertedProduct = null;
     const { data, error } = await supabase
       .from('products')
       .insert([productPayload])
@@ -62,9 +81,9 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('[API /api/produtos POST] Erro Supabase:', error.message);
-      // Tentar sem restrição de FKs se houver
+      // Fallback sem FKs caso haja restrição relacional em categorias
       const fallbackPayload = {
-        store_id: isValidUUID(cleanStoreId) ? cleanStoreId : null,
+        store_id: targetStoreId,
         titulo: titulo.trim(),
         descricao: descricao || null,
         tipo,
@@ -86,10 +105,19 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: retryError.message }, { status: 500 });
       }
 
-      return NextResponse.json({ success: true, product: retryData });
+      insertedProduct = retryData;
+    } else {
+      insertedProduct = data;
     }
 
-    return NextResponse.json({ success: true, product: data });
+    // Purga imediata do cache do Next.js para as páginas afetadas
+    try {
+      revalidatePath('/loja/[slug]', 'page');
+      revalidatePath('/dashboard/produtos');
+      revalidatePath('/dashboard/conteudo');
+    } catch (e) {}
+
+    return NextResponse.json({ success: true, product: insertedProduct });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });
@@ -134,6 +162,13 @@ export async function PUT(request: Request) {
       console.error('[API /api/produtos PUT] Erro Supabase:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Purga imediata do cache do Next.js para as páginas afetadas
+    try {
+      revalidatePath('/loja/[slug]', 'page');
+      revalidatePath('/dashboard/produtos');
+      revalidatePath('/dashboard/conteudo');
+    } catch (e) {}
 
     return NextResponse.json({ success: true, product: data });
   } catch (err: any) {
