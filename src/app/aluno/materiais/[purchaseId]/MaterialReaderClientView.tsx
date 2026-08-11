@@ -344,45 +344,39 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
                 )}
               </div>
             ) : (
-              /* Document / PDF / E-book Viewer */
-              <div className="w-full h-full flex flex-col space-y-3">
-                <div className="flex-1 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative min-h-[420px] sm:min-h-[600px] flex items-center justify-center shadow-inner">
-                  {signedUrl ? (
-                    <iframe
-                      src={`${signedUrl}#toolbar=0&navpanes=0`}
-                      title={activeProduct.titulo}
-                      className="w-full h-[450px] sm:h-[600px] border-0 rounded-2xl"
-                    />
-                  ) : (
-                    <div className="text-center p-8 space-y-4 max-w-md">
-                      <FileText className="w-12 h-12 text-brand-teal mx-auto" />
-                      <div>
-                        <h3 className="text-base font-bold text-white">{activeProduct.titulo}</h3>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {activeProduct.descricao || 'Material Didático Digital em formato PDF.'}
-                        </p>
-                      </div>
-                      <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 font-medium">
-                        O visualizador protegido está carregando o documento criptografado.
-                      </div>
-                    </div>
-                  )}
+              /* Download Direto de Documentos / PDFs / E-books */
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-12 space-y-6 text-center bg-slate-900/80 rounded-2xl border border-slate-800 shadow-xl max-w-2xl mx-auto my-auto">
+                <div className="w-20 h-20 rounded-3xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto shadow-inner">
+                  <FileText className="w-10 h-10" />
                 </div>
 
-                {signedUrl && (
-                  <div className="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs">
-                    <span className="text-slate-400 font-medium hidden sm:inline">Dica: Use a visualização em tela cheia se preferir no seu celular.</span>
-                    <a
-                      href={signedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-brand-navy hover:bg-brand-navy-hover text-white font-bold flex items-center justify-center gap-1.5 min-h-[44px] transition-all"
-                    >
-                      <BookOpen className="w-4 h-4 text-brand-teal" />
-                      <span>Abrir Documento Completo</span>
-                    </a>
-                  </div>
-                )}
+                <div className="space-y-2 max-w-lg">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                    Arquivo Digital Disponível
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                    {activeProduct.titulo}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
+                    {activeProduct.descricao || 'Seu material didático digital está liberado para download direto no seu dispositivo.'}
+                  </p>
+                </div>
+
+                <div className="w-full pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a
+                    href={`/api/aluno/materiais/${activeProduct.id}/download`}
+                    download
+                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-95"
+                  >
+                    <Download className="w-5 h-5 text-blue-200" />
+                    <span>Baixar Material Didático ({activeProduct.tipo.toUpperCase()})</span>
+                  </a>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-slate-400 bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800/80">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Download nativo seguro via Educalizando Protection</span>
+                </div>
               </div>
             )}
           </div>
