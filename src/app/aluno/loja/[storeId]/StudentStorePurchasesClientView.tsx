@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon 
+  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download 
 } from 'lucide-react';
 
 import { getCurrentStudentSession, getStudentPurchasesByStoreId } from '@/lib/student-service';
@@ -212,20 +212,32 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                     </div>
                   </div>
 
-                  {/* Access Button Footer */}
+                  {/* Direct Download Action Footer */}
                   <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
                     <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
                       <ShieldCheck className="w-4 h-4" /> Acesso Liberado
                     </span>
 
-                    <Link
-                      href={`/aluno/materiais/${pur.id}`}
-                      className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 group-hover:brightness-110"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <span>Acessar Material</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {pur.product_id ? (
+                      <a
+                        href={`/api/aluno/materiais/${pur.product_id}/download`}
+                        download
+                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Baixar Material</span>
+                      </a>
+                    ) : (
+                      <Link
+                        href={`/aluno/materiais/${pur.id}`}
+                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        <Boxes className="w-3.5 h-3.5" />
+                        <span>Ver Combo</span>
+                      </Link>
+                    )}
                   </div>
                 </motion.div>
               );
