@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, QrCode, CreditCard, FileText, 
-  Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2 
+  Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
+  LogIn, UserPlus, UserCheck 
 } from 'lucide-react';
 import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
+import { getAuthenticatedUserRole } from '@/lib/student-service';
 
 interface CheckoutClientViewProps {
   store: Store;
@@ -18,6 +20,9 @@ interface CheckoutClientViewProps {
 
 export default function CheckoutClientView({ store, product, initialCouponCode }: CheckoutClientViewProps) {
   const router = useRouter();
+
+  // Student Auth Check State
+  const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
 
   // Form State
   const [buyerName, setBuyerName] = useState('');
@@ -42,8 +47,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   // Submission State
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isAuthError, setIsAuthError] = useState(false);
 
   const primaryColor = store.cor_primaria || '#093b6c';
+
+  // Verificar se o usuário é um aluno logado ao carregar o Checkout
+  useEffect(() => {
+    async function checkStudentAuth() {
+      try {
+        const session = await getAuthenticatedUserRole();
+        if (session.isAuthenticated && session.role === 'student') {
+          setIsStudentLoggedIn(true);
+          if (session.fullName && session.fullName !== 'Aluno Educalizando') setBuyerName(session.fullName);
+          if (session.email) setBuyerEmail(session.email);
+          if (session.cpf) setBuyerCpf(session.cpf);
+        } else {
+          setIsStudentLoggedIn(false);
+        }
+      } catch (err) {
+        console.error(err);
+        setIsStudentLoggedIn(false);
+      }
+    }
+    checkStudentAuth();
+  }, []);
 
   // Apply Coupon Code
   const handleApplyCoupon = async () => {
@@ -178,6 +205,20 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (res.status === 401 || (data.error && data.error.includes('ALUNO'))) {
+          setIsAuthError(true);
+          const authErrorText = data.error || 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.';
+          setErrorMessage(`${authErrorText} Redirecionando para a tela de login...`);
+          setSubmitting(false);
+
+          if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            setTimeout(() => {
+              router.push(`/aluno/login?returnTo=${encodeURIComponent(currentPath)}&action=buy`);
+            }, 1200);
+          }
+          return;
+        }
         throw new Error(data.error || 'Não foi possível processar o pagamento.');
       }
 
@@ -243,6 +284,37 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   </p>
                 </div>
               </div>
+
+              {/* Notice se não estiver logado como aluno */}
+              {isStudentLoggedIn === false && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <LogIn className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                      <span className="text-xs font-bold">Atenção: É necessário estar conectado em uma conta de Aluno</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                    Para comprar este material e ter seu acesso garantido na Área do Aluno, faça login ou crie sua conta grátis.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Link
+                      href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                      className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs"
+                    >
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>Fazer Login</span>
+                    </Link>
+                    <Link
+                      href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                      className="px-3.5 py-2 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Criar Conta de Aluno</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="space-y-1">
@@ -449,9 +521,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
               {/* Error Message Notice */}
               {errorMessage && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl text-xs font-semibold flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
-                  <span>{errorMessage}</span>
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 sm:p-5 rounded-2xl text-xs font-semibold space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
+                    <span className="leading-snug">{errorMessage}</span>
+                  </div>
+
+                  {(isAuthError || errorMessage.includes('ALUNO')) && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-rose-200/80">
+                      <Link
+                        href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span>Fazer Login de Aluno Agora</span>
+                      </Link>
+                      <Link
+                        href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
+                      >
+                        <UserPlus className="w-4 h-4 text-rose-600" />
+                        <span>Criar Conta de Aluno Grátis</span>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
