@@ -18,7 +18,7 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
     async function loadOrders() {
       setLoading(true);
       try {
-        const res = await getRecentOrdersFeed(storeId);
+        const res = await getRecentOrdersFeed(storeId || '');
         setOrders(res);
       } catch (err) {
         console.error('Erro ao carregar feed de pedidos:', err);

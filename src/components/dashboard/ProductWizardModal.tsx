@@ -101,7 +101,7 @@ export default function ProductWizardModal({
     if (!newCategoryName.trim()) return;
     setIsCategoryLoading(true);
     try {
-      const created = await createCustomCategory(storeId, newCategoryName.trim());
+      const created = await createCustomCategory(storeId || '', newCategoryName.trim());
       setCategories(prev => [...prev, created]);
       setCategoryId(created.id);
       setIsCreatingCategory(false);

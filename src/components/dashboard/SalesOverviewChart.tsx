@@ -22,7 +22,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
     async function fetchChartData() {
       setLoading(true);
       try {
-        const res = await getSalesDataByPeriod(storeId, period);
+        const res = await getSalesDataByPeriod(storeId || '', period);
         setData(res);
         if (onDataLoaded) {
           const totRev = res.reduce((acc, curr) => acc + curr.revenue, 0);

@@ -19,7 +19,7 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
     async function loadStats() {
       setLoading(true);
       try {
-        const res = await getTopProductsReport(storeId, products);
+        const res = await getTopProductsReport(storeId || '', products);
         setStats(res);
       } catch (err) {
         console.error('Erro ao carregar top produtos:', err);
