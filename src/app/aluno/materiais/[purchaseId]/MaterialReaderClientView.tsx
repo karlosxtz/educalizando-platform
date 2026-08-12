@@ -155,17 +155,21 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       return;
     }
 
-    if (grant.url) {
-      if (item.tipo === 'ARQUIVO') {
-        const separator = grant.url.includes('?') ? '&' : '?';
-        const finalUrl = `${grant.url}${separator}download=${encodeURIComponent(item.fileName || 'material_didatico.pdf')}`;
-        window.location.href = finalUrl;
-      } else {
-        window.open(grant.url, '_blank');
-      }
+    if (item.tipo === 'ARQUIVO') {
+      const prodId = item.productId || purchase.product_id || purchase.id;
+      window.location.href = `/api/aluno/materiais/${prodId}/download?contentId=${item.id}`;
       setAccessNotice({
         type: 'success',
-        message: item.tipo === 'ARQUIVO' ? 'Download iniciado com sucesso!' : 'Acesso ao link externo liberado!'
+        message: 'Download iniciado com sucesso!'
+      });
+      return;
+    }
+
+    if (grant.url) {
+      window.open(grant.url, '_blank');
+      setAccessNotice({
+        type: 'success',
+        message: 'Acesso ao link externo liberado!'
       });
     }
   };

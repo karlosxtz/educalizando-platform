@@ -114,7 +114,7 @@ export default function StudentPortalHomePage() {
         {/* Security Trust Badge */}
         <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Leitor Seguro de PDF & Player DRM Integrado</span>
+          <span>Download Direto & Acesso Protegido ao Material</span>
         </div>
       </main>
 

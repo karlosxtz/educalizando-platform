@@ -225,7 +225,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                         style={{ backgroundColor: primaryColor }}
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Baixar Material</span>
+                        <span>Acessar Material</span>
                       </a>
                     ) : (
                       <Link
@@ -234,7 +234,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                         style={{ backgroundColor: primaryColor }}
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Baixar Combo</span>
+                        <span>Acessar Material</span>
                       </Link>
                     )}
                   </div>

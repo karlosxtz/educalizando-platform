@@ -35,30 +35,49 @@ export async function GET(
       }
     }
 
-    // 3. Buscar Dados do Produto no Banco Supabase
+    // 3. Buscar Dados do Produto ou Conteúdo no Banco Supabase
     let productTitle = 'Material Didatico Educalizando';
     let fileUrl: string | null = null;
     let fileExt = 'pdf';
 
-    try {
-      const { data: prod } = await supabase
-        .from('products')
-        .select('titulo, arquivo_url, tipo')
-        .eq('id', productId)
-        .single();
+    const { searchParams } = new URL(request.url);
+    const contentId = searchParams.get('contentId');
 
-      if (prod) {
-        if (prod.titulo) productTitle = prod.titulo;
-        if (prod.arquivo_url) {
-          fileUrl = prod.arquivo_url;
-          const match = prod.arquivo_url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
-          if (match && match[1]) {
-            fileExt = match[1].toLowerCase();
-          }
+    try {
+      if (contentId) {
+        const { data: itemData } = await supabase
+          .from('digital_contents')
+          .select('titulo, url, file_name')
+          .eq('id', contentId)
+          .single();
+
+        if (itemData) {
+          if (itemData.titulo) productTitle = itemData.titulo;
+          if (itemData.url) fileUrl = itemData.url;
+        }
+      }
+
+      if (!fileUrl) {
+        const { data: prod } = await supabase
+          .from('products')
+          .select('titulo, arquivo_url, tipo')
+          .eq('id', productId)
+          .single();
+
+        if (prod) {
+          if (prod.titulo) productTitle = prod.titulo;
+          if (prod.arquivo_url) fileUrl = prod.arquivo_url;
+        }
+      }
+
+      if (fileUrl) {
+        const match = fileUrl.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+        if (match && match[1]) {
+          fileExt = match[1].toLowerCase();
         }
       }
     } catch (e) {
-      console.warn('[Download API] Aviso ao consultar dados do produto:', e);
+      console.warn('[Download API] Aviso ao consultar dados do produto/conteudo:', e);
     }
 
     const humanFilename = sanitizeFilename(productTitle, fileExt);
