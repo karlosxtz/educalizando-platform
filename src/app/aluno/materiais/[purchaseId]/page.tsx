@@ -1,15 +1,6 @@
-import MaterialReaderClientView from './MaterialReaderClientView';
+import { redirect } from 'next/navigation';
 
-interface MaterialReaderPageProps {
-  params: Promise<{
-    purchaseId: string;
-  }>;
-}
-
-export default async function MaterialReaderPage({ params }: MaterialReaderPageProps) {
-  const { purchaseId } = await params;
-
-  return (
-    <MaterialReaderClientView purchaseId={purchaseId} />
-  );
+export default async function MaterialReaderPage() {
+  console.log('### DRM COMPONENT MONTADO (DESATIVADO) ###');
+  redirect('/aluno/dashboard');
 }

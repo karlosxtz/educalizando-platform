@@ -82,6 +82,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     e.stopPropagation();
 
     const targetId = pur.product_id || pur.id;
+    console.log("### BOTÃO DOWNLOAD CLICADO ###");
     console.log("DOWNLOAD MATERIAL:", targetId);
     console.log("CURRENT URL:", window.location.href);
 
