@@ -89,9 +89,23 @@ export async function GET(
       }
 
       if (activeUrl.startsWith('http://') || activeUrl.startsWith('https://')) {
-        const separator = activeUrl.includes('?') ? '&' : '?';
-        const finalDownloadUrl = `${activeUrl}${separator}download=${encodeURIComponent(humanFilename)}`;
-        return NextResponse.redirect(finalDownloadUrl);
+        try {
+          const fileRes = await fetch(activeUrl);
+          if (fileRes.ok && fileRes.body) {
+            const contentType = fileRes.headers.get('content-type') || 'application/octet-stream';
+            
+            return new Response(fileRes.body, {
+              headers: {
+                'Content-Type': contentType,
+                'Content-Disposition': `attachment; filename="${humanFilename}"; filename*=UTF-8''${encodeURIComponent(humanFilename)}`,
+                'Cache-Control': 'no-store, private',
+                'X-Content-Type-Options': 'nosniff'
+              }
+            });
+          }
+        } catch (errFetch) {
+          console.error('[Download API] Erro ao fazer stream do arquivo:', errFetch);
+        }
       }
     }
 
