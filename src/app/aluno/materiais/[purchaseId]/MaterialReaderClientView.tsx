@@ -176,12 +176,9 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
 
     if (grant.url) {
       if (item.tipo === 'ARQUIVO') {
-        const link = document.createElement('a');
-        link.href = grant.url;
-        link.download = item.fileName || 'material_didatico';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const separator = grant.url.includes('?') ? '&' : '?';
+        const finalUrl = `${grant.url}${separator}download=${encodeURIComponent(item.fileName || 'material_didatico.pdf')}`;
+        window.location.href = finalUrl;
       } else {
         window.open(grant.url, '_blank');
       }
