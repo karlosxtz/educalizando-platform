@@ -71,13 +71,13 @@ export async function GET(
       if (!activeUrl.startsWith('http://') && !activeUrl.startsWith('https://')) {
         try {
           const { data: signedData } = await supabase.storage
-            .from('infoproducts')
+            .from('product-files')
             .createSignedUrl(activeUrl, 3600);
           if (signedData?.signedUrl) {
             activeUrl = signedData.signedUrl;
           } else {
             const { data: pubData } = supabase.storage
-              .from('infoproducts')
+              .from('product-files')
               .getPublicUrl(activeUrl);
             if (pubData?.publicUrl) {
               activeUrl = pubData.publicUrl;

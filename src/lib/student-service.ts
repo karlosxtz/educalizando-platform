@@ -546,7 +546,7 @@ export async function generateSignedFileUrl(pathOrUrl: string): Promise<string> 
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase.storage.from('infoproducts').createSignedUrl(pathOrUrl, 3600);
+      const { data, error } = await supabase.storage.from('product-files').createSignedUrl(pathOrUrl, 3600);
       if (!error && data?.signedUrl) return data.signedUrl;
     } catch (e) {
       console.error('[generateSignedFileUrl] Erro Supabase Storage:', e);
