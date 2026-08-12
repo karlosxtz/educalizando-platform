@@ -175,7 +175,16 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
     }
 
     if (grant.url) {
-      window.open(grant.url, '_blank');
+      if (item.tipo === 'ARQUIVO') {
+        const link = document.createElement('a');
+        link.href = grant.url;
+        link.download = item.fileName || 'material_didatico';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        window.open(grant.url, '_blank');
+      }
       setAccessNotice({
         type: 'success',
         message: item.tipo === 'ARQUIVO' ? 'Download iniciado com sucesso!' : 'Acesso ao link externo liberado!'
@@ -226,9 +235,10 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
             </h1>
           </div>
 
+          {/* Reader Top Bar Badge */}
           <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1.5 rounded-xl">
             <ShieldCheck className="w-4 h-4" />
-            <span>Leitor Seguro DRM</span>
+            <span>Download Seguro</span>
           </div>
 
         </div>
@@ -246,7 +256,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
               </span>
               <h3 className="text-sm font-black text-white">{purchase.kit?.titulo}</h3>
               <p className="text-xs text-slate-400 font-medium">
-                Selecione um arquivo abaixo para visualizar:
+                Selecione um item abaixo para baixar:
               </p>
             </div>
 
@@ -284,14 +294,14 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
           </aside>
         )}
 
-        {/* Main Content Reader Container */}
+        {/* Main Content Download Container */}
         <section className="flex-1 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl min-h-[600px]">
           
-          {/* Reader Sub-header info */}
+          {/* Sub-header info */}
           <div className="p-4 sm:p-5 bg-slate-850 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                Material Ativo:
+                Material Selecionado:
               </span>
               <h2 className="text-base font-black text-white flex items-center gap-2">
                 {getTipoIcon(activeProduct?.tipo)}
@@ -306,59 +316,29 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
             </div>
           </div>
 
-          {/* Reader Body Viewer */}
-          <div className="flex-1 p-2 sm:p-4 bg-slate-950 flex flex-col justify-center items-center relative overflow-hidden">
+          {/* Body: Direct File Download Card Only (No Platform Viewer) */}
+          <div className="flex-1 p-6 sm:p-12 bg-slate-950 flex flex-col justify-center items-center relative overflow-hidden">
             {!activeProduct ? (
               <div className="text-center p-8 space-y-2 text-slate-400">
                 <AlertCircle className="w-10 h-10 text-slate-500 mx-auto" />
                 <p>Nenhum produto selecionado.</p>
               </div>
-            ) : activeProduct.tipo === 'video' || activeProduct.tipo === 'curso' ? (
-              /* Video Content Viewer */
-              <div className="w-full h-full max-w-4xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800 relative flex items-center justify-center">
-                {signedUrl?.includes('youtube.com') || signedUrl?.includes('youtu.be') || signedUrl?.includes('vimeo.com') ? (
-                  <iframe
-                    src={signedUrl}
-                    title={activeProduct.titulo}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : signedUrl ? (
-                  <video
-                    src={signedUrl}
-                    controls
-                    controlsList="nodownload"
-                    className="w-full h-full object-contain"
-                  >
-                    Seu navegador não suporta a reprodução direta deste vídeo.
-                  </video>
-                ) : (
-                  <div className="text-center space-y-3 p-8">
-                    <Video className="w-12 h-12 text-blue-500 mx-auto animate-pulse" />
-                    <h3 className="text-base font-bold text-white">{activeProduct.titulo}</h3>
-                    <p className="text-xs text-slate-400 max-w-sm">
-                      O arquivo de vídeo está sendo processado pelo servidor da plataforma.
-                    </p>
-                  </div>
-                )}
-              </div>
             ) : (
-              /* Download Direto de Documentos / PDFs / E-books */
-              <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-12 space-y-6 text-center bg-slate-900/80 rounded-2xl border border-slate-800 shadow-xl max-w-2xl mx-auto my-auto">
+              /* Download Direto de Todos os Materiais */
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-12 space-y-6 text-center bg-slate-900/80 rounded-3xl border border-slate-800 shadow-2xl max-w-2xl mx-auto my-auto">
                 <div className="w-20 h-20 rounded-3xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto shadow-inner">
-                  <FileText className="w-10 h-10" />
+                  {getTipoIcon(activeProduct.tipo)}
                 </div>
 
                 <div className="space-y-2 max-w-lg">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                    Arquivo Digital Disponível
+                    Material Liberado para Download
                   </span>
                   <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
                     {activeProduct.titulo}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
-                    {activeProduct.descricao || 'Seu material didático digital está liberado para download direto no seu dispositivo.'}
+                    {activeProduct.descricao || 'Seu material didático digital está pronto para ser baixado diretamente no seu dispositivo.'}
                   </p>
                 </div>
 
@@ -375,7 +355,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
 
                 <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-slate-400 bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800/80">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Download nativo seguro via Educalizando Protection</span>
+                  <span>Download direto e seguro no seu dispositivo</span>
                 </div>
               </div>
             )}
