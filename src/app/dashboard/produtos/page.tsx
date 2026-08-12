@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +24,7 @@ import CategoryManagerModal from '@/components/dashboard/CategoryManagerModal';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
 export default function ProductsManagementPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -87,6 +89,7 @@ export default function ProductsManagementPage() {
       await deleteProduct(deletingProduct.id);
       setProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
       setDeletingProduct(null);
+      router.refresh();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao excluir produto no Supabase.');
     } finally {
@@ -99,6 +102,7 @@ export default function ProductsManagementPage() {
     try {
       const updated = await updateProduct(prod.id, { status: newStatus });
       setProducts(prev => prev.map(p => (p.id === prod.id ? updated : p)));
+      router.refresh();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao alterar status do produto.');
     }
@@ -146,6 +150,7 @@ export default function ProductsManagementPage() {
       });
       setProducts(prev => [created, ...prev]);
     }
+    router.refresh();
   };
 
   const filteredProducts = products.filter(p => {

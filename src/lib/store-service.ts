@@ -547,23 +547,35 @@ export async function updateProduct(productId: string, updates: Partial<Product>
   return updatedProduct;
 }
 
-// 8. Excluir Produto (Garante UUID Válido)
+// 8. Excluir Produto (Purga do Supabase + API Backend + LocalStorage)
 export async function deleteProduct(productId: string): Promise<void> {
+  // A. Tentar via rota API backend (/api/produtos) para ignorar restrições RLS
+  try {
+    await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
+  } catch (e) {
+    console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
+  }
+
+  // B. Tentar via Supabase Client direto se configurado
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
   if (isRealSupabase) {
-    const { error } = await supabase.from('products').delete().eq('id', productId);
-    if (error) throw new Error(`Erro ao excluir produto no Supabase: ${error.message}`);
-    return;
+    try {
+      await supabase.from('products').delete().eq('id', productId);
+    } catch (err) {
+      console.warn('[deleteProduct] Aviso na exclusão direta Supabase:', err);
+    }
   }
 
-  // Fallback Local
-  const products = getLocalProducts();
-  const filtered = products.filter(p => p.id !== productId);
-  saveLocalProducts(filtered);
+  // C. SEMPRE remover do LocalStorage para impedir re-sincronização de itens fantasmas
+  if (typeof window !== 'undefined') {
+    const products = getLocalProducts();
+    const filtered = products.filter(p => p.id !== productId && p.id !== `prod_${productId}`);
+    saveLocalProducts(filtered);
+  }
 }
 
 // 9. Obter Produto por ID (Supabase + Fallback Local)

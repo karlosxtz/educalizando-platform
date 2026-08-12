@@ -165,6 +165,7 @@ export async function PUT(request: Request) {
 
     // Purga imediata do cache do Next.js para as páginas afetadas
     try {
+      revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard/produtos');
       revalidatePath('/dashboard/conteudo');
@@ -174,5 +175,39 @@ export async function PUT(request: Request) {
   } catch (err: any) {
     console.error('[API /api/produtos PUT] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao atualizar produto.' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID do produto é obrigatório para exclusão.' }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[API /api/produtos DELETE] Erro Supabase:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Purga imediata do cache para garantir remoção instantânea na vitrine e dashboard
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/loja/[slug]', 'page');
+      revalidatePath('/dashboard/produtos');
+      revalidatePath('/dashboard/conteudo');
+    } catch (e) {}
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('[API /api/produtos DELETE] Exceção:', err);
+    return NextResponse.json({ error: err.message || 'Erro interno ao excluir produto.' }, { status: 500 });
   }
 }
