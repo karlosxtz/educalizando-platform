@@ -133,11 +133,53 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
   const handleAccessContent = async (item: ContentItem) => {
     setAccessNotice(null);
     if (!studentSession || !purchase) return;
-    
-    // For main product files added virtually, direct download API
-    if (item.orderIndex === -1 && item.productId) {
-        window.location.href = `/api/aluno/materiais/${item.productId}/download`;
-        return;
+
+    if (item.tipo === 'ARQUIVO') {
+      const prodId = item.productId || purchase.product_id || purchase.id;
+      const downloadUrl = item.orderIndex === -1 
+        ? `/api/aluno/materiais/${prodId}/download`
+        : `/api/aluno/materiais/${prodId}/download?contentId=${item.id}`;
+
+      console.log("DOWNLOAD MATERIAL:", prodId);
+      console.log("CURRENT URL:", window.location.href);
+
+      try {
+        const res = await fetch(downloadUrl);
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+
+        const disposition = res.headers.get('content-disposition');
+        let filename = `${(item.titulo || 'Material_Didatico').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^";]+)"?/);
+          if (match && match[1]) {
+            filename = decodeURIComponent(match[1]);
+          }
+        }
+
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+
+        setAccessNotice({
+          type: 'success',
+          message: 'Download iniciado com sucesso!'
+        });
+      } catch (err) {
+        console.error('[Download Error]:', err);
+        setAccessNotice({
+          type: 'error',
+          message: 'Erro ao realizar download do arquivo.'
+        });
+      }
+      return;
     }
 
     const grant = await authorizeStudentContentAccess({
@@ -151,16 +193,6 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       setAccessNotice({
         type: 'error',
         message: grant.errorMessage || 'Acesso não autorizado ao conteúdo.'
-      });
-      return;
-    }
-
-    if (item.tipo === 'ARQUIVO') {
-      const prodId = item.productId || purchase.product_id || purchase.id;
-      window.location.href = `/api/aluno/materiais/${prodId}/download?contentId=${item.id}`;
-      setAccessNotice({
-        type: 'success',
-        message: 'Download iniciado com sucesso!'
       });
       return;
     }

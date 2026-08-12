@@ -47,6 +47,64 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     loadData();
   }, [storeId, router]);
 
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const downloadSingleProduct = async (productId: string, title: string) => {
+    const res = await fetch(`/api/aluno/materiais/${productId}/download`);
+    if (!res.ok) {
+      throw new Error(`HTTP Error ${res.status}`);
+    }
+
+    const disposition = res.headers.get('content-disposition');
+    let filename = `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    if (disposition && disposition.includes('filename=')) {
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+    }
+
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  };
+
+  const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const targetId = pur.product_id || pur.id;
+    console.log("DOWNLOAD MATERIAL:", targetId);
+    console.log("CURRENT URL:", window.location.href);
+
+    setDownloadingId(pur.id);
+
+    try {
+      if (pur.product_id) {
+        await downloadSingleProduct(pur.product_id, pur.product?.titulo || 'Material_Didatico');
+      } else if (pur.kit?.products && pur.kit.products.length > 0) {
+        for (const prod of pur.kit.products) {
+          await downloadSingleProduct(prod.id, prod.titulo || 'Material_Kit');
+        }
+      } else {
+        await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico');
+      }
+    } catch (err) {
+      console.error('[Download Error]:', err);
+      alert('Não foi possível realizar o download. Tente novamente.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const getTipoIcon = (tipo?: ProductType) => {
     switch (tipo) {
       case 'pdf': return <FileText className="w-3.5 h-3.5 text-sky-600" />;
@@ -218,25 +276,20 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                       <ShieldCheck className="w-4 h-4" /> Acesso Liberado
                     </span>
 
-                    {pur.product_id ? (
-                      <a
-                        href={`/api/aluno/materiais/${pur.product_id}/download`}
-                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer"
-                        style={{ backgroundColor: primaryColor }}
-                      >
+                    <button
+                      type="button"
+                      onClick={(e) => handleDownloadPurchase(pur, e)}
+                      disabled={downloadingId === pur.id}
+                      className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {downloadingId === pur.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
                         <Download className="w-3.5 h-3.5" />
-                        <span>Acessar Material</span>
-                      </a>
-                    ) : (
-                      <Link
-                        href={`/aluno/materiais/${pur.id}`}
-                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Acessar Material</span>
-                      </Link>
-                    )}
+                      )}
+                      <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
+                    </button>
                   </div>
                 </motion.div>
               );
