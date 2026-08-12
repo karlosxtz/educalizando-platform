@@ -58,6 +58,17 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     }
   };
 
+  const handleDirectDownload = (e: React.MouseEvent<HTMLAnchorElement>, productId: string, title?: string) => {
+    e.preventDefault();
+    const downloadUrl = `/api/aluno/materiais/${productId}/download`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${(title || 'material_didatico').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -222,7 +233,8 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                       <a
                         href={`/api/aluno/materiais/${pur.product_id}/download`}
                         download
-                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
+                        onClick={(e) => handleDirectDownload(e, pur.product_id!, itemTitle)}
+                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer"
                         style={{ backgroundColor: primaryColor }}
                       >
                         <Download className="w-3.5 h-3.5" />
@@ -234,8 +246,8 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                         className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
                         style={{ backgroundColor: primaryColor }}
                       >
-                        <Boxes className="w-3.5 h-3.5" />
-                        <span>Ver Combo</span>
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Baixar Combo</span>
                       </Link>
                     )}
                   </div>

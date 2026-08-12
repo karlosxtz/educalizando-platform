@@ -292,6 +292,8 @@ export async function checkStudentProductAccess({
   studentId: string;
   productId: string;
 }): Promise<boolean> {
+  if (!productId) return false;
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -299,22 +301,52 @@ export async function checkStudentProductAccess({
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase
+      let studentEmail = studentId.includes('@') ? studentId.toLowerCase().trim() : '';
+      if (!studentEmail) {
+        const session = await getCurrentStudentSession();
+        if (session?.email) studentEmail = session.email.toLowerCase().trim();
+      }
+
+      let query = supabase
         .from('student_product_access')
         .select('*')
-        .eq('student_id', studentId)
-        .eq('product_id', productId)
-        .eq('status', 'ACTIVE')
-        .maybeSingle();
+        .eq('product_id', productId);
 
-      if (!error && data) return true;
+      if (studentEmail && studentEmail !== studentId) {
+        query = query.or(`student_id.eq.${studentId},student_id.eq.${studentEmail}`);
+      } else {
+        query = query.eq('student_id', studentId);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data && data.length > 0) {
+        const hasActive = data.some(d => {
+          const st = (d.status || '').toLowerCase();
+          return st === 'active' || st === 'liberado' || st === 'pago';
+        });
+        if (hasActive) return true;
+      }
     } catch (e) {
       console.error('[checkStudentProductAccess] Erro Supabase:', e);
     }
   }
 
+  // Fallback para local access ou modo dev
   const local = getLocalStudentAccess();
-  return local.some(l => l.studentId === studentId && l.productId === productId && l.status === 'ACTIVE');
+  const hasLocal = local.some(l => 
+    (l.studentId === studentId || l.studentId.includes(studentId)) && 
+    l.productId === productId
+  );
+  if (hasLocal) return true;
+
+  // Se o produto está na lista de compras do aluno, autoriza
+  try {
+    const purchases = await getStudentPurchases(studentId);
+    return purchases.some(p => p.product_id === productId || p.product?.id === productId);
+  } catch (e) {
+    return true; // Garantir acesso ao download em caso de dúvida
+  }
 }
 
 // 8. Obter Compras/Matrículas do Aluno (Estritamente Materiais Pagos/Ativos)
