@@ -18,7 +18,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
-  const product = await getProductById(id);
+  let product = await getProductById(id);
+  if (!product) {
+    const { getPublicProductsByStoreId } = await import('@/lib/store-service');
+    const storeProducts = await getPublicProductsByStoreId(store.id);
+    const cleanId = id.replace(/^prod_/i, '');
+    product = storeProducts.find(p => p.id === id || p.id === cleanId || p.id === `prod_${cleanId}`) || null;
+  }
+
   if (!product) {
     notFound();
   }

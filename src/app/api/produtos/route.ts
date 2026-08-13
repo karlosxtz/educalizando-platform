@@ -53,6 +53,36 @@ export async function POST(request: Request) {
       } catch (e) {}
     }
 
+    // Se ainda não encontrou targetStoreId, tenta buscar a loja do criador autenticado
+    if (!targetStoreId) {
+      try {
+        const { data: authUser } = await supabase.auth.getUser();
+        if (authUser?.user) {
+          const { data: userStore } = await supabase
+            .from('stores')
+            .select('id')
+            .or(`creator_id.eq.${authUser.user.id},creator_id.eq.${authUser.user.email}`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (userStore?.id) targetStoreId = userStore.id;
+        }
+      } catch (e) {}
+    }
+
+    // Se ainda assim não houver loja, pegar a primeira loja cadastrada
+    if (!targetStoreId) {
+      try {
+        const { data: anyStore } = await supabase
+          .from('stores')
+          .select('id')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (anyStore?.id) targetStoreId = anyStore.id;
+      } catch (e) {}
+    }
+
     const productPayload: Record<string, any> = {
       titulo: titulo.trim(),
       descricao: descricao || null,
@@ -112,6 +142,7 @@ export async function POST(request: Request) {
 
     // Purga imediata do cache do Next.js para as páginas afetadas
     try {
+      revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard/produtos');
       revalidatePath('/dashboard/conteudo');
@@ -186,6 +217,17 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json({ error: 'ID do produto é obrigatório para exclusão.' }, { status: 400 });
     }
+
+    // Excluir registros dependentes relacionais antes de deletar o produto principal
+    try {
+      await supabase.from('digital_contents').delete().eq('product_id', id);
+    } catch (e) {}
+    try {
+      await supabase.from('reviews').delete().eq('product_id', id);
+    } catch (e) {}
+    try {
+      await supabase.from('kit_products').delete().eq('product_id', id);
+    } catch (e) {}
 
     const { error } = await supabase
       .from('products')

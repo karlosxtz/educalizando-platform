@@ -273,7 +273,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
-          if (!p.store_id) return true;
+          if (!p.store_id) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
         });
@@ -286,7 +286,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   // Fallback para ambiente local/offline apenas se Supabase não estiver ativo
   if (typeof window !== 'undefined') {
     return getLocalProducts().filter(p => {
-      if (!p.store_id) return true;
+      if (!p.store_id) return false;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
       return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
     });
@@ -315,7 +315,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           const statusStr = (p.status as string) || '';
           const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
           if (!isPublished) return false;
-          if (!p.store_id) return true;
+          if (!p.store_id) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
         });
@@ -331,7 +331,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const statusStr = (p.status as string) || '';
       const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
-      if (!p.store_id) return true;
+      if (!p.store_id) return false;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
       return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
     });
@@ -535,9 +535,14 @@ export async function updateProduct(productId: string, updates: Partial<Product>
 
 // 8. Excluir Produto (Purga do Supabase + API Backend + LocalStorage)
 export async function deleteProduct(productId: string): Promise<void> {
+  const cleanId = productId.replace(/^prod_/i, '');
+
   // A. Tentar via rota API backend (/api/produtos) para ignorar restrições RLS
   try {
-    await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.warn('[deleteProduct] Rota API DELETE retornou status:', res.status);
+    }
   } catch (e) {
     console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
   }
@@ -550,7 +555,18 @@ export async function deleteProduct(productId: string): Promise<void> {
 
   if (isRealSupabase) {
     try {
+      // Limpar registros relacionais associados primeiro para não violar FK
+      await supabase.from('digital_contents').delete().eq('product_id', productId);
+      await supabase.from('reviews').delete().eq('product_id', productId);
+      await supabase.from('kit_products').delete().eq('product_id', productId);
       await supabase.from('products').delete().eq('id', productId);
+
+      if (cleanId !== productId && isValidUUID(cleanId)) {
+        await supabase.from('digital_contents').delete().eq('product_id', cleanId);
+        await supabase.from('reviews').delete().eq('product_id', cleanId);
+        await supabase.from('kit_products').delete().eq('product_id', cleanId);
+        await supabase.from('products').delete().eq('id', cleanId);
+      }
     } catch (err) {
       console.warn('[deleteProduct] Aviso na exclusão direta Supabase:', err);
     }
@@ -559,24 +575,30 @@ export async function deleteProduct(productId: string): Promise<void> {
   // C. SEMPRE remover do LocalStorage para impedir re-sincronização de itens fantasmas
   if (typeof window !== 'undefined') {
     const products = getLocalProducts();
-    const filtered = products.filter(p => p.id !== productId && p.id !== `prod_${productId}`);
+    const filtered = products.filter(p => p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}`);
     saveLocalProducts(filtered);
   }
 }
 
 // 9. Obter Produto por ID (Supabase + Fallback Local)
 export async function getProductById(productId: string): Promise<Product | null> {
+  if (!productId) return null;
+
+  const cleanId = productId.replace(/^prod_/i, '');
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  if (isRealSupabase) {
+  const isUUID = isValidUUID(productId) || isValidUUID(cleanId);
+
+  if (isRealSupabase && isUUID) {
     try {
+      const targetId = isValidUUID(productId) ? productId : cleanId;
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('id', productId)
+        .eq('id', targetId)
         .maybeSingle();
 
       if (!error && data) {
@@ -589,5 +611,5 @@ export async function getProductById(productId: string): Promise<Product | null>
 
   // Fallback Local
   const products = getLocalProducts();
-  return products.find(p => p.id === productId) || null;
+  return products.find(p => p.id === productId || p.id === cleanId || p.id === `prod_${productId}`) || null;
 }

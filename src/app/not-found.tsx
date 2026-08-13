@@ -33,10 +33,10 @@ export default function NotFound() {
               ERRO 404
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Loja Não Encontrada
+              Página ou Material Não Encontrado
             </h1>
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              A loja ou página que você está tentando acessar não existe, mudou de endereço ou foi desativada pelo criador.
+              O material, loja ou página que você está tentando acessar não existe, mudou de endereço ou foi alterado.
             </p>
           </div>
 
