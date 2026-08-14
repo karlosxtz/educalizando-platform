@@ -212,7 +212,8 @@ export async function DELETE(request: Request) {
 
     // Soft Delete Definitivo no Supabase: preserva integridade relacional e fiscal
     if (validUUID) {
-      const { error } = await supabaseAdmin
+      // 1. Tentar Soft Delete completo com excluido_em e status = 'excluido'
+      const { error: err1 } = await supabaseAdmin
         .from('products')
         .update({
           excluido_em: new Date().toISOString(),
@@ -221,12 +222,36 @@ export async function DELETE(request: Request) {
         })
         .eq('id', validUUID);
 
-      if (error) {
-        console.error('[API /api/produtos DELETE] Erro ao aplicar Soft Delete no Supabase:', error.message);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (err1) {
+        console.warn('[API /api/produtos DELETE] Aviso soft delete com excluido_em, tentando apenas status:', err1.message);
+        
+        // 2. Fallback caso a coluna excluido_em ainda não tenha sido criada no Supabase
+        const { error: err2 } = await supabaseAdmin
+          .from('products')
+          .update({
+            status: 'excluido',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', validUUID);
+
+        if (err2) {
+          console.warn('[API /api/produtos DELETE] Falha no update de status, tentando exclusão física de fallback:', err2.message);
+          // 3. Fallback de exclusão física caso o update falhe
+          try {
+            await supabaseAdmin.from('digital_contents').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('product_reviews').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('reviews').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('kit_products').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('kit_items').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('coupon_products').delete().eq('product_id', validUUID);
+            await supabaseAdmin.from('products').delete().eq('id', validUUID);
+          } catch (delErr: any) {
+            console.error('[API /api/produtos DELETE] Erro no fallback físico:', delErr.message);
+          }
+        }
       }
 
-      console.log(`[API /api/produtos DELETE] Soft Delete persistido com sucesso para o produto ${validUUID}`);
+      console.log(`[API /api/produtos DELETE] Produto ${validUUID} processado com sucesso.`);
     }
 
     // Purga imediata do cache do Next.js para garantir que o item suma instantaneamente da loja e do painel

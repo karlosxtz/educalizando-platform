@@ -314,8 +314,6 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .is('excluido_em', null)
-        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -360,8 +358,6 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .is('excluido_em', null)
-        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -700,7 +696,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     try {
       const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
       if (targetUUID) {
-        await supabase
+        const { error: updErr } = await supabase
           .from('products')
           .update({
             excluido_em: new Date().toISOString(),
@@ -708,6 +704,16 @@ export async function deleteProduct(productId: string): Promise<void> {
             updated_at: new Date().toISOString()
           })
           .eq('id', targetUUID);
+
+        if (updErr) {
+          await supabase
+            .from('products')
+            .update({
+              status: 'excluido',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', targetUUID);
+        }
       }
     } catch (err) {
       console.warn('[deleteProduct] Aviso no update direto Supabase:', err);

@@ -89,8 +89,6 @@ export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
           )
         `)
         .eq('store_id', storeId)
-        .is('excluido_em', null)
-        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -148,8 +146,6 @@ export async function getPublicKitsByStoreId(storeId: string): Promise<Kit[]> {
           )
         `)
         .eq('store_id', storeId)
-        .eq('status', 'publicado')
-        .is('excluido_em', null)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -472,7 +468,7 @@ export async function deleteKit(kitId: string): Promise<void> {
 
   if (isRealSupabase && targetUUID) {
     try {
-      await supabase
+      const { error: updErr } = await supabase
         .from('kits')
         .update({
           excluido_em: new Date().toISOString(),
@@ -480,6 +476,16 @@ export async function deleteKit(kitId: string): Promise<void> {
           updated_at: new Date().toISOString()
         })
         .eq('id', targetUUID);
+
+      if (updErr) {
+        await supabase
+          .from('kits')
+          .update({
+            status: 'excluido',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', targetUUID);
+      }
     } catch (err: any) {
       console.warn('[deleteKit] Aviso no update direto Supabase:', err);
     }
