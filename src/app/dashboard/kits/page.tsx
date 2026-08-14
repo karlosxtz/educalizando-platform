@@ -342,24 +342,36 @@ export default function KitsManagementPage() {
                 </p>
               </div>
 
+              {actionError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 text-left font-medium">
+                  <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <span className="leading-snug">{actionError}</span>
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setDeletingKit(null)}
+                  onClick={() => {
+                    setDeletingKit(null);
+                    setActionError(null);
+                  }}
                   disabled={isDeletingLoading}
                   className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
                 >
-                  Cancelar
+                  {actionError ? 'Fechar' : 'Cancelar'}
                 </button>
-                <button
-                  type="button"
-                  onClick={confirmDeleteKit}
-                  disabled={isDeletingLoading}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
-                >
-                  {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  <span>Excluir Kit</span>
-                </button>
+                {!actionError && (
+                  <button
+                    type="button"
+                    onClick={confirmDeleteKit}
+                    disabled={isDeletingLoading}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                  >
+                    {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    <span>Excluir Kit</span>
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

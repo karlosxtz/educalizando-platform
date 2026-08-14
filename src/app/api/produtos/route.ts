@@ -218,33 +218,101 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID do produto é obrigatório para exclusão.' }, { status: 400 });
     }
 
-    // Excluir registros dependentes relacionais antes de deletar o produto principal
+    const cleanId = id.replace(/^prod_/i, '');
+
+    // 1. REGRA ESTRITA: Verificar se o produto possui vendas antes de permitir exclusão
     try {
-      await supabase.from('digital_contents').delete().eq('product_id', id);
+      // A. Verificar pedidos em order_items
+      const { data: orderItem } = await supabase
+        .from('order_items')
+        .select('id')
+        .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (orderItem?.id) {
+        return NextResponse.json({ 
+          error: 'Não é possível excluir este material didático pois ele possui vendas realizadas. Para ocultá-lo da loja sem afetar o acesso dos alunos que já compraram, altere o status do material para "Rascunho".',
+          hasSales: true
+        }, { status: 400 });
+      }
+
+      // B. Verificar acessos de alunos já concedidos
+      const { data: accessItem } = await supabase
+        .from('student_product_access')
+        .select('id')
+        .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (accessItem?.id) {
+        return NextResponse.json({ 
+          error: 'Não é possível excluir este material didático pois alunos já possuem acesso adquirido na área do aluno. Altere o status para "Rascunho" para removê-lo da vitrine.',
+          hasSales: true
+        }, { status: 400 });
+      }
+
+      // C. Verificar compras na tabela purchases
+      const { data: purchaseItem } = await supabase
+        .from('purchases')
+        .select('id')
+        .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (purchaseItem?.id) {
+        return NextResponse.json({ 
+          error: 'Não é possível excluir este material didático pois constam vendas no histórico. Altere o status para "Rascunho" para desativá-lo da loja.',
+          hasSales: true
+        }, { status: 400 });
+      }
+    } catch (checkErr) {
+      console.warn('[API /api/produtos DELETE] Aviso ao verificar histórico de vendas:', checkErr);
+    }
+
+    // 2. Excluir registros dependentes relacionais não financeiros (conteúdos digitais, avaliações, kits, cupons)
+    try {
+      await supabase.from('digital_contents').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('reviews').delete().eq('product_id', id);
+      await supabase.from('reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('kit_products').delete().eq('product_id', id);
+      await supabase.from('product_reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+    } catch (e) {}
+    try {
+      await supabase.from('kit_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+    } catch (e) {}
+    try {
+      await supabase.from('kit_items').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+    } catch (e) {}
+    try {
+      await supabase.from('coupon_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
 
+    // 3. Excluir o produto da tabela products
     const { error } = await supabase
       .from('products')
       .delete()
       .eq('id', id);
+
+    if (cleanId !== id && isValidUUID(cleanId)) {
+      await supabase.from('products').delete().eq('id', cleanId);
+    }
 
     if (error) {
       console.error('[API /api/produtos DELETE] Erro Supabase:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Purga imediata do cache para garantir remoção instantânea na vitrine e dashboard
+    // Purga imediata do cache do Next.js para garantir que o item suma instantaneamente da loja e do painel
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
-      revalidatePath('/dashboard/produtos');
-      revalidatePath('/dashboard/conteudo');
+      revalidatePath('/dashboard', 'page');
+      revalidatePath('/dashboard/produtos', 'page');
+      revalidatePath('/dashboard/conteudo', 'page');
+      revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
 
     return NextResponse.json({ success: true });

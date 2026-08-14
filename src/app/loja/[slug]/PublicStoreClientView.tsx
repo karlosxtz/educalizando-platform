@@ -64,8 +64,10 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     ]);
     setCategories(cats);
     setEducationLevels(edLevels);
-    setKits(storeKits);
-    if (storeProducts && storeProducts.length > 0) {
+    if (storeKits) {
+      setKits(storeKits);
+    }
+    if (storeProducts) {
       setProducts(storeProducts);
     }
   };

@@ -401,28 +401,40 @@ export default function ProductsManagementPage() {
               <div className="text-center space-y-2">
                 <h3 className="text-xl font-bold text-slate-900">Excluir Produto Didático?</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Tem certeza que deseja remover <strong>"{deletingProduct.titulo}"</strong>? Esta ação é irreversível.
+                  Tem certeza que deseja remover <strong>"{deletingProduct.titulo}"</strong>? Esta ação é definitiva para materiais sem vendas.
                 </p>
               </div>
+
+              {actionError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 text-left font-medium">
+                  <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <span className="leading-snug">{actionError}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setDeletingProduct(null)}
+                  onClick={() => {
+                    setDeletingProduct(null);
+                    setActionError(null);
+                  }}
                   disabled={isDeletingLoading}
                   className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
                 >
-                  Cancelar
+                  {actionError ? 'Fechar' : 'Cancelar'}
                 </button>
-                <button
-                  type="button"
-                  onClick={confirmDeleteProduct}
-                  disabled={isDeletingLoading}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
-                >
-                  {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  <span>Excluir Produto</span>
-                </button>
+                {!actionError && (
+                  <button
+                    type="button"
+                    onClick={confirmDeleteProduct}
+                    disabled={isDeletingLoading}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                  >
+                    {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    <span>Excluir Produto</span>
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

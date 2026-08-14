@@ -2,6 +2,12 @@ import { supabase } from './supabase';
 import { Kit, KitItem, Product } from './types';
 import { getProductById } from './store-service';
 
+const isValidUUID = (str: string | null | undefined): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 // Mock/Default fallback helpers for offline dev environment
 function getLocalKits(): Kit[] {
   if (typeof window === 'undefined') return [];
@@ -300,21 +306,104 @@ export async function updateKit(
   return updatedKitObj;
 }
 
-// 6. Excluir Kit
-export async function deleteKit(kitId: string): Promise<void> {
+// 6. Verificar se o Kit Possui Vendas
+export async function checkKitHasSales(kitId: string): Promise<boolean> {
+  if (!kitId) return false;
+  const cleanId = kitId.replace(/^kit_/i, '');
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
   if (isRealSupabase) {
-    const { error } = await supabase.from('kits').delete().eq('id', kitId);
-    if (error) throw new Error(`Erro ao excluir kit: ${error.message}`);
-    return;
+    try {
+      const { data: orderItem } = await supabase
+        .from('order_items')
+        .select('id')
+        .or(`product_id.eq.${kitId},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (orderItem?.id) return true;
+
+      const { data: accessItem } = await supabase
+        .from('student_product_access')
+        .select('id')
+        .or(`product_id.eq.${kitId},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (accessItem?.id) return true;
+
+      const { data: purchaseItem } = await supabase
+        .from('purchases')
+        .select('id')
+        .or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (purchaseItem?.id) return true;
+    } catch (e) {
+      console.warn('[checkKitHasSales] Aviso ao verificar vendas:', e);
+    }
   }
 
-  // Fallback Local
-  const kits = getLocalKits();
-  const filtered = kits.filter(k => k.id !== kitId);
-  saveLocalKits(filtered);
+  // Verificar em localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const rawOrders = localStorage.getItem('educalizando_orders_v2') || localStorage.getItem('educalizando_orders');
+      if (rawOrders) {
+        const orders = JSON.parse(rawOrders);
+        if (Array.isArray(orders)) {
+          const hasSold = orders.some(ord => 
+            Array.isArray(ord.items) && ord.items.some((it: any) => 
+              it.productId === kitId || it.productId === cleanId || it.kitId === kitId || it.kitId === cleanId
+            )
+          );
+          if (hasSold) return true;
+        }
+      }
+    } catch (e) {}
+  }
+
+  return false;
+}
+
+// 7. Excluir Kit
+export async function deleteKit(kitId: string): Promise<void> {
+  const cleanId = kitId.replace(/^kit_/i, '');
+
+  const hasSales = await checkKitHasSales(kitId);
+  if (hasSales) {
+    throw new Error('Não é possível excluir este combo/kit pois ele possui vendas realizadas. Altere seu status para "Rascunho" para ocultá-lo da vitrine.');
+  }
+
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      await supabase.from('kit_items').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
+      await supabase.from('kit_products').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
+      await supabase.from('coupon_products').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
+      
+      const { error } = await supabase.from('kits').delete().eq('id', kitId);
+      if (cleanId !== kitId && isValidUUID(cleanId)) {
+        await supabase.from('kits').delete().eq('id', cleanId);
+      }
+      if (error) throw new Error(`Erro ao excluir kit: ${error.message}`);
+    } catch (err: any) {
+      if (err.message && err.message.includes('possui vendas')) throw err;
+      console.warn('[deleteKit] Aviso na exclusão Supabase:', err);
+    }
+  }
+
+  // SEMPRE remover do LocalStorage para impedir itens fantasmas
+  if (typeof window !== 'undefined') {
+    const kits = getLocalKits();
+    const filtered = kits.filter(k => k.id !== kitId && k.id !== cleanId && k.id !== `kit_${kitId}`);
+    saveLocalKits(filtered);
+  }
 }

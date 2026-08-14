@@ -533,21 +533,110 @@ export async function updateProduct(productId: string, updates: Partial<Product>
   return updatedProduct;
 }
 
-// 8. Excluir Produto (Purga do Supabase + API Backend + LocalStorage)
+// 8. Verificar se o Produto Possui Vendas Registradas
+export async function checkProductHasSales(productId: string): Promise<boolean> {
+  if (!productId) return false;
+  const cleanId = productId.replace(/^prod_/i, '');
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      // 1. Verificar em order_items
+      const { data: orderItem } = await supabase
+        .from('order_items')
+        .select('id')
+        .or(`product_id.eq.${productId},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (orderItem?.id) return true;
+
+      // 2. Verificar em student_product_access
+      const { data: accessItem } = await supabase
+        .from('student_product_access')
+        .select('id')
+        .or(`product_id.eq.${productId},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (accessItem?.id) return true;
+
+      // 3. Verificar em purchases
+      const { data: purchaseItem } = await supabase
+        .from('purchases')
+        .select('id')
+        .or(`product_id.eq.${productId},product_id.eq.${cleanId}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (purchaseItem?.id) return true;
+    } catch (e) {
+      console.warn('[checkProductHasSales] Erro ao consultar vendas no Supabase:', e);
+    }
+  }
+
+  // Verificar em localStorage (para testes e fallback offline)
+  if (typeof window !== 'undefined') {
+    try {
+      const rawOrders = localStorage.getItem('educalizando_orders_v2') || localStorage.getItem('educalizando_orders');
+      if (rawOrders) {
+        const orders = JSON.parse(rawOrders);
+        if (Array.isArray(orders)) {
+          const hasSold = orders.some(ord => 
+            Array.isArray(ord.items) && ord.items.some((it: any) => 
+              it.productId === productId || it.productId === cleanId || it.product_id === productId || it.product_id === cleanId
+            )
+          );
+          if (hasSold) return true;
+        }
+      }
+
+      const rawAccess = localStorage.getItem('educalizando_student_product_access_v1');
+      if (rawAccess) {
+        const accesses = JSON.parse(rawAccess);
+        if (Array.isArray(accesses)) {
+          const hasAcc = accesses.some((acc: any) => 
+            acc.productId === productId || acc.productId === cleanId || acc.product_id === productId || acc.product_id === cleanId
+          );
+          if (hasAcc) return true;
+        }
+      }
+    } catch (e) {}
+  }
+
+  return false;
+}
+
+// 9. Excluir Produto (Purga do Supabase + API Backend + LocalStorage)
 export async function deleteProduct(productId: string): Promise<void> {
   const cleanId = productId.replace(/^prod_/i, '');
 
-  // A. Tentar via rota API backend (/api/produtos) para ignorar restrições RLS
+  // 1. Regra de Negócio: Produtos com vendas NÃO podem ser excluídos
+  const hasSales = await checkProductHasSales(productId);
+  if (hasSales) {
+    throw new Error('Não é possível excluir este material didático pois ele possui vendas realizadas. Para tirá-lo da loja sem remover o acesso dos alunos compradores, altere seu status para "Rascunho".');
+  }
+
+  // 2. Chamar rota API backend para exclusão persistente e purga de cache
   try {
     const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
     if (!res.ok) {
-      console.warn('[deleteProduct] Rota API DELETE retornou status:', res.status);
+      const errData = await res.json().catch(() => null);
+      if (errData?.error) {
+        throw new Error(errData.error);
+      }
     }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message && e.message.includes('possui vendas')) {
+      throw e;
+    }
     console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
   }
 
-  // B. Tentar via Supabase Client direto se configurado
+  // 3. Purga no Supabase Client direto
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -556,15 +645,15 @@ export async function deleteProduct(productId: string): Promise<void> {
   if (isRealSupabase) {
     try {
       // Limpar registros relacionais associados primeiro para não violar FK
-      await supabase.from('digital_contents').delete().eq('product_id', productId);
-      await supabase.from('reviews').delete().eq('product_id', productId);
-      await supabase.from('kit_products').delete().eq('product_id', productId);
+      await supabase.from('digital_contents').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      await supabase.from('reviews').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      await supabase.from('product_reviews').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      await supabase.from('kit_products').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      await supabase.from('kit_items').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      await supabase.from('coupon_products').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
+      
       await supabase.from('products').delete().eq('id', productId);
-
       if (cleanId !== productId && isValidUUID(cleanId)) {
-        await supabase.from('digital_contents').delete().eq('product_id', cleanId);
-        await supabase.from('reviews').delete().eq('product_id', cleanId);
-        await supabase.from('kit_products').delete().eq('product_id', cleanId);
         await supabase.from('products').delete().eq('id', cleanId);
       }
     } catch (err) {
@@ -572,7 +661,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     }
   }
 
-  // C. SEMPRE remover do LocalStorage para impedir re-sincronização de itens fantasmas
+  // 4. SEMPRE remover do LocalStorage para impedir reaparecimento de itens excluídos em reload
   if (typeof window !== 'undefined') {
     const products = getLocalProducts();
     const filtered = products.filter(p => p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}`);
@@ -580,7 +669,7 @@ export async function deleteProduct(productId: string): Promise<void> {
   }
 }
 
-// 9. Obter Produto por ID (Supabase + Fallback Local)
+// 10. Obter Produto por ID (Supabase + Fallback Local)
 export async function getProductById(productId: string): Promise<Product | null> {
   if (!productId) return null;
 
