@@ -31,16 +31,60 @@ function saveLocalStores(stores: Store[]) {
   }
 }
 
+function getDeletedProductIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const saved = localStorage.getItem('educalizando_deleted_products_v1');
+    if (saved) {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch (e) {}
+  return new Set();
+}
+
+function addDeletedProductId(id: string) {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const clean = id.replace(/^prod_/i, '');
+    const set = getDeletedProductIds();
+    set.add(id);
+    set.add(clean);
+    set.add(`prod_${clean}`);
+    localStorage.setItem('educalizando_deleted_products_v1', JSON.stringify(Array.from(set)));
+  } catch (e) {}
+}
+
+function removeDeletedProductId(id: string) {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const clean = id.replace(/^prod_/i, '');
+    const set = getDeletedProductIds();
+    set.delete(id);
+    set.delete(clean);
+    set.delete(`prod_${clean}`);
+    localStorage.setItem('educalizando_deleted_products_v1', JSON.stringify(Array.from(set)));
+  } catch (e) {}
+}
+
 function getLocalProducts(): Product[] {
   if (typeof window === 'undefined') return [];
+  const deletedIds = getDeletedProductIds();
   const saved = localStorage.getItem('educalizando_products_v3');
   if (!saved) return [];
-  return JSON.parse(saved);
+  try {
+    const prods: Product[] = JSON.parse(saved);
+    return Array.isArray(prods) ? prods.filter(p => !deletedIds.has(p.id) && !deletedIds.has(p.id.replace(/^prod_/i, ''))) : [];
+  } catch (e) {
+    return [];
+  }
 }
 
 function saveLocalProducts(products: Product[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('educalizando_products_v3', JSON.stringify(products));
+    const deletedIds = getDeletedProductIds();
+    const cleanList = products.filter(p => !deletedIds.has(p.id) && !deletedIds.has(p.id.replace(/^prod_/i, '')));
+    localStorage.setItem('educalizando_products_v3', JSON.stringify(cleanList));
   }
 }
 
@@ -259,6 +303,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
 // 4. Obter Produtos da Loja (Dashboard)
 export async function getProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
+  const deletedIds = getDeletedProductIds();
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -274,6 +319,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       if (!error && data) {
         return (data as Product[]).filter(p => {
           if (!p.store_id) return false;
+          if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
         });
@@ -287,6 +333,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   if (typeof window !== 'undefined') {
     return getLocalProducts().filter(p => {
       if (!p.store_id) return false;
+      if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
       return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
     });
@@ -298,6 +345,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 // 5. Obter Produtos Públicos (Vitrine - status publicado/ativo)
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
+  const deletedIds = getDeletedProductIds();
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -312,6 +360,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
+          if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const statusStr = (p.status as string) || '';
           const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
           if (!isPublished) return false;
@@ -328,6 +377,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   // Fallback para ambiente local/offline apenas se Supabase não estiver ativo
   if (typeof window !== 'undefined') {
     return getLocalProducts().filter(p => {
+      if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
       const statusStr = (p.status as string) || '';
       const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
@@ -385,6 +435,7 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
     if (res.ok) {
       const result = await res.json();
       if (result.success && result.product) {
+        removeDeletedProductId(result.product.id);
         const products = getLocalProducts();
         products.unshift(result.product as Product);
         saveLocalProducts(products);
@@ -620,7 +671,11 @@ export async function deleteProduct(productId: string): Promise<void> {
     throw new Error('Não é possível excluir este material didático pois ele possui vendas realizadas. Para tirá-lo da loja sem remover o acesso dos alunos compradores, altere seu status para "Rascunho".');
   }
 
-  // 2. Chamar rota API backend para exclusão persistente e purga de cache
+  // 2. Adicionar à blacklist de produtos excluídos para garantir filtragem em qualquer query futura
+  addDeletedProductId(productId);
+  addDeletedProductId(cleanId);
+
+  // 3. Chamar rota API backend para exclusão com privilégios de Admin (Supabase Service Role Key)
   try {
     const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
     if (!res.ok) {
@@ -636,7 +691,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
   }
 
-  // 3. Purga no Supabase Client direto
+  // 4. Purga no Supabase Client direto caso a rota backend não seja alcançada
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -661,11 +716,24 @@ export async function deleteProduct(productId: string): Promise<void> {
     }
   }
 
-  // 4. SEMPRE remover do LocalStorage para impedir reaparecimento de itens excluídos em reload
+  // 5. SEMPRE remover de TODAS as chaves de armazenamento local para impedir reaparecimento
   if (typeof window !== 'undefined') {
-    const products = getLocalProducts();
-    const filtered = products.filter(p => p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}`);
-    saveLocalProducts(filtered);
+    const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
+    
+    const products = getLocalProducts().filter(filterFn);
+    saveLocalProducts(products);
+
+    try {
+      ['educalizando_products_v3', 'educalizando_products_v2', 'educalizando_products_v1', 'educalizando_products'].forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            localStorage.setItem(k, JSON.stringify(list.filter(filterFn)));
+          }
+        }
+      });
+    } catch (e) {}
   }
 }
 

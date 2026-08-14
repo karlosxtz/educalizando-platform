@@ -8,22 +8,67 @@ const isValidUUID = (str: string | null | undefined): boolean => {
   return uuidRegex.test(str);
 };
 
+function getDeletedKitIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const saved = localStorage.getItem('educalizando_deleted_kits_v1');
+    if (saved) {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch (e) {}
+  return new Set();
+}
+
+function addDeletedKitId(id: string) {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const clean = id.replace(/^kit_/i, '');
+    const set = getDeletedKitIds();
+    set.add(id);
+    set.add(clean);
+    set.add(`kit_${clean}`);
+    localStorage.setItem('educalizando_deleted_kits_v1', JSON.stringify(Array.from(set)));
+  } catch (e) {}
+}
+
+function removeDeletedKitId(id: string) {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const clean = id.replace(/^kit_/i, '');
+    const set = getDeletedKitIds();
+    set.delete(id);
+    set.delete(clean);
+    set.delete(`kit_${clean}`);
+    localStorage.setItem('educalizando_deleted_kits_v1', JSON.stringify(Array.from(set)));
+  } catch (e) {}
+}
+
 // Mock/Default fallback helpers for offline dev environment
 function getLocalKits(): Kit[] {
   if (typeof window === 'undefined') return [];
+  const deletedIds = getDeletedKitIds();
   const saved = localStorage.getItem('educalizando_kits_v1');
   if (!saved) return [];
-  return JSON.parse(saved);
+  try {
+    const kits: Kit[] = JSON.parse(saved);
+    return Array.isArray(kits) ? kits.filter(k => !deletedIds.has(k.id) && !deletedIds.has(k.id.replace(/^kit_/i, ''))) : [];
+  } catch (e) {
+    return [];
+  }
 }
 
 function saveLocalKits(kits: Kit[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('educalizando_kits_v1', JSON.stringify(kits));
+    const deletedIds = getDeletedKitIds();
+    const cleanList = kits.filter(k => !deletedIds.has(k.id) && !deletedIds.has(k.id.replace(/^kit_/i, '')));
+    localStorage.setItem('educalizando_kits_v1', JSON.stringify(cleanList));
   }
 }
 
 // 1. Obter todos os Kits de uma loja (Painel do Criador)
 export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
+  const deletedIds = getDeletedKitIds();
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -46,16 +91,18 @@ export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data.map((k: any) => {
-          const products: Product[] = (k.kit_items || [])
-            .map((item: any) => item.products)
-            .filter(Boolean);
-          return {
-            ...k,
-            products,
-            items: k.kit_items
-          } as Kit;
-        });
+        return data
+          .filter((k: any) => !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
+          .map((k: any) => {
+            const products: Product[] = (k.kit_items || [])
+              .map((item: any) => item.products)
+              .filter(Boolean);
+            return {
+              ...k,
+              products,
+              items: k.kit_items
+            } as Kit;
+          });
       }
       if (error) {
         console.warn('[getKitsByStoreId] Erro ao consultar Supabase:', error.message);
@@ -66,12 +113,13 @@ export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
   }
 
   // Fallback Local Storage
-  const localKits = getLocalKits().filter(k => k.store_id === storeId);
+  const localKits = getLocalKits().filter(k => k.store_id === storeId && !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')));
   return localKits;
 }
 
 // 2. Obter Kits Públicos (status = 'publicado') para a Vitrine
 export async function getPublicKitsByStoreId(storeId: string): Promise<Kit[]> {
+  const deletedIds = getDeletedKitIds();
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -95,25 +143,34 @@ export async function getPublicKitsByStoreId(storeId: string): Promise<Kit[]> {
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data.map((k: any) => {
-          const products: Product[] = (k.kit_items || [])
-            .map((item: any) => item.products)
-            .filter(Boolean);
-          return {
-            ...k,
-            products,
-            items: k.kit_items
-          } as Kit;
-        });
+        return data
+          .filter((k: any) => !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
+          .map((k: any) => {
+            const products: Product[] = (k.kit_items || [])
+              .map((item: any) => item.products)
+              .filter(Boolean);
+            return {
+              ...k,
+              products,
+              items: k.kit_items
+            } as Kit;
+          });
+      }
+      if (error) {
+        console.warn('[getPublicKitsByStoreId] Erro ao consultar Supabase:', error.message);
       }
     } catch (err) {
-      console.error('[getPublicKitsByStoreId] Erro:', err);
+      console.error('[getPublicKitsByStoreId] Exceção:', err);
     }
   }
 
-  // Fallback Local
-  const localKits = getLocalKits().filter(k => k.store_id === storeId && k.status === 'publicado');
-  return localKits;
+  // Fallback Local Storage
+  return getLocalKits().filter(k => 
+    k.store_id === storeId && 
+    k.status === 'publicado' && 
+    !deletedIds.has(k.id) && 
+    !deletedIds.has((k.id || '').replace(/^kit_/i, ''))
+  );
 }
 
 // 3. Obter Kit por ID com seus Produtos Inclusos
@@ -378,6 +435,24 @@ export async function deleteKit(kitId: string): Promise<void> {
     throw new Error('Não é possível excluir este combo/kit pois ele possui vendas realizadas. Altere seu status para "Rascunho" para ocultá-lo da vitrine.');
   }
 
+  // 1. Adicionar à blacklist de kits excluídos
+  addDeletedKitId(kitId);
+  addDeletedKitId(cleanId);
+
+  // 2. Chamar rota API backend com Service Role Admin
+  try {
+    const res = await fetch(`/api/kits?id=${kitId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      if (errData?.error) {
+        throw new Error(errData.error);
+      }
+    }
+  } catch (e: any) {
+    if (e.message && e.message.includes('possui vendas')) throw e;
+    console.warn('[deleteKit] Aviso na chamada API DELETE:', e);
+  }
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -396,14 +471,26 @@ export async function deleteKit(kitId: string): Promise<void> {
       if (error) throw new Error(`Erro ao excluir kit: ${error.message}`);
     } catch (err: any) {
       if (err.message && err.message.includes('possui vendas')) throw err;
-      console.warn('[deleteKit] Aviso na exclusão Supabase:', err);
+      console.warn('[deleteKit] Aviso na exclusão direta Supabase:', err);
     }
   }
 
-  // SEMPRE remover do LocalStorage para impedir itens fantasmas
+  // SEMPRE remover de todas as chaves do LocalStorage para impedir itens fantasmas
   if (typeof window !== 'undefined') {
-    const kits = getLocalKits();
-    const filtered = kits.filter(k => k.id !== kitId && k.id !== cleanId && k.id !== `kit_${kitId}`);
-    saveLocalKits(filtered);
+    const filterFn = (k: any) => k && k.id !== kitId && k.id !== cleanId && k.id !== `kit_${kitId}` && k.id !== `kit_${cleanId}`;
+    const kits = getLocalKits().filter(filterFn);
+    saveLocalKits(kits);
+
+    try {
+      ['educalizando_kits_v1', 'educalizando_kits'].forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            localStorage.setItem(k, JSON.stringify(list.filter(filterFn)));
+          }
+        }
+      });
+    } catch (e) {}
   }
 }

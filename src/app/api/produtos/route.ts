@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     let targetStoreId: string | null = isValidUUID(cleanStoreId) ? cleanStoreId : null;
     if (!targetStoreId && cleanStoreId) {
       try {
-        const { data: storeRow } = await supabase
+        const { data: storeRow } = await supabaseAdmin
           .from('stores')
           .select('id')
           .or(`slug.eq.${cleanStoreId},id.eq.${cleanStoreId},creator_id.eq.${cleanStoreId}`)
@@ -56,24 +56,7 @@ export async function POST(request: Request) {
     // Se ainda não encontrou targetStoreId, tenta buscar a loja do criador autenticado
     if (!targetStoreId) {
       try {
-        const { data: authUser } = await supabase.auth.getUser();
-        if (authUser?.user) {
-          const { data: userStore } = await supabase
-            .from('stores')
-            .select('id')
-            .or(`creator_id.eq.${authUser.user.id},creator_id.eq.${authUser.user.email}`)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (userStore?.id) targetStoreId = userStore.id;
-        }
-      } catch (e) {}
-    }
-
-    // Se ainda assim não houver loja, pegar a primeira loja cadastrada
-    if (!targetStoreId) {
-      try {
-        const { data: anyStore } = await supabase
+        const { data: anyStore } = await supabaseAdmin
           .from('stores')
           .select('id')
           .order('created_at', { ascending: false })
@@ -100,10 +83,10 @@ export async function POST(request: Request) {
       productPayload.store_id = targetStoreId;
     }
 
-    console.log('[API /api/produtos POST] Criando produto no Supabase:', productPayload);
+    console.log('[API /api/produtos POST] Criando produto no Supabase via Admin:', productPayload);
 
     let insertedProduct = null;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .insert([productPayload])
       .select()
@@ -124,7 +107,7 @@ export async function POST(request: Request) {
         created_at: new Date().toISOString()
       };
 
-      const { data: retryData, error: retryError } = await supabase
+      const { data: retryData, error: retryError } = await supabaseAdmin
         .from('products')
         .insert([fallbackPayload])
         .select()
@@ -144,8 +127,10 @@ export async function POST(request: Request) {
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
-      revalidatePath('/dashboard/produtos');
-      revalidatePath('/dashboard/conteudo');
+      revalidatePath('/dashboard', 'page');
+      revalidatePath('/dashboard/produtos', 'page');
+      revalidatePath('/dashboard/conteudo', 'page');
+      revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
 
     return NextResponse.json({ success: true, product: insertedProduct });
@@ -182,7 +167,7 @@ export async function PUT(request: Request) {
 
     cleanedUpdates.updated_at = new Date().toISOString();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .update(cleanedUpdates)
       .eq('id', id)
@@ -198,8 +183,10 @@ export async function PUT(request: Request) {
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
-      revalidatePath('/dashboard/produtos');
-      revalidatePath('/dashboard/conteudo');
+      revalidatePath('/dashboard', 'page');
+      revalidatePath('/dashboard/produtos', 'page');
+      revalidatePath('/dashboard/conteudo', 'page');
+      revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
 
     return NextResponse.json({ success: true, product: data });
@@ -223,7 +210,7 @@ export async function DELETE(request: Request) {
     // 1. REGRA ESTRITA: Verificar se o produto possui vendas antes de permitir exclusão
     try {
       // A. Verificar pedidos em order_items
-      const { data: orderItem } = await supabase
+      const { data: orderItem } = await supabaseAdmin
         .from('order_items')
         .select('id')
         .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
@@ -238,7 +225,7 @@ export async function DELETE(request: Request) {
       }
 
       // B. Verificar acessos de alunos já concedidos
-      const { data: accessItem } = await supabase
+      const { data: accessItem } = await supabaseAdmin
         .from('student_product_access')
         .select('id')
         .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
@@ -253,7 +240,7 @@ export async function DELETE(request: Request) {
       }
 
       // C. Verificar compras na tabela purchases
-      const { data: purchaseItem } = await supabase
+      const { data: purchaseItem } = await supabaseAdmin
         .from('purchases')
         .select('id')
         .or(`product_id.eq.${id},product_id.eq.${cleanId}`)
@@ -272,38 +259,53 @@ export async function DELETE(request: Request) {
 
     // 2. Excluir registros dependentes relacionais não financeiros (conteúdos digitais, avaliações, kits, cupons)
     try {
-      await supabase.from('digital_contents').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('digital_contents').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('product_reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('product_reviews').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('kit_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('kit_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('kit_items').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('kit_items').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
     try {
-      await supabase.from('coupon_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
+      await supabaseAdmin.from('coupon_products').delete().or(`product_id.eq.${id},product_id.eq.${cleanId}`);
     } catch (e) {}
 
-    // 3. Excluir o produto da tabela products
-    const { error } = await supabase
+    // 3. Excluir o produto da tabela products permanentemente no Supabase
+    let deletedCount = 0;
+    const { data: delResult, error } = await supabaseAdmin
       .from('products')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
-    if (cleanId !== id && isValidUUID(cleanId)) {
-      await supabase.from('products').delete().eq('id', cleanId);
+    if (delResult && Array.isArray(delResult)) {
+      deletedCount += delResult.length;
+    }
+
+    if (cleanId !== id) {
+      const { data: cleanDelResult } = await supabaseAdmin
+        .from('products')
+        .delete()
+        .eq('id', cleanId)
+        .select();
+      if (cleanDelResult && Array.isArray(cleanDelResult)) {
+        deletedCount += cleanDelResult.length;
+      }
     }
 
     if (error) {
-      console.error('[API /api/produtos DELETE] Erro Supabase:', error.message);
+      console.error('[API /api/produtos DELETE] Erro Supabase Admin:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    console.log(`[API /api/produtos DELETE] Sucesso ao deletar produto id: ${id} (afetadas: ${deletedCount} linhas)`);
 
     // Purga imediata do cache do Next.js para garantir que o item suma instantaneamente da loja e do painel
     try {
@@ -315,7 +317,7 @@ export async function DELETE(request: Request) {
       revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deletedCount });
   } catch (err: any) {
     console.error('[API /api/produtos DELETE] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao excluir produto.' }, { status: 500 });
