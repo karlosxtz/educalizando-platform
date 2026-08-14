@@ -699,17 +699,16 @@ export async function deleteProduct(productId: string): Promise<void> {
 
   if (isRealSupabase) {
     try {
-      // Limpar registros relacionais associados primeiro para não violar FK
-      await supabase.from('digital_contents').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      await supabase.from('reviews').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      await supabase.from('product_reviews').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      await supabase.from('kit_products').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      await supabase.from('kit_items').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      await supabase.from('coupon_products').delete().or(`product_id.eq.${productId},product_id.eq.${cleanId}`);
-      
-      await supabase.from('products').delete().eq('id', productId);
-      if (cleanId !== productId && isValidUUID(cleanId)) {
-        await supabase.from('products').delete().eq('id', cleanId);
+      const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
+      if (targetUUID) {
+        // Limpar registros relacionais associados primeiro para não violar FK
+        await supabase.from('digital_contents').delete().eq('product_id', targetUUID);
+        await supabase.from('reviews').delete().eq('product_id', targetUUID);
+        await supabase.from('product_reviews').delete().eq('product_id', targetUUID);
+        await supabase.from('kit_products').delete().eq('product_id', targetUUID);
+        await supabase.from('kit_items').delete().eq('product_id', targetUUID);
+        await supabase.from('coupon_products').delete().eq('product_id', targetUUID);
+        await supabase.from('products').delete().eq('id', targetUUID);
       }
     } catch (err) {
       console.warn('[deleteProduct] Aviso na exclusão direta Supabase:', err);

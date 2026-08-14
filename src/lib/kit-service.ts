@@ -372,12 +372,14 @@ export async function checkKitHasSales(kitId: string): Promise<boolean> {
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  if (isRealSupabase) {
+  const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(kitId) ? kitId : null);
+
+  if (isRealSupabase && targetUUID) {
     try {
       const { data: orderItem } = await supabase
         .from('order_items')
         .select('id')
-        .or(`product_id.eq.${kitId},product_id.eq.${cleanId}`)
+        .eq('product_id', targetUUID)
         .limit(1)
         .maybeSingle();
 
@@ -386,7 +388,7 @@ export async function checkKitHasSales(kitId: string): Promise<boolean> {
       const { data: accessItem } = await supabase
         .from('student_product_access')
         .select('id')
-        .or(`product_id.eq.${kitId},product_id.eq.${cleanId}`)
+        .eq('product_id', targetUUID)
         .limit(1)
         .maybeSingle();
 
@@ -395,7 +397,7 @@ export async function checkKitHasSales(kitId: string): Promise<boolean> {
       const { data: purchaseItem } = await supabase
         .from('purchases')
         .select('id')
-        .or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`)
+        .eq('kit_id', targetUUID)
         .limit(1)
         .maybeSingle();
 
@@ -453,21 +455,20 @@ export async function deleteKit(kitId: string): Promise<void> {
     console.warn('[deleteKit] Aviso na chamada API DELETE:', e);
   }
 
+  const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(kitId) ? kitId : null);
+
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  if (isRealSupabase) {
+  if (isRealSupabase && targetUUID) {
     try {
-      await supabase.from('kit_items').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
-      await supabase.from('kit_products').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
-      await supabase.from('coupon_products').delete().or(`kit_id.eq.${kitId},kit_id.eq.${cleanId}`);
+      await supabase.from('kit_items').delete().eq('kit_id', targetUUID);
+      await supabase.from('kit_products').delete().eq('kit_id', targetUUID);
+      await supabase.from('coupon_products').delete().eq('kit_id', targetUUID);
       
-      const { error } = await supabase.from('kits').delete().eq('id', kitId);
-      if (cleanId !== kitId && isValidUUID(cleanId)) {
-        await supabase.from('kits').delete().eq('id', cleanId);
-      }
+      const { error } = await supabase.from('kits').delete().eq('id', targetUUID);
       if (error) throw new Error(`Erro ao excluir kit: ${error.message}`);
     } catch (err: any) {
       if (err.message && err.message.includes('possui vendas')) throw err;
