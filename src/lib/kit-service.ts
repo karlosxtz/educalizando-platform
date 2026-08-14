@@ -67,6 +67,7 @@ function saveLocalKits(kits: Kit[]) {
 }
 
 // 1. Obter todos os Kits de uma loja (Painel do Criador)
+// 1. Obter Todos os Kits da Loja (Dashboard)
 export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
   const deletedIds = getDeletedKitIds();
   const isRealSupabase = Boolean(
@@ -88,15 +89,17 @@ export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
           )
         `)
         .eq('store_id', storeId)
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
         return data
-          .filter((k: any) => !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
+          .filter((k: any) => !k.excluido_em && k.status !== 'excluido' && !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
           .map((k: any) => {
             const products: Product[] = (k.kit_items || [])
               .map((item: any) => item.products)
-              .filter(Boolean);
+              .filter((p: any) => p && !p.excluido_em && p.status !== 'excluido');
             return {
               ...k,
               products,
@@ -113,7 +116,13 @@ export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
   }
 
   // Fallback Local Storage
-  const localKits = getLocalKits().filter(k => k.store_id === storeId && !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')));
+  const localKits = getLocalKits().filter(k => 
+    k.store_id === storeId && 
+    !k.excluido_em && 
+    k.status !== 'excluido' && 
+    !deletedIds.has(k.id) && 
+    !deletedIds.has((k.id || '').replace(/^kit_/i, ''))
+  );
   return localKits;
 }
 
@@ -140,15 +149,16 @@ export async function getPublicKitsByStoreId(storeId: string): Promise<Kit[]> {
         `)
         .eq('store_id', storeId)
         .eq('status', 'publicado')
+        .is('excluido_em', null)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
         return data
-          .filter((k: any) => !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
+          .filter((k: any) => !k.excluido_em && k.status === 'publicado' && !deletedIds.has(k.id) && !deletedIds.has((k.id || '').replace(/^kit_/i, '')))
           .map((k: any) => {
             const products: Product[] = (k.kit_items || [])
               .map((item: any) => item.products)
-              .filter(Boolean);
+              .filter((p: any) => p && !p.excluido_em && p.status !== 'excluido');
             return {
               ...k,
               products,
@@ -168,6 +178,7 @@ export async function getPublicKitsByStoreId(storeId: string): Promise<Kit[]> {
   return getLocalKits().filter(k => 
     k.store_id === storeId && 
     k.status === 'publicado' && 
+    !k.excluido_em &&
     !deletedIds.has(k.id) && 
     !deletedIds.has((k.id || '').replace(/^kit_/i, ''))
   );
@@ -197,9 +208,10 @@ export async function getKitById(kitId: string): Promise<Kit | null> {
         .maybeSingle();
 
       if (!error && data) {
+        if (data.excluido_em || data.status === 'excluido') return null;
         const products: Product[] = (data.kit_items || [])
           .map((item: any) => item.products)
-          .filter(Boolean);
+          .filter((p: any) => p && !p.excluido_em && p.status !== 'excluido');
         return {
           ...data,
           products,
@@ -213,7 +225,9 @@ export async function getKitById(kitId: string): Promise<Kit | null> {
 
   // Fallback Local
   const localKits = getLocalKits();
-  return localKits.find(k => k.id === kitId) || null;
+  const found = localKits.find(k => k.id === kitId) || null;
+  if (found && (found.excluido_em || found.status === 'excluido')) return null;
+  return found;
 }
 
 // 4. Criar Novo Kit (com vinculação N:N dos produtos da loja)
@@ -428,30 +442,24 @@ export async function checkKitHasSales(kitId: string): Promise<boolean> {
   return false;
 }
 
-// 7. Excluir Kit
+// 7. Excluir Kit (Soft Delete Definitivo)
 export async function deleteKit(kitId: string): Promise<void> {
   const cleanId = kitId.replace(/^kit_/i, '');
-
-  const hasSales = await checkKitHasSales(kitId);
-  if (hasSales) {
-    throw new Error('Não é possível excluir este combo/kit pois ele possui vendas realizadas. Altere seu status para "Rascunho" para ocultá-lo da vitrine.');
-  }
 
   // 1. Adicionar à blacklist de kits excluídos
   addDeletedKitId(kitId);
   addDeletedKitId(cleanId);
 
-  // 2. Chamar rota API backend com Service Role Admin
+  // 2. Chamar rota API backend para Soft Delete via Supabase Admin
   try {
     const res = await fetch(`/api/kits?id=${kitId}`, { method: 'DELETE' });
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
       if (errData?.error) {
-        throw new Error(errData.error);
+        console.warn('[deleteKit] Aviso retornado pela API backend:', errData.error);
       }
     }
   } catch (e: any) {
-    if (e.message && e.message.includes('possui vendas')) throw e;
     console.warn('[deleteKit] Aviso na chamada API DELETE:', e);
   }
 
@@ -464,15 +472,16 @@ export async function deleteKit(kitId: string): Promise<void> {
 
   if (isRealSupabase && targetUUID) {
     try {
-      await supabase.from('kit_items').delete().eq('kit_id', targetUUID);
-      await supabase.from('kit_products').delete().eq('kit_id', targetUUID);
-      await supabase.from('coupon_products').delete().eq('kit_id', targetUUID);
-      
-      const { error } = await supabase.from('kits').delete().eq('id', targetUUID);
-      if (error) throw new Error(`Erro ao excluir kit: ${error.message}`);
+      await supabase
+        .from('kits')
+        .update({
+          excluido_em: new Date().toISOString(),
+          status: 'excluido',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', targetUUID);
     } catch (err: any) {
-      if (err.message && err.message.includes('possui vendas')) throw err;
-      console.warn('[deleteKit] Aviso na exclusão direta Supabase:', err);
+      console.warn('[deleteKit] Aviso no update direto Supabase:', err);
     }
   }
 

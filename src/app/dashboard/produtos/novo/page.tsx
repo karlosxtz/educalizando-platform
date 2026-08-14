@@ -64,7 +64,7 @@ function ProductWizardContent() {
             setPreco(existing.preco.toString().replace('.', ','));
             setCapaUrl(existing.capa_url);
             setArquivoUrl(existing.arquivo_url);
-            setStatus(existing.status);
+            setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
           }

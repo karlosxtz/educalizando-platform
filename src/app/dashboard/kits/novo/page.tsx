@@ -52,7 +52,7 @@ function KitWizardContent() {
             setDescricao(existing.descricao || '');
             setCapaUrl(existing.capa_url);
             setPrecoKit(existing.preco_kit.toString().replace('.', ','));
-            setStatus(existing.status);
+            setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             const ids = (existing.products || []).map(p => p.id);
             setSelectedProductIds(ids);
           }

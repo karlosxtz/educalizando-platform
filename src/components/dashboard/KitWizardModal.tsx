@@ -59,7 +59,7 @@ export default function KitWizardModal({
       setDescricao(editingKit.descricao || '');
       setCapaUrl(editingKit.capa_url);
       setPrecoKit(editingKit.preco_kit.toString().replace('.', ','));
-      setStatus(editingKit.status);
+      setStatus(editingKit.status === 'rascunho' ? 'rascunho' : 'publicado');
       const ids = (editingKit.products || []).map(p => p.id);
       setSelectedProductIds(ids);
     } else {

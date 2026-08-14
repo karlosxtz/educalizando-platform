@@ -314,11 +314,14 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
           if (!p.store_id) return false;
+          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
@@ -333,6 +336,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   if (typeof window !== 'undefined') {
     return getLocalProducts().filter(p => {
       if (!p.store_id) return false;
+      if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
       return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
@@ -342,7 +346,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   return [];
 }
 
-// 5. Obter Produtos Públicos (Vitrine - status publicado/ativo)
+// 5. Obter Produtos Públicos (Vitrine - status publicado/ativo e não excluído)
 export async function getPublicProductsByStoreId(storeId: string): Promise<Product[]> {
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const deletedIds = getDeletedProductIds();
@@ -356,13 +360,16 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
+          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const statusStr = (p.status as string) || '';
-          const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
+          const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
           if (!isPublished) return false;
           if (!p.store_id) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
@@ -377,9 +384,10 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   // Fallback para ambiente local/offline apenas se Supabase não estiver ativo
   if (typeof window !== 'undefined') {
     return getLocalProducts().filter(p => {
+      if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
       const statusStr = (p.status as string) || '';
-      const isPublished = !statusStr || statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
+      const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
       if (!p.store_id) return false;
       const pStoreClean = p.store_id.replace(/^store_/i, '');
@@ -661,37 +669,28 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
   return false;
 }
 
-// 9. Excluir Produto (Purga do Supabase + API Backend + LocalStorage)
+// 9. Excluir Produto (Soft Delete Definitivo no Supabase + API Backend + LocalStorage)
 export async function deleteProduct(productId: string): Promise<void> {
   const cleanId = productId.replace(/^prod_/i, '');
 
-  // 1. Regra de Negócio: Produtos com vendas NÃO podem ser excluídos
-  const hasSales = await checkProductHasSales(productId);
-  if (hasSales) {
-    throw new Error('Não é possível excluir este material didático pois ele possui vendas realizadas. Para tirá-lo da loja sem remover o acesso dos alunos compradores, altere seu status para "Rascunho".');
-  }
-
-  // 2. Adicionar à blacklist de produtos excluídos para garantir filtragem em qualquer query futura
+  // 1. Adicionar à blacklist de produtos excluídos para filtragem imediata em qualquer camada
   addDeletedProductId(productId);
   addDeletedProductId(cleanId);
 
-  // 3. Chamar rota API backend para exclusão com privilégios de Admin (Supabase Service Role Key)
+  // 2. Chamar rota API backend para Soft Delete definitivo via Supabase Admin
   try {
     const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
       if (errData?.error) {
-        throw new Error(errData.error);
+        console.warn('[deleteProduct] Aviso retornado pela API backend:', errData.error);
       }
     }
   } catch (e: any) {
-    if (e.message && e.message.includes('possui vendas')) {
-      throw e;
-    }
     console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
   }
 
-  // 4. Purga no Supabase Client direto caso a rota backend não seja alcançada
+  // 3. Soft Delete direto via Supabase Client como redundância
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -701,21 +700,21 @@ export async function deleteProduct(productId: string): Promise<void> {
     try {
       const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
       if (targetUUID) {
-        // Limpar registros relacionais associados primeiro para não violar FK
-        await supabase.from('digital_contents').delete().eq('product_id', targetUUID);
-        await supabase.from('reviews').delete().eq('product_id', targetUUID);
-        await supabase.from('product_reviews').delete().eq('product_id', targetUUID);
-        await supabase.from('kit_products').delete().eq('product_id', targetUUID);
-        await supabase.from('kit_items').delete().eq('product_id', targetUUID);
-        await supabase.from('coupon_products').delete().eq('product_id', targetUUID);
-        await supabase.from('products').delete().eq('id', targetUUID);
+        await supabase
+          .from('products')
+          .update({
+            excluido_em: new Date().toISOString(),
+            status: 'excluido',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', targetUUID);
       }
     } catch (err) {
-      console.warn('[deleteProduct] Aviso na exclusão direta Supabase:', err);
+      console.warn('[deleteProduct] Aviso no update direto Supabase:', err);
     }
   }
 
-  // 5. SEMPRE remover de TODAS as chaves de armazenamento local para impedir reaparecimento
+  // 4. SEMPRE remover de TODAS as chaves de armazenamento local para impedir reaparecimento
   if (typeof window !== 'undefined') {
     const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
     
@@ -758,6 +757,7 @@ export async function getProductById(productId: string): Promise<Product | null>
         .maybeSingle();
 
       if (!error && data) {
+        if (data.excluido_em || data.status === 'excluido') return null;
         return data as Product;
       }
     } catch (err) {
@@ -767,5 +767,7 @@ export async function getProductById(productId: string): Promise<Product | null>
 
   // Fallback Local
   const products = getLocalProducts();
-  return products.find(p => p.id === productId || p.id === cleanId || p.id === `prod_${productId}`) || null;
+  const found = products.find(p => p.id === productId || p.id === cleanId || p.id === `prod_${productId}`) || null;
+  if (found && (found.excluido_em || found.status === 'excluido')) return null;
+  return found;
 }

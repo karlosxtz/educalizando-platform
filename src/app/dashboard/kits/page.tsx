@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Boxes, Plus, Edit3, Trash2, Eye, EyeOff, 
@@ -14,6 +15,7 @@ import { Kit, Store, Product } from '@/lib/types';
 import KitWizardModal from '@/components/dashboard/KitWizardModal';
 
 export default function KitsManagementPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   const [kits, setKits] = useState<Kit[]>([]);
@@ -64,6 +66,8 @@ export default function KitsManagementPage() {
       await deleteKit(deletingKit.id);
       setKits(prev => prev.filter(k => k.id !== deletingKit.id));
       setDeletingKit(null);
+      await loadData();
+      router.refresh();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao excluir kit.');
     } finally {

@@ -46,7 +46,7 @@ export default function ProductWizardModal({
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(editingProduct?.arquivo_url || null);
   const [videoLink, setVideoLink] = useState<string>(editingProduct?.arquivo_url || '');
   const [preco, setPreco] = useState<number>(editingProduct?.preco || 49.90);
-  const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status || 'publicado');
+  const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status === 'rascunho' ? 'rascunho' : 'publicado');
   const [categoryId, setCategoryId] = useState<string | null>(editingProduct?.category_id || null);
   const [educationLevelId, setEducationLevelId] = useState<string | null>(editingProduct?.education_level_id || null);
 

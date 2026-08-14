@@ -208,89 +208,25 @@ export async function DELETE(request: Request) {
     const cleanId = id.replace(/^prod_/i, '');
     const validUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(id) ? id : null);
 
-    console.log(`[API /api/produtos DELETE] Processando exclusão. ID bruto: "${id}", cleanId: "${cleanId}", validUUID: "${validUUID}"`);
+    console.log(`[API /api/produtos DELETE] Executando Soft Delete. ID bruto: "${id}", cleanId: "${cleanId}", validUUID: "${validUUID}"`);
 
-    // 1. Se for um UUID real no Supabase, processar deleção relacional no banco
+    // Soft Delete Definitivo no Supabase: preserva integridade relacional e fiscal
     if (validUUID) {
-      // A. REGRA ESTRITA: Verificar se o produto possui vendas antes de permitir exclusão
-      try {
-        const { data: orderItem } = await supabaseAdmin
-          .from('order_items')
-          .select('id')
-          .eq('product_id', validUUID)
-          .limit(1)
-          .maybeSingle();
-
-        if (orderItem?.id) {
-          return NextResponse.json({ 
-            error: 'Não é possível excluir este material didático pois ele possui vendas realizadas. Para ocultá-lo da loja sem afetar o acesso dos alunos que já compraram, altere o status do material para "Rascunho".',
-            hasSales: true
-          }, { status: 400 });
-        }
-
-        const { data: accessItem } = await supabaseAdmin
-          .from('student_product_access')
-          .select('id')
-          .eq('product_id', validUUID)
-          .limit(1)
-          .maybeSingle();
-
-        if (accessItem?.id) {
-          return NextResponse.json({ 
-            error: 'Não é possível excluir este material didático pois alunos já possuem acesso adquirido na área do aluno. Altere o status para "Rascunho" para removê-lo da vitrine.',
-            hasSales: true
-          }, { status: 400 });
-        }
-
-        const { data: purchaseItem } = await supabaseAdmin
-          .from('purchases')
-          .select('id')
-          .eq('product_id', validUUID)
-          .limit(1)
-          .maybeSingle();
-
-        if (purchaseItem?.id) {
-          return NextResponse.json({ 
-            error: 'Não é possível excluir este material didático pois constam vendas no histórico. Altere o status para "Rascunho" para desativá-lo da loja.',
-            hasSales: true
-          }, { status: 400 });
-        }
-      } catch (checkErr) {
-        console.warn('[API /api/produtos DELETE] Aviso ao verificar histórico de vendas:', checkErr);
-      }
-
-      // B. Excluir registros dependentes relacionais não financeiros (conteúdos digitais, avaliações, kits, cupons)
-      try {
-        await supabaseAdmin.from('digital_contents').delete().eq('product_id', validUUID);
-      } catch (e) {}
-      try {
-        await supabaseAdmin.from('reviews').delete().eq('product_id', validUUID);
-      } catch (e) {}
-      try {
-        await supabaseAdmin.from('product_reviews').delete().eq('product_id', validUUID);
-      } catch (e) {}
-      try {
-        await supabaseAdmin.from('kit_products').delete().eq('product_id', validUUID);
-      } catch (e) {}
-      try {
-        await supabaseAdmin.from('kit_items').delete().eq('product_id', validUUID);
-      } catch (e) {}
-      try {
-        await supabaseAdmin.from('coupon_products').delete().eq('product_id', validUUID);
-      } catch (e) {}
-
-      // C. Excluir o produto da tabela products permanentemente no Supabase
       const { error } = await supabaseAdmin
         .from('products')
-        .delete()
+        .update({
+          excluido_em: new Date().toISOString(),
+          status: 'excluido',
+          updated_at: new Date().toISOString()
+        })
         .eq('id', validUUID);
 
       if (error) {
-        console.error('[API /api/produtos DELETE] Erro Supabase Admin:', error.message);
+        console.error('[API /api/produtos DELETE] Erro ao aplicar Soft Delete no Supabase:', error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      console.log(`[API /api/produtos DELETE] Produto ${validUUID} excluído com sucesso do Supabase Postgres.`);
+      console.log(`[API /api/produtos DELETE] Soft Delete persistido com sucesso para o produto ${validUUID}`);
     }
 
     // Purga imediata do cache do Next.js para garantir que o item suma instantaneamente da loja e do painel
@@ -301,9 +237,10 @@ export async function DELETE(request: Request) {
       revalidatePath('/dashboard/produtos', 'page');
       revalidatePath('/dashboard/conteudo', 'page');
       revalidatePath('/dashboard/kits', 'page');
+      revalidatePath('/dashboard/cupons', 'page');
     } catch (e) {}
 
-    return NextResponse.json({ success: true, id, validUUID });
+    return NextResponse.json({ success: true, softDeleted: true, id, validUUID });
   } catch (err: any) {
     console.error('[API /api/produtos DELETE] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao excluir produto.' }, { status: 500 });

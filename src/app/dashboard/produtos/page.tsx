@@ -80,7 +80,7 @@ export default function ProductsManagementPage() {
     setIsWizardOpen(true);
   };
 
-  // Delete Execution
+  // Delete Execution (Soft Delete)
   const confirmDeleteProduct = async () => {
     if (!deletingProduct) return;
     setIsDeletingLoading(true);
@@ -89,6 +89,7 @@ export default function ProductsManagementPage() {
       await deleteProduct(deletingProduct.id);
       setProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
       setDeletingProduct(null);
+      await loadData();
       router.refresh();
     } catch (err: any) {
       setActionError(err.message || 'Erro ao excluir produto no Supabase.');

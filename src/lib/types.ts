@@ -1,5 +1,5 @@
 export type ProductType = 'pdf' | 'ebook' | 'video' | 'curso' | 'simulado';
-export type ProductStatus = 'rascunho' | 'publicado';
+export type ProductStatus = 'rascunho' | 'publicado' | 'excluido';
 
 export interface Store {
   id: string;
@@ -47,6 +47,7 @@ export interface Product {
   education_level_id?: string | null;
   category?: Category | null;
   education_level?: EducationLevel | null;
+  excluido_em?: string | null;
   created_at: string;
   updated_at?: string;
 }
@@ -69,6 +70,7 @@ export interface Kit {
   status: ProductStatus;
   items?: KitItem[];
   products?: Product[];
+  excluido_em?: string | null;
   created_at: string;
   updated_at?: string;
 }

@@ -178,11 +178,13 @@ export async function deleteCustomCategory(categoryId: string): Promise<void> {
   );
 
   if (isRealSupabase) {
-    // Verificar se a categoria está associada a algum produto
+    // Verificar se a categoria está associada a algum produto ativo
     const { count, error: countErr } = await supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
-      .eq('category_id', categoryId);
+      .eq('category_id', categoryId)
+      .is('excluido_em', null)
+      .neq('status', 'excluido');
 
     if (!countErr && count && count > 0) {
       throw new Error(`Esta categoria não pode ser excluída pois está associada a ${count} produto(s). Altere os produtos antes de excluir.`);
