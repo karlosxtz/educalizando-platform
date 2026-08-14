@@ -31,12 +31,12 @@ BEGIN
     TO authenticated
     USING (
       store_id IN (
-        SELECT id FROM public.stores WHERE creator_id = auth.uid()::text
+        SELECT id FROM public.stores WHERE creator_id = auth.uid()
       )
     )
     WITH CHECK (
       store_id IN (
-        SELECT id FROM public.stores WHERE creator_id = auth.uid()::text
+        SELECT id FROM public.stores WHERE creator_id = auth.uid()
       )
     );
   END IF;
