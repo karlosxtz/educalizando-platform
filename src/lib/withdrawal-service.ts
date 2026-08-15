@@ -452,7 +452,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
   // B. Buscar saque NATIVAMENTE no banco de dados (Resolução do Bug Crítico de Busca)
   if (isRealSupabaseConfigured()) {
     try {
-      let query = supabase.from('withdrawals').select('*');
+      let query = supabaseAdmin.from('withdrawals').select('*');
       if (transferId && wId) {
         query = query.or(`asaas_transfer_id.eq.${transferId},id.eq.${wId}`);
       } else if (transferId) {
@@ -511,7 +511,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     item.completedAt = new Date().toISOString();
 
     if (isRealSupabaseConfigured()) {
-      await supabase.from('withdrawals').update({
+      await supabaseAdmin.from('withdrawals').update({
         status: 'COMPLETED',
         completed_at: item.completedAt
       }).eq('id', item.id);
@@ -546,7 +546,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     });
 
     if (isRealSupabaseConfigured()) {
-      await supabase.from('withdrawals').update({
+      await supabaseAdmin.from('withdrawals').update({
         status: item.status,
         failure_reason: item.failureReason,
         failed_at: item.failedAt
