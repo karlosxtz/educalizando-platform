@@ -482,6 +482,7 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
   let payload = cleanProductPayload(productData);
 
   // 1. Tentar gravar via API Route backend (/api/produtos) para ignorar restrições de RLS de cliente
+  try {
     let token = '';
     if (typeof window !== 'undefined') {
       const rawSession = localStorage.getItem('educalizando_creator_session');
