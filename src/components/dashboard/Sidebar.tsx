@@ -77,7 +77,7 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       label: 'Pedidos & Vendas',
       href: '/dashboard/pedidos',
       icon: ShoppingCart,
-      badge: 'Em Breve'
+      badge: null
     },
     {
       label: 'Clientes',
