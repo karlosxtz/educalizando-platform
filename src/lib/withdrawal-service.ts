@@ -434,7 +434,51 @@ export async function getWithdrawalsHistory(storeId: string): Promise<Withdrawal
   return local.filter(w => w.storeId === storeId).sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
 }
 
-// 5. Processamento dos Eventos de Webhook de Transferência do Asaas (Item 20-25)
+// 5. Validação de Saque do Asaas (Mecanismo de Segurança)
+export async function validateAsaasTransferWebhook(payload: { transfer: any }): Promise<boolean> {
+  const { transfer } = payload;
+  if (!transfer || !transfer.id) return false;
+
+  console.log(`[Transfer Validation] Validando Saque: TransferId: ${transfer.id}`);
+
+  // Busca o saque nativamente no DB
+  if (isRealSupabaseConfigured()) {
+    try {
+      let query = supabaseAdmin.from('withdrawals').select('*');
+      if (transfer.externalReference) {
+        const wId = transfer.externalReference.replace('withdrawal-', '');
+        query = query.or(`asaas_transfer_id.eq.${transfer.id},id.eq.${wId}`);
+      } else {
+        query = query.eq('asaas_transfer_id', transfer.id);
+      }
+
+      const { data, error } = await query.single();
+      
+      // Se encontrarmos o saque no nosso DB, e o valor do Asaas bater com o que autorizamos (ou se apenas validarmos que existe)
+      if (!error && data) {
+        console.log(`[Transfer Validation] Saque encontrado e aprovado no DB para TransferId: ${transfer.id}`);
+        return true;
+      } else {
+        console.warn(`[Transfer Validation] Saque NÃO encontrado no DB para TransferId: ${transfer.id}`);
+      }
+    } catch (e) {
+      console.error('[Transfer Validation] Erro na validação via DB:', e);
+    }
+  }
+
+  // Se chegou aqui e não encontramos no DB, podemos tentar checar o LocalStorage (só para fallback de dev)
+  const local = getLocalWithdrawals();
+  const found = local.find(w => w.asaasTransferId === transfer.id || (transfer.externalReference && w.id === transfer.externalReference.replace('withdrawal-', '')));
+  if (found) {
+    console.log(`[Transfer Validation] Saque encontrado e aprovado no cache local para TransferId: ${transfer.id}`);
+    return true;
+  }
+
+  console.error(`[Transfer Validation] RECUSADO. Saque desconhecido: TransferId ${transfer.id}`);
+  return false;
+}
+
+// 6. Processamento dos Eventos de Webhook de Transferência do Asaas (Item 20-25)
 export async function handleAsaasTransferWebhook(payload: { event: string; transfer: any; id?: string }): Promise<void> {
   const { event, transfer } = payload;
   if (!transfer) return;

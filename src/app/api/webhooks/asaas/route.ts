@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '@/lib/order-service';
-import { handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
+import { validateAsaasTransferWebhook, handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
 
 export async function POST(request: Request) {
   try {
@@ -25,9 +25,14 @@ export async function POST(request: Request) {
     // O Asaas envia 'type' em vez de 'event' para webhooks de validação de saída.
     if (type === 'TRANSFER' && !event) {
       console.log(`[Asaas Webhook] Solicitação de validação de saque recebida para: ${transfer?.id}`);
-      // Como a chamada tem o token válido (verificado acima), nós autorizamos a transação.
-      // O ideal no futuro seria checar no DB se esse transfer.id existe e se o valor bate.
-      return NextResponse.json({ status: 'APPROVED' });
+      
+      const isValid = await validateAsaasTransferWebhook(payload);
+      
+      if (isValid) {
+        return NextResponse.json({ status: 'APPROVED' });
+      } else {
+        return NextResponse.json({ status: 'REFUSED', refuseReason: 'Transferência não reconhecida ou não registrada na plataforma Educalizando.' });
+      }
     }
 
     // 2. PROCESSAMENTO DE WEBHOOKS DE TRANSFERÊNCIA DE SAQUE (FASE C - Item 20-25)
