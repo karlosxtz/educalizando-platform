@@ -279,13 +279,14 @@ export async function DELETE(request: Request) {
 
     if (!softDeleteSuccess) {
       // Verificar se o produto sequer existe
-      const { data: exists } = await supabaseAdmin
+      const { data: existing } = await supabaseAdmin
         .from('products')
-        .select('id')
+        .select('id, store_id')
         .eq('id', validUUID)
+        .is('excluido_em', null)
         .maybeSingle();
 
-      if (!exists) {
+      if (!existing) {
         // Produto já foi excluído ou nunca existiu — considerar sucesso
         console.log(`[API /api/produtos DELETE] Produto ${validUUID} não encontrado no banco (já excluído ou inexistente).`);
         softDeleteSuccess = true;

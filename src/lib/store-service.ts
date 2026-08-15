@@ -790,6 +790,7 @@ export async function getProductById(productId: string): Promise<Product | null>
         .from('products')
         .select('*')
         .eq('id', targetId)
+        .is('excluido_em', null)
         .maybeSingle();
 
       if (!error && data) {

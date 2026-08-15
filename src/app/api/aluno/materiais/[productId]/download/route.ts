@@ -58,15 +58,16 @@ export async function GET(
       }
 
       if (!fileUrl) {
-        const { data: prod } = await supabase
+        const { data: productData } = await supabase
           .from('products')
-          .select('titulo, arquivo_url, tipo')
+          .select('titulo, arquivo_url')
           .eq('id', productId)
-          .single();
+          .is('excluido_em', null)
+          .maybeSingle();
 
-        if (prod) {
-          if (prod.titulo) productTitle = prod.titulo;
-          if (prod.arquivo_url) fileUrl = prod.arquivo_url;
+        if (productData) {
+          if (productData.titulo) productTitle = productData.titulo;
+          if (productData.arquivo_url) fileUrl = productData.arquivo_url;
         }
       }
 

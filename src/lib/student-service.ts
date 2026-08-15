@@ -388,6 +388,7 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
             .from('products')
             .select('*')
             .eq('id', acc.product_id)
+            .is('excluido_em', null)
             .maybeSingle();
 
           // Buscar Loja
