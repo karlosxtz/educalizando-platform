@@ -89,13 +89,21 @@ export async function GET(
 
       // Se for caminho relativo do Supabase Storage, gerar Signed URL
       if (!activeUrl.startsWith('http://') && !activeUrl.startsWith('https://')) {
+        console.log(`[Download API] Gerando Signed URL para path relativo: ${activeUrl}`);
         try {
-          const { data: signedData } = await supabase.storage
+          const { data: signedData, error: signedError } = await supabase.storage
             .from('product-files')
             .createSignedUrl(activeUrl, 3600);
+            
+          if (signedError) {
+            console.error('[Download API] Erro ao criar Signed URL no Supabase:', signedError);
+          }
+
           if (signedData?.signedUrl) {
+            console.log(`[Download API] Signed URL gerada com sucesso.`);
             activeUrl = signedData.signedUrl;
           } else {
+            console.warn(`[Download API] Fallback para getPublicUrl para o arquivo: ${activeUrl}`);
             const { data: pubData } = supabase.storage
               .from('product-files')
               .getPublicUrl(activeUrl);
@@ -109,9 +117,11 @@ export async function GET(
       }
 
       if (activeUrl.startsWith('http://') || activeUrl.startsWith('https://')) {
+        console.log(`[Download API] Iniciando fetch do arquivo na URL ativa (início: ${activeUrl.substring(0, 30)}...)`);
         try {
           const fileRes = await fetch(activeUrl);
           if (fileRes.ok && fileRes.body) {
+            console.log(`[Download API] Fetch OK. Stream iniciado.`);
             const contentType = fileRes.headers.get('content-type') || 'application/octet-stream';
             
             return new Response(fileRes.body, {
@@ -122,11 +132,15 @@ export async function GET(
                 'X-Content-Type-Options': 'nosniff'
               }
             });
+          } else {
+            console.error(`[Download API] Fetch falhou com status ${fileRes.status}: ${fileRes.statusText}`);
           }
         } catch (errFetch) {
-          console.error('[Download API] Erro ao fazer stream do arquivo:', errFetch);
+          console.error('[Download API] Erro ao fazer fetch/stream do arquivo:', errFetch);
         }
       }
+    } else {
+      console.warn(`[Download API] fileUrl invalido ou nulo. fileUrl =`, fileUrl);
     }
 
     return NextResponse.json(

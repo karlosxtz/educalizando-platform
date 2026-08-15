@@ -9,6 +9,8 @@ import {
   HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download 
 } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 import { getCurrentStudentSession, getStudentPurchasesByStoreId } from '@/lib/student-service';
 import { Purchase, ProductType, Store } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
@@ -98,9 +100,15 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       } else {
         await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico');
       }
-    } catch (err) {
+      toast.success('Download iniciado!');
+    } catch (err: any) {
       console.error('[Download Error]:', err);
-      alert('Não foi possível realizar o download. Tente novamente.');
+      toast.error('Não foi possível baixar o material agora. Tente novamente em instantes.', {
+        action: {
+          label: 'Tentar novamente',
+          onClick: () => handleDownloadPurchase(pur, e as any)
+        }
+      });
     } finally {
       setDownloadingId(null);
     }
