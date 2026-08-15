@@ -311,20 +311,19 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
   let mergedProducts: Product[] = [];
 
-  // Fallback Local sempre carregado para garantir produtos recém-criados ou offlines
+  // Fallback Local
   if (typeof window !== 'undefined') {
     mergedProducts = getLocalProducts().filter(p => {
       if (!p.store_id) return false;
       if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-      const pStoreClean = p.store_id.replace(/^store_/i, '');
-      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+      // Removida a restrição estrita de store_id no frontend para permitir merge offline
+      return true;
     });
   }
 
   if (isRealSupabase) {
     try {
-      // Filtrar excluídos no nível do banco (server-side)
       let query = supabase
         .from('products')
         .select('*')
@@ -332,9 +331,31 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
         .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
-      // Se for um UUID válido, filtra no banco de dados para evitar limitação de 1000 registros
+      let validStoreIds = [cleanStoreId];
+
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
-        query = query.eq('store_id', cleanStoreId);
+        // Descobrir o creator_id da loja atual para unificar lojas duplicadas acidentalmente
+        const { data: storeInfo } = await supabase
+          .from('stores')
+          .select('creator_id')
+          .eq('id', cleanStoreId)
+          .single();
+
+        if (storeInfo?.creator_id) {
+          const { data: creatorStores } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('creator_id', storeInfo.creator_id);
+            
+          if (creatorStores && creatorStores.length > 0) {
+            validStoreIds = creatorStores.map(s => s.id);
+            query = query.in('store_id', validStoreIds);
+          } else {
+            query = query.eq('store_id', cleanStoreId);
+          }
+        } else {
+          query = query.eq('store_id', cleanStoreId);
+        }
       }
 
       const { data, error } = await query;
@@ -344,11 +365,9 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
           if (!p.store_id) return false;
           if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-          const pStoreClean = p.store_id.replace(/^store_/i, '');
-          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+          return true; // Já filtrado pelo banco (query.in)
         });
 
-        // Merge remote com local
         const remoteIds = new Set(remote.map(p => p.id));
         for (const lp of mergedProducts) {
           if (!remoteIds.has(lp.id)) remote.push(lp);
@@ -360,7 +379,8 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     }
   }
 
-  return mergedProducts;
+  // Se o supabase falhar, filtra os locais apenas para essa loja
+  return mergedProducts.filter(p => p.store_id && p.store_id.replace(/^store_/i, '') === cleanStoreId);
 }
 
 // 5. Obter Produtos Públicos (Vitrine - status publicado/ativo e não excluído)
@@ -383,14 +403,12 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
       if (!p.store_id) return false;
-      const pStoreClean = p.store_id.replace(/^store_/i, '');
-      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+      return true; // Permitir merge de todos, filtraremos na resposta final
     });
   }
 
   if (isRealSupabase) {
     try {
-      // Filtrar excluídos e não-publicados no nível do banco
       let query = supabase
         .from('products')
         .select('*')
@@ -398,17 +416,40 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
+      let validStoreIds = [cleanStoreId];
+
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
-        query = query.eq('store_id', cleanStoreId);
+        // Obter todas as lojas do criador para evitar que produtos sumam se tiver 2 lojas bugadas
+        const { data: storeInfo } = await supabase
+          .from('stores')
+          .select('creator_id')
+          .eq('id', cleanStoreId)
+          .single();
+
+        if (storeInfo?.creator_id) {
+          const { data: creatorStores } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('creator_id', storeInfo.creator_id);
+            
+          if (creatorStores && creatorStores.length > 0) {
+            validStoreIds = creatorStores.map(s => s.id);
+            query = query.in('store_id', validStoreIds);
+          } else {
+            query = query.eq('store_id', cleanStoreId);
+          }
+        } else {
+          query = query.eq('store_id', cleanStoreId);
+        }
       }
 
       const { data, error } = await query;
 
-      // Buscar avaliações agregadas da loja para esses produtos
+      // Buscar avaliações agregadas (para todas as lojas válidas do criador)
       const { data: reviewsData } = await supabase
         .from('reviews')
         .select('product_id, nota')
-        .eq('store_id', cleanStoreId);
+        .in('store_id', validStoreIds);
 
       if (!error && data) {
         const remote = (data as Product[]).filter(p => {
@@ -418,8 +459,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
           if (!isPublished) return false;
           if (!p.store_id) return false;
-          const pStoreClean = p.store_id.replace(/^store_/i, '');
-          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+          return true;
         }).map(p => {
           if (reviewsData && reviewsData.length > 0) {
             const productReviews = reviewsData.filter(r => r.product_id === p.id);
@@ -444,7 +484,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     }
   }
 
-  return mergedProducts;
+  return mergedProducts.filter(p => p.store_id && p.store_id.replace(/^store_/i, '') === cleanStoreId);
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
