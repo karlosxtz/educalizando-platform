@@ -16,9 +16,20 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
 };
 
 // Middleware interno para validar o token nas rotas da API
-async function getAuthUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
+async function getAuthUser(request?: Request) {
+  let token = null;
+  if (request) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
+
+  if (!token) {
+    const cookieStore = await cookies();
+    token = cookieStore.get('sb-access-token')?.value;
+  }
+
   if (!token) return null;
   
   const { data: { user } } = await supabaseAdmin.auth.getUser(token);
@@ -27,7 +38,7 @@ async function getAuthUser() {
 
 export async function POST(request: Request) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
@@ -176,7 +187,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
@@ -268,7 +279,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }

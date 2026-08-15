@@ -309,35 +309,11 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  if (isRealSupabase) {
-    try {
-      // Filtrar excluídos no nível do banco (server-side) para não depender apenas de .filter() JS
-      let query = supabase
-        .from('products')
-        .select('*')
-        .is('excluido_em', null)
-        .neq('status', 'excluido')
-        .order('created_at', { ascending: false });
+  let mergedProducts: Product[] = [];
 
-      const { data, error } = await query;
-
-      if (!error && data) {
-        return (data as Product[]).filter(p => {
-          if (!p.store_id) return false;
-          if (p.excluido_em || p.status === 'excluido') return false;
-          if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-          const pStoreClean = p.store_id.replace(/^store_/i, '');
-          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
-        });
-      }
-    } catch (err) {
-      console.error('[getProductsByStoreId] Erro Supabase:', err);
-    }
-  }
-
-  // Fallback para ambiente local/offline apenas se Supabase não estiver ativo
+  // Fallback Local sempre carregado para garantir produtos recém-criados ou offlines
   if (typeof window !== 'undefined') {
-    return getLocalProducts().filter(p => {
+    mergedProducts = getLocalProducts().filter(p => {
       if (!p.store_id) return false;
       if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
@@ -346,7 +322,45 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     });
   }
 
-  return [];
+  if (isRealSupabase) {
+    try {
+      // Filtrar excluídos no nível do banco (server-side)
+      let query = supabase
+        .from('products')
+        .select('*')
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
+        .order('created_at', { ascending: false });
+
+      // Se for um UUID válido, filtra no banco de dados para evitar limitação de 1000 registros
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
+        query = query.eq('store_id', cleanStoreId);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        const remote = (data as Product[]).filter(p => {
+          if (!p.store_id) return false;
+          if (p.excluido_em || p.status === 'excluido') return false;
+          if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
+          const pStoreClean = p.store_id.replace(/^store_/i, '');
+          return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+        });
+
+        // Merge remote com local
+        const remoteIds = new Set(remote.map(p => p.id));
+        for (const lp of mergedProducts) {
+          if (!remoteIds.has(lp.id)) remote.push(lp);
+        }
+        return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      }
+    } catch (err) {
+      console.error('[getProductsByStoreId] Erro Supabase:', err);
+    }
+  }
+
+  return mergedProducts;
 }
 
 // 5. Obter Produtos Públicos (Vitrine - status publicado/ativo e não excluído)
@@ -358,6 +372,22 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  let mergedProducts: Product[] = [];
+
+  // Fallback Local
+  if (typeof window !== 'undefined') {
+    mergedProducts = getLocalProducts().filter(p => {
+      if (p.excluido_em || p.status === 'excluido') return false;
+      if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
+      const statusStr = (p.status as string) || '';
+      const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
+      if (!isPublished) return false;
+      if (!p.store_id) return false;
+      const pStoreClean = p.store_id.replace(/^store_/i, '');
+      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+    });
+  }
+
   if (isRealSupabase) {
     try {
       // Filtrar excluídos e não-publicados no nível do banco
@@ -368,16 +398,20 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         .neq('status', 'excluido')
         .order('created_at', { ascending: false });
 
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
+        query = query.eq('store_id', cleanStoreId);
+      }
+
       const { data, error } = await query;
 
       // Buscar avaliações agregadas da loja para esses produtos
       const { data: reviewsData } = await supabase
         .from('reviews')
         .select('product_id, nota')
-        .eq('store_id', storeId);
+        .eq('store_id', cleanStoreId);
 
       if (!error && data) {
-        return (data as Product[]).filter(p => {
+        const remote = (data as Product[]).filter(p => {
           if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const statusStr = (p.status as string) || '';
@@ -397,27 +431,20 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           }
           return p;
         });
+
+        // Merge remote com local
+        const remoteIds = new Set(remote.map(p => p.id));
+        for (const lp of mergedProducts) {
+          if (!remoteIds.has(lp.id)) remote.push(lp);
+        }
+        return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       }
     } catch (err) {
       console.error('[getPublicProductsByStoreId] Erro Supabase:', err);
     }
   }
 
-  // Fallback para ambiente local/offline apenas se Supabase não estiver ativo
-  if (typeof window !== 'undefined') {
-    return getLocalProducts().filter(p => {
-      if (p.excluido_em || p.status === 'excluido') return false;
-      if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-      const statusStr = (p.status as string) || '';
-      const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
-      if (!isPublished) return false;
-      if (!p.store_id) return false;
-      const pStoreClean = p.store_id.replace(/^store_/i, '');
-      return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
-    });
-  }
-
-  return [];
+  return mergedProducts;
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
@@ -455,10 +482,27 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
   let payload = cleanProductPayload(productData);
 
   // 1. Tentar gravar via API Route backend (/api/produtos) para ignorar restrições de RLS de cliente
-  try {
+    let token = '';
+    if (typeof window !== 'undefined') {
+      const rawSession = localStorage.getItem('educalizando_creator_session');
+      if (rawSession) {
+        try {
+          const sess = JSON.parse(rawSession);
+          if (sess.access_token) token = sess.access_token;
+        } catch (e) {}
+      }
+    }
+    const { data: authSession } = await supabase.auth.getSession();
+    if (authSession?.session?.access_token) {
+      token = authSession.session.access_token;
+    }
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch('/api/produtos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
 
@@ -536,9 +580,27 @@ export async function updateProduct(productId: string, updates: Partial<Product>
   const payload = cleanProductPayload(updates);
 
   try {
+    let token = '';
+    if (typeof window !== 'undefined') {
+      const rawSession = localStorage.getItem('educalizando_creator_session');
+      if (rawSession) {
+        try {
+          const sess = JSON.parse(rawSession);
+          if (sess.access_token) token = sess.access_token;
+        } catch (e) {}
+      }
+    }
+    const { data: authSession } = await supabase.auth.getSession();
+    if (authSession?.session?.access_token) {
+      token = authSession.session.access_token;
+    }
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch('/api/produtos', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ id: productId, updates: payload })
     });
 
