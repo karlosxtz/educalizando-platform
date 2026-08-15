@@ -87,6 +87,14 @@ export async function GET(
     if (fileUrl && typeof fileUrl === 'string') {
       let activeUrl = fileUrl;
 
+      // EXTRAÇÃO CRÍTICA: Se a URL no banco for uma URL pública do próprio Supabase (que falha em buckets privados),
+      // extraímos apenas o nome do arquivo para forçar a geração de Signed URL.
+      const publicStorageMatch = activeUrl.match(/\/object\/public\/product-files\/(.+)$/);
+      if (publicStorageMatch && publicStorageMatch[1]) {
+        activeUrl = publicStorageMatch[1];
+        console.log(`[Download API] URL pública detectada. Path relativo extraído: ${activeUrl}`);
+      }
+
       // Se for caminho relativo do Supabase Storage, gerar Signed URL
       if (!activeUrl.startsWith('http://') && !activeUrl.startsWith('https://')) {
         console.log(`[Download API] Gerando Signed URL para path relativo: ${activeUrl}`);
