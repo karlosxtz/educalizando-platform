@@ -10,6 +10,7 @@ interface Stats {
   totalPurchases: number;
   totalGrossRevenue: number;
   totalEducalizandoRevenue: number;
+  totalAsaasFees: number;
 }
 
 interface ChartData {
