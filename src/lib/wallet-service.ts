@@ -89,8 +89,8 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   if (isRealSupabaseConfigured()) {
     try {
       const [ordRes, txRes] = await Promise.all([
-        supabase.from('orders').select('*').eq('store_id', storeId),
-        supabase.from('wallet_transactions').select('*').eq('store_id', storeId)
+        supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
+        supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId)
       ]);
 
       if (!ordRes.error && ordRes.data) {
@@ -237,11 +237,31 @@ export async function recordWalletTransaction(data: {
 }): Promise<WalletTransaction> {
 
   // A. IDEMPOTÊNCIA: Se for venda ou estorno de um pedido já registrado no ledger, ignora duplicação
+  // Primeiro verificar no Supabase (para chamadas server-side como webhooks onde localStorage não existe)
+  if (data.orderId && isRealSupabaseConfigured()) {
+    try {
+      const { data: existingTx } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('id')
+        .eq('order_id', data.orderId)
+        .eq('type', data.type)
+        .maybeSingle();
+
+      if (existingTx) {
+        console.log(`[recordWalletTransaction] Lançamento ${data.type} para o pedido ${data.orderId} já existe no Supabase.`);
+        return { id: existingTx.id, storeId: data.storeId, type: data.type, status: 'COMPLETED' as WalletTransactionStatus } as WalletTransaction;
+      }
+    } catch (e) {
+      console.warn('[recordWalletTransaction] Erro na checagem de idempotência Supabase:', e);
+    }
+  }
+
+  // Fallback: verificar localStorage (para chamadas client-side)
   const allLocal = getLocalWalletTransactions();
   if (data.orderId) {
     const existing = allLocal.find(t => t.orderId === data.orderId && t.type === data.type);
     if (existing) {
-      console.log(`[recordWalletTransaction] Lançamento ${data.type} para o pedido ${data.orderId} já existe no ledger.`);
+      console.log(`[recordWalletTransaction] Lançamento ${data.type} para o pedido ${data.orderId} já existe no ledger local.`);
       return existing;
     }
   }
@@ -300,9 +320,48 @@ export async function recordWalletTransaction(data: {
 export async function getWalletTransactionsStatement(params: StatementFilterParams) {
   const { storeId, period = 'all', status = 'all', search = '', page = 1, limit = 20 } = params;
 
-  let allTx = getLocalWalletTransactions().filter(t => t.storeId === storeId);
+  let allTx: WalletTransaction[] = [];
 
-  // Se o ledger local estiver vazio, construir lançamentos a partir dos pedidos
+  // A. Buscar transações do Supabase (FONTE PRIMÁRIA)
+  if (isRealSupabaseConfigured()) {
+    try {
+      const { data: txData, error: txErr } = await supabaseAdmin
+        .from('wallet_transactions')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false });
+
+      if (!txErr && txData && txData.length > 0) {
+        allTx = txData.map((t: any) => ({
+          id: t.id,
+          storeId: t.store_id,
+          creatorId: t.creator_id,
+          orderId: t.order_id,
+          buyerName: t.buyer_name || null,
+          productTitle: t.product_title || null,
+          type: t.type as WalletTransactionType,
+          status: t.status as WalletTransactionStatus,
+          grossAmount: Number(t.gross_amount || 0),
+          platformFixedFeeAmount: Number(t.platform_fixed_fee_amount || 0),
+          platformPercentageFeeAmount: Number(t.platform_percentage_fee_amount || 0),
+          platformFeeAmount: Number(t.platform_fee_amount || 0),
+          asaasFeeAmount: Number(t.asaas_fee_amount || 0),
+          netAmount: Number(t.net_amount || 0),
+          description: t.description || '',
+          createdAt: t.created_at
+        }));
+      }
+    } catch (err) {
+      console.error('[getWalletTransactionsStatement] Erro Supabase:', err);
+    }
+  }
+
+  // B. Fallback: localStorage
+  if (allTx.length === 0) {
+    allTx = getLocalWalletTransactions().filter(t => t.storeId === storeId);
+  }
+
+  // C. Fallback extremo: construir a partir dos pedidos locais
   if (allTx.length === 0) {
     const rawLocalAsaas = typeof window !== 'undefined' ? localStorage.getItem('educalizando_asaas_orders_v2') : null;
     const orders = rawLocalAsaas ? JSON.parse(rawLocalAsaas).filter((o: any) => o.storeId === storeId) : [];
@@ -313,8 +372,8 @@ export async function getWalletTransactionsStatement(params: StatementFilterPara
       orderId: o.id,
       buyerName: o.buyerName,
       productTitle: o.items?.[0]?.productTitle || 'Infoproduto',
-      type: o.status === 'refunded' ? 'REFUND' : 'SALE',
-      status: o.status === 'paid' ? 'COMPLETED' : o.status === 'pending' ? 'PENDING' : 'CANCELLED',
+      type: o.status === 'refunded' ? 'REFUND' as WalletTransactionType : 'SALE' as WalletTransactionType,
+      status: o.status === 'paid' ? 'COMPLETED' as WalletTransactionStatus : o.status === 'pending' ? 'PENDING' as WalletTransactionStatus : 'CANCELLED' as WalletTransactionStatus,
       grossAmount: Number(o.totalAmount || 0),
       platformFixedFeeAmount: Number(o.platformFixedFeeAmount || 0),
       platformPercentageFeeAmount: Number(o.platformPercentageFeeAmount || 0),
