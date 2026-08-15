@@ -311,15 +311,19 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase
+      // Filtrar excluídos no nível do banco (server-side) para não depender apenas de .filter() JS
+      let query = supabase
         .from('products')
         .select('*')
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
           if (!p.store_id) return false;
-          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
@@ -355,14 +359,18 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase
+      // Filtrar excluídos e não-publicados no nível do banco
+      let query = supabase
         .from('products')
         .select('*')
+        .is('excluido_em', null)
+        .neq('status', 'excluido')
         .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
-          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const statusStr = (p.status as string) || '';
           const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
@@ -669,58 +677,78 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
 export async function deleteProduct(productId: string): Promise<void> {
   const cleanId = productId.replace(/^prod_/i, '');
 
-  // 1. Adicionar à blacklist de produtos excluídos para filtragem imediata em qualquer camada
+  // 1. Adicionar à blacklist de produtos excluídos para filtragem imediata na camada local
   addDeletedProductId(productId);
   addDeletedProductId(cleanId);
 
   // 2. Chamar rota API backend para Soft Delete definitivo via Supabase Admin
+  //    CRÍTICO: Agora tratamos erros reais em vez de engolir silenciosamente
   try {
     const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
+    const result = await res.json().catch(() => null);
+
     if (!res.ok) {
-      const errData = await res.json().catch(() => null);
-      if (errData?.error) {
-        console.warn('[deleteProduct] Aviso retornado pela API backend:', errData.error);
-      }
+      const errorMsg = result?.error || `Erro HTTP ${res.status} ao excluir produto.`;
+      console.error('[deleteProduct] Erro real retornado pela API backend:', errorMsg);
+      throw new Error(errorMsg);
     }
+
+    if (!result?.success) {
+      console.error('[deleteProduct] API retornou resposta sem success:', result);
+      throw new Error('A API não confirmou a exclusão do produto.');
+    }
+
+    console.log(`[deleteProduct] Soft delete confirmado pela API para ${productId}`);
   } catch (e: any) {
-    console.warn('[deleteProduct] Aviso na chamada API DELETE:', e);
-  }
+    // Se for um erro de rede (fetch falhou), tentar fallback direto
+    if (e.name === 'TypeError' || e.message?.includes('fetch')) {
+      console.warn('[deleteProduct] Erro de rede, tentando fallback direto via Supabase client...');
+      
+      const isRealSupabase = Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL && 
+        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+      );
 
-  // 3. Soft Delete direto via Supabase Client como redundância
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
-  if (isRealSupabase) {
-    try {
-      const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
-      if (targetUUID) {
-        const { error: updErr } = await supabase
-          .from('products')
-          .update({
-            excluido_em: new Date().toISOString(),
-            status: 'excluido',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', targetUUID);
-
-        if (updErr) {
-          await supabase
+      if (isRealSupabase) {
+        const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
+        if (targetUUID) {
+          // Tentar excluido_em + status
+          const { data, error } = await supabase
             .from('products')
             .update({
+              excluido_em: new Date().toISOString(),
               status: 'excluido',
               updated_at: new Date().toISOString()
             })
-            .eq('id', targetUUID);
+            .eq('id', targetUUID)
+            .select('id')
+            .maybeSingle();
+
+          if (error || !data) {
+            // Tentar apenas excluido_em
+            const { data: d2, error: e2 } = await supabase
+              .from('products')
+              .update({
+                excluido_em: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', targetUUID)
+              .select('id')
+              .maybeSingle();
+
+            if (e2 || !d2) {
+              console.error('[deleteProduct] Fallback direto Supabase também falhou:', e2?.message);
+            }
+          }
         }
       }
-    } catch (err) {
-      console.warn('[deleteProduct] Aviso no update direto Supabase:', err);
+    } else {
+      // Re-lançar erros reais da API (não são erros de rede)
+      throw e;
     }
   }
 
-  // 4. SEMPRE remover de TODAS as chaves de armazenamento local para impedir reaparecimento
+  // 3. Limpar armazenamento local para impedir reaparecimento no lado do cliente
   if (typeof window !== 'undefined') {
     const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
     

@@ -208,53 +208,96 @@ export async function DELETE(request: Request) {
     const cleanId = id.replace(/^prod_/i, '');
     const validUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(id) ? id : null);
 
-    console.log(`[API /api/produtos DELETE] Executando Soft Delete. ID bruto: "${id}", cleanId: "${cleanId}", validUUID: "${validUUID}"`);
+    if (!validUUID) {
+      return NextResponse.json({ error: `ID inválido para exclusão: "${id}"` }, { status: 400 });
+    }
 
-    // Soft Delete Definitivo no Supabase: preserva integridade relacional e fiscal
-    if (validUUID) {
-      // 1. Tentar Soft Delete completo com excluido_em e status = 'excluido'
-      const { error: err1 } = await supabaseAdmin
+    console.log(`[API /api/produtos DELETE] Executando Soft Delete. ID bruto: "${id}", validUUID: "${validUUID}"`);
+
+    // Soft Delete Definitivo via supabaseAdmin (service role key — ignora RLS)
+    // Estratégia de fallback escalonado para máxima compatibilidade:
+    //   1. excluido_em + status = 'excluido' (ideal, requer migration completa)
+    //   2. apenas excluido_em (caso CHECK constraint de status ainda bloqueie)
+    //   3. apenas status = 'excluido' (caso coluna excluido_em não exista)
+
+    let softDeleteSuccess = false;
+
+    // Tentativa 1: Soft Delete completo (excluido_em + status)
+    const { data: d1, error: err1 } = await supabaseAdmin
+      .from('products')
+      .update({
+        excluido_em: new Date().toISOString(),
+        status: 'excluido',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', validUUID)
+      .select('id')
+      .maybeSingle();
+
+    if (!err1 && d1) {
+      softDeleteSuccess = true;
+      console.log(`[API /api/produtos DELETE] Soft delete completo (excluido_em + status) OK para ${validUUID}`);
+    } else {
+      console.warn('[API /api/produtos DELETE] Tentativa 1 falhou:', err1?.message || 'nenhuma linha afetada');
+
+      // Tentativa 2: Apenas excluido_em (CHECK constraint pode bloquear status='excluido')
+      const { data: d2, error: err2 } = await supabaseAdmin
         .from('products')
         .update({
           excluido_em: new Date().toISOString(),
-          status: 'excluido',
           updated_at: new Date().toISOString()
         })
-        .eq('id', validUUID);
+        .eq('id', validUUID)
+        .select('id')
+        .maybeSingle();
 
-      if (err1) {
-        console.warn('[API /api/produtos DELETE] Aviso soft delete com excluido_em, tentando apenas status:', err1.message);
-        
-        // 2. Fallback caso a coluna excluido_em ainda não tenha sido criada no Supabase
-        const { error: err2 } = await supabaseAdmin
+      if (!err2 && d2) {
+        softDeleteSuccess = true;
+        console.log(`[API /api/produtos DELETE] Soft delete parcial (apenas excluido_em) OK para ${validUUID}`);
+      } else {
+        console.warn('[API /api/produtos DELETE] Tentativa 2 falhou:', err2?.message || 'nenhuma linha afetada');
+
+        // Tentativa 3: Apenas status (coluna excluido_em pode não existir)
+        const { data: d3, error: err3 } = await supabaseAdmin
           .from('products')
           .update({
             status: 'excluido',
             updated_at: new Date().toISOString()
           })
-          .eq('id', validUUID);
+          .eq('id', validUUID)
+          .select('id')
+          .maybeSingle();
 
-        if (err2) {
-          console.warn('[API /api/produtos DELETE] Falha no update de status, tentando exclusão física de fallback:', err2.message);
-          // 3. Fallback de exclusão física caso o update falhe
-          try {
-            await supabaseAdmin.from('digital_contents').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('product_reviews').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('reviews').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('kit_products').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('kit_items').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('coupon_products').delete().eq('product_id', validUUID);
-            await supabaseAdmin.from('products').delete().eq('id', validUUID);
-          } catch (delErr: any) {
-            console.error('[API /api/produtos DELETE] Erro no fallback físico:', delErr.message);
-          }
+        if (!err3 && d3) {
+          softDeleteSuccess = true;
+          console.log(`[API /api/produtos DELETE] Soft delete (apenas status) OK para ${validUUID}`);
+        } else {
+          console.error('[API /api/produtos DELETE] TODAS as tentativas de soft delete falharam:', err3?.message || 'nenhuma linha afetada');
         }
       }
-
-      console.log(`[API /api/produtos DELETE] Produto ${validUUID} processado com sucesso.`);
     }
 
-    // Purga imediata do cache do Next.js para garantir que o item suma instantaneamente da loja e do painel
+    if (!softDeleteSuccess) {
+      // Verificar se o produto sequer existe
+      const { data: exists } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .eq('id', validUUID)
+        .maybeSingle();
+
+      if (!exists) {
+        // Produto já foi excluído ou nunca existiu — considerar sucesso
+        console.log(`[API /api/produtos DELETE] Produto ${validUUID} não encontrado no banco (já excluído ou inexistente).`);
+        softDeleteSuccess = true;
+      } else {
+        return NextResponse.json({ 
+          error: 'Falha ao excluir produto. A migration de soft delete pode não ter sido executada. Execute migrations_soft_delete.sql no Supabase.',
+          details: 'CHECK constraint ou coluna ausente impedindo o UPDATE.'
+        }, { status: 500 });
+      }
+    }
+
+    // Purga imediata do cache do Next.js
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/loja/[slug]', 'page');
