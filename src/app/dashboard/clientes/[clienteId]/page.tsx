@@ -9,6 +9,7 @@ import {
   CheckCircle2, AlertCircle, ExternalLink, Download, Lock, Package, Layers 
 } from 'lucide-react';
 import { getCustomerById, Customer } from '@/lib/customer-service';
+import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 
 interface CustomerDetailPageProps {
@@ -37,6 +38,19 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       setLoading(true);
       try {
         const cust = await getCustomerById(storeId, resolvedParams.clienteId);
+        
+        if (cust && cust.email) {
+          try {
+            const namesMap = await syncCustomerNamesByEmails([cust.email]);
+            const emailKey = cust.email.toLowerCase().trim();
+            if (namesMap[emailKey]) {
+              cust.nome = namesMap[emailKey];
+            }
+          } catch (syncErr) {
+            console.error('Erro ao sincronizar nome do cliente detalhado:', syncErr);
+          }
+        }
+
         setCustomer(cust);
       } catch (err) {
         console.error('Erro ao buscar dados do cliente:', err);

@@ -108,7 +108,7 @@ interface RawOrderRecord {
 // Helper to check if an order status is a valid paid purchase
 function isValidPaidStatus(status: string): boolean {
   const s = (status || '').toLowerCase();
-  return s === 'pago' || s === 'liberado' || s === 'aprovado' || s === 'concluido';
+  return s === 'paid' || s === 'pago' || s === 'liberado' || s === 'aprovado' || s === 'concluido';
 }
 
 // 1. Fetch and aggregate all real customers for a given store (Multi-tenant isolated by store_id)
@@ -134,9 +134,9 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           cliente_telefone: o.cliente_telefone || o.buyer_phone || null,
           produto_titulo: o.produto_titulo || o.product_title || 'Infoproduto Digital',
           tipo_produto: o.tipo_produto || 'pdf',
-          valor_total: Number(o.valor_total || o.amount || 0),
+          valor_total: Number(o.total_amount || o.valor_total || o.amount || 0),
           metodo_pagamento: o.metodo_pagamento || o.payment_method || 'PIX Instantâneo',
-          status: o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : o.status === 'cancelado' ? 'cancelado' : 'pendente_pix',
+          status: o.status === 'paid' || o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : o.status === 'cancelado' ? 'cancelado' : 'pendente_pix',
           created_at: o.created_at
         }));
       }

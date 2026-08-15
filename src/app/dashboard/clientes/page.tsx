@@ -7,6 +7,7 @@ import {
   ShoppingBag, DollarSign, Calendar, ArrowRight, ShieldCheck, RefreshCw 
 } from 'lucide-react';
 import { getCustomersByStoreId, getCustomerSummaryStats, Customer, CustomerSummary } from '@/lib/customer-service';
+import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import CustomSelect from '@/components/ui/CustomSelect';
 
@@ -44,6 +45,23 @@ export default function CustomersPage() {
           getCustomersByStoreId(storeId),
           getCustomerSummaryStats(storeId)
         ]);
+
+        // Sincronizar nomes reais dos alunos
+        if (custData && custData.length > 0) {
+          try {
+            const emails = custData.map(c => c.email).filter(Boolean);
+            const namesMap = await syncCustomerNamesByEmails(emails);
+            custData.forEach(c => {
+              const emailKey = c.email?.toLowerCase().trim();
+              if (emailKey && namesMap[emailKey]) {
+                c.nome = namesMap[emailKey];
+              }
+            });
+          } catch (syncErr) {
+            console.error('Erro ao sincronizar nomes:', syncErr);
+          }
+        }
+
         setCustomers(custData);
         setSummary(sumData);
       } catch (err) {
