@@ -52,31 +52,12 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const downloadSingleProduct = async (productId: string, title: string) => {
-    const res = await fetch(`/api/aluno/materiais/${productId}/download`);
-    if (!res.ok) {
-      throw new Error(`HTTP Error ${res.status}`);
-    }
-
-    const disposition = res.headers.get('content-disposition');
-    let filename = `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
-    if (disposition && disposition.includes('filename=')) {
-      const match = disposition.match(/filename="?([^";]+)"?/);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-    }
-
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objectUrl);
+    // Usar navegação direta para aproveitar o redirect do backend e evitar proxy em memória
+    const downloadUrl = `/api/aluno/materiais/${productId}/download`;
+    
+    // window.location.assign evita bloqueadores de popup (já que a chamada é async)
+    // e permite que o browser resolva o Content-Disposition: attachment nativamente
+    window.location.assign(downloadUrl);
   };
 
   const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent) => {

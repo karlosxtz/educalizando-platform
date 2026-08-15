@@ -93,7 +93,7 @@ export async function GET(
         try {
           const { data: signedData, error: signedError } = await supabase.storage
             .from('product-files')
-            .createSignedUrl(activeUrl, 3600);
+            .createSignedUrl(activeUrl, 3600, { download: humanFilename });
             
           if (signedError) {
             console.error('[Download API] Erro ao criar Signed URL no Supabase:', signedError);
@@ -117,27 +117,8 @@ export async function GET(
       }
 
       if (activeUrl.startsWith('http://') || activeUrl.startsWith('https://')) {
-        console.log(`[Download API] Iniciando fetch do arquivo na URL ativa (início: ${activeUrl.substring(0, 30)}...)`);
-        try {
-          const fileRes = await fetch(activeUrl);
-          if (fileRes.ok && fileRes.body) {
-            console.log(`[Download API] Fetch OK. Stream iniciado.`);
-            const contentType = fileRes.headers.get('content-type') || 'application/octet-stream';
-            
-            return new Response(fileRes.body, {
-              headers: {
-                'Content-Type': contentType,
-                'Content-Disposition': `attachment; filename="${humanFilename}"; filename*=UTF-8''${encodeURIComponent(humanFilename)}`,
-                'Cache-Control': 'no-store, private',
-                'X-Content-Type-Options': 'nosniff'
-              }
-            });
-          } else {
-            console.error(`[Download API] Fetch falhou com status ${fileRes.status}: ${fileRes.statusText}`);
-          }
-        } catch (errFetch) {
-          console.error('[Download API] Erro ao fazer fetch/stream do arquivo:', errFetch);
-        }
+        console.log(`[Download API] Redirecionando cliente para URL assinada: ${activeUrl.substring(0, 60)}...`);
+        return NextResponse.redirect(activeUrl);
       }
     } else {
       console.warn(`[Download API] fileUrl invalido ou nulo. fileUrl =`, fileUrl);
