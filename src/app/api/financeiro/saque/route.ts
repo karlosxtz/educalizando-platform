@@ -69,24 +69,29 @@ export async function POST(request: Request) {
     // Validação de Segurança Mandatória: Garantir que o usuário requisitante é o dono (creatorId)
     let isAuthenticatedAndAuthorized = false;
     let validJwt = '';
-    const cookieStore = await cookies();
-    const token = cookieStore.get('sb-access-token')?.value;
+    
+    // 1. Tentar primeiro o Header Authorization explícito (O cliente assina o payload com este JWT exato)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      validJwt = authHeader.substring(7);
+      try {
+        const { data: userData } = await supabaseAdmin.auth.getUser(validJwt);
+        if (userData?.user && userData.user.id === creatorId) {
+          isAuthenticatedAndAuthorized = true;
+        }
+      } catch (e) {}
+    }
 
-    if (token) {
-      const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-      if (user && user.id === creatorId) {
-        isAuthenticatedAndAuthorized = true;
+    // 2. Fallback para cookies se o header falhar
+    if (!isAuthenticatedAndAuthorized) {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('sb-access-token')?.value;
+      if (token) {
         validJwt = token;
-      }
-    } else {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const rawToken = authHeader.substring(7);
         try {
-          const { data: userData } = await supabaseAdmin.auth.getUser(rawToken);
-          if (userData?.user && userData.user.id === creatorId) {
+          const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+          if (user && user.id === creatorId) {
             isAuthenticatedAndAuthorized = true;
-            validJwt = rawToken;
           }
         } catch (e) {}
       }
