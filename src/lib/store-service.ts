@@ -370,7 +370,10 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
         const remoteIds = new Set(remote.map(p => p.id));
         for (const lp of mergedProducts) {
-          if (!remoteIds.has(lp.id)) remote.push(lp);
+          const lpCleanStore = lp.store_id ? lp.store_id.replace(/^store_/i, '') : '';
+          if (validStoreIds.includes(lp.store_id) || validStoreIds.includes(lpCleanStore) || lpCleanStore === cleanStoreId) {
+            if (!remoteIds.has(lp.id)) remote.push(lp);
+          }
         }
         return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       }
@@ -380,7 +383,10 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   }
 
   // Se o supabase falhar, filtra os locais apenas para essa loja
-  return mergedProducts.filter(p => p.store_id && p.store_id.replace(/^store_/i, '') === cleanStoreId);
+  return mergedProducts.filter(p => {
+    const lpClean = p.store_id ? p.store_id.replace(/^store_/i, '') : '';
+    return lpClean === cleanStoreId;
+  });
 }
 
 // 5. Obter Produtos Públicos (Vitrine - status publicado/ativo e não excluído)
@@ -475,7 +481,10 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         // Merge remote com local
         const remoteIds = new Set(remote.map(p => p.id));
         for (const lp of mergedProducts) {
-          if (!remoteIds.has(lp.id)) remote.push(lp);
+          const lpCleanStore = lp.store_id ? lp.store_id.replace(/^store_/i, '') : '';
+          if (validStoreIds.includes(lp.store_id) || validStoreIds.includes(lpCleanStore) || lpCleanStore === cleanStoreId) {
+            if (!remoteIds.has(lp.id)) remote.push(lp);
+          }
         }
         return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       }
@@ -484,7 +493,10 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     }
   }
 
-  return mergedProducts.filter(p => p.store_id && p.store_id.replace(/^store_/i, '') === cleanStoreId);
+  return mergedProducts.filter(p => {
+    const lpClean = p.store_id ? p.store_id.replace(/^store_/i, '') : '';
+    return lpClean === cleanStoreId;
+  });
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
