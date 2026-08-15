@@ -12,12 +12,7 @@ export async function getReviews(productId: string): Promise<Review[]> {
     try {
       const { data, error } = await supabase
         .from('reviews')
-        .select(`
-          *,
-          users:student_id(
-            raw_user_meta_data
-          )
-        `)
+        .select('*')
         .eq('product_id', productId)
         .order('created_at', { ascending: false });
 
