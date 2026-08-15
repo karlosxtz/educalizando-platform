@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUserRole, checkStudentProductAccess } from '@/lib/student-service';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 function sanitizeFilename(title: string, extension = 'pdf'): string {
   const clean = title
@@ -99,7 +99,10 @@ export async function GET(
       if (!activeUrl.startsWith('http://') && !activeUrl.startsWith('https://')) {
         console.log(`[Download API] Gerando Signed URL para path relativo: ${activeUrl}`);
         try {
-          const { data: signedData, error: signedError } = await supabase.storage
+          // CRÍTICO: Devemos usar o supabaseAdmin (Service Role Key) porque o bucket 'product-files' 
+          // é privado. O client anon (supabase normal) falhará com "StorageApiError: Object not found"
+          // por causa do RLS bloqueando a leitura do bucket, mesmo que o arquivo exista perfeitamente.
+          const { data: signedData, error: signedError } = await supabaseAdmin.storage
             .from('product-files')
             .createSignedUrl(activeUrl, 3600, { download: humanFilename });
             
@@ -112,7 +115,7 @@ export async function GET(
             activeUrl = signedData.signedUrl;
           } else {
             console.warn(`[Download API] Fallback para getPublicUrl para o arquivo: ${activeUrl}`);
-            const { data: pubData } = supabase.storage
+            const { data: pubData } = supabaseAdmin.storage
               .from('product-files')
               .getPublicUrl(activeUrl);
             if (pubData?.publicUrl) {
