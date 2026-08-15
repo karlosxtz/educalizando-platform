@@ -3,7 +3,7 @@ import { calculateCreatorWallet, recordWalletTransaction } from './wallet-servic
 import { lookupAsaasPixKey, createAsaasTransfer } from './asaas-service';
 
 // CONFIGURAÇÃO CENTRALIZADA (Item 11 & 43 da Especificação)
-export const MIN_WITHDRAWAL_AMOUNT = 20.00;
+export const MIN_WITHDRAWAL_AMOUNT = 1.00;
 export const WITHDRAWAL_ENABLED = true;
 
 export type PixKeyValidationStatus = 'PENDING' | 'VALID' | 'INVALID' | 'BLOCKED';

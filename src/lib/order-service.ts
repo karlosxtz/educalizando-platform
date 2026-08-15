@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders, saveLocalOrders } from './sales-service';
 
 export type PaymentMethodType = 'pix' | 'credit_card' | 'boleto';
@@ -240,7 +240,7 @@ export async function createOrderRecord(data: {
   // Gravar no Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
-      await supabase.from('orders').insert([{
+      await supabaseAdmin.from('orders').insert([{
         id: newOrder.id,
         store_id: newOrder.storeId,
         buyer_name: newOrder.buyerName,
@@ -264,7 +264,7 @@ export async function createOrderRecord(data: {
       }]);
 
       if (formattedItems.length > 0) {
-        await supabase.from('order_items').insert(formattedItems.map(it => ({
+        await supabaseAdmin.from('order_items').insert(formattedItems.map(it => ({
           id: it.id,
           order_id: it.orderId,
           product_id: it.productId,
@@ -400,7 +400,7 @@ export async function updateOrderStatus(
   // Atualizar Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
-      await supabase.from('orders').update({
+      await supabaseAdmin.from('orders').update({
         status: newStatus,
         paid_at: nowPaidAt,
         asaas_fee_amount: updatedAsaasFee,

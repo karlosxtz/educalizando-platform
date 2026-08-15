@@ -135,7 +135,7 @@ export default function FinancialWalletDashboardPage() {
   const handleOpenWithdrawModal = () => {
     setWithdrawError(null);
     setWithdrawSuccess(null);
-    setWithdrawAmountInput(summary.saldoDisponivel > 0 ? summary.saldoDisponivel.toFixed(2) : '20.00');
+    setWithdrawAmountInput(summary.saldoDisponivel > 0 ? summary.saldoDisponivel.toFixed(2) : '1.00');
     setShowWithdrawModal(true);
   };
 
