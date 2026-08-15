@@ -172,6 +172,7 @@ function saveLocalAsaasOrders(orders: OrderRecord[]) {
 
 // 2. Criar Registro do Pedido (Validação Estrita de Loja Única + Cálculo Servidor)
 export async function createOrderRecord(data: {
+  id?: string;
   storeId: string;
   buyerName: string;
   buyerEmail: string;
@@ -198,7 +199,7 @@ export async function createOrderRecord(data: {
     : estimateAsaasFee(data.paymentMethod, subtotal);
 
   const financials = calculateOrderFinancials(data.items, feeToUse);
-  const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const orderId = data.id || `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
   const formattedItems: OrderItemRecord[] = financials.items.map((it, idx) => ({

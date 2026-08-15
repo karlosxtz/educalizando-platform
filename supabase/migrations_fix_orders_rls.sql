@@ -19,7 +19,7 @@ CREATE POLICY "Leitura segura de orders por criador ou comprador"
   ON public.orders FOR SELECT
   USING (
     -- É o Criador dono da loja do pedido
-    store_id IN (SELECT id FROM public.stores WHERE creator_id = auth.uid())
+    store_id IN (SELECT id FROM public.stores WHERE creator_id = auth.uid()::text)
     OR 
     -- É o Aluno dono do pedido (match por e-mail validado no JWT)
     LOWER(buyer_email) = LOWER(auth.jwt() ->> 'email')
@@ -47,7 +47,7 @@ CREATE POLICY "Leitura segura de order_items"
   USING (
     order_id IN (
       SELECT id FROM public.orders WHERE 
-        store_id IN (SELECT id FROM public.stores WHERE creator_id = auth.uid())
+        store_id IN (SELECT id FROM public.stores WHERE creator_id = auth.uid()::text)
         OR LOWER(buyer_email) = LOWER(auth.jwt() ->> 'email')
     )
   );

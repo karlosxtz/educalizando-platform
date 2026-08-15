@@ -145,6 +145,7 @@ export async function POST(request: Request) {
 
     // 8. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
     const orderRecord = await createOrderRecord({
+      id: tempOrderId,
       storeId,
       buyerName,
       buyerEmail,
