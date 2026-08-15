@@ -112,7 +112,7 @@ export default function SuperAdminDashboard() {
                     contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
                     itemStyle={{ color: '#10b981' }}
                     labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                    formatter={(value: number) => [formatCurrency(value), 'Faturamento']}
+                    formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Faturamento']}
                     labelFormatter={formatDate}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
@@ -136,7 +136,7 @@ export default function SuperAdminDashboard() {
                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
                      itemStyle={{ color: '#3b82f6' }}
                      labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                     formatter={(value: number) => [value, 'Pedidos']}
+                     formatter={(value: any) => [Number(value) || 0, 'Pedidos']}
                      labelFormatter={formatDate}
                      cursor={{ fill: '#1e293b' }}
                    />
