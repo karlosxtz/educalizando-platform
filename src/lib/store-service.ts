@@ -324,6 +324,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       if (!error && data) {
         return (data as Product[]).filter(p => {
           if (!p.store_id) return false;
+          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
@@ -371,6 +372,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
       if (!error && data) {
         return (data as Product[]).filter(p => {
+          if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
           const statusStr = (p.status as string) || '';
           const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
