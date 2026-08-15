@@ -129,45 +129,12 @@ export async function GET(
       }
     }
 
-    // 5. Fallback PDF oficial para download nativo e imediato
-    const pdfContent = `%PDF-1.4
-1 0 obj <</Type /Catalog /Pages 2 0 R>> endobj
-2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1>> endobj
-3 0 obj <</Type /Page /Parent 2 0 R /Resources <<>> /Contents 4 0 R>> endobj
-4 0 obj <</Length 160>> stream
-BT /F1 18 Tf 50 750 TD (Educalizando - ${productTitle.substring(0, 45)}) Tj ET
-BT /F1 11 Tf 50 710 TD (Material Didatico Digital - Download Imprimidor/Salvo) Tj ET
-BT /F1 10 Tf 50 680 TD (Liberado para download direto no seu dispositivo.) Tj ET
-endstream endobj
-xref
-0 5
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000192 00000 n
-trailer <</Size 5 /Root 1 0 R>>
-startxref
-380
-%%EOF`;
-
-    return new Response(Buffer.from(pdfContent, 'utf-8'), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${humanFilename}"; filename*=UTF-8''${encodeURIComponent(humanFilename)}`,
-        'Cache-Control': 'no-store, private'
-      }
-    });
-
+    return NextResponse.json(
+      { error: 'Arquivo original não encontrado ou não cadastrado pelo criador.' },
+      { status: 404 }
+    );
   } catch (err: any) {
-    console.error('[API Download Material Error]:', err);
-    // Garantir que a resposta de erro ainda acione download seguro sem quebrar na tela
-    const fallbackFilename = 'material_didatico.pdf';
-    return new Response(Buffer.from('Erro ao processar arquivo.', 'utf-8'), {
-      headers: {
-        'Content-Type': 'text/plain',
-        'Content-Disposition': `attachment; filename="${fallbackFilename}"`,
-        'Cache-Control': 'no-store, private'
-      }
-    });
+    console.error('[Download API] Exceção fatal:', err);
+    return NextResponse.json({ error: 'Erro interno ao processar o download' }, { status: 500 });
   }
 }
