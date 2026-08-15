@@ -307,7 +307,7 @@ export async function createOrderRecord(data: {
 export async function getOrderRecordById(orderId: string): Promise<OrderRecord | null> {
   if (isRealSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('orders')
         .select('*')
         .eq('id', orderId)
@@ -315,7 +315,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
 
       if (!error && data) {
         // Buscar itens do pedido na tabela order_items
-        const { data: itemsData } = await supabase
+        const { data: itemsData } = await supabaseAdmin
           .from('order_items')
           .select('*')
           .eq('order_id', orderId);
