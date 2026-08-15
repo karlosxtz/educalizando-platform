@@ -43,10 +43,11 @@ export async function GET() {
     // 4. Receita (Faturamento Global e Lucro da Plataforma Educalizando)
     let totalGrossRevenue = 0;
     let totalEducalizandoRevenue = 0;
+    let totalAsaasFees = 0;
 
     const { data: orders } = await supabaseAdmin
       .from('orders')
-      .select('total_amount, platform_fee_amount, created_at')
+      .select('total_amount, platform_fee_amount, asaas_fee_amount, created_at')
       .eq('status', 'paid');
       
     // Agrupar dados para o Gráfico (Últimos 30 dias)
@@ -67,9 +68,11 @@ export async function GET() {
       orders.forEach(order => {
         const gross = Number(order.total_amount) || 0;
         const fee = Number(order.platform_fee_amount) || 0;
+        const asaasFee = Number(order.asaas_fee_amount) || 0;
         
         totalGrossRevenue += gross;
         totalEducalizandoRevenue += fee;
+        totalAsaasFees += asaasFee;
         
         const dateStr = new Date(order.created_at).toISOString().split('T')[0];
         if (chartDataMap[dateStr]) {
@@ -89,7 +92,8 @@ export async function GET() {
         totalProducts: totalProducts || 0,
         totalPurchases: totalPurchases || 0,
         totalGrossRevenue,
-        totalEducalizandoRevenue
+        totalEducalizandoRevenue,
+        totalAsaasFees
       },
       chartData
     });

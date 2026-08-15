@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Store, Package, Users, DollarSign, Activity } from 'lucide-react';
+import { Store, Package, Users, DollarSign, Activity, CreditCard } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface Stats {
@@ -68,7 +68,7 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard 
           title="Vendas Globais" 
           value={loading ? '...' : formatCurrency(stats?.totalGrossRevenue || 0)} 
@@ -79,7 +79,13 @@ export default function SuperAdminDashboard() {
           title="Receita Educalizando" 
           value={loading ? '...' : formatCurrency(stats?.totalEducalizandoRevenue || 0)} 
           icon={<DollarSign className="w-5 h-5 text-blue-500" />} 
-          trend="Sua parte das vendas"
+          trend="Sua parte das vendas (Líquido)"
+        />
+        <StatCard 
+          title="Taxas Asaas" 
+          value={loading ? '...' : formatCurrency(stats?.totalAsaasFees || 0)} 
+          icon={<CreditCard className="w-5 h-5 text-red-400" />} 
+          trend="Custo do gateway"
         />
         <StatCard 
           title="Lojas Ativas" 
@@ -87,7 +93,7 @@ export default function SuperAdminDashboard() {
           icon={<Store className="w-5 h-5 text-purple-500" />} 
         />
         <StatCard 
-          title="Produtos Publicados" 
+          title="Produtos" 
           value={loading ? '...' : String(stats?.totalProducts || 0)} 
           icon={<Package className="w-5 h-5 text-amber-500" />} 
         />
