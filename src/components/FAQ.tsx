@@ -10,7 +10,7 @@ export default function FAQ() {
   const FAQS = [
     {
       q: 'Quanto custa para criar minha loja no Educalizando?',
-      a: 'Criar sua conta e sua loja no Educalizando é 100% gratuito. Não há taxa de adesão nem mensalidade fixa. Você só paga uma taxa de 9,9% + R$ 1,00 por venda efetuada.'
+      a: 'Criar sua conta e sua loja na Educalizando é 100% gratuito. Não há taxa de adesão nem mensalidade fixa. Você só paga R$ 1,99 da taxa de processamento do PIX + R$ 0,99 fixo por produto vendido (0% de comissão).'
     },
     {
       q: 'Como recebo o dinheiro das minhas vendas?',
