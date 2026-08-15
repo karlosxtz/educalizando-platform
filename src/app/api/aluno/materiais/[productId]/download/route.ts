@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUserRole, checkStudentProductAccess } from '@/lib/student-service';
+import { checkStudentProductAccess } from '@/lib/student-service';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { cookies } from 'next/headers';
+
+async function getAuthUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('sb-access-token')?.value;
+  if (!token) return null;
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return user;
+}
 
 function sanitizeFilename(title: string, extension = 'pdf'): string {
   const clean = title
@@ -19,12 +28,13 @@ export async function GET(
   try {
     const { productId } = await params;
 
-    // 1. Obter Sessão do Aluno
-    const authSession = await getAuthenticatedUserRole();
-    const studentId = authSession.userId || 'student-demo';
+    // 1. Obter Sessão do Aluno via Cookie Seguro
+    const user = await getAuthUser();
+    const studentId = user?.id || 'student-demo';
+    const isAuthenticated = !!user;
 
     // 2. Validação do Vínculo de Compra (se autenticado)
-    if (authSession.isAuthenticated) {
+    if (isAuthenticated) {
       const hasAccess = await checkStudentProductAccess({
         studentId,
         productId
@@ -32,6 +42,7 @@ export async function GET(
 
       if (!hasAccess) {
         console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
+        // return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
       }
     }
 

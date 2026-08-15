@@ -102,11 +102,18 @@ export default function FileUpload({
           throw new Error(uploadError.message);
         }
 
-        const { data: publicUrlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(filePath);
+        let finalUrl = '';
+        if (bucket === 'product-files') {
+          // ANTI-PIRATARIA: Arquivos de produtos são privados. Não usar getPublicUrl.
+          // Salvar apenas o caminho relativo para gerar Signed URL na hora do download.
+          finalUrl = filePath;
+        } else {
+          const { data: publicUrlData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(filePath);
+          finalUrl = publicUrlData.publicUrl;
+        }
 
-        const finalUrl = publicUrlData.publicUrl;
         setProgress(100);
         setTimeout(() => {
           setUploading(false);

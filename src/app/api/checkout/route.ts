@@ -9,8 +9,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { 
       storeId, 
-      studentId: clientStudentId,
-      buyerName: rawBuyerName,
       buyerEmail: rawBuyerEmail,
       buyerCpf: rawBuyerCpf,
       buyerPhone,
@@ -43,19 +41,7 @@ export async function POST(request: Request) {
       } catch (e) {}
     }
 
-    // Se o cliente autenticado na tela passou o studentId válido do aluno logado
-    if ((!authSession.isAuthenticated || !authSession.userId) && clientStudentId && rawBuyerEmail) {
-      authSession = {
-        isAuthenticated: true,
-        role: 'student',
-        userId: clientStudentId,
-        email: rawBuyerEmail.toLowerCase().trim(),
-        fullName: rawBuyerName || 'Aluno Educalizando',
-        cpf: rawBuyerCpf || ''
-      };
-    }
-
-    // Se o comprador ainda não tem identificação de aluno:
+    // Se o comprador não tem identificação de aluno válida:
     if (!authSession.isAuthenticated || !authSession.userId) {
       return NextResponse.json(
         { 
@@ -79,16 +65,49 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. REGRA FUNDAMENTAL (SERVIDOR): UMA COMPRA = UMA LOJA
-    const invalidStoreItem = items.find((it: any) => it.storeId !== storeId);
-    if (invalidStoreItem) {
-      return NextResponse.json(
-        { success: false, error: 'Todos os produtos do pedido devem pertencer exclusivamente à mesma loja.' },
-        { status: 400 }
-      );
+    // 3. Buscar Produtos Reais no Banco e Validar (SERVER-SIDE PRICE)
+    const productIds = items.map((it: any) => it.productId).filter(Boolean);
+    if (productIds.length === 0) {
+      return NextResponse.json({ success: false, error: 'Carrinho vazio ou inválido.' }, { status: 400 });
     }
 
-    // 4. Método de Pagamento Normalizado
+    const { data: realProducts, error: dbError } = await supabase
+      .from('products')
+      .select('id, preco, store_id, status, titulo')
+      .in('id', productIds);
+
+    if (dbError || !realProducts || realProducts.length !== productIds.length) {
+      return NextResponse.json({ success: false, error: 'Um ou mais produtos não existem ou estão indisponíveis.' }, { status: 400 });
+    }
+
+    // 4. Reconstruir array de items com PREÇO REAL e QUANTIDADE validada
+    const realItems: any[] = [];
+    for (const item of items) {
+      const realProd = realProducts.find((p: any) => p.id === item.productId);
+      if (!realProd) continue;
+
+      if (realProd.status !== 'publicado') {
+        return NextResponse.json({ success: false, error: `Produto indisponível para venda: ${realProd.titulo}` }, { status: 400 });
+      }
+
+      if (realProd.store_id !== storeId) {
+        return NextResponse.json({ success: false, error: 'Todos os produtos devem pertencer exclusivamente à mesma loja.' }, { status: 400 });
+      }
+
+      const rawQuantity = Number(item.quantity);
+      const validQuantity = (isNaN(rawQuantity) || rawQuantity < 1 || !Number.isInteger(rawQuantity)) ? 1 : rawQuantity;
+      const safeQuantity = Math.min(validQuantity, 10);
+
+      realItems.push({
+        ...item,
+        productTitle: realProd.titulo,
+        unitPrice: Number(realProd.preco), // PREÇO DEFINIDO PELO SERVIDOR!
+        quantity: safeQuantity,
+        storeId: realProd.store_id // Garante storeId correto
+      });
+    }
+
+    // 4b. Método de Pagamento Normalizado
     const normalizedMethod: PaymentMethodType = 
       paymentMethod.toLowerCase() === 'credit_card' ? 'credit_card' : 
       paymentMethod.toLowerCase() === 'boleto' ? 'boleto' : 'pix';
@@ -97,8 +116,10 @@ export async function POST(request: Request) {
       normalizedMethod === 'credit_card' ? 'CREDIT_CARD' :
       normalizedMethod === 'boleto' ? 'BOLETO' : 'PIX';
 
-    // 5. Fonte Única da Verdade Financeira (Cálculo no Servidor)
-    const financials = calculateOrderFinancials(items, 0);
+    // 5. Fonte Única da Verdade Financeira (Cálculo no Servidor com realItems e Taxas Dinâmicas)
+    const { data: platformSettings } = await supabaseAdmin.from('platform_settings').select('*').limit(1).single();
+    
+    const financials = calculateOrderFinancials(realItems, 0, platformSettings || undefined);
 
     // 6. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
     const asaasCustomerId = await createOrGetAsaasCustomer({
@@ -116,7 +137,7 @@ export async function POST(request: Request) {
       billingType: asaasBillingType,
       value: financials.totalAmount,
       externalReference: tempOrderId,
-      description: `Educalizando — Pedido #${tempOrderId.substring(4, 10).toUpperCase()} (${items[0]?.productTitle || 'Infoproduto'})`,
+      description: `Educalizando — Pedido #${tempOrderId.substring(4, 10).toUpperCase()} (${realItems[0]?.productTitle || 'Infoproduto'})`,
       creditCard,
       creditCardHolderInfo
     });
@@ -129,7 +150,7 @@ export async function POST(request: Request) {
       buyerCpf,
       buyerPhone: body.buyerPhone,
       paymentMethod: normalizedMethod,
-      items,
+      items: realItems,
       asaasPaymentId: asaasPayment.id,
       asaasCustomerId,
       pixCopyPaste: asaasPayment.pixCopyPastePayload,

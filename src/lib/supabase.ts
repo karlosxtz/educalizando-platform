@@ -129,6 +129,20 @@ export async function registerCreatorInSupabase({
       const existingStores = JSON.parse(localStorage.getItem(existingStoresKey) || '[]');
       existingStores.push(createdStore);
       localStorage.setItem(existingStoresKey, JSON.stringify(existingStores));
+      
+      // Sincronizar Cookie para Middleware (Hiper Seguro)
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: authData.session?.access_token,
+            refresh_token: authData.session?.refresh_token
+          })
+        });
+      } catch (e) {
+        console.error('Erro ao sincronizar cookie seguro no registro:', e);
+      }
     }
 
     return { user: authData.user, storeSlug: storeData.slug };
@@ -189,6 +203,20 @@ export async function signInUser({ email, password }: { email: string; password:
         storeName: cleanStoreName,
         storeSlug: cleanStoreSlug
       }));
+      
+      // Sincronizar Cookie para Middleware (Hiper Seguro)
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: data.session?.access_token,
+            refresh_token: data.session?.refresh_token
+          })
+        });
+      } catch (e) {
+        console.error('Erro ao sincronizar cookie seguro:', e);
+      }
     }
 
     return data;
@@ -221,6 +249,14 @@ export async function signOutUser() {
     localStorage.removeItem('educalizando_creator_session');
     localStorage.removeItem('educalizando_student_session');
     localStorage.removeItem('educalizando_stores_v3');
+    
+    try {
+      await fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'SIGNED_OUT' })
+      });
+    } catch (e) {}
   }
 }
 

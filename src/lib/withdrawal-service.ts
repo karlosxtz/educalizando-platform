@@ -254,20 +254,7 @@ export async function requestCreatorWithdrawal(data: {
     throw new Error('Você precisa cadastrar e validar uma chave PIX CPF antes de solicitar um saque.');
   }
 
-  // D. PROTEÇÃO CONTRA SAQUE DUPLO / DUPLICIDADE (Item 13 & 19)
-  // Verificar se já existe saque PENDING ou PROCESSING em andamento para esta loja
-  const allWithdrawals = await getWithdrawalsHistory(data.storeId);
-  const inProgress = allWithdrawals.find(w => w.status === 'PENDING' || w.status === 'PROCESSING');
-  if (inProgress) {
-    throw new Error('Você já possui uma solicitação de saque em processamento. Aguarde a conclusão antes de solicitar um novo saque.');
-  }
-
-  // E. Verificar Saldo Disponível (Calculado no Servidor)
-  const walletSummary = await calculateCreatorWallet(data.storeId);
-  if (data.amount > walletSummary.saldoDisponivel) {
-    throw new Error(`Saldo disponível insuficiente. Seu saldo disponível é de R$ ${walletSummary.saldoDisponivel.toFixed(2).replace('.', ',')}.`);
-  }
-
+  // D. PREVENÇÃO DE RACE CONDITION E RESERVA DE SALDO VIA TRAVA ATÔMICA (RPC)
   const now = new Date().toISOString();
   const withdrawalId = `wtd_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const externalRef = `withdrawal-${withdrawalId}`;
@@ -286,45 +273,53 @@ export async function requestCreatorWithdrawal(data: {
     createdAt: now
   };
 
-  // F. RESERVA DE SALDO IMEDIATA (Item 15 & 16)
-  // Cria lançamento negativo reservando o saldo no ledger
-  await recordWalletTransaction({
-    storeId: data.storeId,
-    orderId: withdrawalId,
-    type: 'WITHDRAWAL',
-    grossAmount: -data.amount,
-    platformFixedFeeAmount: 0,
-    platformPercentageFeeAmount: 0,
-    platformFeeAmount: 0,
-    asaasFeeAmount: 0,
-    netAmount: -data.amount,
-    description: `Solicitação de saque PIX (${activeKey.pixKeyMasked})`
-  });
-
-  // Salvar saque inicial no Supabase / Local
   if (isRealSupabaseConfigured()) {
-    try {
-      await supabase.from('withdrawals').insert([{
-        id: withdrawalRecord.id,
-        creator_id: withdrawalRecord.creatorId,
-        store_id: withdrawalRecord.storeId,
-        amount: withdrawalRecord.amount,
-        pix_key_id: withdrawalRecord.pixKeyId,
-        pix_key_type: withdrawalRecord.pixKeyType,
-        pix_key_masked: withdrawalRecord.pixKeyMasked,
-        status: withdrawalRecord.status,
-        asaas_external_reference: withdrawalRecord.asaasExternalReference,
-        requested_at: withdrawalRecord.requestedAt,
-        created_at: withdrawalRecord.createdAt
-      }]);
-    } catch (e) {
-      console.error('[requestCreatorWithdrawal] Erro Supabase:', e);
-    }
-  }
+    // Chama o banco de dados para travar as linhas e inserir o saque atomicamente
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('process_withdrawal_safe', {
+      p_store_id: data.storeId,
+      p_creator_id: data.creatorId,
+      p_amount: data.amount,
+      p_pix_key_id: activeKey.id,
+      p_pix_key_type: 'CPF',
+      p_pix_key_masked: activeKey.pixKeyMasked,
+      p_asaas_external_ref: externalRef,
+      p_withdrawal_id: withdrawalId
+    });
 
-  const local = getLocalWithdrawals();
-  local.unshift(withdrawalRecord);
-  saveLocalWithdrawals(local);
+    if (rpcError) {
+      console.error('[requestCreatorWithdrawal] Erro RPC:', rpcError);
+      throw new Error('Erro interno ao processar a trava atômica de segurança do saque.');
+    }
+
+    if (!rpcResult.success) {
+      throw new Error(rpcResult.error || 'Não foi possível processar o saque de forma segura.');
+    }
+  } else {
+    // Fallback de Simulação Local (Local Storage)
+    const allWithdrawals = getLocalWithdrawals().filter(w => w.storeId === data.storeId);
+    const inProgress = allWithdrawals.find(w => w.status === 'PENDING' || w.status === 'PROCESSING');
+    if (inProgress) throw new Error('Você já possui uma solicitação de saque em processamento. Aguarde.');
+
+    const walletSummary = await calculateCreatorWallet(data.storeId);
+    if (data.amount > walletSummary.saldoDisponivel) throw new Error('Saldo insuficiente.');
+
+    await recordWalletTransaction({
+      storeId: data.storeId,
+      orderId: withdrawalId,
+      type: 'WITHDRAWAL',
+      grossAmount: -data.amount,
+      platformFixedFeeAmount: 0,
+      platformPercentageFeeAmount: 0,
+      platformFeeAmount: 0,
+      asaasFeeAmount: 0,
+      netAmount: -data.amount,
+      description: `Reserva para Saque PIX ${activeKey.pixKeyMasked}`
+    });
+
+    const local = getLocalWithdrawals();
+    local.unshift(withdrawalRecord);
+    saveLocalWithdrawals(local);
+  }
 
   // G. CRIAR TRANSFERÊNCIA PIX NA API DO ASAAS (Item 17)
   try {
@@ -448,34 +443,70 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
   const transferId = transfer.id;
   const externalRef = transfer.externalReference;
 
-  // A. IDEMPOTÊNCIA DO WEBHOOK (Item 25)
-  if (typeof window !== 'undefined') {
-    try {
-      const rawEvents = localStorage.getItem(LOCAL_WEBHOOK_EVENTS_KEY);
-      const events: string[] = rawEvents ? JSON.parse(rawEvents) : [];
-      if (events.includes(eventId)) {
-        console.log(`[handleAsaasTransferWebhook] Evento ${eventId} já processado.`);
-        return;
-      }
-      events.push(eventId);
-      localStorage.setItem(LOCAL_WEBHOOK_EVENTS_KEY, JSON.stringify(events));
-    } catch (e) {}
-  }
-
+  // A. Remover cache local incompatível com backend Node.js
   console.log(`[Transfer Webhook] Evento: ${event} | TransferId: ${transferId} | ExternalRef: ${externalRef}`);
 
-  // Localizar saque
-  let withdrawals = getLocalWithdrawals();
   let wId = externalRef ? externalRef.replace('withdrawal-', '') : null;
-  let item = withdrawals.find(w => w.asaasTransferId === transferId || (wId && w.id === wId));
+  let item: WithdrawalRecord | undefined = undefined;
+
+  // B. Buscar saque NATIVAMENTE no banco de dados (Resolução do Bug Crítico de Busca)
+  if (isRealSupabaseConfigured()) {
+    try {
+      let query = supabase.from('withdrawals').select('*');
+      if (transferId && wId) {
+        query = query.or(`asaas_transfer_id.eq.${transferId},id.eq.${wId}`);
+      } else if (transferId) {
+        query = query.eq('asaas_transfer_id', transferId);
+      } else if (wId) {
+        query = query.eq('id', wId);
+      }
+
+      const { data, error } = await query.single();
+      if (!error && data) {
+        item = {
+          id: data.id,
+          creatorId: data.creator_id,
+          storeId: data.store_id,
+          amount: Number(data.amount),
+          pixKeyId: data.pix_key_id,
+          pixKeyType: data.pix_key_type || 'CPF',
+          pixKeyMasked: data.pix_key_masked,
+          status: data.status as WithdrawalStatus,
+          asaasTransferId: data.asaas_transfer_id,
+          asaasExternalReference: data.asaas_external_reference,
+          failureReason: data.failure_reason,
+          requestedAt: data.requested_at,
+          processingAt: data.processing_at,
+          completedAt: data.completed_at,
+          failedAt: data.failed_at,
+          cancelledAt: data.cancelled_at,
+          createdAt: data.created_at
+        };
+      }
+    } catch (e) {
+      console.error('[Transfer Webhook] Erro ao buscar saque no DB:', e);
+    }
+  }
+
+  // Fallback para simulação local se DB não existir
+  if (!item) {
+    let withdrawals = getLocalWithdrawals();
+    item = withdrawals.find(w => w.asaasTransferId === transferId || (wId && w.id === wId));
+  }
 
   if (!item) {
     console.warn(`[Transfer Webhook] Saque não encontrado para TransferId ${transferId}`);
     return;
   }
 
-  // B. TRANSFER_DONE -> Saque Concluído (Item 21)
+  // C. TRANSFER_DONE -> Saque Concluído (Item 21)
   if (event === 'TRANSFER_DONE') {
+    // TRAVA DE ESTADO / IDEMPOTÊNCIA: Evitar reprocessamento
+    if (item.status === 'COMPLETED') {
+      console.log(`[Transfer Webhook] Saque ${item.id} já estava COMPLETED. Ignorando evento repetido.`);
+      return;
+    }
+
     item.status = 'COMPLETED';
     item.completedAt = new Date().toISOString();
 
@@ -487,8 +518,14 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     }
   }
 
-  // C. TRANSFER_FAILED / TRANSFER_CANCELLED -> Falha e Devolução do Saldo (Item 22 & 23)
+  // D. TRANSFER_FAILED / TRANSFER_CANCELLED -> Falha e Devolução do Saldo (Item 22 & 23)
   else if (event === 'TRANSFER_FAILED' || event === 'TRANSFER_CANCELLED') {
+    // TRAVA DE ESTADO / IDEMPOTÊNCIA: Prevenção CRÍTICA de duplo estorno
+    if (item.status === 'FAILED' || item.status === 'CANCELLED') {
+      console.warn(`[Transfer Webhook] ALERTA: Saque ${item.id} já estava ${item.status}. Evitando estorno em duplicidade (dinheiro infinito).`);
+      return;
+    }
+
     const isCancel = event === 'TRANSFER_CANCELLED';
     item.status = isCancel ? 'CANCELLED' : 'FAILED';
     item.failureReason = transfer.failReason || (isCancel ? 'Transferência cancelada' : 'Falha no processamento bancário');
@@ -517,9 +554,13 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     }
   }
 
-  const idx = withdrawals.findIndex(w => w.id === item!.id);
-  if (idx !== -1) {
-    withdrawals[idx] = item;
-    saveLocalWithdrawals(withdrawals);
+  // Atualização em cache/fallback caso esteja rodando simulação visual
+  if (typeof window !== 'undefined') {
+    let withdrawals = getLocalWithdrawals();
+    const idx = withdrawals.findIndex(w => w.id === item!.id);
+    if (idx !== -1) {
+      withdrawals[idx] = item;
+      saveLocalWithdrawals(withdrawals);
+    }
   }
 }

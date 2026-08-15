@@ -695,12 +695,9 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
 export async function deleteProduct(productId: string): Promise<void> {
   const cleanId = productId.replace(/^prod_/i, '');
 
-  // 1. Adicionar à blacklist de produtos excluídos para filtragem imediata na camada local
-  addDeletedProductId(productId);
-  addDeletedProductId(cleanId);
+  let backendSuccess = false;
 
-  // 2. Chamar rota API backend para Soft Delete definitivo via Supabase Admin
-  //    CRÍTICO: Agora tratamos erros reais em vez de engolir silenciosamente
+  // 1. Chamar rota API backend para Soft Delete definitivo via Supabase Admin
   try {
     const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
     const result = await res.json().catch(() => null);
@@ -717,6 +714,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     }
 
     console.log(`[deleteProduct] Soft delete confirmado pela API para ${productId}`);
+    backendSuccess = true;
   } catch (e: any) {
     // Se for um erro de rede (fetch falhou), tentar fallback direto
     if (e.name === 'TypeError' || e.message?.includes('fetch')) {
@@ -742,7 +740,9 @@ export async function deleteProduct(productId: string): Promise<void> {
             .select('id')
             .maybeSingle();
 
-          if (error || !data) {
+          if (!error && data) {
+            backendSuccess = true;
+          } else {
             // Tentar apenas excluido_em
             const { data: d2, error: e2 } = await supabase
               .from('products')
@@ -754,36 +754,44 @@ export async function deleteProduct(productId: string): Promise<void> {
               .select('id')
               .maybeSingle();
 
-            if (e2 || !d2) {
+            if (!e2 && d2) {
+              backendSuccess = true;
+            } else {
               console.error('[deleteProduct] Fallback direto Supabase também falhou:', e2?.message);
+              throw new Error('Falha de conexão com o banco para excluir produto.');
             }
           }
         }
       }
     } else {
-      // Re-lançar erros reais da API (não são erros de rede)
+      // Re-lançar erros reais da API
       throw e;
     }
   }
 
-  // 3. Limpar armazenamento local para impedir reaparecimento no lado do cliente
-  if (typeof window !== 'undefined') {
-    const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
-    
-    const products = getLocalProducts().filter(filterFn);
-    saveLocalProducts(products);
+  // 2. Apenas se o backend foi bem sucedido, limpamos do UI (Fim da Deleção Fake)
+  if (backendSuccess) {
+    addDeletedProductId(productId);
+    addDeletedProductId(cleanId);
 
-    try {
-      ['educalizando_products_v3', 'educalizando_products_v2', 'educalizando_products_v1', 'educalizando_products'].forEach(k => {
-        const raw = localStorage.getItem(k);
-        if (raw) {
-          const list = JSON.parse(raw);
-          if (Array.isArray(list)) {
-            localStorage.setItem(k, JSON.stringify(list.filter(filterFn)));
+    if (typeof window !== 'undefined') {
+      const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
+      
+      const products = getLocalProducts().filter(filterFn);
+      saveLocalProducts(products);
+
+      try {
+        ['educalizando_products_v3', 'educalizando_products_v2', 'educalizando_products_v1', 'educalizando_products'].forEach(k => {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const list = JSON.parse(raw);
+            if (Array.isArray(list)) {
+              localStorage.setItem(k, JSON.stringify(list.filter(filterFn)));
+            }
           }
-        }
-      });
-    } catch (e) {}
+        });
+      } catch (e) {}
+    }
   }
 }
 

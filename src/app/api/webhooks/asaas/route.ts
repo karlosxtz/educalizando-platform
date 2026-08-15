@@ -7,10 +7,15 @@ export async function POST(request: Request) {
     const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
     const headerToken = request.headers.get('asaas-access-token');
 
-    // 1. Validação de Segurança do Token Header Asaas
-    if (webhookToken && webhookToken !== '' && headerToken !== webhookToken) {
-      console.warn('[Asaas Webhook] Acesso negado: Token de webhook inválido.');
-      return NextResponse.json({ error: 'Token de webhook inválido.' }, { status: 401 });
+    // 1. Validação de Segurança do Token Header Asaas (OBRIGATÓRIO)
+    if (!webhookToken || webhookToken.trim() === '') {
+      console.error('[Asaas Webhook] ERRO CRÍTICO: Token de webhook não configurado no servidor.');
+      return NextResponse.json({ error: 'Configuração de webhook incompleta no servidor.' }, { status: 500 });
+    }
+
+    if (!headerToken || headerToken !== webhookToken) {
+      console.warn('[Asaas Webhook] Acesso negado: Token de webhook ausente ou inválido.');
+      return NextResponse.json({ error: 'Acesso não autorizado.' }, { status: 401 });
     }
 
     const payload = await request.json();

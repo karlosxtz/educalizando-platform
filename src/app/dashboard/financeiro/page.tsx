@@ -162,14 +162,41 @@ export default function FinancialWalletDashboardPage() {
     setWithdrawSubmitting(true);
 
     try {
+      // 1. Obter o JWT atual da sessão do Supabase (A chave secreta da assinatura)
+      const { data: authData } = await supabase.auth.getSession();
+      const jwtToken = authData.session?.access_token;
+      if (!jwtToken) throw new Error("Sessão inválida. Faça login novamente.");
+      const creatorId = authData.session?.user?.id || 'user-demo';
+
+      // 2. Solicitar Ticket/Nonce criptográfico do servidor
+      const nonceRes = await fetch('/api/financeiro/nonce');
+      const nonceData = await nonceRes.json();
+      if (!nonceRes.ok || !nonceData.success) {
+        throw new Error("Falha ao iniciar transação segura. Tente novamente.");
+      }
+
+      // 3. Assinar digitalmente o payload com HMAC-SHA256 no browser
+      const payloadString = `${val}|${storeId}|${nonceData.nonce}`;
+      const enc = new TextEncoder();
+      const cryptoKey = await window.crypto.subtle.importKey(
+        'raw', enc.encode(jwtToken), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, enc.encode(payloadString));
+      const clientSignature = Array.from(new Uint8Array(signatureBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // 4. Enviar requisição criptografada para o Lock Atômico
       const res = await fetch('/api/financeiro/saque', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${jwtToken}` },
         body: JSON.stringify({
           storeId,
-          creatorId: 'user-demo',
+          creatorId,
           amount: val,
-          creatorProfileCpf
+          creatorProfileCpf,
+          nonce: nonceData.nonce,
+          expiresAt: nonceData.expiresAt,
+          serverSignature: nonceData.signature,
+          clientSignature
         })
       });
 

@@ -95,15 +95,19 @@ export function estimateAsaasFee(paymentMethod: PaymentMethodType | string, amou
 
 export function calculateOrderFinancials(
   items: OrderItemInput[],
-  asaasFee: number = 0
+  asaasFee: number = 0,
+  platformSettings?: { platform_fee_percentage: number, platform_fixed_fee: number }
 ): FinancialCalculationResult {
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-  // Nova Regra Solicitada: APENAS R$ 0,99 fixo por produto vendido (0% de comissão de vendas)
-  const platformFixedFee = Number((productCount * 0.99).toFixed(2));
-  const platformPercentageFee = 0;
-  const platformFee = platformFixedFee;
+  // Usa configurações dinâmicas do BD, ou os defaults se não informado
+  const fixedFee = platformSettings ? Number(platformSettings.platform_fixed_fee) : 0.99;
+  const percentageFee = platformSettings ? Number(platformSettings.platform_fee_percentage) : 0;
+
+  const platformFixedFee = Number((productCount * fixedFee).toFixed(2));
+  const platformPercentageFee = Number(((subtotal * percentageFee) / 100).toFixed(2));
+  const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
   // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento (PIX = R$ 1,99)
   const realFee = asaasFee > 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
@@ -114,7 +118,7 @@ export function calculateOrderFinancials(
     totalAmount: Number(subtotal.toFixed(2)),
     productCount,
     platformFixedFeeAmount: platformFixedFee,
-    platformPercentageFeeAmount: 0,
+    platformPercentageFeeAmount: platformPercentageFee,
     platformFeeAmount: platformFee,
     asaasFeeAmount: Number(realFee.toFixed(2)),
     creatorNetAmount: creatorNet,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase';
+import { cookies } from 'next/headers';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -14,8 +15,23 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
   return isValidUUID(clean) ? clean : null;
 };
 
+// Middleware interno para validar o token nas rotas da API
+async function getAuthUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('sb-access-token')?.value;
+  if (!token) return null;
+  
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return user;
+}
+
 export async function POST(request: Request) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { 
       store_id, 
@@ -43,12 +59,15 @@ export async function POST(request: Request) {
       try {
         const { data: storeRow } = await supabaseAdmin
           .from('stores')
-          .select('id')
+          .select('id, creator_id')
           .or(`slug.eq.${cleanStoreId},id.eq.${cleanStoreId},creator_id.eq.${cleanStoreId}`)
           .limit(1)
           .maybeSingle();
 
         if (storeRow?.id) {
+          if (storeRow.creator_id !== user.id) {
+            return NextResponse.json({ error: 'Você não tem permissão para adicionar produtos nesta loja.' }, { status: 403 });
+          }
           targetStoreId = storeRow.id;
         }
       } catch (e) {}
@@ -157,11 +176,25 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { id, updates } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID do produto é obrigatório para atualização.' }, { status: 400 });
+    }
+
+    // Validar propriedade do produto
+    const { data: product } = await supabaseAdmin.from('products').select('store_id').eq('id', id).maybeSingle();
+    if (product) {
+      const { data: store } = await supabaseAdmin.from('stores').select('creator_id').eq('id', product.store_id).maybeSingle();
+      if (store?.creator_id !== user.id) {
+         return NextResponse.json({ error: 'Você não tem permissão para editar este produto.' }, { status: 403 });
+      }
     }
 
     const cleanedUpdates: Record<string, any> = { ...updates };
@@ -235,6 +268,11 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -247,6 +285,15 @@ export async function DELETE(request: Request) {
 
     if (!validUUID) {
       return NextResponse.json({ error: `ID inválido para exclusão: "${id}"` }, { status: 400 });
+    }
+
+    // Validar propriedade do produto
+    const { data: product } = await supabaseAdmin.from('products').select('store_id').eq('id', validUUID).maybeSingle();
+    if (product) {
+      const { data: store } = await supabaseAdmin.from('stores').select('creator_id').eq('id', product.store_id).maybeSingle();
+      if (store?.creator_id !== user.id) {
+         return NextResponse.json({ error: 'Você não tem permissão para excluir este produto.' }, { status: 403 });
+      }
     }
 
     console.log(`[API /api/produtos DELETE] Executando Soft Delete. ID bruto: "${id}", validUUID: "${validUUID}"`);

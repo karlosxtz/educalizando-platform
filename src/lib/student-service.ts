@@ -393,7 +393,7 @@ export async function checkStudentProductAccess({
     const purchases = await getStudentPurchases(studentId);
     return purchases.some(p => p.product_id === productId || p.product?.id === productId);
   } catch (e) {
-    return true; // Garantir acesso ao download em caso de dúvida
+    return false; // Garantir FAIL CLOSED em caso de dúvida/erro no banco
   }
 }
 
@@ -482,8 +482,9 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
           }
         }
       }
-    } catch (err) {
-      console.error('[getStudentPurchases] Erro ao buscar acessos no Supabase:', err);
+    } catch (e) {
+      console.error('[getStudentPurchases] Erro na query principal:', e);
+      return []; // FAIL CLOSED: Se a query falhar, não exibe materiais fantasmas
     }
   }
 
