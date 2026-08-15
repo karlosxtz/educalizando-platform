@@ -70,16 +70,30 @@ function saveLocalWalletTransactions(txs: WalletTransaction[]) {
  * =============================================================================
  */
 export async function calculateCreatorWallet(storeId: string): Promise<CreatorWalletSummary> {
-  if (!storeId) {
-    return {
-      totalVendido: 0,
-      saldoPendente: 0,
-      saldoDisponivel: 0,
-      totalRecebido: 0,
-      taxasEducalizando: 0,
-      taxasAsaas: 0,
-      totalTaxas: 0
-    };
+  const empty: CreatorWalletSummary = {
+    totalVendido: 0,
+    saldoPendente: 0,
+    saldoDisponivel: 0,
+    totalRecebido: 0,
+    taxasEducalizando: 0,
+    taxasAsaas: 0,
+    totalTaxas: 0
+  };
+
+  if (!storeId) return empty;
+
+  // CLIENT-SIDE: Chamar API server-side que tem acesso ao supabaseAdmin
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/wallet/summary?storeId=${encodeURIComponent(storeId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.summary) return data.summary;
+      }
+    } catch (e) {
+      console.error('[calculateCreatorWallet] Erro ao chamar API server-side:', e);
+    }
+    // Fallback para cálculo local se a API falhar
   }
 
   let orders: any[] = [];
@@ -319,6 +333,27 @@ export async function recordWalletTransaction(data: {
 // 3. Obter Extrato Financeiro Paginado com Filtros e Pesquisa
 export async function getWalletTransactionsStatement(params: StatementFilterParams) {
   const { storeId, period = 'all', status = 'all', search = '', page = 1, limit = 20 } = params;
+
+  // CLIENT-SIDE: Chamar API server-side que tem acesso ao supabaseAdmin
+  if (typeof window !== 'undefined') {
+    try {
+      const queryParams = new URLSearchParams({
+        storeId,
+        period,
+        status,
+        search,
+        page: String(page),
+        limit: String(limit)
+      });
+      const res = await fetch(`/api/wallet/statement?${queryParams.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.transactions) return data;
+      }
+    } catch (e) {
+      console.error('[getWalletTransactionsStatement] Erro ao chamar API server-side:', e);
+    }
+  }
 
   let allTx: WalletTransaction[] = [];
 
