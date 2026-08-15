@@ -802,7 +802,28 @@ export async function deleteProduct(productId: string): Promise<void> {
 
   // 1. Chamar rota API backend para Soft Delete definitivo via Supabase Admin
   try {
-    const res = await fetch(`/api/produtos?id=${productId}`, { method: 'DELETE' });
+    let token = '';
+    if (typeof window !== 'undefined') {
+      const rawSession = localStorage.getItem('educalizando_creator_session');
+      if (rawSession) {
+        try {
+          const sess = JSON.parse(rawSession);
+          if (sess.access_token) token = sess.access_token;
+        } catch (e) {}
+      }
+    }
+    const { data: authSession } = await supabase.auth.getSession();
+    if (authSession?.session?.access_token) {
+      token = authSession.session.access_token;
+    }
+
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`/api/produtos?id=${productId}`, { 
+      method: 'DELETE',
+      headers 
+    });
     const result = await res.json().catch(() => null);
 
     if (!res.ok) {
