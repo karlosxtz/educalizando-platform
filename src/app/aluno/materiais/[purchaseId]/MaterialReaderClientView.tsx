@@ -18,7 +18,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string } | null>(null);
+  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [purchase, setPurchase] = useState<Purchase | null>(null);
   const [digitalContents, setDigitalContents] = useState<ContentItem[]>([]);
   const [accessNotice, setAccessNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
@@ -112,7 +112,11 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
   if (errorMsg || !purchase || !purchase.kit_id) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-        <StudentHeader studentName={studentSession?.fullName} studentEmail={studentSession?.email} />
+        <StudentHeader
+          studentName={studentSession?.fullName}
+          studentEmail={studentSession?.email}
+          studentAvatarUrl={studentSession?.avatarUrl}
+        />
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md text-center space-y-4 shadow-sm">
             <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />

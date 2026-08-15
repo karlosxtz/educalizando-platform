@@ -166,9 +166,15 @@ export default function ProductReviewsSection({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-brand-navy text-white font-black text-base flex items-center justify-center shadow-xs">
-                      {initial}
-                    </div>
+                    {review.avatar_url ? (
+                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 shadow-xs flex-shrink-0 overflow-hidden">
+                        <img src={review.avatar_url} alt={review.student_name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-brand-navy text-white font-black text-base flex items-center justify-center shadow-xs">
+                        {initial}
+                      </div>
+                    )}
 
                     <div>
                       <div className="flex items-center gap-2">

@@ -26,7 +26,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string } | null>(null);
+  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [myReviews, setMyReviews] = useState<Review[]>([]);
@@ -169,6 +169,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       <StudentHeader
         studentName={studentSession?.fullName}
         studentEmail={studentSession?.email}
+        studentAvatarUrl={studentSession?.avatarUrl}
       />
 
       {/* Main Container */}

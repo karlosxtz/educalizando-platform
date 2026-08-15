@@ -136,10 +136,12 @@ export async function getProductReviewsWithNames(productId: string): Promise<Rev
     // Busca os nomes formatados
     const enhancedReviews = await Promise.all(reviews.map(async (review) => {
       let studentName = 'Aluno verificado';
+      let avatarUrl = null;
       if (review.student_id) {
         try {
           const { data: userData } = await supabaseAdmin.auth.admin.getUserById(review.student_id);
           const fullName = userData?.user?.user_metadata?.full_name;
+          avatarUrl = userData?.user?.user_metadata?.avatar_url || null;
           if (fullName) {
             studentName = formatStudentName(fullName);
           }
@@ -149,7 +151,8 @@ export async function getProductReviewsWithNames(productId: string): Promise<Rev
       }
       return {
         ...review,
-        student_name: studentName
+        student_name: studentName,
+        avatar_url: avatarUrl
       } as Review;
     }));
 

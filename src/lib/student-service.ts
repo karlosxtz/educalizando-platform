@@ -10,6 +10,7 @@ export interface StudentAuthSession {
   email?: string;
   fullName?: string;
   cpf?: string;
+  avatarUrl?: string;
 }
 
 export interface StudentProductAccessRecord {
@@ -73,7 +74,8 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
           userId: data.user.id,
           email: data.user.email || '',
           fullName: userMetadata.full_name || 'Aluno Educalizando',
-          cpf: userMetadata.cpf || ''
+          cpf: userMetadata.cpf || '',
+          avatarUrl: userMetadata.avatar_url || ''
         };
       }
     } catch (e) {
@@ -94,7 +96,8 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
           userId: parsed.id || 'student-demo',
           email: parsed.email || 'aluno@educalizando.com',
           fullName: userMeta.full_name || 'Aluno Educalizando',
-          cpf: userMeta.cpf || ''
+          cpf: userMeta.cpf || '',
+          avatarUrl: userMeta.avatar_url || ''
         };
       } catch (e) {}
     }
@@ -227,10 +230,55 @@ export async function getCurrentStudentSession() {
       id: authSession.userId || 'student-demo',
       email: authSession.email || 'aluno@educalizando.com',
       fullName: authSession.fullName || 'Aluno Educalizando',
-      cpf: authSession.cpf || '12345678901'
+      cpf: authSession.cpf || '12345678901',
+      avatarUrl: authSession.avatarUrl || ''
     };
   }
   return null;
+}
+
+// 5b. Atualizar Perfil do Aluno (Nome e Avatar)
+export async function updateStudentProfile(fullName: string, avatarUrl: string | null) {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        full_name: fullName,
+        avatar_url: avatarUrl
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (typeof window !== 'undefined' && data.user) {
+      localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
+    }
+    return data;
+  } else {
+    // Fallback
+    await new Promise(resolve => setTimeout(resolve, 600));
+    if (typeof window !== 'undefined') {
+      const studentSess = localStorage.getItem('educalizando_student_session');
+      if (studentSess) {
+        try {
+          const parsed = JSON.parse(studentSess);
+          parsed.user_metadata = {
+            ...parsed.user_metadata,
+            full_name: fullName,
+            avatar_url: avatarUrl
+          };
+          localStorage.setItem('educalizando_student_session', JSON.stringify(parsed));
+        } catch (e) {}
+      }
+    }
+    return true;
+  }
 }
 
 // 6. Conceder Acesso ao Material Comprado (student_product_access)

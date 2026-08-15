@@ -175,6 +175,7 @@ export interface Review {
   nota: number;
   comentario?: string | null;
   student_name?: string; // We can enrich this for display
+  avatar_url?: string | null;
   created_at: string;
   updated_at?: string;
 }

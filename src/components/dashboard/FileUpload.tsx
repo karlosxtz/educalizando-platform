@@ -8,7 +8,7 @@ interface FileUploadProps {
   label: string;
   helperText?: string;
   recommendationText?: string;
-  bucket: 'product-covers' | 'product-files' | 'store-assets';
+  bucket: 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars';
   accept: string;
   maxSizeMB?: number;
   value?: string | null;

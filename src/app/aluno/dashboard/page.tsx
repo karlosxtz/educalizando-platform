@@ -16,7 +16,7 @@ export default function StudentDashboardStoresPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string } | null>(null);
+  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [groupedStores, setGroupedStores] = useState<GroupedStudentStore[]>([]);
 
   useEffect(() => {
@@ -54,6 +54,7 @@ export default function StudentDashboardStoresPage() {
       <StudentHeader
         studentName={studentSession?.fullName}
         studentEmail={studentSession?.email}
+        studentAvatarUrl={studentSession?.avatarUrl}
       />
 
       {/* Main Container */}
