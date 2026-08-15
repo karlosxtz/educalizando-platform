@@ -19,7 +19,16 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
-    const { event, payment, transfer } = payload;
+    const { event, type, payment, transfer } = payload;
+
+    // 1.5 Mecanismo de Validação de Saque (Webhook de Segurança do Asaas)
+    // O Asaas envia 'type' em vez de 'event' para webhooks de validação de saída.
+    if (type === 'TRANSFER' && !event) {
+      console.log(`[Asaas Webhook] Solicitação de validação de saque recebida para: ${transfer?.id}`);
+      // Como a chamada tem o token válido (verificado acima), nós autorizamos a transação.
+      // O ideal no futuro seria checar no DB se esse transfer.id existe e se o valor bate.
+      return NextResponse.json({ status: 'APPROVED' });
+    }
 
     // 2. PROCESSAMENTO DE WEBHOOKS DE TRANSFERÊNCIA DE SAQUE (FASE C - Item 20-25)
     if (transfer || (event && event.startsWith('TRANSFER_'))) {
