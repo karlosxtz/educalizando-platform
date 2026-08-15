@@ -103,6 +103,60 @@ export async function submitProductReview(params: {
 
   } catch (err: any) {
     console.error('[submitProductReview] Exceção:', err);
-    return { success: false, error: err.message || 'Erro inesperado ao salvar avaliação.' };
+    return { success: false, error: 'Ocorreu um erro inesperado ao salvar a avaliação.' };
+  }
+}
+
+function formatStudentName(fullName: string): string {
+  if (!fullName) return 'Aluno verificado';
+  const parts = fullName.trim().split(' ');
+  if (parts.length === 1) return parts[0];
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  return `${first} ${last.charAt(0).toUpperCase()}.`;
+}
+
+export async function getProductReviewsWithNames(productId: string): Promise<Review[]> {
+  try {
+    const isRealSupabase = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && 
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+    );
+
+    if (!isRealSupabase) return [];
+
+    const { data: reviews, error } = await supabaseAdmin
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
+
+    if (error || !reviews) return [];
+
+    // Busca os nomes formatados
+    const enhancedReviews = await Promise.all(reviews.map(async (review) => {
+      let studentName = 'Aluno verificado';
+      if (review.student_id) {
+        try {
+          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(review.student_id);
+          const fullName = userData?.user?.user_metadata?.full_name;
+          if (fullName) {
+            studentName = formatStudentName(fullName);
+          }
+        } catch (e) {
+          // Ignores
+        }
+      }
+      return {
+        ...review,
+        student_name: studentName
+      } as Review;
+    }));
+
+    return enhancedReviews;
+
+  } catch (err) {
+    console.error('[getProductReviewsWithNames] Exceção:', err);
+    return [];
   }
 }

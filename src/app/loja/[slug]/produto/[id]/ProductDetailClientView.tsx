@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
-import { getReviews } from '@/lib/review-service';
+import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 
@@ -42,7 +42,7 @@ export default function ProductDetailClientView({
 
   useEffect(() => {
     async function fetchReviews() {
-      const list = await getReviews(product.id);
+      const list = await getProductReviewsWithNames(product.id);
       setReviews(list);
     }
     fetchReviews();
