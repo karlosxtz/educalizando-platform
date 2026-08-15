@@ -288,7 +288,7 @@ export async function requestCreatorWithdrawal(data: {
 
     if (rpcError) {
       console.error('[requestCreatorWithdrawal] Erro RPC:', rpcError);
-      throw new Error('Erro interno ao processar a trava atômica de segurança do saque.');
+      throw new Error(`Erro interno: ${rpcError.message} (Code: ${rpcError.code})`);
     }
 
     if (!rpcResult.success) {
