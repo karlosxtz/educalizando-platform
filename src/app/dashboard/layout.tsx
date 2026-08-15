@@ -56,16 +56,25 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans relative">
+      {/* Premium Background Elements */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-400/10 blur-[120px]" />
+        <div className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-emerald-400/10 blur-[120px]" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-400/10 blur-[120px]" />
+      </div>
+
       {/* Fixed Left Sidebar */}
-      <Sidebar 
-        store={store} 
-        creatorName={store?.nome_loja || 'Prof. Ricardo Silva'} 
-        creatorEmail={creatorEmail} 
-      />
+      <div className="relative z-10 lg:w-64 shrink-0">
+        <Sidebar 
+          store={store} 
+          creatorName={store?.nome_loja || 'Prof. Ricardo Silva'} 
+          creatorEmail={creatorEmail} 
+        />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <SystemBanners />
           {children}

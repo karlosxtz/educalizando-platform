@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Store, Trash2, ExternalLink } from 'lucide-react';
+import { Store, Trash2, ExternalLink, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
 interface StoreData {
@@ -49,6 +49,28 @@ export default function SuperAdminLojas() {
       }
     } catch (e) {
       alert('Erro inesperado.');
+    }
+  }
+
+  async function handleImpersonate(storeId: string, storeName: string) {
+    if (!confirm(`Deseja entrar no painel da loja "${storeName}" como se fosse o dono?`)) return;
+
+    try {
+      const res = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId }),
+      });
+      const data = await res.json();
+      
+      if (data.success && data.url) {
+        // Redireciona o Admin para o Magic Link, que vai logá-lo como o usuário e abrir a dashboard
+        window.open(data.url, '_blank');
+      } else {
+        alert('Erro ao logar como criador: ' + (data.error || 'Erro desconhecido.'));
+      }
+    } catch (e) {
+      alert('Erro inesperado ao conectar com a API.');
     }
   }
 
@@ -104,22 +126,34 @@ export default function SuperAdminLojas() {
                     <td className="px-6 py-4">
                       {new Date(store.created_at).toLocaleDateString('pt-BR')}
                     </td>
-                    <td className="px-6 py-4 text-right space-x-3">
-                      <Link 
-                        href={`/loja/${store.slug}`}
-                        target="_blank"
-                        className="text-blue-500 hover:text-blue-400 inline-flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        <span className="hidden sm:inline">Visitar</span>
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(store.id)}
-                        className="text-red-500 hover:text-red-400 inline-flex items-center gap-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Banir</span>
-                      </button>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleImpersonate(store.id, store.nome_loja)}
+                          title="Logar como Criador"
+                          className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          <LogIn className="w-4 h-4" />
+                          <span className="text-xs font-bold hidden sm:inline">Logar</span>
+                        </button>
+
+                        <Link 
+                          href={`/loja/${store.slug}`}
+                          target="_blank"
+                          title="Ver Loja Pública"
+                          className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
+                        
+                        <button 
+                          onClick={() => handleDelete(store.id)}
+                          title="Excluir Loja"
+                          className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
