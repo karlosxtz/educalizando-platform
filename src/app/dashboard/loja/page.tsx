@@ -93,9 +93,8 @@ export default function StoreSettingsPage() {
     loadStoreData();
   }, [reset]);
 
-  const publicUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/loja/${watchedSlug || 'sua-loja'}`
-    : `https://educalizando.com.br/loja/${watchedSlug || 'sua-loja'}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br';
+  const publicUrl = `${siteUrl}/loja/${watchedSlug || 'sua-loja'}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl);

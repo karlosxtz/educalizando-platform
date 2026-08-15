@@ -18,7 +18,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Educalizando — Plataforma de Produtos Digitais Educacionais',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br'),
+  title: 'Educalizando — Plataforma Digital para Materiais Didáticos',
   description:
     'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais. Venda apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo.',
   manifest: '/manifest.json',
