@@ -43,9 +43,14 @@ export default function SuperAdminDashboard() {
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const formatDate = (dateStr: string) => {
-    const [, month, day] = dateStr.split('-');
-    return `${day}/${month}`;
+  const formatDate = (dateStr: any) => {
+    if (typeof dateStr !== 'string') return String(dateStr);
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const [, month, day] = parts;
+      return `${day}/${month}`;
+    }
+    return dateStr;
   };
 
   return (

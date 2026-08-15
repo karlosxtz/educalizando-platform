@@ -67,7 +67,7 @@ export function middleware(request: NextRequest) {
   // - Login: 10 requisições por minuto
   // - Financeiro (Saque/Checkout): 20 requisições por minuto
   // - Outras rotas sensíveis: 60 requisições por minuto
-  const ip = request.headers.get('x-forwarded-for') || request.ip || 'unknown_ip';
+  const ip = request.headers.get('x-forwarded-for') || 'unknown_ip';
   
   if (ip !== 'unknown_ip') {
     let limit = 100; // default

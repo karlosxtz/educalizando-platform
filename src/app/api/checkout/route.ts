@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { createOrGetAsaasCustomer, createAsaasPayment, isValidCPF } from '@/lib/asaas-service';
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { 
       storeId, 
+      buyerName: rawBuyerName,
       buyerEmail: rawBuyerEmail,
       buyerCpf: rawBuyerCpf,
       buyerPhone,

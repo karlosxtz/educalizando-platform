@@ -12,6 +12,7 @@ import {
   CreatorWalletSummary, 
   WalletTransaction 
 } from '@/lib/wallet-service';
+import { supabase } from '@/lib/supabase';
 import { 
   getActiveCreatorPixKey, 
   getWithdrawalsHistory, 
