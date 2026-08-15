@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Home, Users, Store, Package, DollarSign, LogOut, ShieldAlert, Tags, Settings } from 'lucide-react';
+import { Home, Users, Store, Package, DollarSign, LogOut, ShieldAlert, Tags, Settings, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -41,6 +41,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/categorias" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Tags className="w-4 h-4" />
               Categorias Globais
+            </Link>
+            <Link href="/admin/avisos" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
+              <Megaphone className="w-4 h-4" />
+              Avisos Globais
             </Link>
             <Link href="/admin/configuracoes" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Settings className="w-4 h-4" />

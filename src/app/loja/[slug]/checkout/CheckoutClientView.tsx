@@ -11,6 +11,7 @@ import {
 import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
+import { supabase } from '@/lib/supabase';
 
 import { isValidCPF } from '@/lib/asaas-service';
 
@@ -54,12 +55,12 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
-  // Verificar se o usuário é um aluno logado ao carregar o Checkout
+  // Verificar se o usuário está logado ao carregar o Checkout
   useEffect(() => {
     async function checkStudentAuth() {
       try {
         const session = await getAuthenticatedUserRole();
-        if (session.isAuthenticated && session.role === 'student') {
+        if (session.isAuthenticated) {
           setIsStudentLoggedIn(true);
           setStudentSession({
             id: session.userId || 'student-demo',
@@ -214,9 +215,23 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         };
       }
 
+      // Obter o token JWT da sessão atual do Supabase
+      let token = '';
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          token = session.access_token;
+        }
+      } catch (e) {}
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 
