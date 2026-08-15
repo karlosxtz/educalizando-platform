@@ -7,6 +7,7 @@ import {
   Store as StoreIcon, Copy, ExternalLink, Check, Save, 
   Palette, ImageIcon, Sparkles, Loader2, AlertCircle, MessageCircle 
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -38,6 +39,7 @@ export default function StoreSettingsPage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const router = useRouter();
 
   const {
     register,
@@ -118,6 +120,7 @@ export default function StoreSettingsPage() {
       });
       setCurrentStore(updated);
       setSavedSuccess(true);
+      router.refresh(); // Invalida o cache do Next.js para garantir dados frescos
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err: any) {
       setActionError(err.message || 'Erro ao salvar configurações da loja.');
@@ -141,7 +144,7 @@ export default function StoreSettingsPage() {
             <StoreIcon className="w-7 h-7 text-blue-600" /> Configurações da Sua Loja
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Personalize a identidade visual, logo, banner e o link da sua vitrine pública. <span className="text-[10px] text-blue-600 font-mono font-bold">(v1.0.1 - Redes Sociais Ativas)</span>
+            Personalize a identidade visual, logo, banner e o link da sua vitrine pública.
           </p>
         </div>
 
