@@ -40,6 +40,20 @@ export default function ProductDetailClientView({
   // Reviews State
   const [reviews, setReviews] = useState<Review[]>([]);
 
+  // Gallery State
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Derive gallery images
+  const galleryImages = [];
+  if (product.capa_url) galleryImages.push(product.capa_url);
+  if (product.images && product.images.length > 0) {
+    product.images.forEach(img => {
+      if (img.url !== product.capa_url) {
+        galleryImages.push(img.url);
+      }
+    });
+  }
+
   useEffect(() => {
     async function fetchReviews() {
       const list = await getProductReviewsWithNames(product.id);
@@ -180,17 +194,48 @@ export default function ProductDetailClientView({
               </div>
             </div>
 
-            {/* Cover Display */}
-            <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md">
+            {/* Cover Display & Gallery */}
+            <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col gap-4">
               <div className="aspect-[3/4] max-w-md mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
-                {product.capa_url ? (
-                  <img src={product.capa_url} alt={product.titulo} className="w-full h-full object-cover" />
+                {galleryImages.length > 0 ? (
+                  <AnimatePresence mode="wait">
+                    <motion.img 
+                      key={activeImageIndex}
+                      src={galleryImages[activeImageIndex]} 
+                      alt={product.titulo} 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full h-full object-cover" 
+                    />
+                  </AnimatePresence>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-semibold p-8 text-center">
                     Material Didático Digital
                   </div>
                 )}
               </div>
+
+              {/* Gallery Thumbnails */}
+              {galleryImages.length > 1 && (
+                <div className="flex justify-center gap-3 overflow-x-auto pb-2 px-2">
+                  {galleryImages.map((url, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
+                        activeImageIndex === idx 
+                          ? 'border-brand-navy shadow-md opacity-100' 
+                          : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
+                      }`}
+                      style={activeImageIndex === idx ? { borderColor: primaryColor } : undefined}
+                    >
+                      <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Description Box */}

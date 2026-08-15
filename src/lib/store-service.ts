@@ -804,13 +804,16 @@ export async function getProductById(productId: string): Promise<Product | null>
       const targetId = isValidUUID(productId) ? productId : cleanId;
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, images:product_images(*)')
         .eq('id', targetId)
         .is('excluido_em', null)
         .maybeSingle();
 
       if (!error && data) {
         if (data.excluido_em || data.status === 'excluido') return null;
+        if (data.images && Array.isArray(data.images)) {
+          data.images.sort((a: any, b: any) => a.ordem - b.ordem);
+        }
         return data as Product;
       }
     } catch (err) {

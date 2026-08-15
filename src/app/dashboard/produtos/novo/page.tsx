@@ -14,6 +14,7 @@ import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } 
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { ProductType, Category, EducationLevel, Store, Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
+import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
 function ProductWizardContent() {
@@ -36,7 +37,7 @@ function ProductWizardContent() {
   const [descricao, setDescricao] = useState('');
   const [tipo, setTipo] = useState<ProductType>('pdf');
   const [preco, setPreco] = useState<string>('29,90');
-  const [capaUrl, setCapaUrl] = useState<string | null>(null);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -62,7 +63,19 @@ function ProductWizardContent() {
             setDescricao(existing.descricao || '');
             setTipo(existing.tipo);
             setPreco(existing.preco.toString().replace('.', ','));
-            setCapaUrl(existing.capa_url);
+            
+            // Reconstruir galeria de imagens
+            const urls = [];
+            if (existing.capa_url) urls.push(existing.capa_url);
+            if (existing.images && existing.images.length > 0) {
+              existing.images.forEach(img => {
+                if (img.url !== existing.capa_url) {
+                  urls.push(img.url);
+                }
+              });
+            }
+            setGalleryUrls(urls);
+            
             setArquivoUrl(existing.arquivo_url);
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
@@ -110,6 +123,7 @@ function ProductWizardContent() {
     setErrorMsg(null);
 
     const numericPrice = parseFloat(preco.replace(',', '.')) || 0;
+    const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
 
     try {
       if (editId) {
@@ -118,11 +132,12 @@ function ProductWizardContent() {
           descricao: descricao || null,
           tipo,
           preco: numericPrice,
-          capa_url: capaUrl,
+          capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
           status,
           category_id: categoryId || null,
-          education_level_id: educationLevelId || null
+          education_level_id: educationLevelId || null,
+          gallery_urls: galleryUrls
         });
       } else {
         await createProduct({
@@ -131,11 +146,12 @@ function ProductWizardContent() {
           descricao: descricao || null,
           tipo,
           preco: numericPrice,
-          capa_url: capaUrl,
+          capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
           status,
           category_id: categoryId || null,
-          education_level_id: educationLevelId || null
+          education_level_id: educationLevelId || null,
+          gallery_urls: galleryUrls
         });
       }
 
@@ -363,16 +379,15 @@ function ProductWizardContent() {
                 </p>
               </div>
 
-              <FileUpload
+              <FileUploadMultiple
                 bucket="product-covers"
                 accept="image/*"
                 maxSizeMB={3}
-                value={capaUrl}
-                onChange={(url: string | null) => setCapaUrl(url)}
-                label="Capa do Produto Didático"
-                helperText="Selecione um arquivo PNG, JPG ou WEBP (máx 3MB)"
-                isImage={true}
-                aspectRatio="3:4"
+                value={galleryUrls}
+                onChange={setGalleryUrls}
+                label="Capa e Galeria do Produto"
+                helperText="Selecione ou arraste arquivos PNG, JPG ou WEBP (máx 3MB/cada)."
+                maxItems={10}
               />
             </motion.div>
           )}
@@ -425,8 +440,8 @@ function ProductWizardContent() {
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-6">
                 <div className="w-36 h-48 rounded-xl bg-slate-200 overflow-hidden flex-shrink-0 relative shadow-md">
-                  {capaUrl ? (
-                    <img src={capaUrl} alt={titulo} className="w-full h-full object-cover" />
+                  {galleryUrls.length > 0 ? (
+                    <img src={galleryUrls[0]} alt={titulo} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-2 text-center">
                       Sem Capa

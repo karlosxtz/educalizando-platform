@@ -27,7 +27,8 @@ export async function POST(request: Request) {
       arquivo_url, 
       status = 'publicado',
       category_id,
-      education_level_id 
+      education_level_id,
+      gallery_urls
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -133,6 +134,20 @@ export async function POST(request: Request) {
       revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
 
+    // Inserir galeria de imagens
+    if (insertedProduct && insertedProduct.id && Array.isArray(gallery_urls) && gallery_urls.length > 0) {
+      try {
+        const imagesToInsert = gallery_urls.slice(0, 10).map((url: string, index: number) => ({
+          product_id: insertedProduct.id,
+          url,
+          ordem: index
+        }));
+        await supabaseAdmin.from('product_images').insert(imagesToInsert);
+      } catch (e) {
+        console.error('[API /api/produtos POST] Erro ao inserir product_images:', e);
+      }
+    }
+
     return NextResponse.json({ success: true, product: insertedProduct });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
@@ -165,11 +180,13 @@ export async function PUT(request: Request) {
       }
     }
 
+    const { gallery_urls, ...otherUpdates } = cleanedUpdates;
+
     cleanedUpdates.updated_at = new Date().toISOString();
 
     const { data, error } = await supabaseAdmin
       .from('products')
-      .update(cleanedUpdates)
+      .update(otherUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -188,6 +205,26 @@ export async function PUT(request: Request) {
       revalidatePath('/dashboard/conteudo', 'page');
       revalidatePath('/dashboard/kits', 'page');
     } catch (e) {}
+
+    // Processar gallery_urls
+    if (data && data.id && gallery_urls !== undefined) {
+      try {
+        // Excluir antigas
+        await supabaseAdmin.from('product_images').delete().eq('product_id', data.id);
+        
+        // Inserir novas
+        if (Array.isArray(gallery_urls) && gallery_urls.length > 0) {
+          const imagesToInsert = gallery_urls.slice(0, 10).map((url: string, index: number) => ({
+            product_id: data.id,
+            url,
+            ordem: index
+          }));
+          await supabaseAdmin.from('product_images').insert(imagesToInsert);
+        }
+      } catch (e) {
+        console.error('[API /api/produtos PUT] Erro ao atualizar product_images:', e);
+      }
+    }
 
     return NextResponse.json({ success: true, product: data });
   } catch (err: any) {

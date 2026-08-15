@@ -33,6 +33,14 @@ export interface EducationLevel {
   created_at: string;
 }
 
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  url: string;
+  ordem: number;
+  created_at: string;
+}
+
 export interface Product {
   id: string;
   store_id: string;
@@ -47,6 +55,8 @@ export interface Product {
   education_level_id?: string | null;
   category?: Category | null;
   education_level?: EducationLevel | null;
+  images?: ProductImage[];
+  gallery_urls?: string[]; // Transient field for creating/updating
   excluido_em?: string | null;
   average_rating?: number;
   review_count?: number;
