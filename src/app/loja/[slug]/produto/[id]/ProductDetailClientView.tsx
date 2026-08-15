@@ -483,6 +483,30 @@ export default function ProductDetailClientView({
           </Link>
         </div>
       </footer>
+      {/* Sticky Bottom Bar for Mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] p-4 z-40 safe-padding-bottom flex items-center justify-between gap-4">
+        <div>
+          <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Investimento</span>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">R$ {currentPrice.toFixed(2).replace('.', ',')}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleStartCheckout}
+          disabled={isBuying}
+          className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 min-h-[44px]"
+          style={{ backgroundColor: primaryColor }}
+        >
+          {isBuying ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <Zap className="w-4 h-4 fill-white" />
+              <span>Comprar Agora</span>
+            </>
+          )}
+        </button>
+      </div>
+
     </div>
   );
 }

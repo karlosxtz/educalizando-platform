@@ -646,7 +646,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
           href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group min-h-[44px] min-w-[44px]"
+          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group min-h-[44px] min-w-[44px] mb-[env(safe-area-inset-bottom,20px)]"
           title="Falar com a loja"
         >
           <MessageCircle className="w-7 h-7 fill-white" />
@@ -657,7 +657,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4">
+      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 safe-padding-bottom">
         <div className="flex items-center justify-center gap-4">
           {store.instagram && (
             <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">

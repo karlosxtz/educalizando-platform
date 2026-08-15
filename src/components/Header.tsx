@@ -153,6 +153,14 @@ export default function Header() {
           </button>
           <div className="pt-2 flex flex-col gap-2">
             <Link
+              href="/aluno/login"
+              className="w-full py-2.5 rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2"
+            >
+              <GraduationCap className="w-4 h-4 text-brand-teal" />
+              <span>Área do Aluno</span>
+            </Link>
+
+            <Link
               href="/login"
               className="w-full py-2.5 rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2"
             >

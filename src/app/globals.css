@@ -113,3 +113,49 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   MOBILE & ACCESSIBILITY OPTIMIZATIONS
+   ========================================================================== */
+
+/* Prevent iOS Safari from automatically zooming in on inputs if font-size < 16px */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe Area Insets for modern mobile devices (e.g. iPhone Notch/Dynamic Island) */
+.safe-padding-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+.safe-padding-top {
+  padding-top: env(safe-area-inset-top, 20px);
+}
+.safe-margin-bottom {
+  margin-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Mobile-friendly horizontal scrolling for tables */
+.table-responsive-wrapper {
+  @apply w-full overflow-x-auto pb-4;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure touch targets meet 44x44px minimum for accessibility on mobile */
+@media (hover: none) and (pointer: coarse) {
+  button, 
+  a, 
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    /* min-width is situational, we don't force it globally to avoid breaking layouts, 
+       but we ensure the height makes it easily tappable */
+  }
+  
+  /* Select inputs need to be tappable */
+  select {
+    min-height: 44px;
+  }
+}

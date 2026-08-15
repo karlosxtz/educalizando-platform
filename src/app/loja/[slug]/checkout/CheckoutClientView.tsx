@@ -376,6 +376,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                       onChange={(e) => setBuyerCpf(formatCPF(e.target.value))}
                       placeholder="000.000.000-00"
                       maxLength={14}
+                      inputMode="numeric"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-2xl text-xs sm:text-sm text-slate-900 focus:outline-none font-mono"
                     />
                   </div>
@@ -502,6 +503,8 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                       onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                       placeholder="0000 0000 0000 0000"
                       maxLength={19}
+                      inputMode="numeric"
+                      pattern="[0-9 ]*"
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
                     />
                   </div>
@@ -517,6 +520,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                         onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
                         placeholder="MM/AA"
                         maxLength={5}
+                        inputMode="numeric"
                         className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
                       />
                     </div>
@@ -531,6 +535,8 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                         onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="123"
                         maxLength={4}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
                       />
                     </div>
