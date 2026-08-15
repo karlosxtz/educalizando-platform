@@ -40,36 +40,41 @@ export async function GET() {
       .from('purchases')
       .select('*', { count: 'exact', head: true });
 
-    // 4. Receita bruta
-    let totalRevenue = 0;
-    const { data: sales } = await supabaseAdmin
-      .from('wallet_transactions')
-      .select('gross_amount, created_at')
-      .eq('type', 'SALE')
-      .eq('status', 'COMPLETED');
+    // 4. Receita (Faturamento Global e Lucro da Plataforma Educalizando)
+    let totalGrossRevenue = 0;
+    let totalEducalizandoRevenue = 0;
+
+    const { data: orders } = await supabaseAdmin
+      .from('orders')
+      .select('total_amount, platform_fee_amount, created_at')
+      .eq('status', 'paid');
       
     // Agrupar dados para o Gráfico (Últimos 30 dias)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const chartDataMap: Record<string, { date: string, revenue: number, salesCount: number }> = {};
+    const chartDataMap: Record<string, { date: string, revenue: number, educalizandoRevenue: number, salesCount: number }> = {};
     
     // Inicializar os últimos 30 dias com 0
     for(let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      chartDataMap[dateStr] = { date: dateStr, revenue: 0, salesCount: 0 };
+      chartDataMap[dateStr] = { date: dateStr, revenue: 0, educalizandoRevenue: 0, salesCount: 0 };
     }
 
-    if (sales) {
-      sales.forEach(sale => {
-        const amount = Number(sale.gross_amount) || 0;
-        totalRevenue += amount;
+    if (orders) {
+      orders.forEach(order => {
+        const gross = Number(order.total_amount) || 0;
+        const fee = Number(order.platform_fee_amount) || 0;
         
-        const dateStr = new Date(sale.created_at).toISOString().split('T')[0];
+        totalGrossRevenue += gross;
+        totalEducalizandoRevenue += fee;
+        
+        const dateStr = new Date(order.created_at).toISOString().split('T')[0];
         if (chartDataMap[dateStr]) {
-          chartDataMap[dateStr].revenue += amount;
+          chartDataMap[dateStr].revenue += gross;
+          chartDataMap[dateStr].educalizandoRevenue += fee;
           chartDataMap[dateStr].salesCount += 1;
         }
       });
@@ -83,7 +88,8 @@ export async function GET() {
         totalStores: totalStores || 0,
         totalProducts: totalProducts || 0,
         totalPurchases: totalPurchases || 0,
-        totalRevenue
+        totalGrossRevenue,
+        totalEducalizandoRevenue
       },
       chartData
     });

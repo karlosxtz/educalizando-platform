@@ -8,12 +8,14 @@ interface Stats {
   totalStores: number;
   totalProducts: number;
   totalPurchases: number;
-  totalRevenue: number;
+  totalGrossRevenue: number;
+  totalEducalizandoRevenue: number;
 }
 
 interface ChartData {
   date: string;
   revenue: number;
+  educalizandoRevenue: number;
   salesCount: number;
 }
 
@@ -68,31 +70,32 @@ export default function SuperAdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
-          title="Faturamento Bruto" 
-          value={loading ? '...' : formatCurrency(stats?.totalRevenue || 0)} 
+          title="Vendas Globais" 
+          value={loading ? '...' : formatCurrency(stats?.totalGrossRevenue || 0)} 
           icon={<DollarSign className="w-5 h-5 text-emerald-500" />} 
-          trend="Últimos 30 dias"
+          trend="Total transacionado"
+        />
+        <StatCard 
+          title="Receita Educalizando" 
+          value={loading ? '...' : formatCurrency(stats?.totalEducalizandoRevenue || 0)} 
+          icon={<DollarSign className="w-5 h-5 text-blue-500" />} 
+          trend="Sua parte das vendas"
         />
         <StatCard 
           title="Lojas Ativas" 
           value={loading ? '...' : String(stats?.totalStores || 0)} 
-          icon={<Store className="w-5 h-5 text-blue-500" />} 
+          icon={<Store className="w-5 h-5 text-purple-500" />} 
         />
         <StatCard 
           title="Produtos Publicados" 
           value={loading ? '...' : String(stats?.totalProducts || 0)} 
-          icon={<Package className="w-5 h-5 text-purple-500" />} 
-        />
-        <StatCard 
-          title="Alunos / Matrículas" 
-          value={loading ? '...' : String(stats?.totalPurchases || 0)} 
-          icon={<Users className="w-5 h-5 text-amber-500" />} 
+          icon={<Package className="w-5 h-5 text-amber-500" />} 
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
         <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-6 h-96 flex flex-col">
-          <h3 className="text-lg font-medium text-white mb-6">Volume Financeiro (30 dias)</h3>
+          <h3 className="text-lg font-medium text-white mb-6">Volume Financeiro Global (30 dias)</h3>
           {loading ? (
             <div className="flex-1 flex items-center justify-center text-slate-500">Carregando gráfico...</div>
           ) : (
@@ -104,6 +107,10 @@ export default function SuperAdminDashboard() {
                       <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                     </linearGradient>
+                    <linearGradient id="colorEducalizando" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                   <XAxis dataKey="date" stroke="#475569" fontSize={12} tickFormatter={formatDate} tickMargin={10} />
@@ -112,10 +119,11 @@ export default function SuperAdminDashboard() {
                     contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
                     itemStyle={{ color: '#10b981' }}
                     labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                    formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Faturamento']}
+                    formatter={(value: any, name: string) => [formatCurrency(Number(value) || 0), name === 'revenue' ? 'Venda Global' : 'Educalizando']}
                     labelFormatter={formatDate}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                  <Area type="monotone" dataKey="educalizandoRevenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorEducalizando)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
