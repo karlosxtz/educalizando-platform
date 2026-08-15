@@ -55,7 +55,15 @@ export default function LoginPage() {
     setServerError(null);
     try {
       await signInUser({ email: values.email, password: values.password });
-      router.push('/dashboard/loja');
+      
+      // Redirecionamento Automático
+      const superAdminEmail = process.env.NEXT_PUBLIC_SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
+      if (values.email.toLowerCase() === superAdminEmail.toLowerCase()) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard/loja');
+      }
+      
     } catch (err: any) {
       setServerError(err.message || 'Erro ao realizar o login. Verifique seu e-mail e senha.');
     }
