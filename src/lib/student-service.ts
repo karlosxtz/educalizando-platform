@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
 import { Purchase, Product, Kit, Store } from './types';
 import { getPublicProductsByStoreId } from './store-service';
 import { getPublicKitsByStoreId } from './kit-service';
@@ -308,7 +308,7 @@ export async function grantStudentProductAccess(data: {
 
   if (isRealSupabase) {
     try {
-      await supabase.from('student_product_access').insert([{
+      await supabaseAdmin.from('student_product_access').insert([{
         id: newRecord.id,
         student_id: newRecord.studentId,
         product_id: newRecord.productId,

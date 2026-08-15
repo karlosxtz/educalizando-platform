@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
 
@@ -270,7 +270,7 @@ export async function recordWalletTransaction(data: {
   // Gravar no Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
-      await supabase.from('wallet_transactions').insert([{
+      await supabaseAdmin.from('wallet_transactions').insert([{
         id: newTx.id,
         store_id: newTx.storeId,
         order_id: newTx.orderId,

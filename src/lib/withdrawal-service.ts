@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
 import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
 import { lookupAsaasPixKey, createAsaasTransfer } from './asaas-service';
 
@@ -199,11 +199,11 @@ export async function registerCreatorPixKey(data: {
   // Desativar chaves antigas se existirem (Item 8 da Especificação)
   if (isRealSupabaseConfigured()) {
     try {
-      await supabase.from('creator_pix_keys')
+      await supabaseAdmin.from('creator_pix_keys')
         .update({ is_active: false })
         .eq('store_id', data.storeId);
 
-      await supabase.from('creator_pix_keys').insert([{
+      await supabaseAdmin.from('creator_pix_keys').insert([{
         id: newKey.id,
         creator_id: newKey.creatorId,
         store_id: newKey.storeId,
@@ -275,7 +275,7 @@ export async function requestCreatorWithdrawal(data: {
 
   if (isRealSupabaseConfigured()) {
     // Chama o banco de dados para travar as linhas e inserir o saque atomicamente
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('process_withdrawal_safe', {
+    const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('process_withdrawal_safe', {
       p_store_id: data.storeId,
       p_creator_id: data.creatorId,
       p_amount: data.amount,
