@@ -13,6 +13,14 @@ export default function AccountSettingsPage() {
   const [storeId, setStoreId] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Alteração de CPF
+  const [cpfChanged, setCpfChanged] = useState(false);
+  const [isEditingCpf, setIsEditingCpf] = useState(false);
+  const [newCpf, setNewCpf] = useState('');
+  const [cpfError, setCpfError] = useState<string | null>(null);
+  const [cpfSuccess, setCpfSuccess] = useState<string | null>(null);
+  const [cpfLoading, setCpfLoading] = useState(false);
+
   // PIX Key State
   const [hasPixKey, setHasPixKey] = useState(false);
   const [pixKeyMasked, setPixKeyMasked] = useState('');
@@ -39,12 +47,61 @@ export default function AccountSettingsPage() {
             const parsed = JSON.parse(rawCreatorSession);
             if (parsed.email) setEmail(parsed.email);
             if (parsed.cpf) setUserCpf(parsed.cpf);
+            if (parsed.cpf_changed) setCpfChanged(true);
           } catch (e) {}
         }
       }
     }
     loadData();
   }, []);
+
+  const handleUpdateCpf = async () => {
+    setCpfError(null);
+    setCpfSuccess(null);
+    
+    const cleanCpf = newCpf.replace(/\D/g, '');
+    if (cleanCpf.length !== 11) {
+      setCpfError('O CPF deve ter 11 dígitos.');
+      return;
+    }
+
+    setCpfLoading(true);
+    try {
+      const sess = await getCurrentUserSession();
+      if (!sess?.user?.id) throw new Error('Sessão não encontrada.');
+
+      const res = await fetch('/api/conta/update-cpf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newCpf: cleanCpf, creatorId: sess.user.id })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao alterar o CPF.');
+      }
+
+      setUserCpf(data.cpf);
+      setCpfChanged(true);
+      setIsEditingCpf(false);
+      setCpfSuccess('CPF alterado com sucesso! Nenhuma outra alteração será permitida.');
+      
+      // Update local storage session
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem('educalizando_creator_session');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          parsed.cpf = data.cpf;
+          parsed.cpf_changed = true;
+          localStorage.setItem('educalizando_creator_session', JSON.stringify(parsed));
+        }
+      }
+    } catch (err: any) {
+      setCpfError(err.message || 'Erro ao atualizar o CPF.');
+    } finally {
+      setCpfLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (storeId) {
@@ -163,7 +220,7 @@ export default function AccountSettingsPage() {
         )}
 
         {hasPixKey && !editingPix ? (
-          /* Chave Cadastrada e Validada (Item 9 da Especificação) */
+          /* Chave Cadastrada e Validada */
           <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
@@ -199,15 +256,54 @@ export default function AccountSettingsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  CPF da Sua Conta *
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>CPF da Sua Conta *</span>
+                  {!cpfChanged && !isEditingCpf && (
+                    <button type="button" onClick={() => setIsEditingCpf(true)} className="text-brand-navy hover:underline lowercase text-[10px]">
+                      alterar cpf
+                    </button>
+                  )}
                 </label>
-                <input
-                  type="text"
-                  disabled
-                  value={maskCPF(userCpf)}
-                  className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl text-sm font-mono cursor-not-allowed"
-                />
+                
+                {isEditingCpf ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={newCpf}
+                      onChange={(e) => setNewCpf(e.target.value)}
+                      placeholder="Digite o novo CPF (apenas números)"
+                      className="w-full px-4 py-2.5 bg-white border border-brand-navy focus:ring-2 focus:ring-brand-teal focus:border-brand-teal rounded-xl text-slate-900 text-sm font-mono focus:outline-none"
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleUpdateCpf}
+                        disabled={cpfLoading}
+                        className="px-3 py-1.5 bg-brand-navy hover:bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                      >
+                        {cpfLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                        Salvar Novo CPF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingCpf(false)}
+                        className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    {cpfError && <p className="text-rose-600 text-[10px] font-bold">{cpfError}</p>}
+                    <p className="text-[10px] text-slate-500 font-medium">Atenção: A alteração só pode ser feita <strong className="text-rose-600">uma única vez</strong>.</p>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    disabled
+                    value={maskCPF(userCpf)}
+                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl text-sm font-mono cursor-not-allowed"
+                  />
+                )}
+                {cpfSuccess && <p className="text-emerald-600 text-[10px] font-bold mt-1">{cpfSuccess}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -227,7 +323,7 @@ export default function AccountSettingsPage() {
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                disabled={pixLoading}
+                disabled={pixLoading || isEditingCpf}
                 className="px-6 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2 disabled:opacity-50"
               >
                 {pixLoading ? (
