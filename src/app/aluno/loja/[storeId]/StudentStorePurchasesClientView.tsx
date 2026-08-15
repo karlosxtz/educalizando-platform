@@ -12,8 +12,11 @@ import {
 import { toast } from 'sonner';
 
 import { getCurrentStudentSession, getStudentPurchasesByStoreId } from '@/lib/student-service';
-import { Purchase, ProductType, Store } from '@/lib/types';
+import { getStudentReviewsByStore } from '@/lib/review-service';
+import { Purchase, ProductType, Store, Review } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import StudentReviewModal from '@/components/StudentReviewModal';
+import { Star } from 'lucide-react';
 
 interface StudentStorePurchasesClientViewProps {
   storeId: string;
@@ -26,6 +29,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string } | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [myReviews, setMyReviews] = useState<Review[]>([]);
+  
+  const [reviewTarget, setReviewTarget] = useState<{ productId: string; storeId: string; } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -40,6 +46,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
         const data = await getStudentPurchasesByStoreId(session.id, storeId);
         setStore(data.store);
         setPurchases(data.purchases);
+        
+        const revs = await getStudentReviewsByStore(session.id, storeId);
+        setMyReviews(revs);
       } catch (err) {
         console.error(err);
       } finally {
@@ -81,7 +90,22 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       } else {
         await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico');
       }
-      toast.success('Download iniciado!');
+      
+      const targetProductId = pur.product_id || pur.id;
+      const existingReview = myReviews.find(r => r.product_id === targetProductId);
+      
+      if (!existingReview) {
+        toast('Já baixou? Que tal avaliar este material?', {
+          action: {
+            label: 'Avaliar agora',
+            onClick: () => setReviewTarget({ productId: targetProductId, storeId })
+          },
+          duration: 8000,
+          icon: '⭐'
+        });
+      } else {
+        toast.success('Download iniciado!');
+      }
     } catch (err: any) {
       console.error('[Download Error]:', err);
       toast.error('Não foi possível baixar o material agora. Tente novamente em instantes.', {
@@ -93,6 +117,28 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     } finally {
       setDownloadingId(null);
     }
+  };
+
+  const handleReviewSuccess = (newRating: number, newComment: string) => {
+    if (!reviewTarget) return;
+    setMyReviews(prev => {
+      const idx = prev.findIndex(r => r.product_id === reviewTarget.productId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], nota: newRating, comentario: newComment };
+        return copy;
+      } else {
+        return [...prev, {
+          id: `tmp_${Date.now()}`,
+          product_id: reviewTarget.productId,
+          store_id: reviewTarget.storeId,
+          student_id: studentSession!.id,
+          nota: newRating,
+          comentario: newComment,
+          created_at: new Date().toISOString()
+        }];
+      }
+    });
   };
 
   const getTipoIcon = (tipo?: ProductType) => {
@@ -261,25 +307,52 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                   </div>
 
                   {/* Direct Download Action Footer */}
-                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                      <ShieldCheck className="w-4 h-4" /> Acesso Liberado
-                    </span>
+                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                        <ShieldCheck className="w-4 h-4" /> Acesso Liberado
+                      </span>
 
-                    <button
-                      type="button"
-                      onClick={(e) => handleDownloadPurchase(pur, e)}
-                      disabled={downloadingId === pur.id}
-                      className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      {downloadingId === pur.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Download className="w-3.5 h-3.5" />
-                      )}
-                      <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDownloadPurchase(pur, e)}
+                        disabled={downloadingId === pur.id}
+                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {downloadingId === pur.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Download className="w-3.5 h-3.5" />
+                        )}
+                        <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
+                      </button>
+                    </div>
+                    
+                    {/* Botão Avaliar */}
+                    <div className="pt-2 border-t border-slate-200/50">
+                      {(() => {
+                        const existingReview = myReviews.find(r => r.product_id === (pur.product_id || pur.id));
+                        return (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setReviewTarget({ productId: pur.product_id || pur.id, storeId });
+                            }}
+                            className={`w-full py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
+                              existingReview 
+                                ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' 
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                            }`}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${existingReview ? 'fill-amber-500 text-amber-500' : ''}`} />
+                            {existingReview ? 'Minha Avaliação' : 'Avaliar'}
+                          </button>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -287,6 +360,19 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           </div>
         )}
       </main>
+
+      {reviewTarget && studentSession && (
+        <StudentReviewModal
+          isOpen={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          productId={reviewTarget.productId}
+          storeId={reviewTarget.storeId}
+          studentId={studentSession.id}
+          initialRating={myReviews.find(r => r.product_id === reviewTarget.productId)?.nota || 0}
+          initialComment={myReviews.find(r => r.product_id === reviewTarget.productId)?.comentario || ''}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
     </div>
   );
 }

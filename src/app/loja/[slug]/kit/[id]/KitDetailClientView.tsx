@@ -8,9 +8,9 @@ import {
   Layers, HelpCircle, ArrowLeft, CheckCircle2,
   MessageCircle, Sparkles, Lock, Check, Loader2, Boxes, Package, Tags, Ticket, AlertCircle 
 } from 'lucide-react';
-import { Store, Kit, ProductType, CouponValidationResult, ProductReview } from '@/lib/types';
+import { Store, Kit, ProductType, CouponValidationResult, Review } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
-import { getReviews } from '@/lib/review-service';
+// import { getReviews } from '@/lib/review-service'; // Kits no longer have direct reviews
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 
 interface KitDetailClientViewProps {
@@ -28,14 +28,11 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
   const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
 
   // Reviews State
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    async function fetchReviews() {
-      const list = await getReviews('kit', kit.id);
-      setReviews(list);
-    }
-    fetchReviews();
+    // Kits não tem mais reviews diretos na modelagem atual
+    setReviews([]);
   }, [kit.id]);
 
   const primaryColor = store.cor_primaria || '#093b6c';

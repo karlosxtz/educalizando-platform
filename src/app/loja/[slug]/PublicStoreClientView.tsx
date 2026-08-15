@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Plus, Sparkles, Search, Boxes, Percent
+  MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star
 } from 'lucide-react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -520,6 +520,14 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
                             {prod.descricao}
                           </p>
                         )}
+                        
+                        {prod.average_rating ? (
+                          <div className="flex items-center gap-1 mt-2">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span className="text-xs font-bold text-slate-700">{prod.average_rating}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">({prod.review_count})</span>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 

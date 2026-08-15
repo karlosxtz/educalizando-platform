@@ -9,7 +9,7 @@ import {
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X 
 } from 'lucide-react';
-import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, ProductReview } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getReviews } from '@/lib/review-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
@@ -38,11 +38,11 @@ export default function ProductDetailClientView({
   const [couponResult, setCouponResult] = useState<CouponValidationResult | null>(null);
 
   // Reviews State
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     async function fetchReviews() {
-      const list = await getReviews('product', product.id);
+      const list = await getReviews(product.id);
       setReviews(list);
     }
     fetchReviews();

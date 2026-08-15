@@ -48,6 +48,8 @@ export interface Product {
   category?: Category | null;
   education_level?: EducationLevel | null;
   excluido_em?: string | null;
+  average_rating?: number;
+  review_count?: number;
   created_at: string;
   updated_at?: string;
 }
@@ -155,16 +157,16 @@ export interface CouponValidationResult {
 
 export type ReviewStatus = 'aprovado' | 'pendente' | 'oculto';
 
-export interface ProductReview {
+export interface Review {
   id: string;
-  product_id?: string | null;
-  kit_id?: string | null;
+  product_id: string;
   student_id: string;
-  student_name: string;
-  rating: number;
-  comment: string;
-  status: ReviewStatus;
+  store_id: string;
+  nota: number;
+  comentario?: string | null;
+  student_name?: string; // We can enrich this for display
   created_at: string;
+  updated_at?: string;
 }
 
 export interface ReviewStats {

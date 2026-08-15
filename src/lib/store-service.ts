@@ -370,6 +370,12 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
       const { data, error } = await query;
 
+      // Buscar avaliações agregadas da loja para esses produtos
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('product_id, nota')
+        .eq('store_id', storeId);
+
       if (!error && data) {
         return (data as Product[]).filter(p => {
           if (p.excluido_em || p.status === 'excluido') return false;
@@ -380,6 +386,16 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           if (!p.store_id) return false;
           const pStoreClean = p.store_id.replace(/^store_/i, '');
           return p.store_id === storeId || p.store_id === cleanStoreId || pStoreClean === cleanStoreId;
+        }).map(p => {
+          if (reviewsData && reviewsData.length > 0) {
+            const productReviews = reviewsData.filter(r => r.product_id === p.id);
+            if (productReviews.length > 0) {
+              const sum = productReviews.reduce((acc, r) => acc + r.nota, 0);
+              p.review_count = productReviews.length;
+              p.average_rating = Number((sum / productReviews.length).toFixed(1));
+            }
+          }
+          return p;
         });
       }
     } catch (err) {

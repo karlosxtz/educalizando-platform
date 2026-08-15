@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Star, MessageSquare, ShieldCheck, ThumbsUp, UserCheck } from 'lucide-react';
-import { ProductReview, ReviewStats } from '@/lib/types';
+import { Review, ReviewStats } from '@/lib/types';
 import { calculateReviewStats } from '@/lib/review-service';
 
 interface ProductReviewsSectionProps {
-  reviews: ProductReview[];
+  reviews: Review[];
   primaryColor?: string;
 }
 
@@ -19,7 +19,7 @@ export default function ProductReviewsSection({
 
   const filteredReviews = reviews.filter(r => {
     if (filterRating === 'all') return true;
-    return Math.round(r.rating) === filterRating;
+    return Math.round(r.nota) === filterRating;
   });
 
   const renderStars = (rating: number, sizeClass = 'w-4 h-4') => {
@@ -182,12 +182,12 @@ export default function ProductReviewsSection({
                   </div>
 
                   <div>
-                    {renderStars(review.rating, 'w-3.5 h-3.5')}
+                    {renderStars(review.nota, 'w-3.5 h-3.5')}
                   </div>
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium pl-1">
-                  "{review.comment}"
+                  "{review.comentario}"
                 </p>
               </div>
             );
