@@ -104,22 +104,22 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         couponCode,
         'product',
         product.id,
-        product.preco
+        basePrice
       );
       setCouponResult(res);
-      if (!res.valid) {
+      if (res.valid && res.finalPrice !== undefined) {
+        setFinalPrice(res.finalPrice);
+      } else {
+        setFinalPrice(basePrice);
         setErrorMessage(res.message || 'Cupom inválido.');
       }
     } catch (e) {
       console.error(e);
+      setFinalPrice(basePrice);
     } finally {
       setValidatingCoupon(false);
     }
   };
-
-  const finalPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
-    ? couponResult.finalPrice 
-    : product.preco;
 
   // Mask Helpers
   const formatCPF = (val: string) => {
