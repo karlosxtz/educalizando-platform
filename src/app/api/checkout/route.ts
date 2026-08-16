@@ -59,7 +59,13 @@ export async function POST(request: Request) {
     // Verificação de Role (Papel)
     if (isPlrPurchase && authSession.role !== 'creator') {
       return NextResponse.json(
-        { success: false, error: 'Apenas CRIADORES podem comprar Licenças PLR.' },
+        { success: false, error: 'Apenas CRIADORES podem comprar Licenças PLR. Por favor, faça login em sua conta de Criador.' },
+        { status: 401 }
+      );
+    }
+    if (!isPlrPurchase && authSession.role === 'creator') {
+      return NextResponse.json(
+        { success: false, error: 'Criadores não podem comprar materiais comuns. Por favor, utilize uma conta de ALUNO.' },
         { status: 401 }
       );
     }
@@ -81,6 +87,32 @@ export async function POST(request: Request) {
     const productIds = items.map((it: any) => it.productId).filter(Boolean);
     if (productIds.length === 0) {
       return NextResponse.json({ success: false, error: 'Carrinho vazio ou inválido.' }, { status: 400 });
+    }
+
+    // 3.1. Bloquear compras duplicadas
+    if (isPlrPurchase) {
+      const { data: existingPlr } = await supabaseAdmin
+        .from('order_items')
+        .select('product_id, orders!inner(student_id, status, is_plr_purchase)')
+        .in('product_id', productIds)
+        .eq('orders.student_id', studentId)
+        .eq('orders.is_plr_purchase', true)
+        .in('orders.status', ['paid', 'processing']);
+      
+      if (existingPlr && existingPlr.length > 0) {
+        return NextResponse.json({ success: false, error: 'Você já possui a Licença PLR para um ou mais produtos deste carrinho.' }, { status: 400 });
+      }
+    } else {
+      const { data: existingAccess } = await supabaseAdmin
+        .from('student_product_access')
+        .select('product_id')
+        .in('product_id', productIds)
+        .eq('student_id', studentId)
+        .eq('status', 'ACTIVE');
+
+      if (existingAccess && existingAccess.length > 0) {
+        return NextResponse.json({ success: false, error: 'Você já comprou e possui acesso a um ou mais materiais deste carrinho.' }, { status: 400 });
+      }
     }
 
     const { data: realProducts, error: dbError } = await supabase

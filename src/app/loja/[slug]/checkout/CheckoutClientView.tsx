@@ -70,8 +70,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       try {
         const session = await getAuthenticatedUserRole();
         
-        // Se for compra PLR, exige ser criador. Se for normal, pode ser qualquer um logado (geralmente aluno)
-        const hasValidRole = isPlrPurchase ? session.role === 'creator' : session.isAuthenticated;
+        const hasValidRole = isPlrPurchase ? session.role === 'creator' : session.role === 'student';
         
         if (session.isAuthenticated && hasValidRole) {
           let storeName = '';
@@ -94,6 +93,14 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
           }
           if (session.email) setBuyerEmail(session.email);
           if (session.cpf) setBuyerCpf(session.cpf);
+        } else if (session.isAuthenticated && !hasValidRole) {
+          setIsStudentLoggedIn(false);
+          setStudentSession(null);
+          setErrorMessage(
+            isPlrPurchase 
+              ? 'Você está logado como ALUNO, mas apenas CRIADORES podem comprar PLR. Saia da sua conta atual e faça login como Criador.' 
+              : 'Você está logado como CRIADOR, mas criadores não podem comprar materiais comuns. Saia da conta e use uma conta de ALUNO.'
+          );
         } else {
           setIsStudentLoggedIn(false);
           setStudentSession(null);
