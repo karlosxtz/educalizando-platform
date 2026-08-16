@@ -107,21 +107,37 @@ export default function ProductDetailClientView({
     try {
       const authSession = await getAuthenticatedUserRole();
 
-      // Cenário A — Visitante Não Autenticado -> Redireciona para login do Aluno (Item 4)
-      if (!authSession.isAuthenticated) {
-        const returnUrl = encodeURIComponent(checkoutTargetUrl);
-        router.push(`/aluno/login?returnTo=${returnUrl}&action=buy`);
-        return;
+      // Regras de Autenticação para Redirecionamento
+      if (isPlrPurchase) {
+        if (!authSession.isAuthenticated) {
+          const returnUrl = encodeURIComponent(checkoutTargetUrl);
+          router.push(`/dashboard/login?returnTo=${returnUrl}`);
+          return;
+        }
+        if (authSession.role !== 'creator') {
+          setIsBuying(false);
+          // Podemos exibir o mesmo modal ou um novo. Para facilitar, alert simple ou state novo.
+          // Como não temos um modal específico de "aluno bloqueado", alert provisório
+          alert('Apenas contas de Criador podem comprar licenças PLR.');
+          return;
+        }
+      } else {
+        // Cenário A — Visitante Não Autenticado -> Redireciona para login do Aluno (Item 4)
+        if (!authSession.isAuthenticated) {
+          const returnUrl = encodeURIComponent(checkoutTargetUrl);
+          router.push(`/aluno/login?returnTo=${returnUrl}&action=buy`);
+          return;
+        }
+
+        // Cenário B — Logado como Criador -> Bloqueia a compra com mensagem explicativa (Item 11)
+        if (authSession.role === 'creator') {
+          setIsBuying(false);
+          setShowCreatorBlockModal(true);
+          return;
+        }
       }
 
-      // Cenário B — Logado como Criador -> Bloqueia a compra com mensagem explicativa (Item 11)
-      if (authSession.role === 'creator') {
-        setIsBuying(false);
-        setShowCreatorBlockModal(true);
-        return;
-      }
-
-      // Cenário C — Logado como Aluno -> Redireciona diretamente para o Checkout (Item 9)
+      // Cenário C — Logado com a conta certa -> Redireciona diretamente para o Checkout
       router.push(checkoutTargetUrl);
 
     } catch (e) {

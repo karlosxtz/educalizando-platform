@@ -62,6 +62,12 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
       badge: 'NOVO'
     },
     {
+      label: 'PLRs Comprados',
+      href: '/dashboard/plr/comprados',
+      icon: Package,
+      badge: null
+    },
+    {
       label: 'Conteúdo & Entregas',
       href: '/dashboard/conteudo',
       icon: FolderCheck,

@@ -16,10 +16,11 @@ export async function POST(request: Request) {
       paymentMethod = 'pix',
       items = [],
       creditCard,
-      creditCardHolderInfo
+      creditCardHolderInfo,
+      isPlrPurchase = false
     } = body;
 
-    // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO DO ALUNO (SUPABASE AUTH / SESSÃO DO ALUNO)
+    // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (SUPABASE AUTH)
     let authSession = await getAuthenticatedUserRole();
 
     // Se o servidor em si não encontrou a sessão mas o cliente passou Authorization Bearer token:
@@ -32,29 +33,39 @@ export async function POST(request: Request) {
           const meta = userData.user.user_metadata || {};
           authSession = {
             isAuthenticated: true,
-            role: 'student',
+            role: isPlrPurchase ? 'creator' : 'student',
             userId: userData.user.id,
             email: userData.user.email || rawBuyerEmail || '',
-            fullName: meta.full_name || rawBuyerName || 'Aluno Educalizando',
+            fullName: meta.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Aluno Educalizando'),
             cpf: meta.cpf || rawBuyerCpf || ''
           };
         }
       } catch (e) {}
     }
 
-    // Se o comprador não tem identificação de aluno válida:
+    // Se o comprador não tem identificação válida:
     if (!authSession.isAuthenticated || !authSession.userId) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Para realizar compras na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
+          error: isPlrPurchase 
+            ? 'Para comprar Licenças PLR, é obrigatório estar conectado em uma conta de CRIADOR.' 
+            : 'Para realizar compras na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
         },
         { status: 401 }
       );
     }
+    
+    // Verificação de Role (Papel)
+    if (isPlrPurchase && authSession.role !== 'creator') {
+      return NextResponse.json(
+        { success: false, error: 'Apenas CRIADORES podem comprar Licenças PLR.' },
+        { status: 401 }
+      );
+    }
 
-    const studentId = authSession.userId;
-    const buyerName = (rawBuyerName || authSession.fullName || 'Aluno Educalizando').trim();
+    const studentId = authSession.userId; // Será usado como ID do comprador (seja aluno ou criador)
+    const buyerName = (rawBuyerName || authSession.fullName || (isPlrPurchase ? 'Criador' : 'Aluno')).trim();
     const buyerEmail = (rawBuyerEmail || authSession.email || '').toLowerCase().trim();
     const buyerCpf = (rawBuyerCpf || authSession.cpf || '').replace(/\D/g, '');
 
@@ -74,7 +85,7 @@ export async function POST(request: Request) {
 
     const { data: realProducts, error: dbError } = await supabase
       .from('products')
-      .select('id, preco, store_id, status, titulo')
+      .select('id, preco, preco_plr, is_plr, store_id, status, titulo')
       .in('id', productIds);
 
     if (dbError || !realProducts || realProducts.length !== productIds.length) {
@@ -94,6 +105,10 @@ export async function POST(request: Request) {
       if (realProd.store_id !== storeId) {
         return NextResponse.json({ success: false, error: 'Todos os produtos devem pertencer exclusivamente à mesma loja.' }, { status: 400 });
       }
+      
+      if (isPlrPurchase && !realProd.is_plr) {
+        return NextResponse.json({ success: false, error: 'Este produto não possui licença PLR habilitada.' }, { status: 400 });
+      }
 
       const rawQuantity = Number(item.quantity);
       const validQuantity = (isNaN(rawQuantity) || rawQuantity < 1 || !Number.isInteger(rawQuantity)) ? 1 : rawQuantity;
@@ -101,8 +116,8 @@ export async function POST(request: Request) {
 
       realItems.push({
         ...item,
-        productTitle: realProd.titulo,
-        unitPrice: Number(realProd.preco), // PREÇO DEFINIDO PELO SERVIDOR!
+        productTitle: isPlrPurchase ? `${realProd.titulo} (Licença PLR)` : realProd.titulo,
+        unitPrice: Number(isPlrPurchase ? (realProd.preco_plr || realProd.preco) : realProd.preco), // PREÇO DEFINIDO PELO SERVIDOR!
         quantity: safeQuantity,
         storeId: realProd.store_id // Garante storeId correto
       });
@@ -156,7 +171,8 @@ export async function POST(request: Request) {
       asaasPaymentId: asaasPayment.id,
       asaasCustomerId,
       pixCopyPaste: asaasPayment.pixCopyPastePayload,
-      pixQrCodeBase64: asaasPayment.pixQrCodeBase64
+      pixQrCodeBase64: asaasPayment.pixQrCodeBase64,
+      isPlrPurchase
     });
 
     return NextResponse.json({

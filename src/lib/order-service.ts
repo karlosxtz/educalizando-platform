@@ -36,6 +36,7 @@ export interface OrderRecord {
   pixCopyPaste?: string | null;
   pixQrCodeBase64?: string | null;
   items: OrderItemRecord[];
+  is_plr_purchase?: boolean;
   createdAt: string;
   paidAt?: string | null;
 }
@@ -185,6 +186,7 @@ export async function createOrderRecord(data: {
   asaasFeeAmount?: number;
   pixCopyPaste?: string;
   pixQrCodeBase64?: string;
+  isPlrPurchase?: boolean;
 }): Promise<OrderRecord> {
 
   // REGRA FUNDAMENTAL: Todos os produtos devem pertencer à mesma loja
@@ -234,6 +236,7 @@ export async function createOrderRecord(data: {
     pixCopyPaste: data.pixCopyPaste || null,
     pixQrCodeBase64: data.pixQrCodeBase64 || null,
     items: formattedItems,
+    is_plr_purchase: data.isPlrPurchase || false,
     createdAt: now,
     paidAt: null
   };
@@ -261,6 +264,7 @@ export async function createOrderRecord(data: {
         payment_method: newOrder.paymentMethod,
         pix_copy_paste: newOrder.pixCopyPaste,
         pix_qr_code_base64: newOrder.pixQrCodeBase64,
+        is_plr_purchase: newOrder.is_plr_purchase,
         created_at: newOrder.createdAt
       }]);
 
