@@ -10,10 +10,12 @@ export async function GET() {
       .order('order', { ascending: true })
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error && error.code !== '42P01') {
+      throw error;
+    }
 
     // Fallback em caso de banco de dados não atualizado / rodando local
-    if (!data || data.length === 0) {
+    if (!data || data.length === 0 || error?.code === '42P01') {
       return NextResponse.json([
         { 
           id: '1', 
