@@ -328,6 +328,92 @@ export default function FinancialWalletDashboardPage() {
 
       </div>
 
+      {/* SEÇÃO EDUCATIVA: Entenda nossas Taxas */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-8 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60 pointer-events-none"></div>
+        
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-wide">
+            <Sparkles className="w-3.5 h-3.5" /> Transparência Total
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            A Menor Taxa do Mercado Digital <span className="text-emerald-600">(Sem Porcentagens!)</span>
+          </h2>
+          <p className="text-slate-600 font-medium leading-relaxed max-w-3xl">
+            Enquanto plataformas tradicionais levam 15% de todo o seu faturamento, nós trabalhamos com uma taxa fixa em Reais para processar suas vendas. O seu produto pode custar R$ 50 ou R$ 5.000, e o nosso custo de processamento continuará sendo exatamente o mesmo. Transparência total.
+          </p>
+        </div>
+
+        {/* Nossa Regra (Pix) */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 relative z-10 flex flex-col sm:flex-row gap-5 items-center">
+          <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center border border-slate-100">
+            <DollarSign className="w-6 h-6 text-emerald-600" />
+          </div>
+          <div className="space-y-1 text-center sm:text-left">
+            <h3 className="font-extrabold text-slate-900">Custo de transação (via Pix): <span className="text-emerald-600">R$ 1,99 fixo da transação + R$ 1,00 por produto no carrinho.</span></h3>
+            <p className="text-sm text-slate-500 font-medium">
+              Isso significa que para vender um produto pago via Pix, o seu custo total na nossa plataforma é de apenas R$ 2,99. Simples assim. Sem taxas surpresas, sem porcentagens abusivas mordendo o seu lucro.
+            </p>
+          </div>
+        </div>
+
+        {/* Cards de Comparação */}
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Exemplo A */}
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-slate-50 border-b border-slate-200 px-5 py-3">
+              <h4 className="font-bold text-slate-700">Exemplo A: Venda de 1 produto de R$ 50,00</h4>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500">Outras Plataformas (15%)</span>
+                <span className="text-sm font-bold text-rose-600 line-through">Eles cobram R$ 7,50</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Nossa Plataforma (Fixo)</span>
+                <span className="text-sm font-black text-emerald-600">Nós cobramos R$ 2,99</span>
+              </div>
+              <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Você economiza R$ 4,51 por venda!
+              </div>
+            </div>
+          </div>
+
+          {/* Exemplo B */}
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-slate-50 border-b border-slate-200 px-5 py-3">
+              <h4 className="font-bold text-slate-700">Exemplo B: Venda de 1 produto de R$ 100,00</h4>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500">Outras Plataformas (15%)</span>
+                <span className="text-sm font-bold text-rose-600 line-through">Eles cobram R$ 15,00</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Nossa Plataforma (Fixo)</span>
+                <span className="text-sm font-black text-emerald-600">Nós cobramos R$ 2,99</span>
+              </div>
+              <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Você economiza R$ 12,01 por venda!
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Conclusão */}
+        <div className="relative z-10 text-center space-y-4 max-w-2xl mx-auto pt-4">
+          <p className="text-sm sm:text-base text-slate-700 font-bold">
+            Onde você prefere deixar o seu dinheiro? A partir de vendas de R$ 20,00, nosso sistema já é mais vantajoso que qualquer plataforma que cobra 15%.
+          </p>
+          <div className="inline-flex px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black tracking-wide uppercase shadow-md">
+            Escale suas vendas e fique com o lucro de verdade!
+          </div>
+        </div>
+      </div>
+
       {/* Banner / Card da Chave PIX Cadastrada */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
