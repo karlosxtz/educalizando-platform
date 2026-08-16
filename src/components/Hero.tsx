@@ -37,9 +37,9 @@ export default function Hero() {
             </div>
 
             {/* Main Headline with High Contrast Slate-900 and Brand Navy Highlight */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
-              Crie sua loja de <br />
-              <span className="text-brand-navy bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy bg-clip-text text-transparent">
+            <h1 className="text-3xl min-[400px]:text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] break-words hyphens-auto">
+              Crie sua loja de <br className="hidden sm:block" />
+              <span className="text-brand-navy bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy bg-clip-text text-transparent break-all sm:break-normal">
                 infoprodutos digitais
               </span> <br />
               e receba no PIX na hora.

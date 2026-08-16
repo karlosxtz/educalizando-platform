@@ -85,8 +85,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth`}>
-      <body className="antialiased bg-slate-50 text-slate-900 min-h-screen">
+    <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth overflow-x-hidden`}>
+      <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         {children}
         <PWAInstallPrompt />
         <Toaster position="bottom-right" richColors />
