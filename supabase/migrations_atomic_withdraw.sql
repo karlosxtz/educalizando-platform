@@ -4,11 +4,13 @@
 
 -- Função RPC para processar o saque de forma atômica
 -- Previne Race Conditions travando as linhas da carteira da loja para leitura
+DROP FUNCTION IF EXISTS public.process_withdrawal_safe;
+
 CREATE OR REPLACE FUNCTION public.process_withdrawal_safe(
-    p_store_id UUID,
-    p_creator_id UUID,
+    p_store_id TEXT,
+    p_creator_id TEXT,
     p_amount NUMERIC,
-    p_pix_key_id UUID,
+    p_pix_key_id TEXT,
     p_pix_key_type TEXT,
     p_pix_key_masked TEXT,
     p_asaas_external_ref TEXT,
@@ -38,7 +40,7 @@ BEGIN
     -- 3. CÁLCULO DE SALDO DISPONÍVEL (Após lock)
     SELECT COALESCE(SUM(net_amount), 0) INTO v_available_balance 
     FROM public.wallet_transactions 
-    WHERE store_id = p_store_id AND available_at <= NOW();
+    WHERE store_id = p_store_id AND status = 'COMPLETED';
 
     -- 4. VALIDAÇÃO DE SALDO
     IF p_amount > v_available_balance THEN
@@ -54,9 +56,9 @@ BEGIN
 
     -- 6. DEDUÇÃO IMEDIATA (Reserva de Saldo)
     INSERT INTO public.wallet_transactions (
-        store_id, order_id, type, gross_amount, net_amount, description, status, available_at
+        id, store_id, order_id, type, gross_amount, net_amount, description, status
     ) VALUES (
-        p_store_id, p_withdrawal_id, 'WITHDRAWAL', -p_amount, -p_amount, 'Reserva para Saque PIX ' || p_pix_key_masked, 'COMPLETED', NOW()
+        gen_random_uuid()::text, p_store_id, NULL, 'WITHDRAWAL', -p_amount, -p_amount, 'Reserva para Saque PIX ' || p_pix_key_masked, 'COMPLETED'
     );
 
     -- Transação é commitada com sucesso. Outras concorrências lerão o saldo atualizado.

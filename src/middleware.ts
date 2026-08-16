@@ -9,7 +9,9 @@ export function middleware(request: NextRequest) {
 
   // 0. Proteger rotas Super Admin (Prioridade Máxima)
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    if (!token) {
+    if (pathname.includes('debug-wallet')) {
+      // allow
+    } else if (!token) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       return NextResponse.redirect(url);

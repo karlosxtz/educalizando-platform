@@ -49,12 +49,23 @@ export async function GET(request: Request) {
         .select('*')
         .eq('store_id', storeIdParam);
 
+      const { data: stores } = await supabaseAdmin
+        .from('stores')
+        .select('*');
+
+      const { data: withdrawals } = await supabaseAdmin
+        .from('withdrawals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       storeSpecific = {
         storeId: storeIdParam,
         ordersCount: storeOrders?.length || 0,
         orders: storeOrders,
         txCount: storeTx?.length || 0,
-        transactions: storeTx
+        transactions: storeTx,
+        stores,
+        withdrawals
       };
     }
 

@@ -37,8 +37,10 @@ export default function SocialProof() {
         
         {/* Early-stage Trust Badge Banner */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-          <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full">
-            <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> PLATAFORMA NOVA — SEJA UM DOS PRIMEIROS CRIADORES
+          <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 border border-slate-200 px-3 sm:px-4 py-1.5 rounded-full text-center leading-snug">
+            <Sparkles className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+            <span className="sm:hidden">SEJA UM DOS PRIMEIROS CRIADORES</span>
+            <span className="hidden sm:inline">PLATAFORMA NOVA — SEJA UM DOS PRIMEIROS CRIADORES</span>
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Construída sob medida para quem cria conteúdo educativo

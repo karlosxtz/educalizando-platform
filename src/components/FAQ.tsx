@@ -55,7 +55,7 @@ export default function FAQ() {
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-base"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex items-center justify-between gap-3 sm:gap-4 font-bold text-slate-900 text-sm sm:text-base"
                 >
                   <span className="flex items-center gap-3">
                     <HelpCircle className="w-5 h-5 text-brand-teal flex-shrink-0" />

@@ -241,8 +241,8 @@ export default function SignupForm() {
                 placeholder="Ex: Loja do Prof. Ricardo"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
               />
-              <p className="text-[11px] text-slate-500 font-mono mt-1">
-                Link da sua loja: <strong className="text-brand-navy">educalizando.com.br/loja/{generatedSlug}</strong>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-mono mt-1 truncate">
+                Link: <strong className="text-brand-navy">educalizando.com.br/loja/{generatedSlug}</strong>
               </p>
               {errors.storeName && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.storeName.message}</p>

@@ -60,7 +60,7 @@ export default function MockupPreview() {
           </div>
 
           {/* Product Listing Card Mockup */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3.5 flex gap-2.5 sm:gap-3.5 items-center">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3.5 flex gap-2.5 sm:gap-3.5 items-center min-w-0 overflow-hidden">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
               <img
                 src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=300&q=80"

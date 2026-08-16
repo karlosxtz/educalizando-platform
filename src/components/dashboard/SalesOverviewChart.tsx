@@ -134,7 +134,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
           </div>
         ) : (
-          <div className="min-w-[500px]">
+          <div className="min-w-[400px] sm:min-w-[500px]">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="w-full h-auto overflow-visible select-none"

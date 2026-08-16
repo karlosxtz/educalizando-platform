@@ -31,10 +31,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-200 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="pt-8 border-t border-slate-200 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-3 sm:flex-row sm:justify-between sm:gap-4">
           <div className="flex items-center gap-1.5 font-medium">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Educalizando Plataforma Digital — Checkout Seguro com PIX Instantâneo</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="sm:hidden">Checkout Seguro — PIX Instantâneo</span>
+            <span className="hidden sm:inline">Educalizando Plataforma Digital — Checkout Seguro com PIX Instantâneo</span>
           </div>
           <p>© {new Date().getFullYear()} Educalizando. Todos os direitos reservados.</p>
         </div>

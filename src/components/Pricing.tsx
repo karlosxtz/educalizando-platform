@@ -40,7 +40,7 @@ export default function Pricing() {
           transition={{ duration: 0.5 }}
           className="max-w-xl mx-auto bg-white rounded-3xl border-2 border-brand-navy p-8 sm:p-10 shadow-xl relative overflow-hidden space-y-8"
         >
-          <div className="bg-brand-navy text-white text-[11px] font-extrabold uppercase tracking-widest py-1.5 px-4 rounded-full text-center w-max mx-auto shadow-sm">
+          <div className="bg-brand-navy text-white text-[9px] sm:text-[11px] font-extrabold uppercase tracking-widest py-1.5 px-3 sm:px-4 rounded-full text-center w-max mx-auto shadow-sm">
             PLANO CRIADOR SEM MENSALIDADE
           </div>
 
