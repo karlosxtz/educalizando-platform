@@ -56,7 +56,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans relative">
+    <div className="min-h-screen lg:h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans relative lg:overflow-hidden">
       {/* Premium Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-400/10 blur-[120px]" />
@@ -65,7 +65,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Fixed Left Sidebar */}
-      <div className="relative z-10 lg:w-64 shrink-0 lg:sticky lg:top-0 lg:h-screen">
+      <div className="relative z-10 lg:w-64 shrink-0 lg:h-screen">
         <Sidebar 
           store={store} 
           creatorName={store?.nome_loja || 'Prof. Ricardo Silva'} 
@@ -74,7 +74,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 lg:overflow-y-auto lg:h-screen">
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <SystemBanners />
           {children}
