@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -89,6 +90,7 @@ export default function RootLayout({
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         {children}
         <PWAInstallPrompt />
+        <WhatsAppButton />
         <Toaster position="bottom-right" richColors />
       </body>
     </html>
