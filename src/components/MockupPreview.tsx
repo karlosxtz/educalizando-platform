@@ -31,66 +31,66 @@ export default function MockupPreview() {
         </div>
 
         {/* Store Body Mockup */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
           {/* Store Banner & Creator Profile */}
-          <div className="bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy p-4 rounded-xl text-white shadow-sm flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0">
+          <div className="bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy p-3 sm:p-4 rounded-xl text-white shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
                 alt="Prof. Ricardo"
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-white font-bold text-base">Prof. Ricardo Silva</h4>
-                <span className="bg-emerald-400/20 text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300/30 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-300" /> VERIFICADO
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                <h4 className="text-white font-bold text-sm sm:text-base truncate max-w-[130px] sm:max-w-none">Prof. Ricardo Silva</h4>
+                <span className="bg-emerald-400/20 text-emerald-300 text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full border border-emerald-300/30 flex items-center gap-1 whitespace-nowrap">
+                  <ShieldCheck className="w-3 h-3 text-emerald-300 shrink-0" /> <span className="hidden sm:inline">VERIFICADO</span>
                 </span>
               </div>
-              <p className="text-xs text-blue-100">Especialista em Redação & Matemática ENEM</p>
-              <div className="flex items-center gap-3 mt-1.5 text-[11px] text-blue-100">
-                <span className="flex items-center gap-1 text-brand-amber font-bold">
-                  <Star className="w-3 h-3 fill-brand-amber" /> 4.9
+              <p className="text-[10px] sm:text-xs text-blue-100 truncate">Especialista em Redação & Matemática ENEM</p>
+              <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-[10px] sm:text-[11px] text-blue-100 flex-wrap">
+                <span className="flex items-center gap-1 text-brand-amber font-bold whitespace-nowrap">
+                  <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-brand-amber" /> 4.9
                 </span>
-                <span>•</span>
-                <span className="text-emerald-300 font-semibold">Entrega Garantida</span>
+                <span className="hidden sm:inline">•</span>
+                <span className="text-emerald-300 font-semibold truncate">Entrega Garantida</span>
               </div>
             </div>
           </div>
 
           {/* Product Listing Card Mockup */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex gap-3.5 items-center">
-            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3.5 flex gap-2.5 sm:gap-3.5 items-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
               <img
                 src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=300&q=80"
                 alt="Material"
                 className="w-full h-full object-cover"
               />
-              <span className="absolute top-1 left-1 bg-brand-navy text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                PDF + VÍDEO
+              <span className="absolute top-1 left-1 bg-brand-navy text-white text-[7px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded">
+                PDF+VÍDEO
               </span>
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                <span className="text-brand-navy font-bold">Apostila Digital ENEM</span>
-                <span className="text-brand-green font-bold">Entrega Imediata</span>
+              <div className="flex flex-wrap items-center justify-between text-[9px] sm:text-[11px] text-slate-500 mb-0.5 sm:mb-1 gap-1">
+                <span className="text-brand-navy font-bold truncate">Apostila Digital ENEM</span>
+                <span className="text-brand-green font-bold hidden min-[400px]:inline">Entrega Imediata</span>
               </div>
-              <h5 className="text-slate-900 font-bold text-xs truncate">
+              <h5 className="text-slate-900 font-bold text-[11px] sm:text-xs truncate">
                 Combo Definitivo ENEM: 1.000 Questões + Redação Nota 1000
               </h5>
-              <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 font-medium">
+              <p className="text-[9px] sm:text-[11px] text-slate-500 line-clamp-1 sm:line-clamp-2 mt-0.5 font-medium leading-tight">
                 Modelos coringa de redação e mapas mentais ilustrados
               </p>
 
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
-                <div>
-                  <span className="text-[10px] text-slate-400 line-through mr-1">R$ 147,00</span>
-                  <span className="text-slate-900 font-black text-sm">R$ 67,90</span>
+              <div className="flex flex-wrap items-center justify-between mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-slate-200 gap-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 line-through">R$ 147,00</span>
+                  <span className="text-slate-900 font-black text-xs sm:text-sm">R$ 67,90</span>
                 </div>
-                <button className="bg-brand-green hover:bg-brand-green-hover text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs transition-transform active:scale-95">
-                  <Zap className="w-3 h-3 fill-white" /> Comprar via PIX
+                <button className="bg-brand-green hover:bg-brand-green-hover text-white text-[9px] sm:text-[11px] font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg flex items-center gap-1 shadow-xs transition-transform active:scale-95 whitespace-nowrap shrink-0">
+                  <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white shrink-0" /> Comprar no PIX
                 </button>
               </div>
             </div>

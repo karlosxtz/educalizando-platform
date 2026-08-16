@@ -159,3 +159,7 @@
     min-height: 44px;
   }
 }
+@keyframes progress-bar-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
