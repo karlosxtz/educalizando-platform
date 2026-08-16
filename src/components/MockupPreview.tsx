@@ -23,11 +23,11 @@ export default function MockupPreview() {
             <div className="w-3 h-3 rounded-full bg-amber-400" />
             <div className="w-3 h-3 rounded-full bg-emerald-400" />
           </div>
-          <div className="bg-white text-slate-700 text-xs px-3 py-1 rounded-full font-mono flex items-center gap-1.5 border border-slate-200 shadow-xs">
-            <span className="text-emerald-600 font-bold">https://</span>
-            <span>educalizando.com.br/loja/prof-ricardo</span>
+          <div className="bg-white text-slate-700 text-[9px] sm:text-xs px-2 sm:px-3 py-1 rounded-full font-mono flex items-center gap-1 border border-slate-200 shadow-xs max-w-[140px] sm:max-w-none overflow-hidden">
+            <span className="text-emerald-600 font-bold shrink-0">https://</span>
+            <span className="truncate">educalizando.com.br/...</span>
           </div>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+          <ExternalLink className="w-3.5 h-3.5 text-slate-400 shrink-0" />
         </div>
 
         {/* Store Body Mockup */}
@@ -97,18 +97,18 @@ export default function MockupPreview() {
           </div>
 
           {/* Floating Badges */}
-          <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-            <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <Zap className="w-3.5 h-3.5 text-brand-amber mx-auto mb-1" />
-              <span className="text-slate-700 font-bold block">PIX na Hora</span>
+          <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center text-[9px] sm:text-[10px]">
+            <div className="bg-slate-50 border border-slate-200 p-1.5 sm:p-2 rounded-lg">
+              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-amber mx-auto mb-0.5 sm:mb-1" />
+              <span className="text-slate-700 font-bold block leading-tight">PIX na Hora</span>
             </div>
-            <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <Award className="w-3.5 h-3.5 text-brand-teal mx-auto mb-1" />
-              <span className="text-slate-700 font-bold block">Certificados</span>
+            <div className="bg-slate-50 border border-slate-200 p-1.5 sm:p-2 rounded-lg">
+              <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-teal mx-auto mb-0.5 sm:mb-1" />
+              <span className="text-slate-700 font-bold block leading-tight">Certificados</span>
             </div>
-            <div className="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-green mx-auto mb-1" />
-              <span className="text-slate-700 font-bold block">Garantia 7 Dias</span>
+            <div className="bg-slate-50 border border-slate-200 p-1.5 sm:p-2 rounded-lg">
+              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-green mx-auto mb-0.5 sm:mb-1" />
+              <span className="text-slate-700 font-bold block leading-tight">Garantia 7 Dias</span>
             </div>
           </div>
         </div>
