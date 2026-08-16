@@ -35,6 +35,7 @@ export default function SignupForm() {
       password: '',
       confirmPassword: '',
       storeName: '',
+      whatsapp: '',
       category: 'Ensino Médio & ENEM',
       acceptTerms: true
     }
@@ -61,7 +62,8 @@ export default function SignupForm() {
         fullName: data.fullName,
         cpf: data.cpf,
         storeName: data.storeName,
-        category: data.category
+        category: data.category,
+        whatsapp: data.whatsapp
       });
 
       confetti({
@@ -248,6 +250,30 @@ export default function SignupForm() {
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.storeName.message}</p>
               )}
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                WhatsApp (Suporte da Loja) *
+              </label>
+              <input
+                type="text"
+                {...register('whatsapp')}
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/\D/g, '');
+                  if (v.length > 11) v = v.substring(0, 11);
+                  v = v.replace(/^(\d{2})(\d)/g, '($1) $2')
+                       .replace(/(\d)(\d{4})$/, '$1-$2');
+                  setValue('whatsapp', v);
+                }}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all font-mono"
+              />
+              {errors.whatsapp && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.whatsapp.message}</p>
+              )}
+            </div>
+          </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">

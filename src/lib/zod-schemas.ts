@@ -22,6 +22,10 @@ export const creatorSignupSchema = z.object({
     .string()
     .min(3, { message: 'O nome da loja/marca deve ter pelo menos 3 caracteres.' })
     .max(40, { message: 'O nome da loja não pode ter mais que 40 caracteres.' }),
+  whatsapp: z
+    .string()
+    .min(10, { message: 'Informe um número de WhatsApp válido com DDD.' })
+    .max(15),
   category: z.enum([
     'Educação Infantil',
     'Ensino Fundamental',

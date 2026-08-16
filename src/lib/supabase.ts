@@ -27,7 +27,8 @@ export async function registerCreatorInSupabase({
   fullName,
   cpf,
   storeName,
-  category
+  category,
+  whatsapp
 }: {
   email: string;
   password: string;
@@ -35,6 +36,7 @@ export async function registerCreatorInSupabase({
   cpf: string;
   storeName: string;
   category: string;
+  whatsapp: string;
 }) {
   const cleanCpf = cpf.replace(/\D/g, '');
   
@@ -90,6 +92,7 @@ export async function registerCreatorInSupabase({
           slug: storeSlug,
           descricao: `Loja oficial de infoprodutos de ${fullName}.`,
           cor_primaria: '#ff5722',
+          whatsapp: whatsapp.replace(/\D/g, ''),
           created_at: new Date().toISOString()
         }
       ])
@@ -111,6 +114,7 @@ export async function registerCreatorInSupabase({
       banner_url: storeData.banner_url || null,
       cor_primaria: storeData.cor_primaria || '#ff5722',
       asaas_subaccount_id: storeData.asaas_subaccount_id || null,
+      whatsapp: storeData.whatsapp || null,
       created_at: storeData.created_at || new Date().toISOString()
     };
 
