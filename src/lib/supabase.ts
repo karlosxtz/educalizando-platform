@@ -59,6 +59,17 @@ export async function registerCreatorInSupabase({
   }
 
   if (isRealSupabaseConfigured()) {
+    // Check if slug exists to avoid unique constraint error AFTER user creation
+    const { data: existingStore } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('slug', storeSlug)
+      .maybeSingle();
+      
+    if (existingStore) {
+      storeSlug = `${storeSlug}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
     // A. Supabase Auth signUp com Metadata de Criador
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
