@@ -35,11 +35,11 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     // Se houver erro de tabela inexistente (42P01) ou se a tabela estiver vazia, retorna os mocks
-    if (error && error.code !== '42P01') {
+    if (error && (error as any).code !== '42P01') {
       throw error;
     }
     
-    if (!data || data.length === 0 || error?.code === '42P01') {
+    if (!data || data.length === 0 || (error as any)?.code === '42P01') {
       return NextResponse.json([
         { id: '1', title: 'Como Cadastrar seu Primeiro Produto', description: 'Aprenda o passo a passo...', youtube_id: 'dQw4w9WgXcQ', duration: '05:20', order: 1, is_active: true },
         { id: '2', title: 'Como Criar Kits (Combos) Lucrativos', description: 'Descubra como agrupar seus materiais...', youtube_id: 'dQw4w9WgXcQ', duration: '03:45', order: 2, is_active: true }
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      if (error.code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
+      if ((error as any).code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
       throw error;
     }
 
@@ -110,7 +110,7 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) {
-      if (error.code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
+      if ((error as any).code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
       throw error;
     }
 
@@ -136,7 +136,7 @@ export async function DELETE(request: Request) {
       .eq('id', id);
 
     if (error) {
-      if (error.code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
+      if ((error as any).code === '42P01') throw new Error('A tabela platform_tutorials não existe. Execute o script SQL no Supabase.');
       throw error;
     }
 
