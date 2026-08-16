@@ -11,12 +11,14 @@ import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
 import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
+import OnboardingTour from '@/components/dashboard/OnboardingTour';
 
 export default function DashboardOverviewPage() {
   const [store, setStore] = useState<StoreType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(0);
   const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(0);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -26,6 +28,12 @@ export default function DashboardOverviewPage() {
       setProducts(prods);
     }
     loadData();
+
+    // Check if it's the user's first visit
+    const hasSeenOnboarding = localStorage.getItem('educalizando_onboarding_completed');
+    if (!hasSeenOnboarding) {
+      setIsFirstVisit(true);
+    }
   }, []);
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
@@ -37,6 +45,7 @@ export default function DashboardOverviewPage() {
 
   return (
     <div className="space-y-8">
+      <OnboardingTour />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
@@ -46,7 +55,7 @@ export default function DashboardOverviewPage() {
             <Sparkles className="w-3.5 h-3.5" /> PAINEL DO CRIADOR EDUCALIZANDO
           </span>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Bem-vindo de volta, {store?.nome_loja || 'Prof. Ricardo'}!
+            Bem-vindo{isFirstVisit ? '' : ' de volta'}, {store?.nome_loja || 'Prof. Ricardo'}!
           </h1>
           <p className="text-sm text-blue-100 leading-relaxed">
             Sua loja exclusiva está ativa em <strong className="underline font-mono">educalizando.com.br/loja/{store?.slug || 'prof-ricardo'}</strong>. Cadastre novos materiais e acompanhe os recebimentos via PIX instantâneo.
