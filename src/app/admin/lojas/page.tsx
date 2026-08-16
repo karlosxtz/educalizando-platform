@@ -17,6 +17,7 @@ interface StoreData {
 export default function SuperAdminLojas() {
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStores();
@@ -27,10 +28,12 @@ export default function SuperAdminLojas() {
       const res = await fetch('/api/admin/stores');
       const data = await res.json();
       if (data.success) {
-        setStores(data.stores);
+        setStores(data.stores || []);
+      } else {
+        setErrorMsg(data.error || 'Erro desconhecido da API');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Falha ao buscar lojas');
     } finally {
       setLoading(false);
     }
@@ -82,29 +85,40 @@ export default function SuperAdminLojas() {
         <p className="text-slate-400 mt-1">Gerencie todos os lojistas cadastrados na plataforma.</p>
       </div>
 
-      <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+          <h2 className="text-lg font-bold text-white">Lojas Criadas</h2>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-400">
             <thead className="text-xs uppercase bg-slate-900 text-slate-500 border-b border-slate-800">
               <tr>
                 <th scope="col" className="px-6 py-4">Nome da Loja</th>
                 <th scope="col" className="px-6 py-4">Slug (URL)</th>
-                <th scope="col" className="px-6 py-4">WhatsApp (Lead)</th>
                 <th scope="col" className="px-6 py-4">Produtos</th>
-                <th scope="col" className="px-6 py-4">Cadastro</th>
                 <th scope="col" className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                    Carregando lojas...
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                      <p>Carregando lojas...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : errorMsg ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-red-500">
+                    <p className="font-bold">Erro ao carregar lojas:</p>
+                    <p className="text-sm">{errorMsg}</p>
                   </td>
                 </tr>
               ) : stores.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
                     Nenhuma loja encontrada.
                   </td>
                 </tr>
@@ -112,59 +126,109 @@ export default function SuperAdminLojas() {
                 stores.map((store) => (
                   <tr key={store.id} className="border-b border-slate-800 hover:bg-slate-900/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-200">{store.nome_loja}</div>
-                      <div className="text-xs text-slate-500">ID: {store.id.split('-')[0]}...</div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-blue-400">
-                      /{store.slug}
+                      <div className="font-bold text-white">{store.nome_loja}</div>
+                      <div className="text-xs text-slate-500 font-mono mt-1">{store.id}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {store.whatsapp ? (
-                        <a 
-                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#25D366]/10 text-[#25D366] rounded-full text-xs font-bold hover:bg-[#25D366]/20 transition-colors"
-                        >
-                          {store.whatsapp}
-                        </a>
-                      ) : (
-                        <span className="text-slate-600 text-xs italic">Não informado</span>
-                      )}
+                      <Link href={`/${store.slug}`} target="_blank" className="text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                        /{store.slug}
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-slate-500" />
-                        <span>{store.products?.[0]?.count || 0}</span>
+                        <span className="bg-slate-800 text-slate-300 py-1 px-2 rounded font-medium text-xs">
+                          {store.products?.[0]?.count || 0}
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-slate-400">
-                      {new Date(store.created_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleImpersonate(store.id, store.nome_loja)}
-                          className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
-                          title="Entrar na conta deste criador"
+                          className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors group relative"
+                          title="Logar como este Criador"
                         >
-                          <LogIn className="w-4 h-4" /> Entrar
+                          <LogIn className="w-5 h-5" />
                         </button>
-                        <Link
-                          href={`/loja/${store.slug}`}
-                          target="_blank"
-                          className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
-                          title="Ver Loja Pública"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Link>
                         <button
                           onClick={() => handleDelete(store.id)}
-                          className="p-2 text-rose-500 hover:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                           title="Excluir Loja"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+          <h2 className="text-lg font-bold text-white">Dados dos Criadores</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-400">
+            <thead className="text-xs uppercase bg-slate-900 text-slate-500 border-b border-slate-800">
+              <tr>
+                <th scope="col" className="px-6 py-4">Loja Vinculada</th>
+                <th scope="col" className="px-6 py-4">WhatsApp (Lead)</th>
+                <th scope="col" className="px-6 py-4">Data de Cadastro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                    Carregando dados...
+                  </td>
+                </tr>
+              ) : errorMsg ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-8 text-center text-red-500">
+                    <p className="font-bold">Erro ao carregar dados:</p>
+                    <p className="text-sm">{errorMsg}</p>
+                  </td>
+                </tr>
+              ) : stores.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                    Nenhum criador encontrado.
+                  </td>
+                </tr>
+              ) : (
+                stores.map((store) => (
+                  <tr key={`creator-${store.id}`} className="border-b border-slate-800 hover:bg-slate-900/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-white">{store.nome_loja}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {store.whatsapp ? (
+                        <a 
+                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 font-medium bg-green-400/10 px-2 py-1 rounded transition-colors"
+                        >
+                          {store.whatsapp}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-slate-600 italic">Não informado</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-slate-300">
+                        {new Date(store.created_at).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {new Date(store.created_at).toLocaleTimeString('pt-BR')}
                       </div>
                     </td>
                   </tr>
