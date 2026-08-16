@@ -17,6 +17,11 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
     try {
+      if (!token) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        return NextResponse.redirect(url);
+      }
       const payload = JSON.parse(atob(token.split('.')[1]));
       const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
       if (payload.email !== superAdminEmail) {
