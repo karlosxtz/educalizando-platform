@@ -36,7 +36,7 @@ export default function MockupPreview() {
           <div className="bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy p-3 sm:p-4 rounded-xl text-white shadow-sm flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                src="/prof_profile.jpg"
                 alt="Prof. Ricardo"
                 className="w-full h-full rounded-full object-cover"
               />
@@ -63,7 +63,7 @@ export default function MockupPreview() {
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3.5 flex gap-2.5 sm:gap-3.5 items-center min-w-0 overflow-hidden">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
               <img
-                src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=300&q=80"
+                src="/book_cover.jpg"
                 alt="Material"
                 className="w-full h-full object-cover"
               />
