@@ -49,6 +49,7 @@ export interface Product {
   tipo: ProductType;
   preco: number;
   is_plr?: boolean;
+  preco_plr?: number;
   capa_url: string | null;
   arquivo_url: string | null;
   status: ProductStatus;

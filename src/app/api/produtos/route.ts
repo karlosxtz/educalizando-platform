@@ -56,7 +56,8 @@ export async function POST(request: Request) {
       category_id,
       education_level_id,
       gallery_urls,
-      is_plr = false
+      is_plr = false,
+      preco_plr = 0
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
       category_id: sanitizeUUID(category_id),
       education_level_id: sanitizeUUID(education_level_id),
       is_plr: Boolean(is_plr),
+      preco_plr: Number(preco_plr) || 0,
       created_at: new Date().toISOString()
     };
 
@@ -138,6 +140,7 @@ export async function POST(request: Request) {
         arquivo_url: arquivo_url || null,
         status: status || 'publicado',
         is_plr: Boolean(is_plr),
+        preco_plr: Number(preco_plr) || 0,
         created_at: new Date().toISOString()
       };
 

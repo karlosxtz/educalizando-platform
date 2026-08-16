@@ -43,6 +43,7 @@ function ProductWizardContent() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
   const [isPlr, setIsPlr] = useState<boolean>(false);
+  const [precoPlr, setPrecoPlr] = useState<string>('99,90');
 
   useEffect(() => {
     async function initData() {
@@ -82,6 +83,7 @@ function ProductWizardContent() {
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
             setIsPlr(existing.is_plr || false);
+            if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
           }
         }
       } catch (err: any) {
@@ -125,6 +127,7 @@ function ProductWizardContent() {
     setErrorMsg(null);
 
     const numericPrice = parseFloat(preco.replace(',', '.')) || 0;
+    const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
 
     try {
@@ -140,7 +143,8 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           gallery_urls: galleryUrls,
-          is_plr: isPlr
+          is_plr: isPlr,
+          preco_plr: numericPrecoPlr
         });
       } else {
         await createProduct({
@@ -155,7 +159,8 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           gallery_urls: galleryUrls,
-          is_plr: isPlr
+          is_plr: isPlr,
+          preco_plr: numericPrecoPlr
         });
       }
 
@@ -383,6 +388,29 @@ function ProductWizardContent() {
                       </p>
                     </div>
                   </div>
+                  
+                  {isPlr && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800">Preço da Licença de Revenda (PLR)</h4>
+                        <p className="text-xs text-slate-500 mt-1">Este é o valor que outros criadores pagarão para poder revender seu produto.</p>
+                      </div>
+                      <div className="relative w-full sm:w-48 flex-shrink-0">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
+                        <input
+                          type="text"
+                          value={precoPlr}
+                          onChange={(e) => setPrecoPlr(e.target.value)}
+                          placeholder="99,90"
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none shadow-sm"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
               </div>

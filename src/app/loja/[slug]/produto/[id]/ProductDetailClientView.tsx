@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X 
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library 
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -29,6 +29,9 @@ export default function ProductDetailClientView({
   educationLevel 
 }: ProductDetailClientViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
+
   const [isBuying, setIsBuying] = useState(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
 
@@ -78,9 +81,11 @@ export default function ProductDetailClientView({
     setCouponResult(result);
   };
 
+  const basePrice = isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco;
+
   const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
     ? couponResult.finalPrice 
-    : product.preco;
+    : basePrice;
 
   const getTipoIcon = (tipo: ProductType) => {
     switch (tipo) {
@@ -96,7 +101,8 @@ export default function ProductDetailClientView({
   const handleStartCheckout = async () => {
     setIsBuying(true);
     const cupomParam = couponResult?.valid ? `&cupom=${encodeURIComponent(couponInput)}` : '';
-    const checkoutTargetUrl = `/loja/${store.slug}/checkout?produtoId=${product.id}${cupomParam}`;
+    const plrParam = isPlrPurchase ? '&licenca=plr' : '';
+    const checkoutTargetUrl = `/loja/${store.slug}/checkout?produtoId=${product.id}${cupomParam}${plrParam}`;
 
     try {
       const authSession = await getAuthenticatedUserRole();
@@ -184,6 +190,11 @@ export default function ProductDetailClientView({
               <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight tracking-tight">
                 {product.titulo}
               </h1>
+              {isPlrPurchase && (
+                <div className="inline-block mt-2 bg-purple-100 text-purple-800 border border-purple-200 px-3 py-1 rounded-lg text-xs font-black flex items-center gap-1.5 w-max">
+                  <Library className="w-4 h-4" /> Licença de Revenda (PLR)
+                </div>
+              )}
 
               <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
                 <span>Criado por <strong>{store.nome_loja}</strong></span>

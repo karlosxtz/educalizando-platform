@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, QrCode, CreditCard, FileText, 
@@ -24,9 +24,18 @@ interface CheckoutClientViewProps {
 export default function CheckoutClientView({ store, product, initialCouponCode }: CheckoutClientViewProps) {
   const router = useRouter();
 
-  // Student Auth Check State
+// Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string } | null>(null);
+
+  const searchParams = useSearchParams();
+  const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
+
+  // Computed Price State
+  const [basePrice, setBasePrice] = useState<number>(() => {
+    return (isPlrPurchase && product.preco_plr) ? product.preco_plr : product.preco;
+  });
+  const [finalPrice, setFinalPrice] = useState<number>(basePrice);
 
   // Form State
   const [buyerName, setBuyerName] = useState('');
@@ -189,7 +198,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         items: [
           {
             productId: product.id,
-            productTitle: product.titulo,
+            productTitle: isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo,
             unitPrice: finalPrice,
             storeId: store.id
           }
@@ -629,7 +638,9 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                     {product.tipo}
                   </span>
-                  <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">{product.titulo}</h4>
+                  <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
+                    {isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo}
+                  </h4>
                   <p className="text-[11px] text-slate-500">Vendido por {store.nome_loja}</p>
                 </div>
               </div>
@@ -670,7 +681,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               <div className="space-y-3 pt-4 border-t border-slate-100 text-xs">
                 <div className="flex items-center justify-between text-slate-600">
                   <span>Preço original</span>
-                  <span>R$ {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <span>R$ {basePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
 
                 {couponResult?.valid && couponResult.discountAmount && (

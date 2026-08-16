@@ -87,9 +87,11 @@ export default function PlrMarketplacePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
-            const storeUrl = product.store ? `https://educalizando.com.br/loja/${product.store.slug}` : '#';
-            const productUrl = product.store ? `https://educalizando.com.br/loja/${product.store.slug}/${product.id.replace('prod_', '')}` : '#';
+            const storeUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}` : '#';
+            const productUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}/produto/${product.id.replace('prod_', '')}?licenca=plr` : '#';
             
+            const displayPrice = product.preco_plr !== undefined && product.preco_plr > 0 ? product.preco_plr : product.preco;
+
             return (
               <motion.div 
                 key={product.id}
@@ -109,7 +111,7 @@ export default function PlrMarketplacePage() {
                   {/* Overlay Price */}
                   <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm">
                     <span className="text-sm font-black text-slate-900">
-                      R$ {product.preco.toFixed(2).replace('.', ',')}
+                      R$ {displayPrice.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 </div>
