@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Store, Trash2, ExternalLink, LogIn } from 'lucide-react';
+import { Store, Trash2, ExternalLink, LogIn, Package } from 'lucide-react';
 import Link from 'next/link';
 
 interface StoreData {
   id: string;
   nome_loja: string;
   slug: string;
+  whatsapp?: string;
   created_at: string;
   products: { count: number }[];
   withdrawals: { count: number }[];
