@@ -87,7 +87,7 @@ export default function PLRsCompradosPage() {
               product: {
                 capa_url: product.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80',
                 arquivo_url: product.arquivo_url || '',
-                nome_loja: product.stores?.nome_loja || 'Loja Educalizando'
+                nome_loja: (Array.isArray(product.stores) ? product.stores[0]?.nome_loja : (product.stores as any)?.nome_loja) || 'Loja Educalizando'
               }
             });
           }
