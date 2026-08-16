@@ -333,7 +333,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-center gap-2 text-emerald-800">
                     <UserCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                     <span className="font-extrabold text-sm text-emerald-950">
-                      Conectado como Aluno: {studentSession?.fullName || buyerName || 'Aluno'} ({studentSession?.email || buyerEmail})
+                      Conectado como {isPlrPurchase ? 'Criador' : 'Aluno'}: {studentSession?.fullName || buyerName || (isPlrPurchase ? 'Criador' : 'Aluno')} ({studentSession?.email || buyerEmail})
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-700 font-medium pl-7">
@@ -345,26 +345,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-center gap-2">
                     <LogIn className="w-5 h-5 text-rose-600 flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-rose-950">
-                      É necessário estar conectado em uma conta de ALUNO para comprar
+                      É necessário estar conectado em uma conta de {isPlrPurchase ? 'CRIADOR' : 'ALUNO'} para comprar
                     </span>
                   </div>
                   <p className="text-xs text-rose-800 font-medium leading-relaxed">
-                    Escolha abaixo uma das opções para entrar ou criar sua conta de aluno em poucos segundos e retornar ao pagamento:
+                    Escolha abaixo uma das opções para entrar ou criar sua conta {isPlrPurchase ? 'de criador' : 'de aluno'} em poucos segundos e retornar ao pagamento:
                   </p>
                   <div className="flex flex-wrap gap-2.5 pt-1">
                     <Link
-                      href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                      href={isPlrPurchase 
+                        ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
+                        : `/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs"
                     >
                       <LogIn className="w-4 h-4" />
-                      <span>Fazer Login de Aluno</span>
+                      <span>Fazer Login de {isPlrPurchase ? 'Criador' : 'Aluno'}</span>
                     </Link>
                     <Link
-                      href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                      href={isPlrPurchase 
+                        ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
+                        : `/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                     >
                       <UserPlus className="w-4 h-4 text-rose-600" />
-                      <span>Criar Conta de Aluno Grátis</span>
+                      <span>Criar Conta de {isPlrPurchase ? 'Criador' : 'Aluno'}</span>
                     </Link>
                   </div>
                 </div>
