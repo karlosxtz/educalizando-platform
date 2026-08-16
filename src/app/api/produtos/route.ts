@@ -55,7 +55,8 @@ export async function POST(request: Request) {
       status = 'publicado',
       category_id,
       education_level_id,
-      gallery_urls
+      gallery_urls,
+      is_plr = false
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -107,6 +108,7 @@ export async function POST(request: Request) {
       status: status || 'publicado',
       category_id: sanitizeUUID(category_id),
       education_level_id: sanitizeUUID(education_level_id),
+      is_plr: Boolean(is_plr),
       created_at: new Date().toISOString()
     };
 
@@ -135,6 +137,7 @@ export async function POST(request: Request) {
         capa_url: capa_url || null,
         arquivo_url: arquivo_url || null,
         status: status || 'publicado',
+        is_plr: Boolean(is_plr),
         created_at: new Date().toISOString()
       };
 

@@ -42,6 +42,7 @@ function ProductWizardContent() {
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
+  const [isPlr, setIsPlr] = useState<boolean>(false);
 
   useEffect(() => {
     async function initData() {
@@ -80,6 +81,7 @@ function ProductWizardContent() {
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
+            setIsPlr(existing.is_plr || false);
           }
         }
       } catch (err: any) {
@@ -137,7 +139,8 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
-          gallery_urls: galleryUrls
+          gallery_urls: galleryUrls,
+          is_plr: isPlr
         });
       } else {
         await createProduct({
@@ -151,7 +154,8 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
-          gallery_urls: galleryUrls
+          gallery_urls: galleryUrls,
+          is_plr: isPlr
         });
       }
 
@@ -358,6 +362,29 @@ function ProductWizardContent() {
                     />
                   </div>
                 </div>
+
+                {/* PLR Toggle */}
+                <div className="pt-2">
+                  <div 
+                    onClick={() => setIsPlr(!isPlr)}
+                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isPlr ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isPlr ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'}`}>
+                      {isPlr && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${isPlr ? 'text-blue-900' : 'text-slate-700'}`}>Ativar Licença PLR para Revenda</span>
+                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Novo</span>
+                      </div>
+                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isPlr ? 'text-blue-700' : 'text-slate-500'}`}>
+                        Ao marcar esta opção, o seu produto aparecerá no **Mercado de PLRs** interno da Educalizando. 
+                        Outros criadores poderão comprar este produto para revender nas próprias lojas deles, garantindo uma nova fonte de renda extra para você.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </motion.div>
           )}

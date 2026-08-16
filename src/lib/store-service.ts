@@ -971,3 +971,43 @@ export async function getProductById(productId: string): Promise<Product | null>
   if (found && (found.excluido_em || found.status === 'excluido')) return null;
   return found;
 }
+
+// 11. Obter Produtos do Marketplace de PLR
+export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: Store })[]> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          store:stores (
+            id, nome_loja, slug, logo_url
+          )
+        `)
+        .eq('is_plr', true)
+        .eq('status', 'publicado')
+        .is('excluido_em', null)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        return data as (Product & { store?: Store })[];
+      }
+    } catch (err) {
+      console.error('[getPlrMarketplaceProducts] Erro:', err);
+    }
+  }
+
+  // Fallback Local (Se estiver sem backend ou o backend falhar)
+  const products = getLocalProducts();
+  const plrProducts = products.filter(p => 
+    p.is_plr === true && 
+    p.status === 'publicado' && 
+    !p.excluido_em
+  );
+  return plrProducts as (Product & { store?: Store })[];
+}
