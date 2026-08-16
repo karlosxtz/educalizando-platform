@@ -87,7 +87,8 @@ export default function SuperAdminLojas() {
             <thead className="text-xs uppercase bg-slate-900 text-slate-500 border-b border-slate-800">
               <tr>
                 <th scope="col" className="px-6 py-4">Nome da Loja</th>
-                <th scope="col" className="px-6 py-4">Slug</th>
+                <th scope="col" className="px-6 py-4">Slug (URL)</th>
+                <th scope="col" className="px-6 py-4">WhatsApp (Lead)</th>
                 <th scope="col" className="px-6 py-4">Produtos</th>
                 <th scope="col" className="px-6 py-4">Cadastro</th>
                 <th scope="col" className="px-6 py-4 text-right">Ações</th>
@@ -96,60 +97,70 @@ export default function SuperAdminLojas() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     Carregando lojas...
                   </td>
                 </tr>
               ) : stores.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                    Nenhuma loja encontrada na plataforma.
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    Nenhuma loja encontrada.
                   </td>
                 </tr>
               ) : (
                 stores.map((store) => (
-                  <tr key={store.id} className="border-b border-slate-800/50 hover:bg-slate-900/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
-                          <Store className="w-4 h-4" />
-                        </div>
-                        {store.nome_loja}
-                      </div>
+                  <tr key={store.id} className="border-b border-slate-800 hover:bg-slate-900/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-slate-200">{store.nome_loja}</div>
+                      <div className="text-xs text-slate-500">ID: {store.id.split('-')[0]}...</div>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                    <td className="px-6 py-4 font-mono text-xs text-blue-400">
                       /{store.slug}
                     </td>
                     <td className="px-6 py-4">
-                      {store.products?.[0]?.count || 0}
+                      {store.whatsapp ? (
+                        <a 
+                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#25D366]/10 text-[#25D366] rounded-full text-xs font-bold hover:bg-[#25D366]/20 transition-colors"
+                        >
+                          {store.whatsapp}
+                        </a>
+                      ) : (
+                        <span className="text-slate-600 text-xs italic">Não informado</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <Package className="w-4 h-4 text-slate-500" />
+                        <span>{store.products?.[0]?.count || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-slate-400">
                       {new Date(store.created_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleImpersonate(store.id, store.nome_loja)}
-                          title="Logar como Criador"
-                          className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors flex items-center gap-2"
+                          className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
+                          title="Entrar na conta deste criador"
                         >
-                          <LogIn className="w-4 h-4" />
-                          <span className="text-xs font-bold hidden sm:inline">Logar</span>
+                          <LogIn className="w-4 h-4" /> Entrar
                         </button>
-
-                        <Link 
+                        <Link
                           href={`/loja/${store.slug}`}
                           target="_blank"
+                          className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
                           title="Ver Loja Pública"
-                          className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors"
                         >
                           <ExternalLink className="w-4 h-4" />
                         </Link>
-                        
-                        <button 
+                        <button
                           onClick={() => handleDelete(store.id)}
+                          className="p-2 text-rose-500 hover:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors"
                           title="Excluir Loja"
-                          className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
