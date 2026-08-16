@@ -92,7 +92,7 @@ export default function ProductsManagementPage() {
       await loadData();
       router.refresh();
     } catch (err: any) {
-      setActionError(err.message || 'Erro ao excluir produto no Supabase.');
+      setActionError(err.message || 'Erro ao excluir produto.');
     } finally {
       setIsDeletingLoading(false);
     }

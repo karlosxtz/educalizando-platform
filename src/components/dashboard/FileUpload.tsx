@@ -218,7 +218,7 @@ export default function FileUpload({
                 {isImage ? 'Imagem Carregada com Sucesso' : 'Arquivo Digital Validade'}
               </span>
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Arquivo pronto no Supabase (≤ {effectiveMaxSizeMB}MB)
+                <CheckCircle2 className="w-3 h-3" /> Arquivo carregado com sucesso (≤ {effectiveMaxSizeMB}MB)
               </span>
             </div>
           </div>

@@ -158,7 +158,7 @@ function ProductWizardContent() {
       router.push('/dashboard/produtos');
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Erro ao salvar produto no Supabase.');
+      setErrorMsg(err.message || 'Erro ao salvar produto.');
       setSaving(false);
     }
   };
