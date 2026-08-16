@@ -64,7 +64,7 @@ export default function TutoriaisPage() {
     <div className="space-y-6 max-w-6xl mx-auto">
       
       {/* Banner Superior Verde */}
-      <div className="bg-emerald-500 rounded-xl p-4 flex items-center gap-4 text-white shadow-sm cursor-pointer hover:bg-emerald-600 transition-colors">
+      <div className="bg-blue-600 rounded-xl p-4 flex items-center gap-4 text-white shadow-sm cursor-pointer hover:bg-blue-700 transition-colors">
         <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
           <Rocket className="w-5 h-5 text-white" />
         </div>
@@ -72,7 +72,7 @@ export default function TutoriaisPage() {
           <h2 className="font-bold text-lg flex items-center gap-2">
             Dicas para cadastrar produtos e aparecer mais no Google e nas pesquisas por IA
           </h2>
-          <p className="text-emerald-50 text-sm font-medium opacity-90">
+          <p className="text-blue-100 text-sm font-medium opacity-90">
             Guia completo de SEO para títulos, descrições, imagens e categorias.
           </p>
         </div>
@@ -90,15 +90,15 @@ export default function TutoriaisPage() {
             </div>
             <h3 className="font-bold text-slate-800 text-lg">Seu progresso</h3>
           </div>
-          <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+          <div className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
             <Trophy className="w-4 h-4" />
-            {progressPercentage === 100 ? 'Completo!' : `${progressPercentage}%`} <span className="text-emerald-600/70 ml-1">{watchedIds.length}/{tutorials.length}</span>
+            {progressPercentage === 100 ? 'Completo!' : `${progressPercentage}%`} <span className="text-blue-600/70 ml-1">{watchedIds.length}/{tutorials.length}</span>
           </div>
         </div>
         
         <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
           <div 
-            className="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" 
+            className="bg-blue-500 h-full rounded-full transition-all duration-500 ease-out" 
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -140,11 +140,11 @@ export default function TutoriaisPage() {
                       onClick={() => toggleWatched(tutorial.id)}
                       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
                         isWatched 
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-500' 
-                          : 'border-slate-200 text-slate-300 hover:border-emerald-200 hover:text-emerald-400'
+                          ? 'border-blue-500 bg-blue-50 text-blue-500' 
+                          : 'border-slate-200 text-slate-300 hover:border-blue-200 hover:text-blue-400'
                       }`}
                     >
-                      <CheckCircle2 className={`w-6 h-6 ${isWatched ? 'fill-emerald-100' : ''}`} />
+                      <CheckCircle2 className={`w-6 h-6 ${isWatched ? 'fill-blue-100' : ''}`} />
                     </button>
                     <div>
                       <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-blue-600 transition-colors">
@@ -160,7 +160,7 @@ export default function TutoriaisPage() {
                     onClick={() => toggleWatched(tutorial.id)}
                     className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${
                       isWatched
-                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                         : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                     }`}
                   >
