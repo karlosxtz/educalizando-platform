@@ -65,7 +65,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Fixed Left Sidebar */}
-      <div className="relative z-10 lg:w-64 shrink-0">
+      <div className="relative z-10 lg:w-64 shrink-0 lg:sticky lg:top-0 lg:h-screen">
         <Sidebar 
           store={store} 
           creatorName={store?.nome_loja || 'Prof. Ricardo Silva'} 
