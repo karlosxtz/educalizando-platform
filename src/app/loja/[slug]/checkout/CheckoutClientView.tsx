@@ -26,7 +26,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
 // Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
-  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string } | null>(null);
+  const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string; storeName?: string } | null>(null);
 
   const searchParams = useSearchParams();
   const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
@@ -74,12 +74,20 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         const hasValidRole = isPlrPurchase ? session.role === 'creator' : session.isAuthenticated;
         
         if (session.isAuthenticated && hasValidRole) {
+          let storeName = '';
+          if (isPlrPurchase && session.userId) {
+            try {
+              const { data } = await supabase.from('stores').select('nome_loja').eq('creator_id', session.userId).single();
+              if (data) storeName = data.nome_loja;
+            } catch(e) {}
+          }
           setIsStudentLoggedIn(true);
           setStudentSession({
             id: session.userId || 'student-demo',
             email: session.email || '',
             fullName: session.fullName || (isPlrPurchase ? 'Criador' : 'Aluno Educalizando'),
-            cpf: session.cpf
+            cpf: session.cpf,
+            storeName: storeName || undefined
           });
           if (session.fullName && session.fullName !== 'Aluno Educalizando' && session.fullName !== 'Criador') {
             setBuyerName(session.fullName);
@@ -333,7 +341,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-center gap-2 text-emerald-800">
                     <UserCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                     <span className="font-extrabold text-sm text-emerald-950">
-                      Conectado como {isPlrPurchase ? 'Criador' : 'Aluno'}: {studentSession?.fullName || buyerName || (isPlrPurchase ? 'Criador' : 'Aluno')} ({studentSession?.email || buyerEmail})
+                      Conectado como {isPlrPurchase ? 'Criador' : 'Aluno'}: {studentSession?.fullName || buyerName || (isPlrPurchase ? 'Criador' : 'Aluno')} {studentSession?.storeName ? ` - ${studentSession.storeName}` : ''} ({studentSession?.email || buyerEmail})
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-700 font-medium pl-7">
