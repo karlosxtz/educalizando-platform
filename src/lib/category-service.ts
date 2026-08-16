@@ -55,7 +55,11 @@ export async function getCategories(storeId?: string): Promise<Category[]> {
       
       const { data, error } = await query.order('nome', { ascending: true });
       if (!error && data && data.length > 0) {
-        return data as Category[];
+        // Desduplicar categorias baseadas no slug + store_id para caso o SQL de seed tenha sido executado múltiplas vezes
+        const uniqueData = Array.from(
+          new Map(data.map(item => [`${item.slug}-${item.store_id || 'global'}`, item])).values()
+        );
+        return uniqueData as Category[];
       }
     } catch (err) {
       console.error('[getCategories] Erro:', err);
@@ -82,7 +86,10 @@ export async function getEducationLevels(): Promise<EducationLevel[]> {
         .order('ordem', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        return data as EducationLevel[];
+        const uniqueData = Array.from(
+          new Map(data.map(item => [item.slug, item])).values()
+        );
+        return uniqueData as EducationLevel[];
       }
     } catch (err) {
       console.error('[getEducationLevels] Erro:', err);
