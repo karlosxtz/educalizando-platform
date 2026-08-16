@@ -273,7 +273,6 @@ export default function SignupForm() {
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.whatsapp.message}</p>
               )}
             </div>
-          </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
