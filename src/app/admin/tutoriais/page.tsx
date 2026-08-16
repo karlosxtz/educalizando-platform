@@ -238,16 +238,25 @@ export default function AdminTutorialsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ID do YouTube</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Link do Vídeo (YouTube)</label>
                   <input 
                     type="text" 
                     value={formData.youtube_id} 
-                    onChange={(e) => setFormData({...formData, youtube_id: e.target.value})}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Tentar extrair o ID se for um link do youtube
+                      const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+                      const match = val.match(regex);
+                      if (match && match[1]) {
+                        val = match[1];
+                      }
+                      setFormData({...formData, youtube_id: val});
+                    }}
                     required
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm font-mono focus:border-blue-500 focus:outline-none" 
-                    placeholder="dQw4w9WgXcQ"
+                    placeholder="Cole o link do YouTube aqui..."
                   />
-                  <p className="text-[10px] text-slate-500 mt-1">O código no final do link do YouTube.</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Cole o link completo do vídeo ou apenas o ID.</p>
                 </div>
                 
                 <div>

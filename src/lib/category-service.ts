@@ -55,9 +55,9 @@ export async function getCategories(storeId?: string): Promise<Category[]> {
       
       const { data, error } = await query.order('nome', { ascending: true });
       if (!error && data && data.length > 0) {
-        // Desduplicar categorias baseadas no slug + store_id para caso o SQL de seed tenha sido executado múltiplas vezes
+        // Desduplicar categorias baseadas no nome + store_id para caso o SQL de seed tenha sido executado múltiplas vezes
         const uniqueData = Array.from(
-          new Map(data.map(item => [`${item.slug}-${item.store_id || 'global'}`, item])).values()
+          new Map(data.map(item => [`${item.nome.toLowerCase()}-${item.store_id || 'global'}`, item])).values()
         );
         return uniqueData as Category[];
       }
