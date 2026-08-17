@@ -8,6 +8,7 @@ import {
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star
 } from 'lucide-react';
+import { useCart } from '@/components/store/CartContext';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -54,6 +55,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
+  const { addToCart } = useCart();
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
@@ -78,11 +80,19 @@ export default function ThemeDefault(props: StoreThemeProps) {
   };
 
   const handleStartCheckout = () => {
-    setCheckoutSimulated(true);
-    setTimeout(() => {
-      setCheckoutSimulated(false);
+    if (selectedProduct) {
+      addToCart({
+        productId: selectedProduct.id,
+        title: selectedProduct.titulo,
+        price: selectedProduct.preco,
+        isPlr: false,
+        storeId: store.id,
+        type: selectedProduct.tipo,
+        imageUrl: selectedProduct.capa_url || undefined,
+        quantity: 1
+      });
       setSelectedProduct(null);
-    }, 2500);
+    }
   };
 
   // Build Options for CustomSelect Component
@@ -605,7 +615,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       className="px-6 py-3 rounded-xl font-extrabold text-sm text-white shadow-md flex items-center gap-2 active:scale-95 transition-transform"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      <Zap className="w-4 h-4 fill-white" /> Comprar via PIX
+                      <ShoppingBag className="w-4 h-4 fill-transparent" /> Adicionar ao Carrinho
                     </button>
                   </div>
                 </>

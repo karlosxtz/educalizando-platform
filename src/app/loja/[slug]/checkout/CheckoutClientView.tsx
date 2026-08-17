@@ -12,28 +12,31 @@ import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
+import { useCart } from '@/components/store/CartContext';
 
 import { isValidCPF } from '@/lib/asaas-service';
 
 interface CheckoutClientViewProps {
   store: Store;
-  product: Product;
+  product?: Product | null;
   initialCouponCode?: string;
 }
 
 export default function CheckoutClientView({ store, product, initialCouponCode }: CheckoutClientViewProps) {
   const router = useRouter();
+  const { items: cartItems, total: cartTotal } = useCart();
 
 // Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string; storeName?: string } | null>(null);
 
   const searchParams = useSearchParams();
-  const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
+  const isPlrPurchase = searchParams.get('licenca') === 'plr' && product?.is_plr;
 
   // Computed Price State
   const [basePrice, setBasePrice] = useState<number>(() => {
-    return (isPlrPurchase && product.preco_plr) ? product.preco_plr : product.preco;
+    if (product) return (isPlrPurchase && product.preco_plr) ? product.preco_plr : product.preco;
+    return cartTotal;
   });
   const [finalPrice, setFinalPrice] = useState<number>(basePrice);
 
@@ -124,7 +127,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         store.id,
         couponCode,
         'product',
-        product.id,
+        product ? product.id : 'cart',
         basePrice
       );
       setCouponResult(res);
@@ -222,14 +225,20 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         paymentMethod,
         isPlrPurchase,
         couponCode: couponResult?.valid ? couponCode : undefined,
-        items: [
+        items: product ? [
           {
             productId: product.id,
             productTitle: isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo,
             unitPrice: finalPrice,
             storeId: store.id
           }
-        ]
+        ] : cartItems.map(c => ({
+          productId: c.productId,
+          productTitle: c.isPlr ? `${c.title} (Licença PLR)` : c.title,
+          unitPrice: c.price,
+          storeId: c.storeId,
+          quantity: c.quantity
+        }))
       };
 
       if (paymentMethod === 'credit_card') {
@@ -304,13 +313,23 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       {/* Main Top Header */}
       <header className="bg-white border-b border-slate-200 py-4 px-4 sm:px-8">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link
-            href={`/loja/${store.slug}/produto/${product.id}`}
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Voltar ao produto</span>
-          </Link>
+          {product ? (
+            <Link
+              href={`/loja/${store.slug}/produto/${product.id}`}
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar ao produto</span>
+            </Link>
+          ) : (
+            <Link
+              href={`/loja/${store.slug}`}
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar à loja</span>
+            </Link>
+          )}
 
           <div className="flex items-center gap-3">
             {store.logo_url ? (
@@ -680,22 +699,55 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </h3>
 
               {/* Product Preview */}
-              <div className="flex items-start gap-4">
-                <img
-                  src={product.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
-                  alt={product.titulo}
-                  className="w-16 h-20 object-cover rounded-2xl border border-slate-200 shadow-2xs flex-shrink-0"
-                />
-                <div className="space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
-                    {product.tipo}
-                  </span>
-                  <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
-                    {isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo}
-                  </h4>
-                  <p className="text-[11px] text-slate-500">Vendido por {store.nome_loja}</p>
+              {product ? (
+                <div className="flex items-start gap-4">
+                  <img
+                    src={product.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
+                    alt={product.titulo}
+                    className="w-16 h-20 object-cover rounded-2xl border border-slate-200 shadow-2xs flex-shrink-0"
+                  />
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+                      {product.tipo}
+                    </span>
+                    <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
+                      {isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo}
+                    </h4>
+                    <p className="text-[11px] text-slate-500">Vendido por {store.nome_loja}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex items-start gap-4">
+                      <img
+                        src={item.imageUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
+                        alt={item.title}
+                        className="w-12 h-16 object-cover rounded-xl border border-slate-200 shadow-2xs flex-shrink-0"
+                      />
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+                            {item.type}
+                          </span>
+                          {item.isPlr && (
+                            <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded uppercase">PLR</span>
+                          )}
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h4>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-slate-500">{item.quantity}x</span>
+                          <span className="text-xs font-bold text-slate-900">
+                            {(item.price * item.quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Cupom de Desconto Form */}
               <div className="space-y-2 pt-2 border-t border-slate-100">

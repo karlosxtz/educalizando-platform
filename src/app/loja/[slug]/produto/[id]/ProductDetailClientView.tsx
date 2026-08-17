@@ -7,12 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library 
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
+import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 
 interface ProductDetailClientViewProps {
@@ -34,6 +35,7 @@ export default function ProductDetailClientView({
 
   const [isBuying, setIsBuying] = useState(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
+  const { addToCart } = useCart();
 
   // Coupon State
   const [couponInput, setCouponInput] = useState('');
@@ -97,52 +99,22 @@ export default function ProductDetailClientView({
     }
   };
 
-  // FLUXO DE COMPRA COM VERIFICAÇÃO DE AUTENTICAÇÃO DO ALUNO (Item 4, 11 & 12)
+  // FLUXO DE ADICIONAR AO CARRINHO
   const handleStartCheckout = async () => {
     setIsBuying(true);
-    const cupomParam = couponResult?.valid ? `&cupom=${encodeURIComponent(couponInput)}` : '';
-    const plrParam = isPlrPurchase ? '&licenca=plr' : '';
-    const checkoutTargetUrl = `/loja/${store.slug}/checkout?produtoId=${product.id}${cupomParam}${plrParam}`;
-
     try {
-      const authSession = await getAuthenticatedUserRole();
-
-      // Regras de Autenticação para Redirecionamento
-      if (isPlrPurchase) {
-        if (!authSession.isAuthenticated) {
-          const returnUrl = encodeURIComponent(checkoutTargetUrl);
-          router.push(`/dashboard/login?returnTo=${returnUrl}`);
-          return;
-        }
-        if (authSession.role !== 'creator') {
-          setIsBuying(false);
-          // Podemos exibir o mesmo modal ou um novo. Para facilitar, alert simple ou state novo.
-          // Como não temos um modal específico de "aluno bloqueado", alert provisório
-          alert('Apenas contas de Criador podem comprar licenças PLR.');
-          return;
-        }
-      } else {
-        // Cenário A — Visitante Não Autenticado -> Redireciona para login do Aluno (Item 4)
-        if (!authSession.isAuthenticated) {
-          const returnUrl = encodeURIComponent(checkoutTargetUrl);
-          router.push(`/aluno/login?returnTo=${returnUrl}&action=buy`);
-          return;
-        }
-
-        // Cenário B — Logado como Criador -> Bloqueia a compra com mensagem explicativa (Item 11)
-        if (authSession.role === 'creator') {
-          setIsBuying(false);
-          setShowCreatorBlockModal(true);
-          return;
-        }
-      }
-
-      // Cenário C — Logado com a conta certa -> Redireciona diretamente para o Checkout
-      router.push(checkoutTargetUrl);
-
-    } catch (e) {
-      console.error('Erro ao verificar sessão:', e);
-      router.push(checkoutTargetUrl);
+      addToCart({
+        productId: product.id,
+        title: product.titulo,
+        price: currentPrice,
+        isPlr: isPlrPurchase,
+        storeId: store.id,
+        type: product.tipo,
+        imageUrl: product.capa_url || undefined,
+        quantity: 1
+      });
+    } finally {
+      setIsBuying(false);
     }
   };
 
@@ -421,8 +393,8 @@ export default function ProductDetailClientView({
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <Zap className="w-5 h-5 fill-white group-hover:animate-bounce" />
-                    <span>Comprar agora</span>
+                    <ShoppingBag className="w-5 h-5 fill-transparent group-hover:animate-bounce" />
+                    <span>Adicionar ao Carrinho</span>
                   </>
                 )}
               </button>
@@ -527,8 +499,8 @@ export default function ProductDetailClientView({
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <>
-              <Zap className="w-4 h-4 fill-white" />
-              <span>Comprar Agora</span>
+              <ShoppingBag className="w-4 h-4 fill-transparent" />
+              <span>Adicionar ao Carrinho</span>
             </>
           )}
         </button>

@@ -21,16 +21,8 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
     product = await getProductById(produtoId);
   }
 
-  // Se nenhum produto foi selecionado especificamente, usa o primeiro produto publicado da loja para teste
-  if (!product) {
-    const { getProductsByStoreId } = await import('@/lib/store-service');
-    const prods = await getProductsByStoreId(store.id);
-    product = prods[0] || null;
-  }
-
-  if (!product) {
-    notFound();
-  }
+  // Se não tem produto (checkout via carrinho), não tem problema, passamos null
+  // Só joga 404 se a loja não existir (já validado acima)
 
   return (
     <CheckoutClientView
