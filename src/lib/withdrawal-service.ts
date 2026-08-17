@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
+import { supabase, isRealSupabaseConfigured } from './supabase';
 import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
 import { lookupAsaasPixKey, createAsaasTransfer } from './asaas-service';
 
@@ -199,10 +199,12 @@ export async function registerCreatorPixKey(data: {
   // Desativar chaves antigas se existirem (Item 8 da Especificação)
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('creator_pix_keys')
         .update({ is_active: false })
         .eq('store_id', data.storeId);
 
+      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('creator_pix_keys').insert([{
         id: newKey.id,
         creator_id: newKey.creatorId,
@@ -275,6 +277,7 @@ export async function requestCreatorWithdrawal(data: {
 
   if (isRealSupabaseConfigured()) {
     // Chama o banco de dados para travar as linhas e inserir o saque atomicamente
+    const { supabaseAdmin } = await import('./supabase');
     const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('process_withdrawal_safe', {
       p_store_id: data.storeId,
       p_creator_id: data.creatorId,
@@ -444,6 +447,7 @@ export async function validateAsaasTransferWebhook(payload: { transfer: any }): 
   // Busca o saque nativamente no DB
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       let query = supabaseAdmin.from('withdrawals').select('*');
       if (transfer.externalReference) {
         const wId = transfer.externalReference.replace('withdrawal-', '');
@@ -496,6 +500,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
   // B. Buscar saque NATIVAMENTE no banco de dados (Resolução do Bug Crítico de Busca)
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       let query = supabaseAdmin.from('withdrawals').select('*');
       if (transferId && wId) {
         query = query.or(`asaas_transfer_id.eq.${transferId},id.eq.${wId}`);
@@ -555,6 +560,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     item.completedAt = new Date().toISOString();
 
     if (isRealSupabaseConfigured()) {
+      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('withdrawals').update({
         status: 'COMPLETED',
         completed_at: item.completedAt
@@ -590,6 +596,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     });
 
     if (isRealSupabaseConfigured()) {
+      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('withdrawals').update({
         status: item.status,
         failure_reason: item.failureReason,

@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
+import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
 
@@ -102,6 +102,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   // A. Buscar Pedidos e Transações no Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       const [ordRes, txRes] = await Promise.all([
         supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
         supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId)
@@ -254,6 +255,7 @@ export async function recordWalletTransaction(data: {
   // Primeiro verificar no Supabase (para chamadas server-side como webhooks onde localStorage não existe)
   if (data.orderId && isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       const { data: existingTx } = await supabaseAdmin
         .from('wallet_transactions')
         .select('id')
@@ -304,6 +306,7 @@ export async function recordWalletTransaction(data: {
   // Gravar no Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('wallet_transactions').insert([{
         id: newTx.id,
         store_id: newTx.storeId,
@@ -360,6 +363,7 @@ export async function getWalletTransactionsStatement(params: StatementFilterPara
   // A. Buscar transações do Supabase (FONTE PRIMÁRIA)
   if (isRealSupabaseConfigured()) {
     try {
+      const { supabaseAdmin } = await import('./supabase');
       const { data: txData, error: txErr } = await supabaseAdmin
         .from('wallet_transactions')
         .select('*')
