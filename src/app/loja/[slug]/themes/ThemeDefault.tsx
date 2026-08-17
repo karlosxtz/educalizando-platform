@@ -8,6 +8,7 @@ import {
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
   Youtube, Facebook, Globe
+} from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
