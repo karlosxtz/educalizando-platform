@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Obter o cookie seguro injetado no login
@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
         if (payload.email !== superAdminEmail) {
-          console.warn(`[middleware] Acesso admin negado para: ${payload.email}`);
+          console.warn(`[proxy] Acesso admin negado para: ${payload.email}`);
           const url = request.nextUrl.clone();
           url.pathname = '/dashboard';
           return NextResponse.redirect(url);
@@ -170,4 +170,3 @@ export const config = {
     '/aluno/login'
   ],
 };
-
