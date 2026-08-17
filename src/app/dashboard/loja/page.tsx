@@ -68,7 +68,15 @@ export default function StoreSettingsPage() {
       cor_primaria: '#2563eb',
       whatsapp: '',
       instagram: '',
-      layout_theme: 'default'
+      layout_theme: 'default',
+      author_image_url: '',
+      author_bio: '',
+      youtube: '',
+      tiktok: '',
+      facebook: '',
+      website: '',
+      button_style: 'rounded',
+      welcome_message: ''
     }
   });
 
@@ -81,6 +89,8 @@ export default function StoreSettingsPage() {
   const watchedWhatsapp = watch('whatsapp');
   const watchedInstagram = watch('instagram');
   const watchedLayoutTheme = watch('layout_theme');
+  const watchedAuthorImageUrl = watch('author_image_url');
+  const watchedButtonStyle = watch('button_style');
 
   useEffect(() => {
     async function loadStoreData() {
@@ -96,7 +106,15 @@ export default function StoreSettingsPage() {
           cor_primaria: store.cor_primaria || '#2563eb',
           whatsapp: store.whatsapp ? formatWhatsApp(store.whatsapp) : '',
           instagram: store.instagram || '',
-          layout_theme: store.layout_theme || 'default'
+          layout_theme: store.layout_theme || 'default',
+          author_image_url: store.author_image_url || '',
+          author_bio: store.author_bio || '',
+          youtube: store.youtube || '',
+          tiktok: store.tiktok || '',
+          facebook: store.facebook || '',
+          website: store.website || '',
+          button_style: store.button_style || 'rounded',
+          welcome_message: store.welcome_message || ''
         });
       } catch (err) {
         console.error(err);
@@ -129,7 +147,15 @@ export default function StoreSettingsPage() {
         cor_primaria: values.cor_primaria,
         whatsapp: values.whatsapp,
         instagram: values.instagram,
-        layout_theme: values.layout_theme
+        layout_theme: values.layout_theme,
+        author_image_url: values.author_image_url,
+        author_bio: values.author_bio,
+        youtube: values.youtube,
+        tiktok: values.tiktok,
+        facebook: values.facebook,
+        website: values.website,
+        button_style: values.button_style,
+        welcome_message: values.welcome_message
       });
       setCurrentStore(updated);
       setSavedSuccess(true);
@@ -295,6 +321,61 @@ export default function StoreSettingsPage() {
               )}
             </div>
 
+            {/* YouTube da Loja */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Canal do YouTube
+              </label>
+              <input
+                type="text"
+                {...register('youtube')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="https://youtube.com/@seucanal"
+              />
+            </div>
+
+            {/* TikTok da Loja */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                TikTok
+              </label>
+              <input
+                type="text"
+                {...register('tiktok')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="@seutiktok"
+              />
+            </div>
+
+            {/* Facebook da Loja */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Página do Facebook
+              </label>
+              <input
+                type="text"
+                {...register('facebook')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="https://facebook.com/suapagina"
+              />
+            </div>
+
+            {/* Website da Loja */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Site Externo Oficial
+              </label>
+              <input
+                type="text"
+                {...register('website')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="https://seusite.com.br"
+              />
+              {errors.website && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.website.message}</p>
+              )}
+            </div>
+
             {/* Cor Primária de Destaque da Loja */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-2">
@@ -339,6 +420,33 @@ export default function StoreSettingsPage() {
               aspectRatio="1:1"
             />
 
+            {/* Upload da Foto do Autor (Opcional) */}
+            <FileUpload
+              label="Sua Foto de Perfil (Opcional)"
+              helperText="Se enviada, aparecerá na seção 'Sobre o Autor'."
+              recommendationText="Recomendado: foto de rosto bem iluminada (1:1)"
+              bucket="store-assets"
+              accept="image/jpeg,image/png,image/webp"
+              maxSizeMB={2}
+              value={watchedAuthorImageUrl}
+              onChange={(url) => setValue('author_image_url', url || '')}
+              isImage={true}
+              aspectRatio="1:1"
+            />
+
+            {/* Bio do Autor */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Mini-currículo / Especialidade
+              </label>
+              <textarea
+                rows={2}
+                {...register('author_bio')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
+                placeholder="Ex: Especialista em Concursos Policiais, +10 anos de experiência..."
+              />
+            </div>
+
             {/* Upload do Banner da Loja (Reutiliza FileUpload) */}
             <FileUpload
               label="Imagem do Banner Principal"
@@ -352,6 +460,19 @@ export default function StoreSettingsPage() {
               isImage={true}
               aspectRatio="3:1"
             />
+
+            {/* Mensagem de Boas-vindas */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Mensagem Curta de Destaque
+              </label>
+              <input
+                type="text"
+                {...register('welcome_message')}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
+                placeholder="Ex: Transforme seus estudos com nossos materiais exclusivos"
+              />
+            </div>
 
             {/* Seletor de Tema */}
             <div className="space-y-3 pb-2">
@@ -384,6 +505,37 @@ export default function StoreSettingsPage() {
                       <span className="font-bold text-slate-900 text-sm">{theme.name}</span>
                     </div>
                     <span className="text-xs text-slate-500 pl-6">{theme.desc}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Estilo dos Botões */}
+            <div className="space-y-3 pb-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Estilo dos Botões
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: 'rounded', name: 'Arredondado' },
+                  { id: 'pill', name: 'Pílula' },
+                  { id: 'square', name: 'Quadrado' }
+                ].map(style => (
+                  <label 
+                    key={style.id}
+                    className={`cursor-pointer flex items-center justify-center py-2 px-3 rounded-xl border-2 transition-all ${
+                      watchedButtonStyle === style.id 
+                        ? 'border-blue-600 bg-blue-50/50' 
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <input 
+                      type="radio" 
+                      value={style.id} 
+                      {...register('button_style')} 
+                      className="hidden"
+                    />
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm">{style.name}</span>
                   </label>
                 ))}
               </div>

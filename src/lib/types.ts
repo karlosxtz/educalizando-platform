@@ -14,6 +14,14 @@ export interface Store {
   whatsapp?: string | null;
   instagram?: string | null;
   layout_theme?: string;
+  author_image_url?: string | null;
+  author_bio?: string | null;
+  youtube?: string | null;
+  tiktok?: string | null;
+  facebook?: string | null;
+  website?: string | null;
+  button_style?: string; // 'rounded', 'pill', 'square'
+  welcome_message?: string | null;
   created_at: string;
   updated_at?: string;
 }
