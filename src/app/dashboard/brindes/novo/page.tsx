@@ -308,7 +308,7 @@ function ProductWizardContent() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
+                  <div className="hidden">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
                       Preço de Venda (R$) *
                     </label>
@@ -318,7 +318,7 @@ function ProductWizardContent() {
                         type="text"
                         value={preco}
                         onChange={(e) => setPreco(e.target.value)}
-                        placeholder="29,90"
+                        placeholder="0,00"
                         className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none"
                       />
                     </div>
@@ -368,73 +368,7 @@ function ProductWizardContent() {
                   </div>
                 </div>
 
-                {/* PLR Toggle */}
-                <div className="pt-2">
-                  <div 
-                    onClick={() => setIsPlr(!isPlr)}
-                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isPlr ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
-                  >
-                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isPlr ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'}`}>
-                      {isPlr && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold ${isPlr ? 'text-blue-900' : 'text-slate-700'}`}>Ativar Licença PLR para Revenda</span>
-                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Novo</span>
-                      </div>
-                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isPlr ? 'text-blue-700' : 'text-slate-500'}`}>
-                        Ao marcar esta opção, o seu produto aparecerá no **Mercado de PLRs** interno da Educalizando. 
-                        Outros criadores poderão comprar este produto para revender nas próprias lojas deles, garantindo uma nova fonte de renda extra para você.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {isPlr && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col gap-6"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-800">Preço da Licença de Revenda (PLR)</h4>
-                          <p className="text-xs text-slate-500 mt-1">Este é o valor que outros criadores pagarão para poder revender seu produto.</p>
-                        </div>
-                        <div className="relative w-full sm:w-48 flex-shrink-0">
-                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
-                          <input
-                            type="text"
-                            value={precoPlr}
-                            onChange={(e) => setPrecoPlr(e.target.value)}
-                            placeholder="99,90"
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none shadow-sm"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="pt-4 border-t border-blue-100/50">
-                        <div className="mb-3">
-                          <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <ShieldCheck className="w-4 h-4 text-blue-600" />
-                            Arquivo da Licença de Revenda (PDF)
-                          </h4>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Para garantir a segurança dos compradores, faça o upload do certificado que autoriza a revenda deste produto. Os compradores farão o download automático dele após a compra.
-                          </p>
-                        </div>
-                        <FileUpload
-                          bucket="product-files"
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          maxSizeMB={5}
-                          value={plrLicenseUrl}
-                          onChange={(url: string | null) => setPlrLicenseUrl(url)}
-                          label="Licença de Revenda do Produto"
-                          helperText="Formatos suportados: PDF ou Imagem. Tamanho máximo: 5MB."
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
 
               </div>
             </motion.div>
