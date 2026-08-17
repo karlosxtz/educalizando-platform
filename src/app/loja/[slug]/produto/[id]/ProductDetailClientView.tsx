@@ -107,7 +107,7 @@ export default function ProductDetailClientView({
         productId: product.id,
         title: product.titulo,
         price: currentPrice,
-        isPlr: isPlrPurchase,
+        isPlr: !!isPlrPurchase,
         storeId: store.id,
         type: product.tipo,
         imageUrl: product.capa_url || undefined,
