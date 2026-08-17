@@ -100,7 +100,7 @@ export default function StoreSettingsPage() {
           logo_url: store.logo_url || '',
           banner_url: store.banner_url || '',
           cor_primaria: store.cor_primaria || '#2563eb',
-          whatsapp: store.whatsapp || '',
+          whatsapp: store.whatsapp ? formatWhatsApp(store.whatsapp) : '',
           instagram: store.instagram || '',
           layout_theme: store.layout_theme || 'default'
         });
@@ -328,7 +328,7 @@ export default function StoreSettingsPage() {
                 type="text"
                 {...register('whatsapp', {
                   onChange: (e) => {
-                    e.target.value = formatWhatsApp(e.target.value);
+                    setValue('whatsapp', formatWhatsApp(e.target.value), { shouldValidate: true, shouldDirty: true });
                   }
                 })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
@@ -480,8 +480,8 @@ export default function StoreSettingsPage() {
             <span>Preview em Tempo Real da Sua Loja</span>
           </div>
 
-          <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-lg h-[700px] sticky top-6 relative flex flex-col">
-            <div className="w-full h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide bg-slate-50">
+          <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-lg h-[700px] sticky top-6 relative flex flex-col items-center justify-center">
+            <div className="w-full max-w-[400px] h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide bg-slate-50 border-x border-slate-200 shadow-2xl">
               {/* Render Selected Theme */}
               {watchedLayoutTheme === 'minimalist' && <ThemeMinimalist {...mockThemeProps} />}
               {watchedLayoutTheme === 'netflix' && <ThemeNetflix {...mockThemeProps} />}
