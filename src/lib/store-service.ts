@@ -436,23 +436,37 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       }
     }
 
+    // Prepare IDs with the 'store_' prefix expected in the products table
+    const prefixedStoreIds = validStoreIds.map(id => `store_${id}`);
+    // Containers for aggregating public products and tracking IDs
+    const allProducts: Product[] = [];
+    const ownProductIds = new Set<string>();
+
     // --- Step 2: Fetch published products for those stores ---
     const { data: ownProducts, error: ownError } = await db
       .from('products')
       .select('*')
-      .in('store_id', validStoreIds)
+
+      .in('store_id', prefixedStoreIds)
       .in('status', ['publicado', 'ativo', 'published'])
       .is('excluido_em', null)
       .order('created_at', { ascending: false });
+    // Add own products to aggregation
+    if (ownProducts && Array.isArray(ownProducts)) {
+      for (const p of ownProducts as Product[]) {
+        if (!ownProductIds.has(p.id)) {
+          allProducts.push(p);
+          ownProductIds.add(p.id);
+        }
+      }
+    }
+    console.log('[getPublicProductsByStoreId] ownProducts count:', (ownProducts || []).length);
 
     if (ownError) {
       console.error('[getPublicProductsByStoreId] Erro ao buscar produtos próprios:', ownError);
     }
 
-    const allProducts: Product[] = (ownProducts || []) as Product[];
-    const ownProductIds = new Set(allProducts.map(p => p.id));
 
-    // --- Step 3: Fetch affiliate products (if creator exists) ---
     if (storeInfo?.creator_id) {
       const { data: affiliations } = await db
         .from('affiliates')
@@ -498,8 +512,10 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       .select('product_id, nota')
       .in('store_id', validStoreIds);
 
+    console.log('[getPublicProductsByStoreId] total products before filter:', allProducts.length);
     return allProducts
       .filter(p => !deletedIds.has(p.id))
+      // Apply reviews data and sort
       .map(p => {
         if (reviewsData && reviewsData.length > 0) {
           const productReviews = reviewsData.filter(r => r.product_id === p.id);
@@ -511,13 +527,9 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         }
         return p;
       })
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
-  } catch (err) {
-    console.error('[getPublicProductsByStoreId] Erro crítico:', err);
-    return [];
-  }
-}
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
