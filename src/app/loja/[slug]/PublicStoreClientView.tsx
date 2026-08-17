@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Store, Product, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
-import { getPublicProductsByStoreId } from '@/lib/store-service';
 
 // Import Themes
 import ThemeDefault from './themes/ThemeDefault';
@@ -19,7 +18,9 @@ interface PublicStoreClientViewProps {
 }
 
 export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  // Products come correctly from the server (SSR) via initialProducts
+  // We do NOT re-fetch them client-side because Supabase anon RLS blocks it
+  const [products] = useState<Product[]>(initialProducts);
   const [searchFilter, setSearchFilter] = useState('');
   
   const [categories, setCategories] = useState<Category[]>([]);
@@ -33,21 +34,20 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   }, [store.id]);
 
   const loadMetadata = async () => {
-    const [cats, edLevels, storeKits, storeProducts] = await Promise.all([
+    // Only fetch metadata (categories, education levels, kits) client-side
+    // Products are already loaded from the server
+    const [cats, edLevels, storeKits] = await Promise.all([
       getCategories(store.id),
       getEducationLevels(),
       getPublicKitsByStoreId(store.id),
-      getPublicProductsByStoreId(store.id)
     ]);
     setCategories(cats);
     setEducationLevels(edLevels);
     if (storeKits) {
       setKits(storeKits);
     }
-    if (storeProducts) {
-      setProducts(storeProducts);
-    }
   };
+
 
   const filteredProducts = products.filter(p => {
     const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
