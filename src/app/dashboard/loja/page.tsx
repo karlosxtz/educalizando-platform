@@ -58,7 +58,8 @@ export default function StoreSettingsPage() {
       banner_url: '',
       cor_primaria: '#2563eb',
       whatsapp: '',
-      instagram: ''
+      instagram: '',
+      layout_theme: 'default'
     }
   });
 
@@ -70,6 +71,7 @@ export default function StoreSettingsPage() {
   const watchedBannerUrl = watch('banner_url');
   const watchedWhatsapp = watch('whatsapp');
   const watchedInstagram = watch('instagram');
+  const watchedLayoutTheme = watch('layout_theme');
 
   useEffect(() => {
     async function loadStoreData() {
@@ -84,7 +86,8 @@ export default function StoreSettingsPage() {
           banner_url: store.banner_url || '',
           cor_primaria: store.cor_primaria || '#2563eb',
           whatsapp: store.whatsapp || '',
-          instagram: store.instagram || ''
+          instagram: store.instagram || '',
+          layout_theme: store.layout_theme || 'default'
         });
       } catch (err) {
         console.error(err);
@@ -116,7 +119,8 @@ export default function StoreSettingsPage() {
         banner_url: values.banner_url,
         cor_primaria: values.cor_primaria,
         whatsapp: values.whatsapp,
-        instagram: values.instagram
+        instagram: values.instagram,
+        layout_theme: values.layout_theme
       });
       setCurrentStore(updated);
       setSavedSuccess(true);
@@ -335,6 +339,42 @@ export default function StoreSettingsPage() {
               isImage={true}
               aspectRatio="3:1"
             />
+
+            {/* Seletor de Tema */}
+            <div className="space-y-3 pb-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Tema / Layout da Vitrine Pública
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { id: 'default', name: 'Padrão (Default)', desc: 'Listagem com barra lateral' },
+                  { id: 'minimalist', name: 'Minimalista', desc: 'Foco no produto, visual limpo' },
+                  { id: 'netflix', name: 'Carrossel Dark', desc: 'Fundo escuro, estilo Netflix' },
+                  { id: 'linktree', name: 'Link-in-Bio', desc: 'Lista vertical mobile-first' },
+                  { id: 'pinterest', name: 'Pinterest Grid', desc: 'Grade moderna e densa' }
+                ].map(theme => (
+                  <label 
+                    key={theme.id}
+                    className={`cursor-pointer flex flex-col p-3 rounded-xl border-2 transition-all ${
+                      watchedLayoutTheme === theme.id 
+                        ? 'border-blue-600 bg-blue-50/50' 
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <input 
+                        type="radio" 
+                        value={theme.id} 
+                        {...register('layout_theme')} 
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="font-bold text-slate-900 text-sm">{theme.name}</span>
+                    </div>
+                    <span className="text-xs text-slate-500 pl-6">{theme.desc}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
 
             {/* Submit Button */}
             <button
