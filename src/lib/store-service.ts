@@ -436,8 +436,13 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       }
     }
 
-    // Prepare IDs with the 'store_' prefix expected in the products table
-    const prefixedStoreIds = validStoreIds.map(id => `store_${id}`);
+    // Match all possible store_id formats (with or without 'store_' prefix)
+    const allStoreIdVariants = Array.from(new Set([
+      ...validStoreIds,
+      ...validStoreIds.map(id => `store_${id}`),
+      ...validStoreIds.map(id => id.replace(/^store_/i, ''))
+    ]));
+
     // Containers for aggregating public products and tracking IDs
     const allProducts: Product[] = [];
     const ownProductIds = new Set<string>();
@@ -446,12 +451,11 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     const { data: ownProducts, error: ownError } = await db
       .from('products')
       .select('*')
-
-      .in('store_id', prefixedStoreIds)
+      .in('store_id', allStoreIdVariants)
       .in('status', ['publicado', 'ativo', 'published'])
       .is('excluido_em', null)
       .order('created_at', { ascending: false });
-    // Add own products to aggregation
+
     if (ownProducts && Array.isArray(ownProducts)) {
       for (const p of ownProducts as Product[]) {
         if (!ownProductIds.has(p.id)) {
@@ -460,13 +464,12 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         }
       }
     }
-    console.log('[getPublicProductsByStoreId] ownProducts count:', (ownProducts || []).length);
 
     if (ownError) {
       console.error('[getPublicProductsByStoreId] Erro ao buscar produtos próprios:', ownError);
     }
 
-
+    // --- Step 3: Fetch approved affiliate products if creator has affiliations ---
     if (storeInfo?.creator_id) {
       const { data: affiliations } = await db
         .from('affiliates')
@@ -510,12 +513,11 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     const { data: reviewsData } = await db
       .from('reviews')
       .select('product_id, nota')
-      .in('store_id', validStoreIds);
+      .in('store_id', allStoreIdVariants);
 
     console.log('[getPublicProductsByStoreId] total products before filter:', allProducts.length);
     return allProducts
-      .filter(p => !deletedIds.has(p.id))
-      // Apply reviews data and sort
+      .filter(p => !deletedIds.has(p.id) && !deletedIds.has(p.id.replace(/^prod_/i, '')))
       .map(p => {
         if (reviewsData && reviewsData.length > 0) {
           const productReviews = reviewsData.filter(r => r.product_id === p.id);
@@ -527,8 +529,12 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         }
         return p;
       })
-      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+  } catch (err) {
+    console.error('[getPublicProductsByStoreId] Erro ao buscar produtos públicos:', err);
+    return [];
+  }
+}
 
 
 const isValidUUID = (str: string | null | undefined): boolean => {
