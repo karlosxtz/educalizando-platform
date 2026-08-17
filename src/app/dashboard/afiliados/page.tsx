@@ -5,7 +5,6 @@ import { getStoreAffiliates, updateAffiliateStatus } from '@/lib/affiliate-servi
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Affiliate, Store } from '@/lib/types';
 import { Users, CheckCircle, XCircle, Settings, TrendingUp } from 'lucide-react';
-import { updateStoreSettings } from '@/app/actions/store-actions'; // we will need an action for this or use supabase directly
 import { supabase } from '@/lib/supabase';
 
 export default function CreatorAffiliatesPage() {

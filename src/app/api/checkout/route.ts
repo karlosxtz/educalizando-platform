@@ -182,7 +182,7 @@ export async function POST(request: Request) {
     const { data: platformSettings } = await supabaseAdmin.from('platform_settings').select('*').limit(1).single();
     
     // Process affiliate
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const affiliateCookie = cookieStore.get('educalizando_affiliate_id');
     let affiliateId = null;
     let affiliateCommissionAmount = 0;
@@ -200,8 +200,9 @@ export async function POST(request: Request) {
         
       if (affiliate) {
         affiliateId = affiliate.id;
-        const rate = affiliate.commission_rate || affiliate.stores?.affiliate_commission_rate || 0;
-        const type = affiliate.commission_type || affiliate.stores?.affiliate_commission_type || 'percentual';
+        const affData = affiliate as any;
+        const rate = affData.commission_rate || affData.stores?.affiliate_commission_rate || 0;
+        const type = affData.commission_type || affData.stores?.affiliate_commission_type || 'percentual';
         
         if (rate > 0) {
           if (type === 'percentual') {

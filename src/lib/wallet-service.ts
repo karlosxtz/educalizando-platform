@@ -238,6 +238,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
 // 2. Registrar Transação no Ledger Financeiro (Idempotente)
 export async function recordWalletTransaction(data: {
   storeId: string;
+  creatorId?: string | null;
   orderId?: string;
   buyerName?: string;
   productTitle?: string;
@@ -288,6 +289,7 @@ export async function recordWalletTransaction(data: {
   const newTx: WalletTransaction = {
     id: txId,
     storeId: data.storeId,
+    creatorId: data.creatorId || null,
     orderId: data.orderId || null,
     buyerName: data.buyerName || null,
     productTitle: data.productTitle || null,
@@ -310,6 +312,7 @@ export async function recordWalletTransaction(data: {
       await supabaseAdmin.from('wallet_transactions').insert([{
         id: newTx.id,
         store_id: newTx.storeId,
+        creator_id: newTx.creatorId,
         order_id: newTx.orderId,
         type: newTx.type,
         status: newTx.status,
