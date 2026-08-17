@@ -2,7 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykeyforlocaltesting';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
+
+// supabaseServiceKey só existe no servidor (sem NEXT_PUBLIC_)
+const supabaseServiceKey =
+  typeof process !== 'undefined' && typeof window === 'undefined'
+    ? (process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey)
+    : supabaseAnonKey;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
