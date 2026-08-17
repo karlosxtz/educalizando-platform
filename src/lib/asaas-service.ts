@@ -17,6 +17,41 @@ function getHeaders() {
   };
 }
 
+// =============================================================================
+// RETRY COM BACKOFF EXPONENCIAL
+// Tenta até maxRetries vezes em caso de erros transitórios (5xx, rede).
+// Erros de negócio (4xx) NÃO são retentados.
+// =============================================================================
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  const RETRY_DELAYS_MS = [500, 1000, 2000]; // backoff: 0.5s → 1s → 2s
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+
+      // Erros de cliente (4xx) não merecem retry — falha rápida
+      if (res.status >= 400 && res.status < 500) return res;
+
+      // Sucesso ou erro de servidor (5xx) → retry se ainda tiver tentativas
+      if (res.ok || attempt === maxRetries) return res;
+
+      console.warn(`[Asaas] Tentativa ${attempt + 1}/${maxRetries + 1} falhou (HTTP ${res.status}) para ${url}. Aguardando ${RETRY_DELAYS_MS[attempt]}ms...`);
+    } catch (networkErr) {
+      if (attempt === maxRetries) throw networkErr;
+      console.warn(`[Asaas] Erro de rede na tentativa ${attempt + 1}/${maxRetries + 1} para ${url}:`, networkErr);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAYS_MS[attempt] ?? 2000));
+  }
+
+  // Nunca atingido, mas satisfaz o tipo de retorno
+  throw new Error(`[Asaas] Todas as ${maxRetries + 1} tentativas falharam para ${url}`);
+}
+
 export interface AsaasCustomerData {
   name: string;
   email: string;
@@ -138,24 +173,16 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
 
   // A. Buscar cliente existente por CPF
   if (cleanCpf && cleanCpf.length === 11) {
-    const searchUrl = `${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`;
-    console.log(`[ASAAS REQ GET /customers?cpfCnpj=${cleanCpf}]`);
-
-    const searchRes = await fetch(searchUrl, {
-      method: 'GET',
-      headers: apiKeyHeader
-    });
-
-    const searchText = await searchRes.text();
-    console.log(`[ASAAS RES GET /customers Status ${searchRes.status}]:`, searchText);
+    const searchRes = await fetchWithRetry(
+      `${ASAAS_API_URL}/customers?cpfCnpj=${cleanCpf}`,
+      { method: 'GET', headers: apiKeyHeader }
+    );
 
     if (searchRes.ok) {
       try {
-        const searchData = JSON.parse(searchText);
-        if (searchData.data && searchData.data.length > 0 && searchData.data[0].id) {
-          const foundId = searchData.data[0].id;
-          console.log(`[ASAAS MATCH] Cliente localizado por CPF no Asaas: ID=${foundId}`);
-          return foundId;
+        const searchData = await searchRes.json();
+        if (searchData.data?.length > 0 && searchData.data[0].id) {
+          return searchData.data[0].id;
         }
       } catch (e) {}
     }
@@ -163,31 +190,22 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
 
   // B. Buscar cliente existente por E-mail
   if (cleanEmail) {
-    const searchEmailUrl = `${ASAAS_API_URL}/customers?email=${encodeURIComponent(cleanEmail)}`;
-    console.log(`[ASAAS REQ GET /customers?email=${cleanEmail}]`);
-
-    const searchEmailRes = await fetch(searchEmailUrl, {
-      method: 'GET',
-      headers: apiKeyHeader
-    });
-
-    const searchEmailText = await searchEmailRes.text();
-    console.log(`[ASAAS RES GET /customers (email) Status ${searchEmailRes.status}]:`, searchEmailText);
+    const searchEmailRes = await fetchWithRetry(
+      `${ASAAS_API_URL}/customers?email=${encodeURIComponent(cleanEmail)}`,
+      { method: 'GET', headers: apiKeyHeader }
+    );
 
     if (searchEmailRes.ok) {
       try {
-        const searchData = JSON.parse(searchEmailText);
-        if (searchData.data && searchData.data.length > 0 && searchData.data[0].id) {
-          const foundId = searchData.data[0].id;
-          console.log(`[ASAAS MATCH] Cliente localizado por E-mail no Asaas: ID=${foundId}`);
-          return foundId;
+        const searchData = await searchEmailRes.json();
+        if (searchData.data?.length > 0 && searchData.data[0].id) {
+          return searchData.data[0].id;
         }
       } catch (e) {}
     }
   }
 
   // C. Criar novo cliente no Asaas
-  const createUrl = `${ASAAS_API_URL}/customers`;
   const createPayload = {
     name: data.name,
     email: cleanEmail,
@@ -195,26 +213,23 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
     mobilePhone: data.phone ? data.phone.replace(/\D/g, '') : undefined
   };
 
-  console.log(`[ASAAS REQ POST /customers Body]:`, JSON.stringify(createPayload, null, 2));
-
-  const createRes = await fetch(createUrl, {
+  const createRes = await fetchWithRetry(`${ASAAS_API_URL}/customers`, {
     method: 'POST',
     headers: apiKeyHeader,
     body: JSON.stringify(createPayload)
   });
 
   const createText = await createRes.text();
-  console.log(`[ASAAS RES POST /customers Status ${createRes.status}]:`, createText);
 
   if (!createRes.ok) {
     let friendlyError = '';
     try {
       const parsed = JSON.parse(createText);
-      if (parsed.errors && parsed.errors.length > 0) {
+      if (parsed.errors?.length > 0) {
         friendlyError = parsed.errors.map((e: any) => e.description).join('; ');
       }
     } catch (e) {}
-
+    console.error('[createOrGetAsaasCustomer] Falha ao criar cliente:', createText);
     throw new Error(friendlyError || 'Erro ao cadastrar comprador no gateway Asaas. Verifique o CPF e E-mail digitados.');
   }
 
@@ -223,7 +238,6 @@ export async function createOrGetAsaasCustomer(data: AsaasCustomerData): Promise
     throw new Error('Falha crítica: Resposta da API do Asaas não continha um ID de cliente válido.');
   }
 
-  console.log(`[ASAAS SUCCESS] Cliente criado no Asaas: ID=${createdData.id}`);
   return createdData.id;
 }
 
@@ -271,28 +285,24 @@ export async function createAsaasPayment(params: AsaasPaymentParams): Promise<As
       payload.creditCardHolderInfo = params.creditCardHolderInfo;
     }
 
-    console.log(`[ASAAS REQ POST /payments Body]:`, JSON.stringify(payload, null, 2));
-
-    const response = await fetch(`${ASAAS_API_URL}/payments`, {
+    const response = await fetchWithRetry(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
 
     const responseText = await response.text();
-    console.log(`[ASAAS RES POST /payments Status ${response.status}]:`, responseText);
 
     if (!response.ok) {
       let friendlyMsg = '';
       try {
         const parsed = JSON.parse(responseText);
-        if (parsed.errors && parsed.errors.length > 0) {
+        if (parsed.errors?.length > 0) {
           friendlyMsg = parsed.errors.map((e: any) => e.description).join('; ');
         }
       } catch (e) {}
-
-      console.error('[createAsaasPayment] Erro API Asaas:', responseText);
-      throw new Error(friendlyMsg || `Erro ao gerar cobrança no gateway de pagamento.`);
+      console.error('[createAsaasPayment] Falha na API Asaas:', responseText);
+      throw new Error(friendlyMsg || 'Erro ao gerar cobrança no gateway de pagamento.');
     }
 
     const payData = JSON.parse(responseText);
@@ -329,10 +339,10 @@ export async function getAsaasPixQrCode(paymentId: string): Promise<{ pixQrCodeB
   }
 
   try {
-    const res = await fetch(`${ASAAS_API_URL}/payments/${paymentId}/pixQrCode`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
+    const res = await fetchWithRetry(
+      `${ASAAS_API_URL}/payments/${paymentId}/pixQrCode`,
+      { method: 'GET', headers: getHeaders() }
+    );
 
     if (!res.ok) {
       console.error('[getAsaasPixQrCode] Falha ao obter QR Code PIX:', await res.text());
@@ -341,7 +351,9 @@ export async function getAsaasPixQrCode(paymentId: string): Promise<{ pixQrCodeB
 
     const data = await res.json();
     return {
-      pixQrCodeBase64: data.encodedImage ? (data.encodedImage.startsWith('data:') ? data.encodedImage : `data:image/png;base64,${data.encodedImage}`) : undefined,
+      pixQrCodeBase64: data.encodedImage
+        ? (data.encodedImage.startsWith('data:') ? data.encodedImage : `data:image/png;base64,${data.encodedImage}`)
+        : undefined,
       pixCopyPastePayload: data.payload
     };
   } catch (err) {
@@ -387,14 +399,13 @@ export async function lookupAsaasPixKey(cleanCpf: string): Promise<AsaasPixKeyLo
   }
 
   try {
-    const res = await fetch(`${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${cleanCpf}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
+    const res = await fetchWithRetry(
+      `${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${cleanCpf}`,
+      { method: 'GET', headers: getHeaders() }
+    );
 
     if (!res.ok) {
-      const errText = await res.text();
-      console.warn('[lookupAsaasPixKey] Falha na consulta Asaas:', errText);
+      console.warn('[lookupAsaasPixKey] Falha na consulta Asaas:', await res.text());
       return {
         valid: false,
         errorMessage: 'Não foi possível confirmar a titularidade da chave PIX no Asaas. Verifique os dados e tente novamente.'
@@ -410,7 +421,7 @@ export async function lookupAsaasPixKey(cleanCpf: string): Promise<AsaasPixKeyLo
       accountHolderCpfCnpj: data.accountHolder?.cpfCnpj || data.accountHolderCpfCnpj || cleanCpf
     };
   } catch (err: any) {
-    console.error('[lookupAsaasPixKey] Erro API Asaas:', err);
+    console.error('[lookupAsaasPixKey] Erro de conexão:', err);
     return {
       valid: false,
       errorMessage: 'Erro de conexão ao consultar a chave PIX no Asaas.'
@@ -441,7 +452,7 @@ export async function createAsaasTransfer(params: AsaasTransferParams): Promise<
       externalReference: params.externalReference
     };
 
-    const res = await fetch(`${ASAAS_API_URL}/transfers`, {
+    const res = await fetchWithRetry(`${ASAAS_API_URL}/transfers`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload)
@@ -449,6 +460,7 @@ export async function createAsaasTransfer(params: AsaasTransferParams): Promise<
 
     if (!res.ok) {
       const errText = await res.text();
+      console.error('[createAsaasTransfer] Falha na API Asaas:', errText);
       throw new Error(`Erro ao gerar transferência no Asaas (${res.status}): ${errText}`);
     }
 

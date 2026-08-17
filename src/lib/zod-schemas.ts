@@ -94,3 +94,122 @@ export const productFormSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+
+// =============================================================================
+// COUPON SCHEMA
+// =============================================================================
+export const couponFormSchema = z.object({
+  codigo: z
+    .string()
+    .min(3, { message: 'O código deve ter pelo menos 3 caracteres.' })
+    .max(30, { message: 'O código não pode ter mais que 30 caracteres.' })
+    .regex(/^[A-Z0-9_-]+$/, { message: 'Apenas letras maiúsculas, números, _ e - são permitidos.' }),
+  tipo_desconto: z.enum(['percentual', 'valor_fixo'], {
+    errorMap: () => ({ message: 'Selecione um tipo de desconto válido.' })
+  }),
+  valor_desconto: z.coerce
+    .number()
+    .min(0.01, { message: 'O valor do desconto deve ser maior que zero.' })
+    .max(100, { message: 'Desconto percentual não pode ultrapassar 100%.' }),
+  data_inicio: z.string().min(1, { message: 'Informe a data de início.' }),
+  data_expiracao: z.string().nullable().optional(),
+  limite_de_usos: z.coerce.number().int().min(1).nullable().optional(),
+  status: z.enum(['ativo', 'inativo']).default('ativo')
+});
+
+export type CouponFormValues = z.infer<typeof couponFormSchema>;
+
+// =============================================================================
+// WITHDRAWAL (SAQUE) SCHEMA
+// =============================================================================
+export const withdrawalRequestSchema = z.object({
+  amount: z.coerce
+    .number()
+    .min(1.00, { message: 'O valor mínimo para saque é R$ 1,00.' })
+    .max(50000, { message: 'O valor máximo por saque é R$ 50.000,00.' }),
+  pixKeyId: z.string().uuid({ message: 'Selecione uma chave PIX válida.' })
+});
+
+export type WithdrawalRequestValues = z.infer<typeof withdrawalRequestSchema>;
+
+// =============================================================================
+// PIX KEY SCHEMA
+// =============================================================================
+export const pixKeyFormSchema = z.object({
+  cpf: z
+    .string()
+    .min(11, { message: 'Informe um CPF com 11 dígitos.' })
+    .max(14)
+    .transform(val => val.replace(/\D/g, ''))
+    .refine(val => val.length === 11, { message: 'CPF deve ter exatamente 11 dígitos.' })
+});
+
+export type PixKeyFormValues = z.infer<typeof pixKeyFormSchema>;
+
+// =============================================================================
+// REVIEW (AVALIAÇÃO) SCHEMA
+// =============================================================================
+export const reviewFormSchema = z.object({
+  nota: z.coerce
+    .number()
+    .int()
+    .min(1, { message: 'Selecione pelo menos 1 estrela.' })
+    .max(5, { message: 'A nota máxima é 5 estrelas.' }),
+  comentario: z
+    .string()
+    .max(1000, { message: 'O comentário não pode ter mais de 1000 caracteres.' })
+    .optional()
+});
+
+export type ReviewFormValues = z.infer<typeof reviewFormSchema>;
+
+// =============================================================================
+// KIT SCHEMA
+// =============================================================================
+export const kitFormSchema = z.object({
+  titulo: z
+    .string()
+    .min(4, { message: 'O título do kit deve ter pelo menos 4 caracteres.' })
+    .max(100),
+  descricao: z.string().max(500).optional(),
+  preco_kit: z.coerce
+    .number()
+    .min(0, { message: 'O preço não pode ser negativo.' }),
+  status: z.enum(['rascunho', 'publicado']).default('rascunho'),
+  capa_url: z.string().url({ message: 'URL da capa inválida.' }).or(z.literal('')).optional()
+});
+
+export type KitFormValues = z.infer<typeof kitFormSchema>;
+
+// =============================================================================
+// STUDENT LOGIN / SIGNUP SCHEMA
+// =============================================================================
+export const studentLoginSchema = z.object({
+  email: z.string().email({ message: 'Digite um e-mail válido.' }),
+  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres.' })
+});
+
+export type StudentLoginFormValues = z.infer<typeof studentLoginSchema>;
+
+export const studentSignupSchema = z.object({
+  full_name: z
+    .string()
+    .min(3, { message: 'Informe seu nome completo (mínimo 3 caracteres).' })
+    .max(100),
+  email: z.string().email({ message: 'Digite um e-mail válido.' }),
+  cpf: z
+    .string()
+    .transform(val => val.replace(/\D/g, ''))
+    .refine(val => val.length === 11, { message: 'CPF deve ter 11 dígitos.' }),
+  password: z
+    .string()
+    .min(8, { message: 'A senha deve ter no mínimo 8 caracteres.' })
+    .regex(/[A-Z]/, { message: 'A senha deve ter pelo menos uma letra maiúscula.' })
+    .regex(/[0-9]/, { message: 'A senha deve ter pelo menos um número.' }),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'As senhas não coincidem.',
+  path: ['confirmPassword']
+});
+
+export type StudentSignupFormValues = z.infer<typeof studentSignupSchema>;
