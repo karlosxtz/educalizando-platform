@@ -112,6 +112,12 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
+      label: 'Meus Afiliados',
+      href: '/dashboard/afiliados',
+      icon: Users, // Pode usar outro ícone se quiser, ex: Handshake, mas Users funciona
+      badge: 'NOVO'
+    },
+    {
       label: 'Financeiro',
       href: '/dashboard/financeiro',
       icon: Wallet,
