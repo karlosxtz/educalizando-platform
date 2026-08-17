@@ -427,7 +427,7 @@ function ProductWizardContent() {
                           </p>
                         </div>
                         <FileUpload
-                          bucket="products"
+                          bucket="product-files"
                           accept=".pdf,.png,.jpg,.jpeg"
                           maxSizeMB={5}
                           value={plrLicenseUrl}
