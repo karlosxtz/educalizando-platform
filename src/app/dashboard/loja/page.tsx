@@ -113,7 +113,7 @@ export default function StoreSettingsPage() {
           tiktok: store.tiktok || '',
           facebook: store.facebook || '',
           website: store.website || '',
-          button_style: store.button_style || 'rounded',
+          button_style: (store.button_style as "rounded" | "pill" | "square") || 'rounded',
           welcome_message: store.welcome_message || ''
         });
       } catch (err) {

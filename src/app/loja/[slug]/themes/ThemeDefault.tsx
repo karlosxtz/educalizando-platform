@@ -7,7 +7,7 @@ import {
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
-  Youtube, Facebook, Globe
+  Globe
 } from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
 
@@ -33,6 +33,19 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a5 5 0 0 0-3-1v8a4 4 0 0 1-4-4Z"/>
+  </svg>
+);
+
+const YoutubeIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M2.5 7.1C2.6 5.9 3.5 5 4.7 4.9 8.2 4.6 15.8 4.6 19.3 4.9 20.5 5 21.4 5.9 21.5 7.1 21.8 9.5 21.8 14.5 21.5 16.9 21.4 18.1 20.5 19 19.3 19.1 15.8 19.4 8.2 19.4 4.7 19.1 3.5 19 2.6 18.1 2.5 16.9 2.2 14.5 2.2 9.5 2.5 7.1Z"/>
+    <path d="m9.5 15.5 6-3.5-6-3.5Z"/>
+  </svg>
+);
+
+const FacebookIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
   </svg>
 );
 import { Store, Product, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
@@ -224,7 +237,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                 <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:ml-auto flex-wrap justify-center sm:justify-end">
                   {store.youtube && (
                     <a href={store.youtube} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#FF0000] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="YouTube">
-                      <Youtube className="w-5 h-5" />
+                      <YoutubeIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.tiktok && (
@@ -234,7 +247,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   )}
                   {store.facebook && (
                     <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#1877F2] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="Facebook">
-                      <Facebook className="w-5 h-5" />
+                      <FacebookIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.website && (
@@ -441,6 +454,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                         <div className="flex items-baseline gap-2">
                           <span className="text-xl font-black text-slate-900">
                             R$ {kit.preco_kit.toFixed(2).replace('.', ',')}
+                          </span>
                           {somaPrecos > kit.preco_kit && (
                             <span className="text-xs text-slate-400 line-through font-semibold">
                               R$ {somaPrecos.toFixed(2).replace('.', ',')}
@@ -593,7 +607,9 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       >
                         <Zap className="w-3.5 h-3.5 fill-white" />
                         <span>Ver Detalhes</span>
-                  </Link>
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               );
             })}
