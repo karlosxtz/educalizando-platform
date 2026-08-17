@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { UploadCloud, File, CheckCircle2, AlertCircle, X, Image as ImageIcon, Sparkles, VideoOff, Info, MoveLeft, MoveRight } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 import { supabase } from '@/lib/supabase';
 
 interface FileUploadMultipleProps {
@@ -78,13 +79,32 @@ export default function FileUploadMultiple({
           throw new Error(`Arquivo muito grande. Máximo de ${effectiveMaxSizeMB} MB.`);
         }
 
-        const fileExt = file.name.split('.').pop() || 'png';
+        let finalFile = file;
+
+        // 3. Compactação Inteligente de Imagens (Se for imagem, compacta no navegador antes do upload)
+        if (file.type.startsWith('image/')) {
+          try {
+            const options = {
+              maxSizeMB: 1.5,
+              maxWidthOrHeight: 1920,
+              useWebWorker: true,
+              fileType: 'image/webp'
+            };
+            const compressedBlob = await imageCompression(file, options);
+            const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+            finalFile = new window.File([compressedBlob], newFileName, { type: 'image/webp' });
+          } catch (error) {
+            console.warn('Erro ao compactar a imagem (FileUploadMultiple):', error);
+          }
+        }
+
+        const fileExt = finalFile.name.split('.').pop() || 'png';
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         
         if (isRealSupabase) {
           const { error: uploadError } = await supabase.storage
             .from(bucket)
-            .upload(fileName, file, { cacheControl: '3600', upsert: true });
+            .upload(fileName, finalFile, { cacheControl: '3600', upsert: true });
 
           if (uploadError) throw new Error(uploadError.message);
 
@@ -95,7 +115,7 @@ export default function FileUploadMultiple({
           newUrls.push(publicUrlData.publicUrl);
         } else {
           // Fallback local dev
-          newUrls.push(URL.createObjectURL(file));
+          newUrls.push(URL.createObjectURL(finalFile));
         }
         setProgress(Math.round(((i + 1) / filesArray.length) * 100));
       }

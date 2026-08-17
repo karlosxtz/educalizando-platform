@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { UploadCloud, File, CheckCircle2, AlertCircle, RefreshCw, X, Image as ImageIcon, Sparkles, VideoOff, Info } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 import { supabase } from '@/lib/supabase';
 
 interface FileUploadProps {
@@ -81,8 +82,28 @@ export default function FileUpload({
     setUploading(true);
     setProgress(15);
 
+    let finalFile = file;
+
+    // 3. Compactação Inteligente de Imagens (Se for imagem, compacta no navegador antes do upload)
+    if (file.type.startsWith('image/')) {
+      try {
+        const options = {
+          maxSizeMB: 1.5, // Máximo de 1.5MB por imagem compactada (o suficiente para alta qualidade)
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: 'image/webp' // Converte para webp para economizar ainda mais espaço
+        };
+        const compressedBlob = await imageCompression(file, options);
+        // Recriar como File para manter o nome original mas com nova extensão se necessário
+        const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+        finalFile = new window.File([compressedBlob], newFileName, { type: 'image/webp' });
+      } catch (error) {
+        console.warn('Erro ao compactar a imagem, fazendo upload do arquivo original:', error);
+      }
+    }
+
     try {
-      const fileExt = file.name.split('.').pop() || 'bin';
+      const fileExt = finalFile.name.split('.').pop() || 'bin';
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `${fileName}`;
 
@@ -94,7 +115,7 @@ export default function FileUpload({
       if (isRealSupabase) {
         const { error: uploadError } = await supabase.storage
           .from(bucket)
-          .upload(filePath, file, { cacheControl: '3600', upsert: true });
+          .upload(filePath, finalFile, { cacheControl: '3600', upsert: true });
 
         clearInterval(interval);
 
@@ -122,7 +143,7 @@ export default function FileUpload({
       } else {
         // Fallback local dev
         clearInterval(interval);
-        const localUrl = URL.createObjectURL(file);
+        const localUrl = URL.createObjectURL(finalFile);
         setProgress(100);
         setTimeout(() => {
           setUploading(false);
