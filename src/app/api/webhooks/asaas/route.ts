@@ -40,8 +40,8 @@ export async function POST(request: Request) {
       // 🔔 Notificar criador sobre status do saque
       if (withdrawalResult?.storeId && withdrawalResult?.creatorId) {
         if (event === 'TRANSFER_DONE' || event === 'TRANSFER_APPROVED') {
-          const formattedValue = withdrawalResult.value
-            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(withdrawalResult.value)
+          const formattedValue = withdrawalResult.amount
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(withdrawalResult.amount)
             : 'valor confirmado';
 
           await createNotification({
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
             type:      'WITHDRAWAL_APPROVED',
             title:     'Saque aprovado! 🎉',
             body:      `Seu saque de ${formattedValue} foi processado com sucesso.`,
-            metadata:  { withdrawalId: transfer?.id, amount: withdrawalResult.value }
+            metadata:  { withdrawalId: transfer?.id, amount: withdrawalResult.amount }
           }).catch(e => console.error('[Webhook] Erro ao criar notificação de saque aprovado:', e));
 
         } else if (event === 'TRANSFER_FAILED' || event === 'TRANSFER_CANCELLED') {

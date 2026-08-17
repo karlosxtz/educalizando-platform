@@ -479,9 +479,9 @@ export async function validateAsaasTransferWebhook(payload: { transfer: any }): 
 }
 
 // 6. Processamento dos Eventos de Webhook de Transferência do Asaas (Item 20-25)
-export async function handleAsaasTransferWebhook(payload: { event: string; transfer: any; id?: string }): Promise<void> {
+export async function handleAsaasTransferWebhook(payload: { event: string; transfer: any; id?: string }): Promise<WithdrawalRecord | null> {
   const { event, transfer } = payload;
-  if (!transfer) return;
+  if (!transfer) return null;
 
   const eventId = payload.id || `evt_${event}_${transfer.id}_${Date.now()}`;
   const transferId = transfer.id;
@@ -540,7 +540,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
 
   if (!item) {
     console.warn(`[Transfer Webhook] Saque não encontrado para TransferId ${transferId}`);
-    return;
+    return null;
   }
 
   // C. TRANSFER_DONE -> Saque Concluído (Item 21)
@@ -548,7 +548,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     // TRAVA DE ESTADO / IDEMPOTÊNCIA: Evitar reprocessamento
     if (item.status === 'COMPLETED') {
       console.log(`[Transfer Webhook] Saque ${item.id} já estava COMPLETED. Ignorando evento repetido.`);
-      return;
+      return null;
     }
 
     item.status = 'COMPLETED';
@@ -567,7 +567,7 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
     // TRAVA DE ESTADO / IDEMPOTÊNCIA: Prevenção CRÍTICA de duplo estorno
     if (item.status === 'FAILED' || item.status === 'CANCELLED') {
       console.warn(`[Transfer Webhook] ALERTA: Saque ${item.id} já estava ${item.status}. Evitando estorno em duplicidade (dinheiro infinito).`);
-      return;
+      return null;
     }
 
     const isCancel = event === 'TRANSFER_CANCELLED';
@@ -607,4 +607,6 @@ export async function handleAsaasTransferWebhook(payload: { event: string; trans
       saveLocalWithdrawals(withdrawals);
     }
   }
+
+  return item;
 }
