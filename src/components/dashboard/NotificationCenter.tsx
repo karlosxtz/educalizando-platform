@@ -130,7 +130,7 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
 
       {/* ── Dropdown ── */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/80 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="absolute left-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/80 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
             <div className="flex items-center gap-2">
