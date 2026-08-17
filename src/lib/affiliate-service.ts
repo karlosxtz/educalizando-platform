@@ -110,3 +110,50 @@ export async function updateAffiliateCommission(affiliateId: string, commission_
 
   return true;
 }
+
+export async function getAffiliateApprovedProducts(affiliateUserId: string): Promise<any[]> {
+  // 1. Fetch approved affiliations
+  const { data: affiliations, error } = await supabase
+    .from('affiliates')
+    .select('store_id, commission_type, commission_rate, id')
+    .eq('user_id', affiliateUserId)
+    .eq('status', 'aprovado');
+
+  if (error || !affiliations || affiliations.length === 0) {
+    return [];
+  }
+
+  const storeIds = affiliations.map(a => a.store_id);
+
+  // 2. Fetch all public products for those stores
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('*, store:stores(nome_loja, slug, id, logo_url)')
+    .in('store_id', storeIds)
+    .eq('status', 'publicado')
+    .is('excluido_em', null)
+    .order('created_at', { ascending: false });
+
+  if (productsError || !products) return [];
+
+  // 3. Map to include affiliate data
+  return products.map(p => {
+    const affiliation = affiliations.find(a => a.store_id === p.store_id);
+    return {
+      ...p,
+      affiliateInfo: affiliation
+    };
+  });
+}
+
+export async function getAffiliateProfile(userId: string) {
+  // We fetch their store data which acts as their profile
+  const { data, error } = await supabase
+    .from('stores')
+    .select('nome_loja, logo_url, banner_url, descricao, slug')
+    .eq('creator_id', userId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data;
+}

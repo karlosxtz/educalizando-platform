@@ -11,6 +11,7 @@ export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -23,6 +24,7 @@ export default function AffiliateDashboardPage() {
         setIsLoading(false);
         return;
       }
+      setUserId(user.id);
       
       const data = await getMyAffiliations();
       setAffiliations(data);
@@ -46,9 +48,21 @@ export default function AffiliateDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas Afiliações</h1>
-        <p className="text-slate-500 mt-1">Acompanhe seus links de divulgação e comissões.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas Afiliações</h1>
+          <p className="text-slate-500 mt-1">Acompanhe seus links de divulgação e comissões.</p>
+        </div>
+        {userId && (
+          <Link 
+            href={`/afiliado/${userId}`} 
+            target="_blank"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            Minha Loja de Afiliado
+          </Link>
+        )}
       </div>
 
       {/* Resumo Financeiro (Mocked for now) */}
@@ -135,10 +149,10 @@ export default function AffiliateDashboardPage() {
                 {affiliate.status === 'aprovado' && affiliate.store?.slug && (
                   <div className="flex-1 max-w-md bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                     <div className="flex-1 truncate text-sm text-slate-600 font-mono">
-                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${affiliate.store.slug}?ref=${affiliate.id}`}
+                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${affiliate.store.slug}?ref=${userId}`}
                     </div>
                     <button 
-                      onClick={() => handleCopyLink(affiliate.store!.slug, affiliate.id)}
+                      onClick={() => handleCopyLink(affiliate.store!.slug, userId || affiliate.id)}
                       className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-600 shrink-0"
                       title="Copiar Link"
                     >

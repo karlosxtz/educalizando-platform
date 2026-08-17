@@ -40,6 +40,15 @@ export function CartProvider({ children, storeId }: { children: ReactNode; store
     // Sincronização inicial
     syncCart();
 
+    // Capturar o ref de afiliado da URL se existir e armazenar (válido por 30 dias ou até fechar)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      if (ref) {
+        localStorage.setItem('educalizando_affiliate_id', ref);
+      }
+    }
+
     // Event listener customizado para outras abas / componentes
     const handleStorageChange = () => syncCart();
     

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, CheckCircle2, ChevronRight, FileText, Video, BookOpen, 
   Layers, HelpCircle, UploadCloud, Eye, Tags, GraduationCap, DollarSign, 
-  Sparkles, ShieldCheck, Loader2, AlertCircle, Save
+  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
@@ -38,6 +38,7 @@ function ProductWizardContent() {
   const [tipo, setTipo] = useState<ProductType>('pdf');
   const [preco, setPreco] = useState<string>('29,90');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('upload');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -80,6 +81,12 @@ function ProductWizardContent() {
             setGalleryUrls(urls);
             
             setArquivoUrl(existing.arquivo_url);
+            if (existing.arquivo_url && (existing.arquivo_url.startsWith('http://') || existing.arquivo_url.startsWith('https://'))) {
+              if (!existing.arquivo_url.includes('supabase.co')) {
+                setDeliveryMethod('link');
+              }
+            }
+
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
@@ -487,19 +494,67 @@ function ProductWizardContent() {
                   3. Arquivo Didático Digital
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Este é o arquivo seguro que o aluno irá baixar após confirmar a compra via PIX.
+                  Como você deseja entregar o material para o aluno após a compra?
                 </p>
               </div>
 
-              <FileUpload
-                bucket="product-files"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
-                maxSizeMB={15}
-                value={arquivoUrl}
-                onChange={(url: string | null) => setArquivoUrl(url)}
-                label="Upload do Arquivo Didático Digital"
-                helperText="Formatos suportados: PDF, DOCX, XLSX, ZIP, etc. (máx. 15MB). Vídeos não são permitidos via upload."
-              />
+              <div className="flex bg-slate-100 p-1 rounded-xl w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeliveryMethod('upload');
+                    if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
+                  }}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                    deliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <UploadCloud className="w-4 h-4" /> Upload Seguro
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('link')}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                    deliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <LinkIcon className="w-4 h-4" /> Link Externo
+                  </span>
+                </button>
+              </div>
+
+              {deliveryMethod === 'upload' ? (
+                <FileUpload
+                  bucket="product-files"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
+                  maxSizeMB={15}
+                  value={arquivoUrl}
+                  onChange={(url: string | null) => setArquivoUrl(url)}
+                  label="Upload do Arquivo Didático Digital"
+                  helperText="Formatos suportados: PDF, DOCX, XLSX, ZIP, etc. (máx. 15MB). Vídeos não são permitidos via upload."
+                />
+              ) : (
+                <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-3">
+                  <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <LinkIcon className="w-4 h-4 text-blue-600" />
+                    Link do Arquivo Externo
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Insira o link para a pasta no Google Drive, OneDrive, Dropbox, Mega, etc. 
+                    Certifique-se de que o link esteja com as permissões de acesso "Público" ou "Qualquer pessoa com o link".
+                  </p>
+                  <input
+                    type="url"
+                    value={arquivoUrl || ''}
+                    onChange={(e) => setArquivoUrl(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full px-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                  />
+                </div>
+              )}
             </motion.div>
           )}
 
