@@ -204,7 +204,6 @@ export async function registerCreatorPixKey(data: {
         .update({ is_active: false })
         .eq('store_id', data.storeId);
 
-      const { supabaseAdmin } = await import('./supabase');
       await supabaseAdmin.from('creator_pix_keys').insert([{
         id: newKey.id,
         creator_id: newKey.creatorId,
