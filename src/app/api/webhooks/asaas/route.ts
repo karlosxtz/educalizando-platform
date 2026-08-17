@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '@/lib/order-service';
 import { validateAsaasTransferWebhook, handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
+import { createNotification } from '@/lib/notification-service';
 
 export async function POST(request: Request) {
   try {
@@ -24,10 +25,7 @@ export async function POST(request: Request) {
     // 1.5 Mecanismo de Validação de Saque (Webhook de Segurança do Asaas)
     // O Asaas envia 'type' em vez de 'event' para webhooks de validação de saída.
     if (type === 'TRANSFER' && !event) {
-      console.log(`[Asaas Webhook] Solicitação de validação de saque recebida para: ${transfer?.id}`);
-      
       const isValid = await validateAsaasTransferWebhook(payload);
-      
       if (isValid) {
         return NextResponse.json({ status: 'APPROVED' });
       } else {
@@ -35,18 +33,47 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. PROCESSAMENTO DE WEBHOOKS DE TRANSFERÊNCIA DE SAQUE (FASE C - Item 20-25)
+    // 2. PROCESSAMENTO DE WEBHOOKS DE TRANSFERÊNCIA DE SAQUE
     if (transfer || (event && event.startsWith('TRANSFER_'))) {
-      await handleAsaasTransferWebhook(payload);
+      const withdrawalResult = await handleAsaasTransferWebhook(payload);
+
+      // 🔔 Notificar criador sobre status do saque
+      if (withdrawalResult?.storeId && withdrawalResult?.creatorId) {
+        if (event === 'TRANSFER_DONE' || event === 'TRANSFER_APPROVED') {
+          const formattedValue = withdrawalResult.value
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(withdrawalResult.value)
+            : 'valor confirmado';
+
+          await createNotification({
+            storeId:   withdrawalResult.storeId,
+            creatorId: withdrawalResult.creatorId,
+            type:      'WITHDRAWAL_APPROVED',
+            title:     'Saque aprovado! 🎉',
+            body:      `Seu saque de ${formattedValue} foi processado com sucesso.`,
+            metadata:  { withdrawalId: transfer?.id, amount: withdrawalResult.value }
+          }).catch(e => console.error('[Webhook] Erro ao criar notificação de saque aprovado:', e));
+
+        } else if (event === 'TRANSFER_FAILED' || event === 'TRANSFER_CANCELLED') {
+          await createNotification({
+            storeId:   withdrawalResult.storeId,
+            creatorId: withdrawalResult.creatorId,
+            type:      'WITHDRAWAL_FAILED',
+            title:     'Saque não processado ❌',
+            body:      'Seu saque não pôde ser processado. Verifique os dados da chave PIX e tente novamente.',
+            metadata:  { withdrawalId: transfer?.id }
+          }).catch(e => console.error('[Webhook] Erro ao criar notificação de saque recusado:', e));
+        }
+      }
+
       return NextResponse.json({ received: true, type: 'transfer', event, transferId: transfer?.id });
     }
 
-    // 3. PROCESSAMENTO DE WEBHOOKS DE COBRANÇAS / VENDAS (FASE A & B)
+    // 3. PROCESSAMENTO DE WEBHOOKS DE COBRANÇAS / VENDAS
     if (!payment) {
       return NextResponse.json({ received: true, message: 'Payload sem dados de pagamento ou transferência.' }, { status: 200 });
     }
 
-    const orderId = payment.externalReference;
+    const orderId       = payment.externalReference;
     const asaasPaymentId = payment.id;
 
     // Tentar obter a taxa REAL efetivamente cobrada pelo Asaas
@@ -55,22 +82,41 @@ export async function POST(request: Request) {
       realAsaasFee = Math.max(0, Number(payment.value) - Number(payment.netValue));
     }
 
-    console.log(`[Asaas Webhook Payment] Evento: ${event} | PaymentId: ${asaasPaymentId} | OrderId: ${orderId} | Taxa Asaas: ${realAsaasFee !== undefined ? `R$ ${realAsaasFee.toFixed(2)}` : 'Não informada'}`);
-
     if (
-      event === 'PAYMENT_CONFIRMED' || 
-      event === 'PAYMENT_RECEIVED' || 
+      event === 'PAYMENT_CONFIRMED' ||
+      event === 'PAYMENT_RECEIVED' ||
       event === 'PAYMENT_DUNNING_RECEIVED'
     ) {
       if (orderId) {
-        await updateOrderStatus(orderId, 'paid', asaasPaymentId, realAsaasFee);
+        const order = await updateOrderStatus(orderId, 'paid', asaasPaymentId, realAsaasFee);
+
+        // 🔔 Disparar notificação de venda em tempo real para o criador
+        if (order?.storeId && order?.creatorId) {
+          const productTitle    = order.items?.[0]?.productTitle || 'Produto Digital';
+          const amount          = order.totalAmount;
+          const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+
+          await createNotification({
+            storeId:   order.storeId,
+            creatorId: order.creatorId,
+            type:      'SALE_CONFIRMED',
+            title:     `Nova venda: ${formattedAmount}!`,
+            body:      `${order.buyerName || 'Um aluno'} comprou "${productTitle}". Venda confirmada e acesso liberado.`,
+            metadata:  {
+              orderId:      order.id,
+              amount,
+              productTitle,
+              buyerName: order.buyerName
+            }
+          }).catch(e => console.error('[Webhook] Erro ao criar notificação de venda:', e));
+        }
       }
-    } 
+    }
     else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') {
       if (orderId) {
         await updateOrderStatus(orderId, 'failed', asaasPaymentId, realAsaasFee);
       }
-    } 
+    }
     else if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_CHARGEBACK_REQUESTED') {
       if (orderId) {
         await updateOrderStatus(orderId, 'refunded', asaasPaymentId, realAsaasFee);

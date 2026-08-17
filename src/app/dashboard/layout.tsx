@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
+import SaleToast from '@/components/dashboard/SaleToast';
 import { getCurrentUserSession, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
-
 import SystemBanners from '@/components/dashboard/SystemBanners';
 
 export default function DashboardLayout({
@@ -66,10 +66,11 @@ export default function DashboardLayout({
 
       {/* Fixed Left Sidebar */}
       <div className="relative z-10 lg:w-64 shrink-0 lg:h-screen">
-        <Sidebar 
-          store={store} 
-          creatorName={store?.nome_loja || 'Prof. Ricardo Silva'} 
-          creatorEmail={creatorEmail} 
+        <Sidebar
+          store={store}
+          storeId={store?.id}
+          creatorName={store?.nome_loja || 'Prof. Ricardo Silva'}
+          creatorEmail={creatorEmail}
         />
       </div>
 
@@ -80,6 +81,10 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+
+      {/* Toast de Venda em Tempo Real (global, fora do scroll) */}
+      {store?.id && <SaleToast storeId={store.id} />}
     </div>
   );
 }
+

@@ -18,6 +18,7 @@ export interface OrderItemRecord {
 export interface OrderRecord {
   id: string;
   storeId: string;
+  creatorId?: string | null; // ID do criador (auth.users) para notificações e ledger
   buyerName: string;
   buyerEmail: string;
   buyerCpf: string;
@@ -339,6 +340,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
         return {
           id: data.id,
           storeId: data.store_id,
+          creatorId: data.creator_id || null,
           buyerName: data.buyer_name || 'Comprador',
           buyerEmail: data.buyer_email || '',
           buyerCpf: data.buyer_cpf || '',

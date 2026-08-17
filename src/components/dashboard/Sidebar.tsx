@@ -10,14 +10,16 @@ import {
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
+import NotificationCenter from '@/components/dashboard/NotificationCenter';
 
 interface SidebarProps {
   store?: StoreType | null;
+  storeId?: string;
   creatorName?: string;
   creatorEmail?: string;
 }
 
-export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.ricardo@gmail.com' }: SidebarProps) {
+export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.ricardo@gmail.com' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -169,6 +171,9 @@ export default function Sidebar({ store, creatorName = 'Prof. Ricardo Silva', cr
             </Link>
 
             <div className="flex items-center gap-2">
+              {/* Notificações em tempo real */}
+              {storeId && <NotificationCenter storeId={storeId} />}
+
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-[10px] font-extrabold shrink-0 shadow-2xs">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
