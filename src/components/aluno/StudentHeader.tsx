@@ -51,6 +51,13 @@ export default function StudentHeader({
             <span>Meus Materiais</span>
           </Link>
           <Link
+            href="/aluno/brindes"
+            className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5 bg-brand-teal/10 px-2 py-1.5 rounded-lg border border-brand-teal/20"
+          >
+            <span className="text-brand-teal">🎁</span>
+            <span className="text-brand-teal">Brindes</span>
+          </Link>
+          <Link
             href="/aluno/conta"
             className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
           >

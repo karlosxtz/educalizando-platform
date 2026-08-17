@@ -1014,3 +1014,46 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
   );
   return plrProducts as (Product & { store?: Store })[];
 }
+
+// ============================================================================
+// BRINDES (PRODUTOS GRATUITOS)
+// ============================================================================
+
+export async function getAllFreeProducts(): Promise<(Product & { store?: Store })[]> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          store:stores (
+            id, nome_loja, slug, logo_url
+          )
+        `)
+        .eq('is_free', true)
+        .eq('status', 'publicado')
+        .is('excluido_em', null)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        return data as (Product & { store?: Store })[];
+      }
+    } catch (err) {
+      console.error('[getAllFreeProducts] Erro:', err);
+    }
+  }
+
+  // Fallback Local
+  const products = getLocalProducts();
+  const freeProducts = products.filter(p => 
+    p.is_free === true && 
+    p.status === 'publicado' && 
+    !p.excluido_em
+  );
+  return freeProducts as (Product & { store?: Store })[];
+}

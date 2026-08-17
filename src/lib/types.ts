@@ -49,6 +49,7 @@ export interface Product {
   descricao: string | null;
   tipo: ProductType;
   preco: number;
+  is_free?: boolean;
   is_plr?: boolean;
   preco_plr?: number;
   plr_license_url?: string | null;
