@@ -7,6 +7,7 @@ import {
   ArrowRight, ExternalLink, Plus, CheckCircle2, ShoppingBag, Percent
 } from 'lucide-react';
 import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
+import { motion } from 'framer-motion';
 import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
@@ -134,7 +135,13 @@ export default function DashboardOverviewPage() {
 
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="glass-panel glass-panel-hover p-5 flex flex-col justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="glass-panel p-5 flex flex-col justify-between cursor-pointer"
+        >
           <div className="flex items-center justify-between text-slate-500 mb-3">
             <span className="text-xs font-bold uppercase tracking-wider">Produtos Publicados</span>
             <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
@@ -145,9 +152,15 @@ export default function DashboardOverviewPage() {
             <span className="text-2xl font-black text-slate-900">{publishedCount}</span>
             <span className="text-xs text-slate-500 block mt-0.5">de {products.length} cadastrados</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel glass-panel-hover p-5 flex flex-col justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="glass-panel p-5 flex flex-col justify-between cursor-pointer"
+        >
           <div className="flex items-center justify-between text-slate-500 mb-3">
             <span className="text-xs font-bold uppercase tracking-wider">Vendas via PIX</span>
             <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
@@ -160,9 +173,15 @@ export default function DashboardOverviewPage() {
               {chartTotalSalesCount > 0 ? 'Vendas confirmadas via PIX' : 'Aguardando primeiras vendas'}
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel glass-panel-hover p-5 flex flex-col justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="glass-panel p-5 flex flex-col justify-between cursor-pointer"
+        >
           <div className="flex items-center justify-between text-slate-500 mb-3">
             <span className="text-xs font-bold uppercase tracking-wider">Receita Líquida</span>
             <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
@@ -175,9 +194,15 @@ export default function DashboardOverviewPage() {
             </span>
             <span className="text-xs text-slate-500 block mt-0.5">Repasse automático sem mensalidade</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel glass-panel-hover p-5 flex flex-col justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="glass-panel p-5 flex flex-col justify-between cursor-pointer"
+        >
           <div className="flex items-center justify-between text-slate-500 mb-3">
             <span className="text-xs font-bold uppercase tracking-wider">Taxa de Conversão</span>
             <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
@@ -190,7 +215,7 @@ export default function DashboardOverviewPage() {
             </span>
             <span className="text-xs text-slate-500 block mt-0.5">Visitas convertidas em compras</span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Interactive Sales Chart Component */}

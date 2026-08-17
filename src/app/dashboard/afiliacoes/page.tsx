@@ -6,6 +6,7 @@ import { getMyAffiliations } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
 import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
@@ -76,7 +77,13 @@ export default function AffiliateDashboardPage() {
 
       {/* Resumo Financeiro (Mocked for now) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+        >
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
               <DollarSign className="w-5 h-5" />
@@ -84,8 +91,14 @@ export default function AffiliateDashboardPage() {
             <h3 className="font-medium text-slate-700">Comissões Recebidas</h3>
           </div>
           <p className="text-3xl font-bold text-slate-900">R$ 0,00</p>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+        >
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
               <ShoppingBag className="w-5 h-5" />
@@ -93,8 +106,14 @@ export default function AffiliateDashboardPage() {
             <h3 className="font-medium text-slate-700">Vendas Realizadas</h3>
           </div>
           <p className="text-3xl font-bold text-slate-900">0</p>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+        >
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
               <MousePointerClick className="w-5 h-5" />
@@ -102,7 +121,7 @@ export default function AffiliateDashboardPage() {
             <h3 className="font-medium text-slate-700">Cliques nos Links</h3>
           </div>
           <p className="text-3xl font-bold text-slate-900">0</p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Lojas Afiliadas */}
