@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, QrCode, CreditCard, FileText, 
   Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
-  LogIn, UserPlus, UserCheck 
+  LogIn, UserPlus, UserCheck, Clock, CheckCircle
 } from 'lucide-react';
 import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -23,6 +23,22 @@ interface CheckoutClientViewProps {
 }
 
 export default function CheckoutClientView({ store, product, initialCouponCode }: CheckoutClientViewProps) {
+  // Scarcity timer state
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   const router = useRouter();
   const { items: cartItems, total: cartTotal } = useCart();
 
@@ -693,9 +709,23 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
 
           {/* Right Column: Order Summary Card (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
+            {/* Scarcity Banner */}
+            {timeLeft > 0 && (
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between text-rose-800 shadow-sm animate-pulse">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-rose-600" />
+                  <span className="text-xs font-extrabold uppercase tracking-wider">Oferta expira em:</span>
+                </div>
+                <span className="text-lg font-black text-rose-600 bg-white px-3 py-1 rounded-xl shadow-xs border border-rose-100">
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
+            )}
+
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 sticky top-8">
-              <h3 className="text-base font-black text-slate-900 border-b border-slate-100 pb-4">
-                Resumo do Pedido
+              <h3 className="text-base font-black text-slate-900 border-b border-slate-100 pb-4 flex items-center justify-between">
+                <span>Resumo do Pedido</span>
+                <Lock className="w-4 h-4 text-emerald-500" />
               </h3>
 
               {/* Product Preview */}
@@ -802,14 +832,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </div>
 
               {/* Guarantee Disclaimer */}
-              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 text-center">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3 text-center">
                 <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
                   <span>Garantia de Satisfação Educalizando</span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                  Após a confirmação do pagamento, seu acesso ao material será liberado na Área do Aluno com licença permanente de download.
+                  Ambiente seguro e monitorado 24/7. Após a confirmação do pagamento, seu acesso ao material será liberado imediatamente.
                 </p>
+                <div className="flex flex-wrap justify-center gap-3 pt-3 border-t border-slate-200/60">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Compra Segura
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Privacidade Protegida
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="flex justify-center gap-4 opacity-60 grayscale pt-2">
+                <img src="https://logodownload.org/wp-content/uploads/2014/07/mastercard-logo.png" alt="Mastercard" className="h-4 object-contain" />
+                <img src="https://logodownload.org/wp-content/uploads/2016/10/visa-logo.png" alt="Visa" className="h-4 object-contain" />
+                <img src="https://logodownload.org/wp-content/uploads/2020/02/pix-logo-1.png" alt="Pix" className="h-4 object-contain" />
+                <img src="https://logodownload.org/wp-content/uploads/2019/09/boleto-logo.png" alt="Boleto" className="h-4 object-contain" />
               </div>
 
             </div>
