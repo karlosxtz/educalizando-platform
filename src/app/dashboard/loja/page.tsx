@@ -31,8 +31,9 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 const formatWhatsApp = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (digits.length === 0) return '';
-  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 2) return digits; // Let user type DDD without forcing ()
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
@@ -40,13 +41,6 @@ import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-sch
 import { getCurrentCreatorStore, updateStore } from '@/lib/store-service';
 import { Store, StoreThemeProps } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
-
-// Themes for Preview
-import ThemeDefault from '@/app/loja/[slug]/themes/ThemeDefault';
-import ThemeMinimalist from '@/app/loja/[slug]/themes/ThemeMinimalist';
-import ThemeNetflix from '@/app/loja/[slug]/themes/ThemeNetflix';
-import ThemeLinkTree from '@/app/loja/[slug]/themes/ThemeLinkTree';
-import ThemePinterest from '@/app/loja/[slug]/themes/ThemePinterest';
 
 export default function StoreSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -153,62 +147,6 @@ export default function StoreSettingsPage() {
       </div>
     );
   }
-
-  const mockProducts = [
-    {
-      id: 'mock-1',
-      store_id: 'mock',
-      titulo: 'Seu Produto de Exemplo (Ao Vivo)',
-      descricao: 'Visualize como seu material didático será apresentado aos alunos.',
-      tipo: 'pdf',
-      preco: 29.90,
-      capa_url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
-      arquivo_url: '',
-      status: 'publicado',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-2',
-      store_id: 'mock',
-      titulo: 'Combo Aprovação ENEM',
-      descricao: 'Material completo com mais de 500 questões comentadas.',
-      tipo: 'curso',
-      preco: 97.00,
-      capa_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
-      arquivo_url: '',
-      status: 'publicado',
-      created_at: new Date().toISOString()
-    }
-  ] as any;
-
-  const mockThemeProps: StoreThemeProps = {
-    store: {
-      id: 'mock',
-      creator_id: 'mock',
-      asaas_subaccount_id: null,
-      nome_loja: watchedNomeLoja || 'Sua Loja',
-      slug: watchedSlug || 'sua-loja',
-      descricao: watchedDescricao || null,
-      logo_url: watchedLogoUrl || null,
-      banner_url: watchedBannerUrl || null,
-      cor_primaria: watchedCorPrimaria || '#2563eb',
-      whatsapp: watchedWhatsapp || null,
-      instagram: watchedInstagram || null,
-      layout_theme: watchedLayoutTheme || 'default',
-      created_at: new Date().toISOString()
-    },
-    products: mockProducts,
-    filteredProducts: mockProducts,
-    categories: [],
-    educationLevels: [],
-    kits: [],
-    selectedCategory: 'all',
-    setSelectedCategory: () => {},
-    selectedEducation: 'all',
-    setSelectedEducation: () => {},
-    searchFilter: '',
-    setSearchFilter: () => {}
-  };
 
   return (
     <div className="space-y-8">
@@ -480,18 +418,79 @@ export default function StoreSettingsPage() {
             <span>Preview em Tempo Real da Sua Loja</span>
           </div>
 
-          <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-lg h-[700px] sticky top-6 relative flex flex-col items-center justify-center">
-            <div className="w-full max-w-[400px] h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide bg-slate-50 border-x border-slate-200 shadow-2xl">
-              {/* Render Selected Theme */}
-              {watchedLayoutTheme === 'minimalist' && <ThemeMinimalist {...mockThemeProps} />}
-              {watchedLayoutTheme === 'netflix' && <ThemeNetflix {...mockThemeProps} />}
-              {watchedLayoutTheme === 'linktree' && <ThemeLinkTree {...mockThemeProps} />}
-              {watchedLayoutTheme === 'pinterest' && <ThemePinterest {...mockThemeProps} />}
-              {(!watchedLayoutTheme || watchedLayoutTheme === 'default') && <ThemeDefault {...mockThemeProps} />}
-              
-              {/* Transparent overlay to block clicks within the preview iframe-like box */}
-              <div className="absolute inset-0 z-50 cursor-default" />
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg space-y-4 sticky top-6">
+            {/* Banner Preview */}
+            <div className="h-32 bg-slate-800 relative overflow-hidden">
+              {watchedBannerUrl ? (
+                <img src={watchedBannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-slate-900 to-indigo-950 flex items-center justify-center text-slate-400 text-xs font-bold">
+                  Banner da Loja
+                </div>
+              )}
             </div>
+
+            {/* Profile Avatar & Info Preview */}
+            <div className="px-6 pb-6 pt-0 -mt-12 space-y-3 relative">
+              <div className="w-20 h-20 rounded-full bg-white p-1 border-4 border-white shadow-md overflow-hidden">
+                {watchedLogoUrl ? (
+                  <img src={watchedLogoUrl} alt="Logo Preview" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <div
+                    className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-2xl"
+                    style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
+                  >
+                    {(watchedNomeLoja || 'L').charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  {watchedNomeLoja || 'Nome da Sua Loja'}
+                </h3>
+                <p className="text-xs text-blue-600 font-mono font-bold">
+                  educalizando.com.br/loja/{watchedSlug || 'sua-loja'}
+                </p>
+                <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
+                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus alunos.'}
+                </p>
+
+                {/* Preview Social Links */}
+                {(watchedWhatsapp || watchedInstagram) && (
+                  <div className="flex items-center gap-2 mt-3">
+                    {watchedInstagram && (
+                      <div className="p-1.5 bg-white rounded-full text-slate-400 border border-slate-200 flex items-center justify-center shadow-sm">
+                        <InstagramIcon className="w-4 h-4" />
+                      </div>
+                    )}
+                    {watchedWhatsapp && (
+                      <div className="px-3 py-1.5 bg-[#25D366] text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
+                        <MessageCircle className="w-3 h-3 fill-white" />
+                        WhatsApp
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Cor de Destaque:</span>
+                <span
+                  className="px-3 py-1 rounded-full text-white text-[10px] font-extrabold uppercase"
+                  style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
+                >
+                  Botão de Compra
+                </span>
+              </div>
+            </div>
+            
+            {/* Simulated Floating WhatsApp Button in Preview */}
+            {watchedWhatsapp && (
+              <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center shadow-md">
+                <MessageCircle className="w-5 h-5 text-white fill-white" />
+              </div>
+            )}
           </div>
         </div>
 
