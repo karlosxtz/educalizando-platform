@@ -44,11 +44,15 @@ export default async function PublicStorePage({ params }: PageProps) {
   const store = await getStoreBySlug(slug);
 
   if (!store) {
-    console.warn(`[PublicStorePage] Loja "${slug}" não foi encontrada no banco nem no mock. Retornando 404.`);
+    console.warn(`[PublicStorePage] Loja "${slug}" não foi encontrada. Retornando 404.`);
     notFound();
   }
 
+  console.log(`[PublicStorePage] Loja encontrada: id=${store.id}, nome="${store.nome_loja}"`);
+
   const products = await getPublicProductsByStoreId(store.id);
+
+  console.log(`[PublicStorePage] Produtos encontrados: ${products.length} para store.id="${store.id}"`);
 
   return (
     <PublicStoreClientView store={store} initialProducts={products} />

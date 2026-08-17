@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { Store, Product } from './types';
 
 // Store Padrão de Exemplo para Fallback Offline
@@ -97,7 +97,8 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase
+      // Use supabaseAdmin to bypass RLS on server-side (public store page)
+      const { data, error } = await supabaseAdmin
         .from('stores')
         .select('*')
         .eq('slug', slug)
@@ -414,16 +415,18 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
   try {
     // --- Step 1: Get all store IDs belonging to the same creator ---
+    // Use supabaseAdmin to bypass RLS for server-side public reads
+    const db = supabaseAdmin;
     let validStoreIds: string[] = [cleanStoreId];
 
-    const { data: storeInfo } = await supabase
+    const { data: storeInfo } = await db
       .from('stores')
       .select('id, creator_id')
       .eq('id', cleanStoreId)
       .maybeSingle();
 
     if (storeInfo?.creator_id) {
-      const { data: creatorStores } = await supabase
+      const { data: creatorStores } = await db
         .from('stores')
         .select('id')
         .eq('creator_id', storeInfo.creator_id);
@@ -434,7 +437,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     }
 
     // --- Step 2: Fetch published products for those stores ---
-    const { data: ownProducts, error: ownError } = await supabase
+    const { data: ownProducts, error: ownError } = await db
       .from('products')
       .select('*')
       .in('store_id', validStoreIds)
@@ -451,7 +454,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
     // --- Step 3: Fetch affiliate products (if creator exists) ---
     if (storeInfo?.creator_id) {
-      const { data: affiliations } = await supabase
+      const { data: affiliations } = await db
         .from('affiliates')
         .select('store_id, product_id')
         .eq('user_id', storeInfo.creator_id)
@@ -462,7 +465,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         const sIds = affiliations.filter(a => !a.product_id && a.store_id).map(a => a.store_id);
 
         if (pIds.length > 0 || sIds.length > 0) {
-          let affQuery = supabase
+          let affQuery = db
             .from('products')
             .select('*')
             .in('status', ['publicado', 'ativo', 'published'])
@@ -490,7 +493,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     }
 
     // --- Step 4: Enrich with review data ---
-    const { data: reviewsData } = await supabase
+    const { data: reviewsData } = await db
       .from('reviews')
       .select('product_id, nota')
       .in('store_id', validStoreIds);
