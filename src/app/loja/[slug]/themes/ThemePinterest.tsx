@@ -417,7 +417,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
               </p>
             </div>
 
-            {initialProducts.length === 0 && (
+            {products.length === 0 && (
               <div className="pt-2">
                 <Link
                   href="/dashboard/produtos"
