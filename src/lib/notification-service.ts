@@ -249,7 +249,9 @@ export function subscribeToNotifications(
     return () => {};
   }
 
-  const channelName = `notifications:store:${storeId}`;
+  // Gerar um nome único para o canal para evitar erro no React 18 Strict Mode
+  // onde o useEffect roda duas vezes e tenta dar .on() num canal já subscribed.
+  const channelName = `notifications:store:${storeId}:${Date.now()}-${Math.random().toString(36).substring(2)}`;
 
   const channel: RealtimeChannel = supabase
     .channel(channelName)
