@@ -85,20 +85,34 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
   }
 
   if (period === '30d') {
+    // Usar os últimos 30 dias reais a partir de hoje
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 29); // 30 dias atrás (inclusive hoje)
+
     const weeks: SalesDataPoint[] = [
       { date: 'Semana 1', label: 'Sem 1', revenue: 0, salesCount: 0 },
       { date: 'Semana 2', label: 'Sem 2', revenue: 0, salesCount: 0 },
       { date: 'Semana 3', label: 'Sem 3', revenue: 0, salesCount: 0 },
       { date: 'Semana 4', label: 'Sem 4', revenue: 0, salesCount: 0 }
     ];
-    // Distribute paid orders if any exist
-    paidOrders.forEach((o, index) => {
-      const weekIdx = Math.min(Math.floor(index / 7), 3);
+
+    // FIX: agrupar pela data REAL da compra, não pelo índice do array
+    paidOrders.forEach(o => {
+      const orderDate = new Date(o.dataCompra);
+      if (orderDate < cutoff) return; // ignora pedidos fora da janela de 30 dias
+
+      // Dias desde o início da janela (0–29)
+      const daysFromStart = Math.floor((orderDate.getTime() - cutoff.getTime()) / (1000 * 60 * 60 * 24));
+      // Semana 0–3 (cada semana = 7 dias)
+      const weekIdx = Math.min(Math.floor(daysFromStart / 7), 3);
       weeks[weekIdx].revenue += o.valorTotal;
       weeks[weekIdx].salesCount += 1;
     });
+
     return weeks;
   }
+
 
   if (period === 'month') {
     const monthDays: SalesDataPoint[] = [

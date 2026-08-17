@@ -41,10 +41,13 @@ function getLocalStudentAccess(): StudentProductAccessRecord[] {
 }
 
 function saveLocalStudentAccess(list: StudentProductAccessRecord[]) {
-  if (typeof window === 'undefined') {
+  // FIX: condição corrigida — salva somente quando window existe (browser)
+  if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(LOCAL_STUDENT_ACCESS_KEY, JSON.stringify(list));
-    } catch (e) {}
+    } catch (e) {
+      console.error('[saveLocalStudentAccess] Erro ao salvar no localStorage:', e);
+    }
   }
 }
 
