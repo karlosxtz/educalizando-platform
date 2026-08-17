@@ -38,6 +38,8 @@ export interface OrderRecord {
   pixQrCodeBase64?: string | null;
   items: OrderItemRecord[];
   is_plr_purchase?: boolean;
+  affiliateId?: string | null;
+  affiliateCommissionAmount?: number | null;
   createdAt: string;
   paidAt?: string | null;
 }
@@ -98,7 +100,8 @@ export function estimateAsaasFee(paymentMethod: PaymentMethodType | string, amou
 export function calculateOrderFinancials(
   items: OrderItemInput[],
   asaasFee: number = 0,
-  platformSettings?: { platform_fee_percentage: number, platform_fixed_fee: number }
+  platformSettings?: { platform_fee_percentage: number, platform_fixed_fee: number },
+  affiliateCommissionAmount: number = 0
 ): FinancialCalculationResult {
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
@@ -113,7 +116,7 @@ export function calculateOrderFinancials(
 
   // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento (PIX = R$ 1,99)
   const realFee = asaasFee > 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
-  const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee).toFixed(2));
+  const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee - affiliateCommissionAmount).toFixed(2));
 
   return {
     subtotalAmount: Number(subtotal.toFixed(2)),
@@ -188,6 +191,8 @@ export async function createOrderRecord(data: {
   pixCopyPaste?: string;
   pixQrCodeBase64?: string;
   isPlrPurchase?: boolean;
+  affiliateId?: string;
+  affiliateCommissionAmount?: number;
 }): Promise<OrderRecord> {
 
   // REGRA FUNDAMENTAL: Todos os produtos devem pertencer à mesma loja
@@ -201,7 +206,7 @@ export async function createOrderRecord(data: {
     ? data.asaasFeeAmount
     : estimateAsaasFee(data.paymentMethod, subtotal);
 
-  const financials = calculateOrderFinancials(data.items, feeToUse);
+  const financials = calculateOrderFinancials(data.items, feeToUse, undefined, data.affiliateCommissionAmount || 0);
   const orderId = data.id || `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
@@ -238,6 +243,8 @@ export async function createOrderRecord(data: {
     pixQrCodeBase64: data.pixQrCodeBase64 || null,
     items: formattedItems,
     is_plr_purchase: data.isPlrPurchase || false,
+    affiliateId: data.affiliateId || null,
+    affiliateCommissionAmount: data.affiliateCommissionAmount || null,
     createdAt: now,
     paidAt: null
   };
@@ -267,6 +274,8 @@ export async function createOrderRecord(data: {
         pix_copy_paste: newOrder.pixCopyPaste,
         pix_qr_code_base64: newOrder.pixQrCodeBase64,
         is_plr_purchase: newOrder.is_plr_purchase,
+        affiliate_id: newOrder.affiliateId,
+        affiliate_commission_amount: newOrder.affiliateCommissionAmount,
         created_at: newOrder.createdAt
       }]);
 
@@ -361,6 +370,8 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           pixCopyPaste: data.pix_copy_paste || null,
           pixQrCodeBase64: data.pix_qr_code_base64 || null,
           items: mappedItems,
+          affiliateId: data.affiliate_id || null,
+          affiliateCommissionAmount: Number(data.affiliate_commission_amount || 0),
           createdAt: data.created_at,
           paidAt: data.paid_at || null
         };
@@ -403,8 +414,10 @@ export async function updateOrderStatus(
 
   if (realAsaasFee !== undefined && realAsaasFee >= 0) {
     updatedAsaasFee = Number(realAsaasFee.toFixed(2));
-    updatedCreatorNet = Number(Math.max(0, order.subtotalAmount - order.platformFeeAmount - updatedAsaasFee).toFixed(2));
   }
+  
+  const affComission = order.affiliateCommissionAmount || 0;
+  updatedCreatorNet = Number(Math.max(0, order.subtotalAmount - order.platformFeeAmount - updatedAsaasFee - affComission).toFixed(2));
 
   // Atualizar Supabase se configurado
   if (isRealSupabaseConfigured()) {
@@ -460,6 +473,36 @@ export async function updateOrderStatus(
         description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
       });
 
+      // 1B. Registrar transação AFFILIATE_COMMISSION no ledger se houver afiliado
+      if (order.affiliateId && affComission > 0) {
+        let affiliateUserId = null;
+        if (isRealSupabaseConfigured()) {
+          const { supabaseAdmin } = await import('./supabase');
+          const { data: affData } = await supabaseAdmin
+            .from('affiliates')
+            .select('user_id')
+            .eq('id', order.affiliateId)
+            .single();
+          if (affData) affiliateUserId = affData.user_id;
+        }
+
+        await recordWalletTransaction({
+          storeId: order.storeId, // A comissão ainda está vinculada à loja onde a venda ocorreu
+          creatorId: affiliateUserId, // Identificador de quem é o dono do dinheiro (o afiliado)
+          orderId: order.id,
+          buyerName: order.buyerName,
+          productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+          type: 'AFFILIATE_COMMISSION',
+          grossAmount: affComission,
+          platformFixedFeeAmount: 0,
+          platformPercentageFeeAmount: 0,
+          platformFeeAmount: 0,
+          asaasFeeAmount: 0,
+          netAmount: affComission,
+          description: `Comissão de Afiliado - Pedido #${order.id.substring(4, 10).toUpperCase()}`
+        });
+      }
+
       // 2. Conceder Acesso Real ao Material (student_product_access) no Supabase e LocalStorage
       const { grantStudentProductAccess } = await import('./student-service');
       const studentEmail = (order.buyerEmail || '').toLowerCase().trim();
@@ -487,7 +530,7 @@ export async function updateOrderStatus(
     }
   } else if (newStatus === 'refunded') {
     try {
-      // Registrar ajuste negativo de reembolso no ledger da carteira
+      // Registrar ajuste negativo de reembolso no ledger da carteira do criador
       const { recordWalletTransaction } = await import('./wallet-service');
       await recordWalletTransaction({
         storeId: order.storeId,
@@ -503,6 +546,36 @@ export async function updateOrderStatus(
         netAmount: -updatedCreatorNet,
         description: `Estorno / Reembolso do Pedido #${order.id.substring(4, 10).toUpperCase()}`
       });
+
+      // 2B. Estornar também a comissão do afiliado se houver
+      if (order.affiliateId && affComission > 0) {
+        let affiliateUserId = null;
+        if (isRealSupabaseConfigured()) {
+          const { supabaseAdmin } = await import('./supabase');
+          const { data: affData } = await supabaseAdmin
+            .from('affiliates')
+            .select('user_id')
+            .eq('id', order.affiliateId)
+            .single();
+          if (affData) affiliateUserId = affData.user_id;
+        }
+
+        await recordWalletTransaction({
+          storeId: order.storeId,
+          creatorId: affiliateUserId,
+          orderId: order.id,
+          buyerName: order.buyerName,
+          productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+          type: 'REFUND', // Or maybe 'AFFILIATE_COMMISSION_REFUND'? Let's stick to REFUND but the description makes it clear, and creatorId points to affiliate
+          grossAmount: -affComission,
+          platformFixedFeeAmount: 0,
+          platformPercentageFeeAmount: 0,
+          platformFeeAmount: 0,
+          asaasFeeAmount: 0,
+          netAmount: -affComission,
+          description: `Estorno de Comissão - Pedido #${order.id.substring(4, 10).toUpperCase()}`
+        });
+      }
     } catch (e) {
       console.error('[updateOrderStatus] Erro ao registrar estorno no ledger:', e);
     }

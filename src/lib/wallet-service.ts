@@ -2,7 +2,7 @@ import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
 
-export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL';
+export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL' | 'AFFILIATE_COMMISSION';
 export type WalletTransactionStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
 
 export interface WalletTransaction {

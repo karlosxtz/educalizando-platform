@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { createOrGetAsaasCustomer, createAsaasPayment, isValidCPF } from '@/lib/asaas-service';
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
@@ -180,7 +181,41 @@ export async function POST(request: Request) {
     // 5. Fonte Única da Verdade Financeira (Cálculo no Servidor com realItems e Taxas Dinâmicas)
     const { data: platformSettings } = await supabaseAdmin.from('platform_settings').select('*').limit(1).single();
     
-    const financials = calculateOrderFinancials(realItems, 0, platformSettings || undefined);
+    // Process affiliate
+    const cookieStore = cookies();
+    const affiliateCookie = cookieStore.get('educalizando_affiliate_id');
+    let affiliateId = null;
+    let affiliateCommissionAmount = 0;
+
+    const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
+
+    if (affiliateCookie && affiliateCookie.value) {
+      const { data: affiliate } = await supabaseAdmin
+        .from('affiliates')
+        .select('id, commission_type, commission_rate, stores(affiliate_commission_type, affiliate_commission_rate)')
+        .eq('id', affiliateCookie.value)
+        .eq('status', 'aprovado')
+        .eq('store_id', storeId)
+        .single();
+        
+      if (affiliate) {
+        affiliateId = affiliate.id;
+        const rate = affiliate.commission_rate || affiliate.stores?.affiliate_commission_rate || 0;
+        const type = affiliate.commission_type || affiliate.stores?.affiliate_commission_type || 'percentual';
+        
+        if (rate > 0) {
+          if (type === 'percentual') {
+            affiliateCommissionAmount = Number((baseSubtotal * (rate / 100)).toFixed(2));
+          } else {
+            // Fixo
+            // Limit to subtotal so we don't pay more than the sale
+            affiliateCommissionAmount = Math.min(Number(rate), baseSubtotal);
+          }
+        }
+      }
+    }
+
+    const financials = calculateOrderFinancials(realItems, 0, platformSettings || undefined, affiliateCommissionAmount);
 
     // 6. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
     const asaasCustomerId = await createOrGetAsaasCustomer({
@@ -217,7 +252,9 @@ export async function POST(request: Request) {
       asaasCustomerId,
       pixCopyPaste: asaasPayment.pixCopyPastePayload,
       pixQrCodeBase64: asaasPayment.pixQrCodeBase64,
-      isPlrPurchase
+      isPlrPurchase,
+      affiliateId: affiliateId || undefined,
+      affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined
     });
 
     return NextResponse.json({

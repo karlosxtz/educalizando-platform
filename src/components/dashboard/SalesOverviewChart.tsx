@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, DollarSign, Calendar, BarChart3, LineChart, Loader2 } from 'lucide-react';
+import { TrendingUp, DollarSign, BarChart3, Loader2 } from 'lucide-react';
 import { PeriodFilter, SalesDataPoint } from '@/lib/types';
 import { getSalesDataByPeriod } from '@/lib/sales-service';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface SalesOverviewChartProps {
   storeId?: string;
@@ -16,7 +16,6 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
   const [viewMode, setViewMode] = useState<'revenue' | 'volume'>('revenue');
   const [data, setData] = useState<SalesDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchChartData() {
@@ -36,226 +35,134 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
       }
     }
     fetchChartData();
-  }, [storeId, period]);
-
-  const maxRevenue = Math.max(...data.map(d => d.revenue), 100);
-  const maxSales = Math.max(...data.map(d => d.salesCount), 10);
-  const maxValue = viewMode === 'revenue' ? maxRevenue : maxSales;
-
-  // Chart dimensions
-  const svgWidth = 700;
-  const svgHeight = 240;
-  const paddingX = 40;
-  const paddingY = 30;
-
-  const chartWidth = svgWidth - paddingX * 2;
-  const chartHeight = svgHeight - paddingY * 2;
-
-  // Compute point coordinates
-  const points = data.map((d, index) => {
-    const val = viewMode === 'revenue' ? d.revenue : d.salesCount;
-    const x = paddingX + (index / Math.max(data.length - 1, 1)) * chartWidth;
-    const y = svgHeight - paddingY - (val / (maxValue * 1.15)) * chartHeight;
-    return { x, y, val, item: d };
-  });
-
-  // SVG Area & Line Paths
-  const linePath = points.length > 0
-    ? points.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '')
-    : '';
-
-  const areaPath = points.length > 0
-    ? `${linePath} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`
-    : '';
+  }, [storeId, period, onDataLoaded]);
 
   const totalRevenue = data.reduce((acc, d) => acc + d.revenue, 0);
   const totalSales = data.reduce((acc, d) => acc + d.salesCount, 0);
   const averageTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+    <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-8 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+      
       {/* Header Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
         <div>
-          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-blue-600 mb-1">
-            <TrendingUp className="w-4 h-4" /> Desempenho Financeiro Real-Time
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-blue-600 mb-2">
+            <TrendingUp className="w-4 h-4" /> Desempenho Financeiro
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-            {viewMode === 'revenue' ? `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `${totalSales} vendas PIX`}
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            {viewMode === 'revenue' ? `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `${totalSales} vendas`}
           </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Ticket Médio por Venda: <strong className="text-slate-900 font-bold">R$ {averageTicket.toFixed(2).replace('.', ',')}</strong>
+          <p className="text-sm text-slate-500 font-medium mt-1">
+            Ticket Médio: <strong className="text-slate-900 font-bold">R$ {averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
           </p>
         </div>
 
         {/* View Mode & Period Buttons */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Mode Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+          <div className="bg-slate-100/80 p-1.5 rounded-xl flex items-center border border-slate-200/60 text-xs font-bold backdrop-blur-sm">
             <button
               onClick={() => setViewMode('revenue')}
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                viewMode === 'revenue' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                viewMode === 'revenue' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <DollarSign className="w-3.5 h-3.5" /> Receita
+              <DollarSign className="w-4 h-4" /> Receita
             </button>
             <button
               onClick={() => setViewMode('volume')}
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                viewMode === 'volume' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                viewMode === 'volume' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5" /> Quantidade
+              <BarChart3 className="w-4 h-4" /> Vendas
             </button>
           </div>
 
           {/* Period Filter Buttons */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+          <div className="bg-slate-100/80 p-1.5 rounded-xl flex items-center border border-slate-200/60 text-xs font-bold backdrop-blur-sm">
             {(['7d', '30d', 'month', 'year'] as PeriodFilter[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-2.5 py-1.5 rounded-lg uppercase tracking-wider transition-all ${
-                  period === p ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-2 rounded-lg uppercase tracking-wider transition-all ${
+                  period === p ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : p === 'month' ? 'Este Mês' : 'Ano'}
+                {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : p === 'month' ? 'Mês' : 'Ano'}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* SVG Interactive Chart Canvas */}
-      <div className="relative w-full overflow-x-auto">
+      {/* Recharts Canvas */}
+      <div className="relative w-full h-[320px] z-10">
         {loading ? (
-          <div className="h-64 flex items-center justify-center text-slate-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-3">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-sm font-medium animate-pulse">Analisando dados...</p>
           </div>
         ) : (
-          <div className="min-w-[400px] sm:min-w-[500px]">
-            <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-auto overflow-visible select-none"
-            >
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid Lines */}
-              {[0, 0.33, 0.66, 1].map((ratio, i) => {
-                const y = paddingY + ratio * chartHeight;
-                return (
-                  <line
-                    key={i}
-                    x1={paddingX}
-                    y1={y}
-                    x2={svgWidth - paddingX}
-                    y2={y}
-                    stroke="#e2e8f0"
-                    strokeDasharray="4 4"
-                    strokeWidth="1"
-                  />
-                );
-              })}
-
-              {/* Area fill */}
-              <motion.path
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                d={areaPath}
-                fill="url(#chartGradient)"
-              />
-
-              {/* Smooth Trend Line */}
-              <motion.path
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                d={linePath}
-                fill="none"
-                stroke="#2563eb"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* Data points & Interactive Hover Hotspots */}
-              {points.map((p, i) => {
-                const isHovered = hoveredIndex === i;
-                return (
-                  <g key={i} className="cursor-pointer" onMouseEnter={() => setHoveredIndex(i)} onMouseLeave={() => setHoveredIndex(null)}>
-                    {/* Vertical Highlight Bar on Hover */}
-                    {isHovered && (
-                      <line
-                        x1={p.x}
-                        y1={paddingY}
-                        x2={p.x}
-                        y2={svgHeight - paddingY}
-                        stroke="#93c5fd"
-                        strokeWidth="2"
-                        strokeDasharray="3 3"
-                      />
-                    )}
-
-                    {/* Outer Circle Ring */}
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={isHovered ? "7" : "4.5"}
-                      className="fill-white stroke-blue-600 transition-all duration-150"
-                      strokeWidth="3"
-                    />
-
-                    {/* X-Axis Label */}
-                    <text
-                      x={p.x}
-                      y={svgHeight - 8}
-                      textAnchor="middle"
-                      className="text-[11px] font-bold fill-slate-500"
-                    >
-                      {p.item.label}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Interactive Tooltip Card Overlay */}
-            {hoveredIndex !== null && points[hoveredIndex] && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute z-20 bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1 pointer-events-none"
-                style={{
-                  left: `${(points[hoveredIndex].x / svgWidth) * 100}%`,
-                  top: '10px',
-                  transform: 'translateX(-50%)'
-                }}
-              >
-                <div className="font-extrabold border-b border-slate-700 pb-1 text-blue-300">
-                  {points[hoveredIndex].item.label} ({points[hoveredIndex].item.date})
-                </div>
-                <div className="flex justify-between items-center gap-4 pt-0.5">
-                  <span className="text-slate-400">Faturamento:</span>
-                  <span className="font-black text-emerald-400">
-                    R$ {points[hoveredIndex].item.revenue.toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-slate-400">Vendas via PIX:</span>
-                  <span className="font-bold text-white">
-                    {points[hoveredIndex].item.salesCount} unidades
-                  </span>
-                </div>
-              </motion.div>
+          <ResponsiveContainer width="100%" height="100%">
+            {viewMode === 'revenue' ? (
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" stopOpacity={0.25}/>
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity={0}/>
+                  </linearGradient>
+                  <filter id="shadowRev" height="200%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#2563eb" floodOpacity="0.2"/>
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.6} />
+                <XAxis dataKey="label" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickMargin={12} />
+                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `R$${v}`} tickLine={false} axisLine={false} tickMargin={8} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', borderRadius: '16px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', padding: '12px 16px' }}
+                  itemStyle={{ color: '#2563eb', fontSize: '15px', fontWeight: 700 }}
+                  labelStyle={{ color: '#64748b', marginBottom: '4px', fontWeight: 600, fontSize: '13px' }}
+                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Receita']}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload.length > 0) {
+                      return `${label} (${payload[0].payload.date})`;
+                    }
+                    return label;
+                  }}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" style={{ filter: 'url(#shadowRev)' }} />
+              </AreaChart>
+            ) : (
+              <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.8}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.6} />
+                <XAxis dataKey="label" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickMargin={12} />
+                <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} tickLine={false} axisLine={false} tickMargin={8} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', borderRadius: '16px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', padding: '12px 16px' }}
+                  itemStyle={{ color: '#2563eb', fontSize: '15px', fontWeight: 700 }}
+                  labelStyle={{ color: '#64748b', marginBottom: '4px', fontWeight: 600, fontSize: '13px' }}
+                  formatter={(value: any) => [`${value} unidades`, 'Vendas']}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload.length > 0) {
+                      return `${label} (${payload[0].payload.date})`;
+                    }
+                    return label;
+                  }}
+                  cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
+                />
+                <Bar dataKey="salesCount" fill="url(#colorVol)" radius={[6, 6, 0, 0]} maxBarSize={48} />
+              </BarChart>
             )}
-          </div>
+          </ResponsiveContainer>
         )}
       </div>
     </div>

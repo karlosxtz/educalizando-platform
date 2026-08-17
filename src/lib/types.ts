@@ -22,6 +22,9 @@ export interface Store {
   website?: string | null;
   button_style?: string; // 'rounded', 'pill', 'square'
   welcome_message?: string | null;
+  affiliate_program_enabled?: boolean;
+  affiliate_commission_type?: 'percentual' | 'fixo';
+  affiliate_commission_rate?: number; // e.g. 30.0 for 30% or 10.0 for 10 BRL
   created_at: string;
   updated_at?: string;
 }
@@ -140,6 +143,8 @@ export interface Purchase {
   store_id: string;
   status: 'liberado' | 'pendente' | 'pago' | 'estornado';
   is_plr_purchase?: boolean;
+  affiliate_id?: string | null;
+  affiliate_commission_amount?: number | null;
   created_at: string;
   product?: Product | null;
   kit?: Kit | null;
@@ -207,6 +212,20 @@ export interface StudentProfile {
   avatar_url?: string | null;
 }
 
+export type AffiliateStatus = 'pendente' | 'aprovado' | 'rejeitado';
+
+export interface Affiliate {
+  id: string;
+  store_id: string;
+  user_id: string;
+  status: AffiliateStatus;
+  commission_type?: 'percentual' | 'fixo' | null;
+  commission_rate?: number | null; // specific override for this affiliate
+  created_at: string;
+  updated_at?: string;
+  store?: Store | null;
+  user?: StudentProfile | null;
+}
 
 export interface StoreThemeProps {
   store: Store;

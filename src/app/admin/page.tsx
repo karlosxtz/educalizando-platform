@@ -101,61 +101,90 @@ export default function SuperAdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-        <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-6 h-96 flex flex-col">
-          <h3 className="text-lg font-medium text-white mb-6">Volume Financeiro Global (30 dias)</h3>
+        <div className="lg:col-span-2 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800/50 rounded-2xl p-6 h-[400px] flex flex-col shadow-xl shadow-black/20">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-white">Volume Financeiro Global (30 dias)</h3>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" /> Venda Global
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" /> Educalizando
+              </div>
+            </div>
+          </div>
           {loading ? (
-            <div className="flex-1 flex items-center justify-center text-slate-500">Carregando gráfico...</div>
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-3">
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm font-medium animate-pulse">Carregando dados...</p>
+            </div>
           ) : (
             <div className="flex-1 w-full min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorEducalizando" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
                     </linearGradient>
+                    <filter id="shadow" height="200%">
+                      <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.3"/>
+                    </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="date" stroke="#475569" fontSize={12} tickFormatter={formatDate} tickMargin={10} />
-                  <YAxis stroke="#475569" fontSize={12} tickFormatter={(v) => `R$${v}`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} opacity={0.5} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickFormatter={formatDate} tickMargin={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `R$${v}`} tickLine={false} axisLine={false} tickMargin={8} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
-                    itemStyle={{ color: '#10b981' }}
-                    labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                    formatter={(value: any, name: any) => [formatCurrency(Number(value) || 0), name === 'revenue' ? 'Venda Global' : 'Educalizando']}
+                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(51, 65, 85, 0.5)', borderRadius: '12px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', padding: '12px 16px' }}
+                    itemStyle={{ fontSize: '14px', fontWeight: 500 }}
+                    labelStyle={{ color: '#94a3b8', marginBottom: '8px', fontWeight: 600, fontSize: '13px' }}
+                    formatter={(value: any, name: any) => [
+                      <span key="value" style={{ color: name === 'revenue' ? '#34d399' : '#60a5fa' }}>{formatCurrency(Number(value) || 0)}</span>, 
+                      name === 'revenue' ? 'Venda Global' : 'Educalizando'
+                    ]}
                     labelFormatter={formatDate}
+                    cursor={{ stroke: '#334155', strokeWidth: 1, strokeDasharray: '4 4' }}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-                  <Area type="monotone" dataKey="educalizandoRevenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorEducalizando)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" style={{ filter: 'url(#shadow)' }} />
+                  <Area type="monotone" dataKey="educalizandoRevenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorEducalizando)" style={{ filter: 'url(#shadow)' }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
         </div>
-        <div className="bg-slate-950 border border-slate-800 rounded-xl p-6 h-96 flex flex-col">
-           <h3 className="text-lg font-medium text-white mb-6">Vendas Diárias</h3>
+        <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800/50 rounded-2xl p-6 h-[400px] flex flex-col shadow-xl shadow-black/20">
+           <h3 className="text-lg font-semibold text-white mb-6">Vendas Diárias</h3>
            {loading ? (
-             <div className="flex-1 flex items-center justify-center text-slate-500">Carregando gráfico...</div>
+             <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-3">
+               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+               <p className="text-sm font-medium animate-pulse">Carregando dados...</p>
+             </div>
            ) : (
              <div className="flex-1 w-full min-h-0">
                <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                   <XAxis dataKey="date" stroke="#475569" fontSize={12} tickFormatter={formatDate} tickMargin={10} />
-                   <YAxis stroke="#475569" fontSize={12} allowDecimals={false} />
+                 <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                   <defs>
+                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
+                       <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.8}/>
+                     </linearGradient>
+                   </defs>
+                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} opacity={0.5} />
+                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickFormatter={formatDate} tickMargin={12} tickLine={false} axisLine={false} />
+                   <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} tickLine={false} axisLine={false} tickMargin={8} />
                    <Tooltip 
-                     contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
-                     itemStyle={{ color: '#3b82f6' }}
-                     labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                     formatter={(value: any) => [Number(value) || 0, 'Pedidos']}
+                     contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(51, 65, 85, 0.5)', borderRadius: '12px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', padding: '12px 16px' }}
+                     itemStyle={{ color: '#60a5fa', fontSize: '14px', fontWeight: 500 }}
+                     labelStyle={{ color: '#94a3b8', marginBottom: '8px', fontWeight: 600, fontSize: '13px' }}
+                     formatter={(value: any) => [Number(value) || 0, 'Pedidos Feitos']}
                      labelFormatter={formatDate}
-                     cursor={{ fill: '#1e293b' }}
+                     cursor={{ fill: 'rgba(30, 41, 59, 0.4)' }}
                    />
-                   <Bar dataKey="salesCount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                   <Bar dataKey="salesCount" fill="url(#colorSales)" radius={[6, 6, 0, 0]} maxBarSize={40} />
                  </BarChart>
                </ResponsiveContainer>
              </div>

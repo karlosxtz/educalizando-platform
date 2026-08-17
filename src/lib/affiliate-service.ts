@@ -1,0 +1,112 @@
+import { supabase } from './supabase';
+import { Affiliate, AffiliateStatus } from './types';
+
+export async function getStoreAffiliates(storeId: string): Promise<Affiliate[]> {
+  const { data, error } = await supabase
+    .from('affiliates')
+    .select(`
+      *,
+      user:auth.users(id, email, raw_user_meta_data)
+    `)
+    .eq('store_id', storeId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching affiliates:', error);
+    return [];
+  }
+  
+  // Map the raw_user_meta_data to match StudentProfile format for ease of use
+  return data.map((item: any) => ({
+    ...item,
+    user: item.user ? {
+      id: item.user.id,
+      email: item.user.email,
+      full_name: item.user.raw_user_meta_data?.full_name || 'Desconhecido',
+      avatar_url: item.user.raw_user_meta_data?.avatar_url
+    } : null
+  })) as Affiliate[];
+}
+
+export async function updateAffiliateStatus(affiliateId: string, status: AffiliateStatus): Promise<boolean> {
+  const { error } = await supabase
+    .from('affiliates')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', affiliateId);
+
+  if (error) {
+    console.error('Error updating affiliate status:', error);
+    return false;
+  }
+
+  return true;
+}
+
+export async function getMyAffiliations(): Promise<Affiliate[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('affiliates')
+    .select(`
+      *,
+      store:stores(*)
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching my affiliations:', error);
+    return [];
+  }
+
+  return data as Affiliate[];
+}
+
+export async function applyForAffiliation(storeId: string): Promise<{ success: boolean; message: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Usuário não autenticado' };
+
+  // Check if already applied
+  const { data: existing } = await supabase
+    .from('affiliates')
+    .select('id')
+    .eq('store_id', storeId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (existing) {
+    return { success: false, message: 'Você já enviou uma solicitação para esta loja.' };
+  }
+
+  const { error } = await supabase
+    .from('affiliates')
+    .insert([
+      {
+        store_id: storeId,
+        user_id: user.id,
+        status: 'pendente'
+      }
+    ]);
+
+  if (error) {
+    console.error('Error applying for affiliation:', error);
+    return { success: false, message: 'Erro ao enviar solicitação.' };
+  }
+
+  return { success: true, message: 'Solicitação enviada com sucesso!' };
+}
+
+export async function updateAffiliateCommission(affiliateId: string, commission_rate: number | null): Promise<boolean> {
+  const { error } = await supabase
+    .from('affiliates')
+    .update({ commission_rate, updated_at: new Date().toISOString() })
+    .eq('id', affiliateId);
+
+  if (error) {
+    console.error('Error updating commission rate:', error);
+    return false;
+  }
+
+  return true;
+}
