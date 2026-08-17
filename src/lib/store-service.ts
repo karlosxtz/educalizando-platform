@@ -423,6 +423,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
         .order('created_at', { ascending: false });
 
       let validStoreIds = [cleanStoreId];
+      let affiliateProducts: Product[] = [];
 
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
         // Obter todas as lojas do criador para evitar que produtos sumam se tiver 2 lojas bugadas
@@ -433,6 +434,40 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           .single();
 
         if (storeInfo?.creator_id) {
+          // --- BEGIN AFFILIATE LOGIC ---
+          // Fetch products this store's creator is affiliated with
+          const { data: affiliations } = await supabase
+            .from('affiliates')
+            .select('store_id, product_id')
+            .eq('user_id', storeInfo.creator_id)
+            .eq('status', 'aprovado');
+
+          if (affiliations && affiliations.length > 0) {
+            const pIds = affiliations.filter(a => a.product_id).map(a => a.product_id);
+            const sIds = affiliations.filter(a => !a.product_id).map(a => a.store_id);
+            
+            if (pIds.length > 0 || sIds.length > 0) {
+              let affQuery = supabase
+                .from('products')
+                .select('*')
+                .is('excluido_em', null)
+                .neq('status', 'excluido');
+                
+              if (pIds.length > 0 && sIds.length > 0) {
+                affQuery = affQuery.or(`store_id.in.(${sIds.join(',')}),id.in.(${pIds.join(',')})`);
+              } else if (sIds.length > 0) {
+                affQuery = affQuery.in('store_id', sIds);
+              } else if (pIds.length > 0) {
+                affQuery = affQuery.in('id', pIds);
+              }
+              
+              const { data: affData } = await affQuery;
+              if (affData) {
+                affiliateProducts = affData as Product[];
+              }
+            }
+          }
+          // --- END AFFILIATE LOGIC ---
           const { data: creatorStores } = await supabase
             .from('stores')
             .select('id')
@@ -478,8 +513,21 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
           return p;
         });
 
-        // Merge remote com local
+        // Merge remote com local e afiliados
         const remoteIds = new Set(remote.map(p => p.id));
+        
+        // Adiciona os produtos de afiliados que ainda não estão na lista
+        if (typeof affiliateProducts !== 'undefined' && affiliateProducts.length > 0) {
+          for (const ap of affiliateProducts) {
+            const statusStr = (ap.status as string) || '';
+            const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
+            if (isPublished && !remoteIds.has(ap.id)) {
+              remote.push(ap);
+              remoteIds.add(ap.id);
+            }
+          }
+        }
+
         for (const lp of mergedProducts) {
           const lpCleanStore = lp.store_id ? lp.store_id.replace(/^store_/i, '') : '';
           if (validStoreIds.includes(lp.store_id) || validStoreIds.includes(lpCleanStore) || lpCleanStore === cleanStoreId) {
