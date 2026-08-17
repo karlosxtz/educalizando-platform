@@ -24,8 +24,10 @@ export default function DashboardOverviewPage() {
     async function loadData() {
       const s = await getCurrentCreatorStore();
       setStore(s);
-      const prods = await getProductsByStoreId(s.id);
-      setProducts(prods);
+      if (s) {
+        const prods = await getProductsByStoreId(s.id);
+        setProducts(prods);
+      }
     }
     loadData();
 
