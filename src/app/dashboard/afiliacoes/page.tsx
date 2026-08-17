@@ -1,26 +1,29 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/lib/supabase';
 import { getMyAffiliations } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
 import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AffiliateDashboardPage() {
-  const { user } = useAuth();
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
+    loadData();
+  }, []);
 
   async function loadData() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
       const data = await getMyAffiliations();
       setAffiliations(data);
     } catch (e) {

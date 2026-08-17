@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/components/auth/AuthProvider';
 import { getStoreAffiliates, updateAffiliateStatus } from '@/lib/affiliate-service';
-import { getStoreByCreator } from '@/lib/store-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Affiliate, Store } from '@/lib/types';
 import { Users, CheckCircle, XCircle, Settings, TrendingUp } from 'lucide-react';
 import { updateStoreSettings } from '@/app/actions/store-actions'; // we will need an action for this or use supabase directly
 import { supabase } from '@/lib/supabase';
 
 export default function CreatorAffiliatesPage() {
-  const { user } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,15 +20,18 @@ export default function CreatorAffiliatesPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
+    loadData();
+  }, []);
 
   async function loadData() {
-    if (!user) return;
     try {
-      const myStore = await getStoreByCreator(user.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const myStore = await getCurrentCreatorStore();
       if (myStore) {
         setStore(myStore);
         setIsProgramEnabled(myStore.affiliate_program_enabled || false);
