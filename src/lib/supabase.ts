@@ -224,9 +224,9 @@ export async function signInUser({ email, password }: { email: string; password:
         storeSlug: cleanStoreSlug
       }));
       
-      // Sincronizar Cookie para Middleware (Hiper Seguro)
+      // Sincronizar Cookie HttpOnly para o Proxy (aguardar resposta completa)
       try {
-        await fetch('/api/auth/sync', {
+        const syncResponse = await fetch('/api/auth/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -234,6 +234,8 @@ export async function signInUser({ email, password }: { email: string; password:
             refresh_token: data.session?.refresh_token
           })
         });
+        // Consumir o body garante que os Set-Cookie headers foram processados pelo browser
+        await syncResponse.json();
       } catch (e) {
         console.error('Erro ao sincronizar cookie seguro:', e);
       }

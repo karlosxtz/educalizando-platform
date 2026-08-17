@@ -56,12 +56,13 @@ export default function LoginPage() {
     try {
       await signInUser({ email: values.email, password: values.password });
       
-      // Redirecionamento Automático
+      // Usar window.location.href para forçar reload completo
+      // garantindo que o cookie sb-access-token já esteja disponível antes do proxy verificar
       const superAdminEmail = process.env.NEXT_PUBLIC_SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
       if (values.email.toLowerCase() === superAdminEmail.toLowerCase()) {
-        router.push('/admin');
+        window.location.href = '/admin';
       } else {
-        router.push('/dashboard/loja');
+        window.location.href = '/dashboard/loja';
       }
       
     } catch (err: any) {
