@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
+import { supabase, isRealSupabaseConfigured } from './supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // =============================================================================
@@ -207,6 +207,8 @@ export interface CreateNotificationParams {
 }
 
 export async function createNotification(params: CreateNotificationParams): Promise<string | null> {
+  // Importação local para garantir que supabaseAdmin SÓ seja usado no server-side
+  const { supabaseAdmin } = await import('./supabase');
   try {
     const { data, error } = await supabaseAdmin
       .from('notifications')
