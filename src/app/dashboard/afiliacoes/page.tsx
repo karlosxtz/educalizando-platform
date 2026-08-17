@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getMyAffiliations } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag } from 'lucide-react';
+import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AffiliateDashboardPage() {
@@ -54,14 +54,23 @@ export default function AffiliateDashboardPage() {
           <p className="text-slate-500 mt-1">Acompanhe seus links de divulgação e comissões.</p>
         </div>
         {userId && (
-          <Link 
-            href={`/afiliado/${userId}`} 
-            target="_blank"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            Minha Loja de Afiliado
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/dashboard/afiliacoes/mercado" 
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold shadow-sm transition-all"
+            >
+              <Store className="w-4 h-4 text-brand-teal" />
+              Mercado de Produtos
+            </Link>
+            <Link 
+              href={`/afiliado/${userId}`} 
+              target="_blank"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Minha Loja de Afiliado
+            </Link>
+          </div>
         )}
       </div>
 

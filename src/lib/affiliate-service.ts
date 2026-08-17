@@ -115,7 +115,7 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
   // 1. Fetch approved affiliations
   const { data: affiliations, error } = await supabase
     .from('affiliates')
-    .select('store_id, commission_type, commission_rate, id')
+    .select('store_id, product_id, commission_type, commission_rate, id')
     .eq('user_id', affiliateUserId)
     .eq('status', 'aprovado');
 
@@ -123,27 +123,85 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
     return [];
   }
 
-  const storeIds = affiliations.map(a => a.store_id);
+  const storeIds = affiliations.filter(a => !a.product_id).map(a => a.store_id);
+  const productIds = affiliations.filter(a => a.product_id).map(a => a.product_id);
 
-  // 2. Fetch all public products for those stores
-  const { data: products, error: productsError } = await supabase
+  // 2. Fetch all public products for those stores OR specific products
+  let query = supabase
     .from('products')
     .select('*, store:stores(nome_loja, slug, id, logo_url)')
-    .in('store_id', storeIds)
     .eq('status', 'publicado')
-    .is('excluido_em', null)
-    .order('created_at', { ascending: false });
+    .is('excluido_em', null);
+
+  if (storeIds.length > 0 && productIds.length > 0) {
+    query = query.or(`store_id.in.(${storeIds.join(',')}),id.in.(${productIds.join(',')})`);
+  } else if (storeIds.length > 0) {
+    query = query.in('store_id', storeIds);
+  } else if (productIds.length > 0) {
+    query = query.in('id', productIds);
+  }
+
+  const { data: products, error: productsError } = await query.order('created_at', { ascending: false });
 
   if (productsError || !products) return [];
 
   // 3. Map to include affiliate data
   return products.map(p => {
-    const affiliation = affiliations.find(a => a.store_id === p.store_id);
+    // try finding by product first, then by store
+    const affiliation = affiliations.find(a => a.product_id === p.id) || affiliations.find(a => a.store_id === p.store_id && !a.product_id);
     return {
       ...p,
       affiliateInfo: affiliation
     };
   });
+}
+
+export async function getAvailableMarketplaceProducts(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, store:stores(nome_loja, logo_url)')
+    .eq('status', 'publicado')
+    .is('excluido_em', null)
+    .eq('allow_affiliates', true)
+    .order('created_at', { ascending: false });
+    
+  if (error) return [];
+  return data;
+}
+
+export async function applyForProductAffiliation(productId: string, storeId: string, autoApprove: boolean = true): Promise<{ success: boolean; message: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Usuário não autenticado' };
+
+  // Check if already applied
+  const { data: existing } = await supabase
+    .from('affiliates')
+    .select('id')
+    .eq('product_id', productId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (existing) {
+    return { success: false, message: 'Você já é afiliado deste produto.' };
+  }
+
+  const { error } = await supabase
+    .from('affiliates')
+    .insert([
+      {
+        store_id: storeId,
+        product_id: productId,
+        user_id: user.id,
+        status: autoApprove ? 'aprovado' : 'pendente' // Product level affiliations default to auto approve if set
+      }
+    ]);
+
+  if (error) {
+    console.error('Error applying for product affiliation:', error);
+    return { success: false, message: 'Erro ao enviar solicitação.' };
+  }
+
+  return { success: true, message: autoApprove ? 'Afiliação concluída com sucesso! O produto já está na sua vitrine.' : 'Solicitação enviada com sucesso!' };
 }
 
 export async function getAffiliateProfile(userId: string) {

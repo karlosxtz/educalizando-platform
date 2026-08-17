@@ -64,6 +64,8 @@ export interface Product {
   is_plr?: boolean;
   preco_plr?: number;
   plr_license_url?: string | null;
+  allow_affiliates?: boolean;
+  affiliate_commission_rate?: number;
   capa_url: string | null;
   arquivo_url: string | null;
   status: ProductStatus;
@@ -217,6 +219,7 @@ export type AffiliateStatus = 'pendente' | 'aprovado' | 'rejeitado';
 export interface Affiliate {
   id: string;
   store_id: string;
+  product_id?: string | null;
   user_id: string;
   status: AffiliateStatus;
   commission_type?: 'percentual' | 'fixo' | null;

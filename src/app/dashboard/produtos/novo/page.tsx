@@ -47,6 +47,9 @@ function ProductWizardContent() {
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
 
+  const [allowAffiliates, setAllowAffiliates] = useState<boolean>(false);
+  const [affiliateCommissionRate, setAffiliateCommissionRate] = useState<string>('50');
+
   useEffect(() => {
     async function initData() {
       try {
@@ -93,6 +96,8 @@ function ProductWizardContent() {
             setIsPlr(existing.is_plr || false);
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             setPlrLicenseUrl(existing.plr_license_url || null);
+            setAllowAffiliates(existing.allow_affiliates || false);
+            if (existing.affiliate_commission_rate) setAffiliateCommissionRate(existing.affiliate_commission_rate.toString().replace('.', ','));
           }
         }
       } catch (err: any) {
@@ -137,6 +142,7 @@ function ProductWizardContent() {
 
     const numericPrice = parseFloat(preco.replace(',', '.')) || 0;
     const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
+    const numericCommissionRate = parseFloat(affiliateCommissionRate.replace(',', '.')) || 0;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
 
     try {
@@ -154,7 +160,9 @@ function ProductWizardContent() {
           gallery_urls: galleryUrls,
           is_plr: isPlr,
           preco_plr: numericPrecoPlr,
-          plr_license_url: plrLicenseUrl
+          plr_license_url: plrLicenseUrl,
+          allow_affiliates: allowAffiliates,
+          affiliate_commission_rate: numericCommissionRate
         });
       } else {
         await createProduct({
@@ -171,7 +179,9 @@ function ProductWizardContent() {
           gallery_urls: galleryUrls,
           is_plr: isPlr,
           preco_plr: numericPrecoPlr,
-          plr_license_url: plrLicenseUrl
+          plr_license_url: plrLicenseUrl,
+          allow_affiliates: allowAffiliates,
+          affiliate_commission_rate: numericCommissionRate
         });
       }
 
@@ -441,6 +451,51 @@ function ProductWizardContent() {
                           onChange={(url: string | null) => setPlrLicenseUrl(url)}
                           label="Licença de Revenda do Produto"
                           helperText="Formatos suportados: PDF ou Imagem. Tamanho máximo: 5MB."
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+                
+                {/* PROGRAMA DE AFILIADOS */}
+                <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="pt-0.5 relative flex-shrink-0">
+                      <div className="w-12 h-6 bg-slate-200 rounded-full cursor-pointer relative overflow-hidden" onClick={() => setAllowAffiliates(!allowAffiliates)}>
+                        <div className={`absolute inset-0 bg-blue-600 transition-transform duration-300 ${allowAffiliates ? 'translate-x-0' : '-translate-x-full'}`} />
+                        <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${allowAffiliates ? 'translate-x-6' : 'translate-x-0'}`} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${allowAffiliates ? 'text-blue-900' : 'text-slate-700'}`}>Habilitar Programa de Afiliados</span>
+                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Novo</span>
+                      </div>
+                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${allowAffiliates ? 'text-blue-700' : 'text-slate-500'}`}>
+                        Ao marcar esta opção, seu produto vai para o **Mercado de Afiliação**.
+                        Outros usuários poderão se afiliar e vender o seu produto em troca de uma comissão automática.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {allowAffiliates && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800">Comissão do Afiliado (%)</h4>
+                        <p className="text-xs text-slate-500 mt-1">Defina qual porcentagem do valor da venda o afiliado irá receber.</p>
+                      </div>
+                      <div className="relative w-full sm:w-48 flex-shrink-0">
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                        <input
+                          type="text"
+                          value={affiliateCommissionRate}
+                          onChange={(e) => setAffiliateCommissionRate(e.target.value)}
+                          placeholder="50"
+                          className="w-full pr-10 pl-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none shadow-sm"
                         />
                       </div>
                     </motion.div>
