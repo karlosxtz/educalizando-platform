@@ -130,6 +130,7 @@ export interface Purchase {
   kit_id?: string | null;
   store_id: string;
   status: 'liberado' | 'pendente' | 'pago' | 'estornado';
+  is_plr_purchase?: boolean;
   created_at: string;
   product?: Product | null;
   kit?: Kit | null;

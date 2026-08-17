@@ -53,6 +53,7 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const contentId = searchParams.get('contentId');
+    const downloadType = searchParams.get('type'); // 'plr' for PLR license
 
     try {
       if (contentId) {
@@ -71,14 +72,18 @@ export async function GET(
       if (!fileUrl) {
         const { data: productData } = await supabase
           .from('products')
-          .select('titulo, arquivo_url')
+          .select('titulo, arquivo_url, plr_license_url')
           .eq('id', productId)
           .is('excluido_em', null)
           .maybeSingle();
 
         if (productData) {
-          if (productData.titulo) productTitle = productData.titulo;
-          if (productData.arquivo_url) fileUrl = productData.arquivo_url;
+          if (productData.titulo) productTitle = downloadType === 'plr' ? `${productData.titulo} - Licenca PLR` : productData.titulo;
+          if (downloadType === 'plr' && productData.plr_license_url) {
+            fileUrl = productData.plr_license_url;
+          } else if (productData.arquivo_url) {
+            fileUrl = productData.arquivo_url;
+          }
         }
       }
 

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ShieldCheck, Zap, Award, Star, ExternalLink } from 'lucide-react';
+import Image from 'next/image';
 
 export default function MockupPreview() {
   return (
@@ -34,11 +35,12 @@ export default function MockupPreview() {
         <div className="p-4 sm:p-5 space-y-4">
           {/* Store Banner & Creator Profile */}
           <div className="bg-gradient-to-r from-brand-navy via-brand-teal to-brand-navy p-3 sm:p-4 rounded-xl text-white shadow-sm flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0">
-              <img
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex-shrink-0 relative">
+              <Image
                 src="/prof_profile.jpg"
                 alt="Prof. Ricardo"
-                className="w-full h-full rounded-full object-cover"
+                fill
+                className="rounded-full object-cover"
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -62,10 +64,11 @@ export default function MockupPreview() {
           {/* Product Listing Card Mockup */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3.5 flex gap-2.5 sm:gap-3.5 items-center min-w-0 overflow-hidden">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
-              <img
+              <Image
                 src="/book_cover.jpg"
                 alt="Material"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               <span className="absolute top-1 left-1 bg-brand-navy text-white text-[7px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded">
                 PDF+VÍDEO

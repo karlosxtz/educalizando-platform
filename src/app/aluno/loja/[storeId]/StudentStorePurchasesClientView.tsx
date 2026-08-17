@@ -60,41 +60,42 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
 
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const downloadSingleProduct = async (productId: string, title: string) => {
+  const downloadSingleProduct = async (productId: string, title: string, type?: 'plr') => {
     // Usar navegação direta para aproveitar o redirect do backend e evitar proxy em memória
-    const downloadUrl = `/api/aluno/materiais/${productId}/download`;
+    const downloadUrl = `/api/aluno/materiais/${productId}/download${type === 'plr' ? '?type=plr' : ''}`;
     
     // window.location.assign evita bloqueadores de popup (já que a chamada é async)
     // e permite que o browser resolva o Content-Disposition: attachment nativamente
     window.location.assign(downloadUrl);
   };
 
-  const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent) => {
+  const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent, type?: 'plr') => {
     e.preventDefault();
     e.stopPropagation();
 
     const targetId = pur.product_id || pur.id;
+    const downloadActionId = type === 'plr' ? `${pur.id}-plr` : pur.id;
     console.log("### BOTÃO DOWNLOAD CLICADO ###");
-    console.log("DOWNLOAD MATERIAL:", targetId);
+    console.log("DOWNLOAD MATERIAL:", targetId, type || 'default');
     console.log("CURRENT URL:", window.location.href);
 
-    setDownloadingId(pur.id);
+    setDownloadingId(downloadActionId);
 
     try {
       if (pur.product_id) {
-        await downloadSingleProduct(pur.product_id, pur.product?.titulo || 'Material_Didatico');
+        await downloadSingleProduct(pur.product_id, pur.product?.titulo || 'Material_Didatico', type);
       } else if (pur.kit?.products && pur.kit.products.length > 0) {
         for (const prod of pur.kit.products) {
-          await downloadSingleProduct(prod.id, prod.titulo || 'Material_Kit');
+          await downloadSingleProduct(prod.id, prod.titulo || 'Material_Kit', type);
         }
       } else {
-        await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico');
+        await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico', type);
       }
       
       const targetProductId = pur.product_id || pur.id;
       const existingReview = myReviews.find(r => r.product_id === targetProductId);
       
-      if (!existingReview) {
+      if (!existingReview && type !== 'plr') {
         toast('Já baixou? Que tal avaliar este material?', {
           action: {
             label: 'Avaliar agora',
@@ -104,14 +105,14 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           icon: '⭐'
         });
       } else {
-        toast.success('Download iniciado!');
+        toast.success(type === 'plr' ? 'Download da Licença PLR iniciado!' : 'Download iniciado!');
       }
     } catch (err: any) {
       console.error('[Download Error]:', err);
       toast.error('Não foi possível baixar o material agora. Tente novamente em instantes.', {
         action: {
           label: 'Tentar novamente',
-          onClick: () => handleDownloadPurchase(pur, e as any)
+          onClick: () => handleDownloadPurchase(pur, e as any, type)
         }
       });
     } finally {
@@ -310,25 +311,43 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                   {/* Direct Download Action Footer */}
                   <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                        <ShieldCheck className="w-4 h-4" /> Acesso Liberado
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleDownloadPurchase(pur, e)}
-                        disabled={downloadingId === pur.id}
-                        className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        {downloadingId === pur.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Download className="w-3.5 h-3.5" />
-                        )}
-                        <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
-                      </button>
-                    </div>
+                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                          <ShieldCheck className="w-4 h-4" /> Acesso Liberado
+                        </span>
+                        
+                        <div className="flex gap-2">
+                          {pur.is_plr_purchase && pur.product?.plr_license_url && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleDownloadPurchase(pur, e, 'plr')}
+                              disabled={downloadingId === `${pur.id}-plr`}
+                              className="px-3 py-2.5 rounded-xl font-extrabold text-xs text-amber-700 bg-amber-100 border border-amber-200 shadow-sm transition-all flex items-center gap-1.5 hover:bg-amber-200 active:scale-95 cursor-pointer disabled:opacity-50"
+                            >
+                              {downloadingId === `${pur.id}-plr` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Download className="w-3.5 h-3.5" />
+                              )}
+                              <span>{downloadingId === `${pur.id}-plr` ? 'Baixando...' : 'Licença PLR'}</span>
+                            </button>
+                          )}
+                          
+                          <button
+                            type="button"
+                            onClick={(e) => handleDownloadPurchase(pur, e)}
+                            disabled={downloadingId === pur.id}
+                            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            {downloadingId === pur.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Download className="w-3.5 h-3.5" />
+                            )}
+                            <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
+                          </button>
+                        </div>
+                      </div>
                     
                     {/* Botão Avaliar */}
                     <div className="pt-2 border-t border-slate-200/50">

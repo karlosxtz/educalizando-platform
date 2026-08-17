@@ -446,6 +446,19 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
             .eq('id', acc.store_id)
             .maybeSingle();
 
+          // Buscar info de PLR do Pedido
+          let isPlrPurchase = false;
+          if (acc.order_id) {
+            const { data: orderData } = await supabase
+              .from('orders')
+              .select('is_plr_purchase')
+              .eq('id', acc.order_id)
+              .maybeSingle();
+            if (orderData) {
+              isPlrPurchase = orderData.is_plr_purchase === true;
+            }
+          }
+
           if (prodData) {
             realPurchases.push({
               id: acc.id,
@@ -453,6 +466,7 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
               store_id: acc.store_id,
               product_id: acc.product_id,
               status: 'liberado',
+              is_plr_purchase: isPlrPurchase,
               created_at: acc.granted_at || acc.created_at || new Date().toISOString(),
               product: {
                 id: prodData.id,
@@ -462,6 +476,8 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
                 preco: Number(prodData.preco || 0),
                 tipo: prodData.tipo || 'pdf',
                 status: prodData.status || 'publicado',
+                is_plr: prodData.is_plr,
+                plr_license_url: prodData.plr_license_url,
                 capa_url: prodData.capa_url,
                 arquivo_url: prodData.arquivo_url,
                 created_at: prodData.created_at
@@ -512,6 +528,8 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
           preco: 0,
           tipo: 'pdf',
           status: 'publicado',
+          is_plr: false,
+          plr_license_url: null,
           capa_url: '/branding/logo-educalizando.png',
           arquivo_url: '',
           created_at: acc.grantedAt

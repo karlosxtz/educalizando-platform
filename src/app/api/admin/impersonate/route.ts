@@ -27,10 +27,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'ID da loja obrigatório' }, { status: 400 });
     }
 
-    // Buscar owner_id da loja
+    // Buscar creator_id da loja
     const { data: store, error: storeError } = await supabaseAdmin
       .from('stores')
-      .select('owner_id')
+      .select('creator_id')
       .eq('id', storeId)
       .single();
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Buscar o email do usuário na auth.users
-    const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserById(store.owner_id);
+    const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserById(store.creator_id);
 
     if (userError || !user.user?.email) {
       return NextResponse.json({ error: 'Usuário dono não encontrado ou sem email' }, { status: 404 });
