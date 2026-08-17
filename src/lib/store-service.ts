@@ -398,153 +398,122 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  let mergedProducts: Product[] = [];
-
-  // Fallback Local
-  if (typeof window !== 'undefined') {
-    mergedProducts = getLocalProducts().filter(p => {
+  // Fallback Local (for dev/mock mode only)
+  if (!isRealSupabase) {
+    const mergedProducts: Product[] = typeof window !== 'undefined' ? getLocalProducts() : [];
+    return mergedProducts.filter((p: Product) => {
       if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
       const statusStr = (p.status as string) || '';
       const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
       if (!isPublished) return false;
-      if (!p.store_id) return false;
-      return true; // Permitir merge de todos, filtraremos na resposta final
+      const lpClean = p.store_id ? p.store_id.replace(/^store_/i, '') : '';
+      return lpClean === cleanStoreId;
     });
   }
 
-  if (isRealSupabase) {
-    try {
-      let query = supabase
-        .from('products')
-        .select('*')
-        .is('excluido_em', null)
-        .neq('status', 'excluido')
-        .order('created_at', { ascending: false });
+  try {
+    // --- Step 1: Get all store IDs belonging to the same creator ---
+    let validStoreIds: string[] = [cleanStoreId];
 
-      let validStoreIds = [cleanStoreId];
-      let affiliateProducts: Product[] = [];
+    const { data: storeInfo } = await supabase
+      .from('stores')
+      .select('id, creator_id')
+      .eq('id', cleanStoreId)
+      .maybeSingle();
 
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
-        // Obter todas as lojas do criador para evitar que produtos sumam se tiver 2 lojas bugadas
-        const { data: storeInfo } = await supabase
-          .from('stores')
-          .select('creator_id')
-          .eq('id', cleanStoreId)
-          .single();
+    if (storeInfo?.creator_id) {
+      const { data: creatorStores } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('creator_id', storeInfo.creator_id);
 
-        if (storeInfo?.creator_id) {
-          // --- BEGIN AFFILIATE LOGIC ---
-          // Fetch products this store's creator is affiliated with
-          const { data: affiliations } = await supabase
-            .from('affiliates')
-            .select('store_id, product_id')
-            .eq('user_id', storeInfo.creator_id)
-            .eq('status', 'aprovado');
-
-          if (affiliations && affiliations.length > 0) {
-            const pIds = affiliations.filter(a => a.product_id).map(a => a.product_id);
-            const sIds = affiliations.filter(a => !a.product_id).map(a => a.store_id);
-            
-            if (pIds.length > 0 || sIds.length > 0) {
-              let affQuery = supabase
-                .from('products')
-                .select('*')
-                .is('excluido_em', null)
-                .neq('status', 'excluido');
-                
-              if (pIds.length > 0 && sIds.length > 0) {
-                affQuery = affQuery.or(`store_id.in.(${sIds.join(',')}),id.in.(${pIds.join(',')})`);
-              } else if (sIds.length > 0) {
-                affQuery = affQuery.in('store_id', sIds);
-              } else if (pIds.length > 0) {
-                affQuery = affQuery.in('id', pIds);
-              }
-              
-              const { data: affData } = await affQuery;
-              if (affData) {
-                affiliateProducts = affData as Product[];
-              }
-            }
-          }
-          // --- END AFFILIATE LOGIC ---
-          const { data: creatorStores } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('creator_id', storeInfo.creator_id);
-            
-          if (creatorStores && creatorStores.length > 0) {
-            validStoreIds = creatorStores.map(s => s.id);
-            query = query.in('store_id', validStoreIds);
-          } else {
-            query = query.eq('store_id', cleanStoreId);
-          }
-        } else {
-          query = query.eq('store_id', cleanStoreId);
-        }
+      if (creatorStores && creatorStores.length > 0) {
+        validStoreIds = creatorStores.map(s => s.id);
       }
-
-      const { data, error } = await query;
-
-      // Buscar avaliações agregadas (para todas as lojas válidas do criador)
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select('product_id, nota')
-        .in('store_id', validStoreIds);
-
-      if (!error && data) {
-        const remote = (data as Product[]).filter(p => {
-          if (p.excluido_em || p.status === 'excluido') return false;
-          if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-          const statusStr = (p.status as string) || '';
-          const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
-          if (!isPublished) return false;
-          if (!p.store_id) return false;
-          return true;
-        }).map(p => {
-          if (reviewsData && reviewsData.length > 0) {
-            const productReviews = reviewsData.filter(r => r.product_id === p.id);
-            if (productReviews.length > 0) {
-              const sum = productReviews.reduce((acc, r) => acc + r.nota, 0);
-              p.review_count = productReviews.length;
-              p.average_rating = Number((sum / productReviews.length).toFixed(1));
-            }
-          }
-          return p;
-        });
-
-        // Merge remote com local e afiliados
-        const remoteIds = new Set(remote.map(p => p.id));
-        
-        // Adiciona os produtos de afiliados que ainda não estão na lista
-        if (typeof affiliateProducts !== 'undefined' && affiliateProducts.length > 0) {
-          for (const ap of affiliateProducts) {
-            const statusStr = (ap.status as string) || '';
-            const isPublished = statusStr === 'publicado' || statusStr === 'published' || statusStr === 'ativo';
-            if (isPublished && !remoteIds.has(ap.id)) {
-              remote.push(ap);
-              remoteIds.add(ap.id);
-            }
-          }
-        }
-
-        for (const lp of mergedProducts) {
-          const lpCleanStore = lp.store_id ? lp.store_id.replace(/^store_/i, '') : '';
-          if (validStoreIds.includes(lp.store_id) || validStoreIds.includes(lpCleanStore) || lpCleanStore === cleanStoreId) {
-            if (!remoteIds.has(lp.id)) remote.push(lp);
-          }
-        }
-        return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-      }
-    } catch (err) {
-      console.error('[getPublicProductsByStoreId] Erro Supabase:', err);
     }
-  }
 
-  return mergedProducts.filter(p => {
-    const lpClean = p.store_id ? p.store_id.replace(/^store_/i, '') : '';
-    return lpClean === cleanStoreId;
-  });
+    // --- Step 2: Fetch published products for those stores ---
+    const { data: ownProducts, error: ownError } = await supabase
+      .from('products')
+      .select('*')
+      .in('store_id', validStoreIds)
+      .in('status', ['publicado', 'ativo', 'published'])
+      .is('excluido_em', null)
+      .order('created_at', { ascending: false });
+
+    if (ownError) {
+      console.error('[getPublicProductsByStoreId] Erro ao buscar produtos próprios:', ownError);
+    }
+
+    const allProducts: Product[] = (ownProducts || []) as Product[];
+    const ownProductIds = new Set(allProducts.map(p => p.id));
+
+    // --- Step 3: Fetch affiliate products (if creator exists) ---
+    if (storeInfo?.creator_id) {
+      const { data: affiliations } = await supabase
+        .from('affiliates')
+        .select('store_id, product_id')
+        .eq('user_id', storeInfo.creator_id)
+        .eq('status', 'aprovado');
+
+      if (affiliations && affiliations.length > 0) {
+        const pIds = affiliations.filter(a => a.product_id).map(a => a.product_id);
+        const sIds = affiliations.filter(a => !a.product_id && a.store_id).map(a => a.store_id);
+
+        if (pIds.length > 0 || sIds.length > 0) {
+          let affQuery = supabase
+            .from('products')
+            .select('*')
+            .in('status', ['publicado', 'ativo', 'published'])
+            .is('excluido_em', null);
+
+          if (pIds.length > 0 && sIds.length > 0) {
+            affQuery = affQuery.or(`store_id.in.(${sIds.join(',')}),id.in.(${pIds.join(',')})`);
+          } else if (sIds.length > 0) {
+            affQuery = affQuery.in('store_id', sIds);
+          } else {
+            affQuery = affQuery.in('id', pIds);
+          }
+
+          const { data: affData } = await affQuery;
+          if (affData) {
+            for (const p of affData as Product[]) {
+              if (!ownProductIds.has(p.id)) {
+                allProducts.push(p);
+                ownProductIds.add(p.id);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // --- Step 4: Enrich with review data ---
+    const { data: reviewsData } = await supabase
+      .from('reviews')
+      .select('product_id, nota')
+      .in('store_id', validStoreIds);
+
+    return allProducts
+      .filter(p => !deletedIds.has(p.id))
+      .map(p => {
+        if (reviewsData && reviewsData.length > 0) {
+          const productReviews = reviewsData.filter(r => r.product_id === p.id);
+          if (productReviews.length > 0) {
+            const sum = productReviews.reduce((acc, r) => acc + r.nota, 0);
+            p.review_count = productReviews.length;
+            p.average_rating = Number((sum / productReviews.length).toFixed(1));
+          }
+        }
+        return p;
+      })
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+  } catch (err) {
+    console.error('[getPublicProductsByStoreId] Erro crítico:', err);
+    return [];
+  }
 }
 
 const isValidUUID = (str: string | null | undefined): boolean => {
