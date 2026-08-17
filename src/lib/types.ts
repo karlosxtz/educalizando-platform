@@ -51,6 +51,7 @@ export interface Product {
   preco: number;
   is_plr?: boolean;
   preco_plr?: number;
+  plr_license_url?: string | null;
   capa_url: string | null;
   arquivo_url: string | null;
   status: ProductStatus;
