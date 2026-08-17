@@ -58,7 +58,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
-      label: 'Brindes (Grátis)',
+      label: 'Material Grátis',
       href: '/dashboard/brindes',
       icon: Gift,
       badge: 'NOVO'

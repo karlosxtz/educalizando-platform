@@ -92,7 +92,7 @@ export default function ProductsManagementPage() {
       await loadData();
       router.refresh();
     } catch (err: any) {
-      setActionError(err.message || 'Erro ao excluir brinde.');
+      setActionError(err.message || 'Erro ao Excluir material grátis.');
     } finally {
       setIsDeletingLoading(false);
     }
@@ -105,7 +105,7 @@ export default function ProductsManagementPage() {
       setProducts(prev => prev.map(p => (p.id === prod.id ? updated : p)));
       router.refresh();
     } catch (err: any) {
-      setActionError(err.message || 'Erro ao alterar status do brinde.');
+      setActionError(err.message || 'Erro ao alterar status do material grátis.');
     }
   };
 
@@ -205,7 +205,7 @@ export default function ProductsManagementPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
-            <Package className="w-7 h-7 text-brand-navy" /> Meus Brindes Didáticos ({products.length})
+            <Package className="w-7 h-7 text-brand-navy" /> Meus Materiais Grátis ({products.length})
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-medium">
             Cadastre e gerencie suas apostilas, e-books e cursos categorizados por tema e escolaridade.
@@ -226,7 +226,7 @@ export default function ProductsManagementPage() {
             className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
-            <span>Cadastrar Novo Brinde (Tela Cheia)</span>
+            <span>Cadastrar Novo Material Grátis (Tela Cheia)</span>
           </Link>
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function ProductsManagementPage() {
         <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-xs text-center max-w-lg mx-auto space-y-4">
           <Package className="w-12 h-12 text-slate-400 mx-auto" />
           <h3 className="text-lg font-bold text-slate-900">
-            {products.length === 0 ? 'Você ainda não publicou nenhum brinde' : 'Nenhum brinde atende a este filtro'}
+            {products.length === 0 ? 'Você ainda não publicou nenhum material grátis' : 'Nenhum material grátis atende a este filtro'}
           </h3>
           <p className="text-sm text-slate-500">
             Sua loja está pronta! Abra o Wizard guiado para cadastrar seu primeiro e-book ou apostila em PDF.
@@ -281,7 +281,7 @@ export default function ProductsManagementPage() {
             onClick={handleOpenCreateWizard}
             className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md hover:bg-blue-700 transition-all"
           >
-            <Plus className="w-4 h-4" /> Cadastrar Meu Primeiro brinde
+            <Plus className="w-4 h-4" /> Cadastrar Meu Primeiro Material Grátis
           </button>
         </div>
       ) : (
@@ -366,14 +366,14 @@ export default function ProductsManagementPage() {
                     <Link
                       href={`/dashboard/brindes/novo?edit=${prod.id}`}
                       className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                      title="Editar brinde via Wizard"
+                      title="Editar material grátis via Wizard"
                     >
                       <Edit3 className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={() => setDeletingProduct(prod)}
                       className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"
-                      title="Excluir brinde"
+                      title="Excluir material grátis"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -400,7 +400,7 @@ export default function ProductsManagementPage() {
               </div>
 
               <div className="text-center space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">Excluir brinde Didático?</h3>
+                <h3 className="text-xl font-bold text-slate-900">Excluir material grátis Didático?</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Tem certeza que deseja remover <strong>"{deletingProduct.titulo}"</strong>? Esta ação é definitiva para materiais sem vendas.
                 </p>
@@ -433,7 +433,7 @@ export default function ProductsManagementPage() {
                     className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
                   >
                     {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                    <span>Excluir brinde</span>
+                    <span>Excluir material grátis</span>
                   </button>
                 )}
               </div>

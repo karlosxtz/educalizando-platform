@@ -72,7 +72,7 @@ export default function StudentFreeProductsPage() {
               <Gift className="w-3.5 h-3.5 text-brand-teal" /> Materiais 100% Gratuitos
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Central de Brindes
+              Central de Materiais Grátis
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">
               Aproveite apostilas, e-books e materiais gratuitos disponibilizados pelos melhores criadores da Educalizando. Baixe diretamente sem custo.
@@ -100,10 +100,10 @@ export default function StudentFreeProductsPage() {
 
             <div className="space-y-2">
               <h3 className="text-xl font-black text-slate-900">
-                Nenhum brinde encontrado
+                Nenhum material grátis encontrado
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
-                No momento não há nenhum material gratuito correspondente à sua busca ou os criadores ainda não adicionaram brindes.
+                No momento não há nenhum material gratuito correspondente à sua busca ou os criadores ainda não adicionaram materiais grátis.
               </p>
             </div>
           </div>

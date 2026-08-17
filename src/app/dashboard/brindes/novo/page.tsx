@@ -200,13 +200,13 @@ function ProductWizardContent() {
             className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Voltar para Brindes</span>
+            <span>Voltar para Materiais Grátis</span>
           </Link>
 
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-blue-600" />
             <h1 className="text-sm font-black text-slate-900">
-              {editId ? 'Editar Produto Didático' : 'Wizard de Cadastro de Brinde'}
+              {editId ? 'Editar Produto Didático' : 'Wizard de Cadastro de Material Grátis'}
             </h1>
           </div>
 

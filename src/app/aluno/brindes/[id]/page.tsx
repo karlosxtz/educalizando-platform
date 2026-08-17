@@ -75,7 +75,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
       window.open(downloadUrl, '_blank');
     } catch (err) {
       console.error('Download error:', err);
-      alert('Erro ao fazer download do brinde.');
+      alert('Erro ao fazer download do material grátis.');
     } finally {
       setDownloading(false);
     }
@@ -104,7 +104,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
           href="/aluno/brindes"
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Voltar para Brindes
+          <ArrowLeft className="w-4 h-4" /> Voltar para Materiais Grátis
         </Link>
 
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
@@ -174,7 +174,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
               {product.store && (
                 <div className="bg-brand-navy/5 border border-brand-navy/10 rounded-xl p-4 flex items-center justify-between gap-4">
                   <div className="space-y-0.5">
-                    <h4 className="text-sm font-bold text-slate-900">Gostou deste brinde?</h4>
+                    <h4 className="text-sm font-bold text-slate-900">Gostou deste material grátis?</h4>
                     <p className="text-xs text-slate-500 font-medium">Veja os materiais completos deste criador.</p>
                   </div>
                   <Link
