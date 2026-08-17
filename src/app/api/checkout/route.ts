@@ -3,6 +3,7 @@ import { createOrGetAsaasCustomer, createAsaasPayment, isValidCPF } from '@/lib/
 import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { validateCouponCode } from '@/lib/coupon-service';
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,8 @@ export async function POST(request: Request) {
       items = [],
       creditCard,
       creditCardHolderInfo,
-      isPlrPurchase = false
+      isPlrPurchase = false,
+      couponCode
     } = body;
 
     // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (SUPABASE AUTH)
@@ -146,10 +148,21 @@ export async function POST(request: Request) {
       const validQuantity = (isNaN(rawQuantity) || rawQuantity < 1 || !Number.isInteger(rawQuantity)) ? 1 : rawQuantity;
       const safeQuantity = Math.min(validQuantity, 10);
 
+      // Preço Base 
+      let finalPrice = Number(isPlrPurchase ? (realProd.preco_plr || realProd.preco) : realProd.preco);
+
+      // Validação Estrita do Cupom no Servidor
+      if (couponCode) {
+        const couponRes = await validateCouponCode(storeId, couponCode, 'product', realProd.id, finalPrice);
+        if (couponRes.valid && couponRes.finalPrice !== undefined) {
+          finalPrice = couponRes.finalPrice;
+        }
+      }
+
       realItems.push({
         ...item,
         productTitle: isPlrPurchase ? `${realProd.titulo} (Licença PLR)` : realProd.titulo,
-        unitPrice: Number(isPlrPurchase ? (realProd.preco_plr || realProd.preco) : realProd.preco), // PREÇO DEFINIDO PELO SERVIDOR!
+        unitPrice: finalPrice, 
         quantity: safeQuantity,
         storeId: realProd.store_id // Garante storeId correto
       });

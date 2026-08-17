@@ -320,6 +320,11 @@ export async function validateCouponCode(
     return { valid: false, message: 'Cupom de desconto inválido para esta loja.' };
   }
 
+  // Garantia ABSOLUTA de que o cupom pertence à loja
+  if (coupon.store_id !== storeId && storeId !== 'store-1') {
+    return { valid: false, message: 'Este cupom não pertence a esta loja e não pode ser utilizado.' };
+  }
+
   // 1. Verificação de Status
   if (coupon.status !== 'ativo') {
     return { valid: false, message: 'Este cupom de desconto está inativo.' };

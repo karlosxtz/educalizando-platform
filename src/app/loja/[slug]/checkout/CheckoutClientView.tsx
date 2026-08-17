@@ -221,6 +221,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         buyerPhone,
         paymentMethod,
         isPlrPurchase,
+        couponCode: couponResult?.valid ? couponCode : undefined,
         items: [
           {
             productId: product.id,
