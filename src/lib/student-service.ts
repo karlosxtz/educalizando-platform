@@ -228,7 +228,7 @@ export async function signOutStudent() {
 // 5. Obter Sessão Atual do Aluno
 export async function getCurrentStudentSession() {
   const authSession = await getAuthenticatedUserRole();
-  if (authSession.isAuthenticated && authSession.role === 'student') {
+  if (authSession.isAuthenticated) {
     return {
       id: authSession.userId || 'student-demo',
       email: authSession.email || 'aluno@educalizando.com',

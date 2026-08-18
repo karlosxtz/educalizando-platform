@@ -4,6 +4,7 @@ import { Store } from './types';
 export interface UserRoles {
   isCreator: boolean;
   isAffiliate: boolean;
+  isStudent: boolean;
   store: Store | null;
   affiliateCount: number;
   userId: string;
@@ -20,6 +21,7 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
   const result: UserRoles = {
     isCreator: false,
     isAffiliate: false,
+    isStudent: false,
     store: null,
     affiliateCount: 0,
     userId,
@@ -45,6 +47,11 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
     // 2. Verificar se a conta tem natureza de afiliado (Metadata)
     const { data: authData } = await supabase.auth.getUser();
     const isAffiliateRole = authData?.user?.user_metadata?.role === 'affiliate' || authData?.user?.user_metadata?.is_affiliate === true;
+
+    // Qualquer usuário autenticado tem inerentemente o direito de ser aluno
+    if (authData?.user) {
+      result.isStudent = true;
+    }
 
     // 3. Verificar se possui afiliações ativas no banco (afiliado estrutural)
     const { count, error: countError } = await supabase
@@ -72,23 +79,21 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
  * Se ele pedir 'affiliate' mas não for, ele será jogado para o papel primário que tiver.
  * Se tiver os dois papéis, a preferência decide.
  */
-export function getValidatedActiveRole(requestedRole: string | null, roles: UserRoles): 'creator' | 'affiliate' {
+export function getValidatedActiveRole(requestedRole: string | null, roles: UserRoles): 'creator' | 'affiliate' | null {
   // Se tem ambos, a preferência (requestedRole) é validada e respeitada.
   if (roles.isCreator && roles.isAffiliate) {
     if (requestedRole === 'affiliate') return 'affiliate';
     if (requestedRole === 'creator') return 'creator';
-    return 'creator';
+    return 'creator'; // Padrão se o pedido for inválido
   }
   
-  // Se ele só tem UM papel, o backend vence o localStorage ignorando a preferência
+  // Se ele só tem UM papel, o backend vence ignorando a preferência
   if (roles.isAffiliate) return 'affiliate';
   if (roles.isCreator) return 'creator';
   
-  // Fallback seguro para novas contas que acabaram de ser criadas (sem DB propagado)
-  if (requestedRole === 'affiliate') return 'affiliate';
-
-  // Fallback final: criador (legacy behavior)
-  return 'creator';
+  // O usuário não é criador nem afiliado.
+  // Retorna null indicando ausência de permissão para o Painel Dashboard.
+  return null;
 }
 
 /**

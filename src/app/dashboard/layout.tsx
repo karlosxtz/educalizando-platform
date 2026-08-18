@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import AffiliateSidebar from '@/components/dashboard/AffiliateSidebar';
@@ -19,6 +19,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [store, setStore] = useState<Store | null>(null);
   const [creatorEmail, setCreatorEmail] = useState('criador@educalizando.com.br');
@@ -57,9 +58,28 @@ export default function DashboardLayout({
           const userRoles = await resolveUserRoles(user.id);
           setRoles(userRoles);
 
-          // Determinar papel ativo validando a preferência contra a permissão real
-          const preference = getRolePreference();
-          const role = getValidatedActiveRole(preference, userRoles);
+          // Determinar papel solicitado pela ROTA atual
+          const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
+          const requestedContext = isAffiliateRoute ? 'affiliate' : 'creator';
+
+          // Determinar papel ativo validando a Rota contra a permissão real
+          const role = getValidatedActiveRole(requestedContext, userRoles);
+          
+          if (role === null) {
+            router.replace('/aluno/dashboard');
+            return;
+          }
+
+          if (isAffiliateRoute && role === 'creator') {
+            router.replace('/dashboard');
+            return;
+          }
+
+          if (!isAffiliateRoute && role === 'affiliate') {
+            router.replace('/dashboard/afiliacoes');
+            return;
+          }
+
           setActiveRole(role);
 
           // Carregar loja apenas se for criador e tiver uma loja real
@@ -80,7 +100,36 @@ export default function DashboardLayout({
       }
     }
     verifyAuthAndLoadStore();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executa apenas no mount para evitar loop de recarregamento
+
+  // Reagir a mudanças de rota após a autenticação já ter carregado
+  useEffect(() => {
+    if (!roles || checkingAuth) return;
+    
+    const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
+    const requestedContext = isAffiliateRoute ? 'affiliate' : 'creator';
+    const role = getValidatedActiveRole(requestedContext, roles);
+    
+    if (role === null) {
+      router.replace('/aluno/dashboard');
+      return;
+    }
+
+    if (isAffiliateRoute && role === 'creator') {
+      router.replace('/dashboard');
+      return;
+    }
+
+    if (!isAffiliateRoute && role === 'affiliate') {
+      router.replace('/dashboard/afiliacoes');
+      return;
+    }
+
+    if (activeRole !== role) {
+      setActiveRole(role);
+    }
+  }, [pathname, roles, checkingAuth, router, activeRole]);
 
   if (checkingAuth) {
     return (
