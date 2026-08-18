@@ -17,12 +17,12 @@ export async function GET(request: Request) {
 
     const userId = userData.user.id;
 
-    // Buscar transações da carteira do tipo 'AFFILIATE_COMMISSION' que pertencem a este usuário
+    // Buscar transações da carteira (comissões e seus estornos) que pertencem a este usuário
     const { data: transactions, error } = await supabaseAdmin
       .from('wallet_transactions')
       .select('*')
-      .eq('type', 'AFFILIATE_COMMISSION')
       .eq('creator_id', userId)
+      .in('type', ['AFFILIATE_COMMISSION', 'REFUND'])
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -38,14 +38,19 @@ export async function GET(request: Request) {
     const validTransactions = transactions || [];
 
     validTransactions.forEach(tx => {
-      // Contabilizamos todas as transações de venda validas
-      totalVendas += 1;
-      
-      // O netAmount é o valor final líquido recebido da comissão
+      // O netAmount é o valor final líquido recebido da comissão (seja + ou -)
       if (tx.status === 'COMPLETED') {
-        totalComissoes += tx.net_amount || tx.gross_amount;
-        pago += tx.net_amount || tx.gross_amount;
+        if (tx.type === 'REFUND') {
+          totalComissoes += tx.net_amount || tx.gross_amount; // valor é negativo no banco
+          pago += tx.net_amount || tx.gross_amount;
+          totalVendas -= 1; // desconta a venda estornada
+        } else {
+          totalComissoes += tx.net_amount || tx.gross_amount;
+          pago += tx.net_amount || tx.gross_amount;
+          totalVendas += 1; // soma a venda
+        }
       } else if (tx.status === 'PENDING') {
+        // Atualmente wallet-service gera tudo como COMPLETED, mas mantemos o fallback
         pendente += tx.net_amount || tx.gross_amount;
       }
     });
