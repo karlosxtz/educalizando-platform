@@ -129,12 +129,14 @@ export async function POST(request: Request) {
 
     if (!recentClick) {
       // Registrar novo clique
+      const safeReferer = referer && typeof referer === 'string' ? referer.substring(0, 1000) : null;
+      
       await supabaseAdmin.from('affiliate_clicks').insert([{
         affiliate_id: ref,
         store_id: store.id,
         product_id: productId,
         visitor_id: visitorId,
-        referer: referer || null
+        referer: safeReferer
       }]);
     }
 
