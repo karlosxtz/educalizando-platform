@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * TESTES DE INTEGRAÇÃO - MOTOR DE AFILIADOS DA EDUCALIZANDO
  * 
