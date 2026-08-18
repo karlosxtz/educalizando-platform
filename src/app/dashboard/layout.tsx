@@ -9,7 +9,7 @@ import SaleToast from '@/components/dashboard/SaleToast';
 import { getCurrentUserSession, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
-import { resolveUserRoles, getValidatedActiveRole, getRolePreference, UserRoles } from '@/lib/role-service';
+import { resolveUserRoles, resolveContextForRoute, canAccessAffiliateCenter, UserRoles } from '@/lib/role-service';
 import { supabase } from '@/lib/supabase';
 import SystemBanners from '@/components/dashboard/SystemBanners';
 
@@ -24,7 +24,7 @@ export default function DashboardLayout({
   const [store, setStore] = useState<Store | null>(null);
   const [creatorEmail, setCreatorEmail] = useState('criador@educalizando.com.br');
   const [creatorName, setCreatorName] = useState('');
-  const [activeRole, setActiveRole] = useState<'creator' | 'affiliate'>('creator');
+  const [activeContext, setActiveContext] = useState<'creator' | 'affiliate'>('creator');
   const [roles, setRoles] = useState<UserRoles | null>(null);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function DashboardLayout({
 
         // Obter dados do usuário autenticado
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           if (isRealSupabaseConfigured()) {
             router.push('/login');
@@ -49,38 +49,33 @@ export default function DashboardLayout({
         if (user?.email) {
           setCreatorEmail(user.email);
         }
-        
+
         const fullName = user?.user_metadata?.full_name || '';
         setCreatorName(fullName);
 
         if (user) {
-          // Resolver papéis REAIS consultando o banco
+          // Resolver papéis REAIS consultando o banco (identidade de negócio)
           const userRoles = await resolveUserRoles(user.id);
           setRoles(userRoles);
 
-          // Determinar papel solicitado pela ROTA atual
-          const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
-          const requestedContext = isAffiliateRoute ? 'affiliate' : 'creator';
+          // Determinar contexto visual pela ROTA + permissões de contexto (NÃO identidade)
+          const context = resolveContextForRoute(pathname || '', userRoles);
 
-          // Determinar papel ativo validando a Rota contra a permissão real
-          const role = getValidatedActiveRole(requestedContext, userRoles);
-          
-          if (role === null) {
+          if (context === null) {
+            // Sem permissão para o dashboard — redirecionar para aluno
             router.replace('/aluno/dashboard');
             return;
           }
 
-          if (isAffiliateRoute && role === 'creator') {
-            router.replace('/dashboard');
-            return;
-          }
-
-          if (!isAffiliateRoute && role === 'affiliate') {
+          // Se o contexto resolve como 'affiliate' mas a rota era /dashboard (sem /afiliacoes),
+          // isso significa que é afiliado puro tentando /dashboard → redirecionar
+          const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
+          if (!isAffiliateRoute && context === 'affiliate') {
             router.replace('/dashboard/afiliacoes');
             return;
           }
 
-          setActiveRole(role);
+          setActiveContext(context);
 
           // Carregar loja apenas se for criador e tiver uma loja real
           if (userRoles.isCreator && userRoles.store && userRoles.store.id) {
@@ -100,36 +95,30 @@ export default function DashboardLayout({
       }
     }
     verifyAuthAndLoadStore();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Executa apenas no mount para evitar loop de recarregamento
 
   // Reagir a mudanças de rota após a autenticação já ter carregado
   useEffect(() => {
     if (!roles || checkingAuth) return;
-    
-    const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
-    const requestedContext = isAffiliateRoute ? 'affiliate' : 'creator';
-    const role = getValidatedActiveRole(requestedContext, roles);
-    
-    if (role === null) {
+
+    const context = resolveContextForRoute(pathname || '', roles);
+
+    if (context === null) {
       router.replace('/aluno/dashboard');
       return;
     }
 
-    if (isAffiliateRoute && role === 'creator') {
-      router.replace('/dashboard');
-      return;
-    }
-
-    if (!isAffiliateRoute && role === 'affiliate') {
+    const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
+    if (!isAffiliateRoute && context === 'affiliate') {
       router.replace('/dashboard/afiliacoes');
       return;
     }
 
-    if (activeRole !== role) {
-      setActiveRole(role);
+    if (activeContext !== context) {
+      setActiveContext(context);
     }
-  }, [pathname, roles, checkingAuth, router, activeRole]);
+  }, [pathname, roles, checkingAuth, router, activeContext]);
 
   if (checkingAuth) {
     return (
@@ -142,7 +131,7 @@ export default function DashboardLayout({
     );
   }
 
-  const isAffiliateMode = activeRole === 'affiliate';
+  const isAffiliateMode = activeContext === 'affiliate';
 
   return (
     <div className="min-h-screen lg:h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans relative lg:overflow-hidden">
@@ -153,7 +142,7 @@ export default function DashboardLayout({
         <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-400/10 blur-[120px]" />
       </div>
 
-      {/* Sidebar — bifurcada por papel */}
+      {/* Sidebar — bifurcada por contexto visual (NÃO por identidade) */}
       <div className="relative z-10 lg:w-64 shrink-0 lg:h-screen">
         {isAffiliateMode ? (
           <AffiliateSidebar
@@ -167,7 +156,7 @@ export default function DashboardLayout({
             storeId={store?.id}
             creatorName={store?.nome_loja || creatorName || 'Minha Loja'}
             creatorEmail={creatorEmail}
-            hasAffiliateRole={roles?.isAffiliate || false}
+            hasAffiliateRole={roles ? canAccessAffiliateCenter(roles) : false}
           />
         )}
       </div>
@@ -185,3 +174,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+

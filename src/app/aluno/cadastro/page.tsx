@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag } from 'lucide-react';
+import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import { registerStudentInSupabase } from '@/lib/student-service';
 
 function StudentSignupForm() {
@@ -20,6 +20,7 @@ function StudentSignupForm() {
   const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const getSafeReturnUrl = () => {
     if (returnTo && returnTo.startsWith('/')) {
@@ -44,8 +45,13 @@ function StudentSignupForm() {
 
     setLoading(true);
     try {
-      await registerStudentInSupabase({ fullName, email, password, cpf });
-      router.push(getSafeReturnUrl());
+      const { session } = await registerStudentInSupabase({ fullName, email, password, cpf });
+      if (session) {
+        router.push(getSafeReturnUrl());
+      } else {
+        // Sessão nula indica que Supabase exigiu confirmação de e-mail.
+        setSuccessMsg('Conta criada! Verifique seu e-mail para confirmar o cadastro e fazer login.');
+      }
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar cadastro do aluno.');
@@ -70,6 +76,13 @@ function StudentSignupForm() {
             <p className="text-[11px] font-medium leading-normal text-emerald-700">
               Crie sua conta de Aluno gratuitamente para finalizar sua compra e acessar o material.
             </p>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span>{successMsg}</span>
           </div>
         )}
 

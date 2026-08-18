@@ -155,15 +155,17 @@ export async function registerStudentInSupabase({
 
     if (authError) throw new Error(authError.message);
 
-    if (typeof window !== 'undefined' && authData.user) {
+    // Se session === null, o Supabase exigiu confirmação de e-mail.
+    // Nesse caso, não gravamos no localStorage nem chamamos a sync API.
+    if (typeof window !== 'undefined' && authData.user && authData.session) {
       localStorage.setItem('educalizando_student_session', JSON.stringify(authData.user));
       try {
         await fetch('/api/auth/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            access_token: authData.session?.access_token,
-            refresh_token: authData.session?.refresh_token
+            access_token: authData.session.access_token,
+            refresh_token: authData.session.refresh_token
           })
         });
       } catch (e) {
@@ -171,7 +173,7 @@ export async function registerStudentInSupabase({
       }
     }
 
-    return { user: authData.user };
+    return { user: authData.user, session: authData.session };
   } else {
     await new Promise(resolve => setTimeout(resolve, 600));
     const mockUser = {
@@ -182,7 +184,7 @@ export async function registerStudentInSupabase({
     if (typeof window !== 'undefined') {
       localStorage.setItem('educalizando_student_session', JSON.stringify(mockUser));
     }
-    return { user: mockUser };
+    return { user: mockUser, session: { access_token: 'mock', refresh_token: 'mock' } };
   }
 }
 

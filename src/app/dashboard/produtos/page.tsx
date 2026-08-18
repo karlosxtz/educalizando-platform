@@ -82,12 +82,12 @@ export default function ProductsManagementPage() {
 
   // Delete Execution (Soft Delete)
   const confirmDeleteProduct = async () => {
-    if (!deletingProduct) return;
+    if (!deletingProduct || !store) return;
     setIsDeletingLoading(true);
     setActionError(null);
     try {
-      await deleteProduct(deletingProduct.id);
-      setProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
+      await deleteProduct(deletingProduct.id, store.id);
+      setProducts(products.filter(p => p.id !== deletingProduct.id));
       setDeletingProduct(null);
       await loadData();
       router.refresh();

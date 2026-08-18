@@ -261,6 +261,27 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   );
 
   if (isRealSupabase) {
+    if (!storeId || storeId === '' || storeId.startsWith('store_')) {
+      // Significa que o usuário ainda não tem uma loja real no banco de dados.
+      // Vamos criar a loja para ele.
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) throw new Error("Usuário não autenticado para criar loja.");
+      
+      const { data, error } = await supabase
+        .from('stores')
+        .insert({
+          creator_id: userData.user.id,
+          nome_loja: updates.nome_loja || 'Minha Loja',
+          slug: updates.slug || `loja-${Date.now()}`,
+          ...updates
+        })
+        .select()
+        .single();
+        
+      if (error) throw new Error(error.message);
+      return data as Store;
+    }
+
     const { data, error } = await supabase
       .from('stores')
       .update(updates)
@@ -299,14 +320,15 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
   let mergedProducts: Product[] = [];
 
-  // Fallback Local
+  // Fallback Local (Isolamento estrito por loja)
   if (typeof window !== 'undefined') {
     mergedProducts = getLocalProducts().filter(p => {
       if (!p.store_id) return false;
       if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-      // Removida a restrição estrita de store_id no frontend para permitir merge offline
-      return true;
+      
+      const lpClean = p.store_id.replace(/^store_/i, '');
+      return lpClean === cleanStoreId;
     });
   }
 
@@ -315,36 +337,10 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       let query = supabase
         .from('products')
         .select('*')
+        .eq('store_id', cleanStoreId)
         .is('excluido_em', null)
         .neq('status', 'excluido')
         .order('created_at', { ascending: false });
-
-      let validStoreIds = [cleanStoreId];
-
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId)) {
-        // Descobrir o creator_id da loja atual para unificar lojas duplicadas acidentalmente
-        const { data: storeInfo } = await supabase
-          .from('stores')
-          .select('creator_id')
-          .eq('id', cleanStoreId)
-          .single();
-
-        if (storeInfo?.creator_id) {
-          const { data: creatorStores } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('creator_id', storeInfo.creator_id);
-            
-          if (creatorStores && creatorStores.length > 0) {
-            validStoreIds = creatorStores.map(s => s.id);
-            query = query.in('store_id', validStoreIds);
-          } else {
-            query = query.eq('store_id', cleanStoreId);
-          }
-        } else {
-          query = query.eq('store_id', cleanStoreId);
-        }
-      }
 
       const { data, error } = await query;
 
@@ -353,15 +349,12 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
           if (!p.store_id) return false;
           if (p.excluido_em || p.status === 'excluido') return false;
           if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-          return true; // Já filtrado pelo banco (query.in)
+          return true;
         });
 
         const remoteIds = new Set(remote.map(p => p.id));
         for (const lp of mergedProducts) {
-          const lpCleanStore = lp.store_id ? lp.store_id.replace(/^store_/i, '') : '';
-          if (validStoreIds.includes(lp.store_id) || validStoreIds.includes(lpCleanStore) || lpCleanStore === cleanStoreId) {
-            if (!remoteIds.has(lp.id)) remote.push(lp);
-          }
+          if (!remoteIds.has(lp.id)) remote.push(lp);
         }
         return remote.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       }
@@ -370,11 +363,8 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     }
   }
 
-  // Se o supabase falhar, filtra os locais apenas para essa loja
-  return mergedProducts.filter(p => {
-    const lpClean = p.store_id ? p.store_id.replace(/^store_/i, '') : '';
-    return lpClean === cleanStoreId;
-  });
+  // Se o supabase falhar, os locais já estão filtrados por store_id
+  return mergedProducts;
 }
 
 // 5. Obter Produtos Públicos (Vitrine - status publicado/ativo e não excluído)
@@ -401,48 +391,32 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   }
 
   try {
-    // --- Step 1: Get all store IDs belonging to the same creator ---
+    // --- Step 1: Use strictly the requested store ID ---
     // Use supabaseAdmin to bypass RLS for server-side public reads
     const db = supabaseAdmin;
-    let validStoreIds: string[] = [cleanStoreId];
+    const validStoreId = cleanStoreId;
+
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(validStoreId)) {
+       return [];
+    }
 
     const { data: storeInfo } = await db
       .from('stores')
       .select('id, creator_id')
-      .eq('id', cleanStoreId)
+      .eq('id', validStoreId)
       .maybeSingle();
 
-    if (storeInfo?.creator_id) {
-      const { data: creatorStores } = await db
-        .from('stores')
-        .select('id')
-        .eq('creator_id', storeInfo.creator_id);
-
-      if (creatorStores && creatorStores.length > 0) {
-        validStoreIds = creatorStores.map(s => s.id);
-      }
-    }
-
-    // CORREÇÃO DEFINITIVA: Apenas UUIDs válidos (store_id é tipo UUID no banco)
-    // Incluir 'store_xxx' causava erro de type-casting no PostgREST,
-    // rejeitando TODA a query e retornando 0 produtos.
-    const allStoreIdVariants = Array.from(new Set(
-      validStoreIds.map(id => id.replace(/^store_/i, ''))
-    )).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
-
-    console.log('[getPublicProductsByStoreId] cleanStoreId:', cleanStoreId);
-    console.log('[getPublicProductsByStoreId] validStoreIds:', validStoreIds);
-    console.log('[getPublicProductsByStoreId] allStoreIdVariants (somente UUIDs válidos):', allStoreIdVariants);
+    console.log('[getPublicProductsByStoreId] cleanStoreId:', validStoreId);
 
     // Containers for aggregating public products and tracking IDs
     const allProducts: Product[] = [];
     const ownProductIds = new Set<string>();
 
-    // --- Step 2: Fetch published products for those stores ---
+    // --- Step 2: Fetch published products for THIS store ---
     const { data: ownProducts, error: ownError } = await db
       .from('products')
       .select('*')
-      .in('store_id', allStoreIdVariants)
+      .eq('store_id', validStoreId)
       .in('status', ['publicado', 'ativo', 'published'])
       .is('excluido_em', null)
       .order('created_at', { ascending: false });
@@ -508,7 +482,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
     const { data: reviewsData } = await db
       .from('reviews')
       .select('product_id, nota')
-      .in('store_id', allStoreIdVariants);
+      .eq('store_id', validStoreId);
 
     console.log('[getPublicProductsByStoreId] total products before filter:', allProducts.length);
     return allProducts
@@ -843,8 +817,9 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
 }
 
 // 9. Excluir Produto (Soft Delete Definitivo no Supabase + API Backend + LocalStorage)
-export async function deleteProduct(productId: string): Promise<void> {
+export async function deleteProduct(productId: string, storeId: string): Promise<void> {
   const cleanId = productId.replace(/^prod_/i, '');
+  const cleanStoreId = storeId.replace(/^store_/i, '');
 
   let backendSuccess = false;
 
@@ -868,7 +843,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`/api/produtos?id=${productId}`, { 
+    const res = await fetch(`/api/produtos?id=${productId}&store_id=${cleanStoreId}`, { 
       method: 'DELETE',
       headers 
     });

@@ -92,11 +92,17 @@ export async function POST(request: Request) {
         const { data: anyStore } = await supabaseAdmin
           .from('stores')
           .select('id')
+          .eq('creator_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
         if (anyStore?.id) targetStoreId = anyStore.id;
-      } catch (e) {}
+        else {
+          return NextResponse.json({ error: 'Nenhuma loja encontrada para este usuário. Crie uma loja primeiro.' }, { status: 403 });
+        }
+      } catch (e) {
+        return NextResponse.json({ error: 'Erro ao resolver a loja do criador.' }, { status: 500 });
+      }
     }
 
     const productPayload: Record<string, any> = {
@@ -221,9 +227,16 @@ export async function PUT(request: Request) {
     if ('education_level_id' in cleanedUpdates) {
       cleanedUpdates.education_level_id = sanitizeUUID(cleanedUpdates.education_level_id);
     }
+    
+    // Validar movimentação de loja (novo store_id)
     if ('store_id' in cleanedUpdates && cleanedUpdates.store_id) {
       const cleanStoreId = cleanedUpdates.store_id.toString().replace(/^store_/i, '');
       if (isValidUUID(cleanStoreId)) {
+        // Garantir que a nova loja destino pertença ao usuário
+        const { data: destStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', cleanStoreId).maybeSingle();
+        if (!destStore || destStore.creator_id !== user.id) {
+          return NextResponse.json({ error: 'A loja de destino não pertence a este usuário. Movimentação não autorizada.' }, { status: 403 });
+        }
         cleanedUpdates.store_id = cleanStoreId;
       } else {
         delete cleanedUpdates.store_id;
@@ -292,24 +305,35 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const requestStoreId = searchParams.get('store_id');
 
     if (!id) {
       return NextResponse.json({ error: 'ID do produto é obrigatório para exclusão.' }, { status: 400 });
     }
+    
+    if (!requestStoreId) {
+      return NextResponse.json({ error: 'O ID da loja atual (store_id) é obrigatório para exclusão.' }, { status: 400 });
+    }
 
     const cleanId = id.replace(/^prod_/i, '');
     const validUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(id) ? id : null);
+    const cleanRequestStoreId = requestStoreId.replace(/^store_/i, '');
 
     if (!validUUID) {
       return NextResponse.json({ error: `ID inválido para exclusão: "${id}"` }, { status: 400 });
     }
 
-    // Validar propriedade do produto
+    // Validar propriedade da loja (se a loja solicitada pertence ao usuário)
+    const { data: requestedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', cleanRequestStoreId).maybeSingle();
+    if (!requestedStore || requestedStore.creator_id !== user.id) {
+       return NextResponse.json({ error: 'Você não tem permissão para administrar esta loja.' }, { status: 403 });
+    }
+
+    // Validar se o produto pertence de fato à loja sendo administrada
     const { data: product } = await supabaseAdmin.from('products').select('store_id').eq('id', validUUID).maybeSingle();
     if (product) {
-      const { data: store } = await supabaseAdmin.from('stores').select('creator_id').eq('id', product.store_id).maybeSingle();
-      if (store?.creator_id !== user.id) {
-         return NextResponse.json({ error: 'Você não tem permissão para excluir este produto.' }, { status: 403 });
+      if (product.store_id !== cleanRequestStoreId) {
+         return NextResponse.json({ error: 'Este produto pertence a outra loja e não pode ser excluído por aqui.' }, { status: 403 });
       }
     }
 
