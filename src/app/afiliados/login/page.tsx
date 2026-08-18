@@ -56,6 +56,9 @@ export default function AffiliateLoginPage() {
     try {
       await signInUser({ email: values.email, password: values.password });
       
+      // Salvar preferência de papel como afiliado
+      localStorage.setItem('educalizando_active_role', 'affiliate');
+      
       // Redirect to affiliate dashboard directly
       window.location.href = '/dashboard/afiliacoes';
       

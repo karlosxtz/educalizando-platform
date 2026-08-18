@@ -286,7 +286,67 @@ export async function signOutUser() {
   }
 }
 
-// 4. Recuperação de Senha (resetPasswordForEmail)
+// 4. Cadastro de Afiliado (NÃO cria loja)
+export async function registerAffiliateInSupabase({
+  email,
+  password,
+  fullName,
+  cpf,
+}: {
+  email: string;
+  password: string;
+  fullName: string;
+  cpf: string;
+}) {
+  const cleanCpf = cpf.replace(/\D/g, '');
+
+  if (isRealSupabaseConfigured()) {
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          cpf: cleanCpf,
+          role: 'affiliate',
+          is_affiliate: true
+        }
+      }
+    });
+
+    if (authError) throw new Error(authError.message);
+
+    const userId = authData.user?.id;
+    if (!userId) {
+      throw new Error('Falha ao obter ID do usuário criado.');
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('educalizando_active_role', 'affiliate');
+
+      // Sincronizar Cookie para Middleware
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: authData.session?.access_token,
+            refresh_token: authData.session?.refresh_token
+          })
+        });
+      } catch (e) {
+        console.error('Erro ao sincronizar cookie seguro no registro de afiliado:', e);
+      }
+    }
+
+    return { user: authData.user };
+  } else {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    return { user: { email, id: `affiliate_${Math.random().toString(36).substring(2, 9)}` } };
+  }
+}
+
+// 5. Recuperação de Senha (resetPasswordForEmail)
 export async function resetPasswordForEmail(email: string) {
   if (isRealSupabaseConfigured()) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;

@@ -11,15 +11,18 @@ import {
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
 import NotificationCenter from '@/components/dashboard/NotificationCenter';
+import { saveRolePreference } from '@/lib/role-service';
+import { ArrowLeftRight } from 'lucide-react';
 
 interface SidebarProps {
   store?: StoreType | null;
   storeId?: string;
   creatorName?: string;
   creatorEmail?: string;
+  hasAffiliateRole?: boolean;
 }
 
-export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.ricardo@gmail.com' }: SidebarProps) {
+export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.rico@gmail.com', hasAffiliateRole = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -27,6 +30,11 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
   const handleLogout = async () => {
     await signOutUser();
     router.push('/login');
+  };
+
+  const handleSwitchToAffiliate = () => {
+    saveRolePreference('affiliate');
+    window.location.href = '/dashboard/afiliacoes';
   };
 
   const storeSlug = store?.slug || 'prof-ricardo';
@@ -114,9 +122,15 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
     {
       label: 'Meus Afiliados',
       href: '/dashboard/afiliados',
-      icon: Users, // Pode usar outro ícone se quiser, ex: Handshake, mas Users funciona
+      icon: Users,
       badge: 'NOVO'
     },
+    ...(hasAffiliateRole ? [{
+      label: 'Minhas Afiliações',
+      href: '/dashboard/afiliacoes',
+      icon: Users,
+      badge: 'NOVO'
+    }] : []),
     {
       label: 'Financeiro',
       href: '/dashboard/financeiro',
@@ -248,6 +262,22 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
               );
             })}
           </nav>
+
+          {/* Role Switcher */}
+          {hasAffiliateRole && (
+            <div className="pt-4 border-t border-slate-100">
+              <button
+                onClick={handleSwitchToAffiliate}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-all"
+              >
+                <div className="flex items-center gap-2.5">
+                  <ArrowLeftRight className="w-4 h-4 text-teal-500" />
+                  <span>Alternar para Afiliado</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-teal-400" />
+              </button>
+            </div>
+          )}
 
           {/* Open Public Store External Link */}
           <div className="pt-4 border-t border-slate-100">

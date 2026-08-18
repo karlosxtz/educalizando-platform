@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, BadgePercent } from 'lucide-react';
-import { registerCreatorInSupabase } from '@/lib/supabase';
+import { registerAffiliateInSupabase } from '@/lib/supabase';
 
 const formatCPF = (value: string) => {
   return value
@@ -42,15 +42,12 @@ export default function AffiliateSignupPage() {
 
     setLoading(true);
     try {
-      // Como a plataforma baseia tudo em lojas, registerCreatorInSupabase cria um creator/store que serve como afiliado também.
-      await registerCreatorInSupabase({ 
+      // Cadastro de afiliado — NÃO cria loja
+      await registerAffiliateInSupabase({ 
         email, 
         password, 
         fullName, 
-        cpf, 
-        storeName: fullName, 
-        category: 'afiliado',
-        whatsapp: ''
+        cpf
       });
       // Redirect to affiliate dashboard directly
       window.location.href = '/dashboard/afiliacoes';

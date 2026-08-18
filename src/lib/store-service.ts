@@ -142,7 +142,7 @@ export async function getCurrentCreatorStore(): Promise<Store> {
         const userEmail = (authUser.user.email || '').toLowerCase().trim();
         const userMeta = authUser.user.user_metadata || {};
 
-        // 1. Tentar buscar no Supabase por creator_id (UUID ou Email)
+        // Buscar loja existente — NÃO criar automaticamente
         let { data: storeData } = await supabase
           .from('stores')
           .select('*')
@@ -159,33 +159,20 @@ export async function getCurrentCreatorStore(): Promise<Store> {
           return storeData as Store;
         }
 
-        // 2. Se a conta de criador existe no Supabase Auth mas ainda não tinha registro em stores, criar a loja real agora:
-        let storeName = userMeta.store_name || (userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja');
-        if (storeName.includes('@')) {
-          storeName = userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja';
-        }
-
-        let storeSlug = userMeta.store_slug || storeName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-        if (!storeSlug || storeSlug.length < 2) storeSlug = `loja-${Math.random().toString(36).substring(2, 7)}`;
-
-        const { data: newStore, error: createErr } = await supabase
-          .from('stores')
-          .insert([
-            {
-              creator_id: userId,
-              nome_loja: storeName,
-              slug: storeSlug,
-              descricao: `Loja oficial de infoprodutos de ${userMeta.full_name || storeName}.`,
-              cor_primaria: '#093b6c',
-              created_at: new Date().toISOString()
-            }
-          ])
-          .select()
-          .single();
-
-        if (!createErr && newStore) {
-          return newStore as Store;
-        }
+        // Se NÃO tem loja, retornar um placeholder sem gravar no banco.
+        // Isso evita que afiliados virem criadores phantom no F5.
+        return {
+          id: '',
+          creator_id: userId,
+          nome_loja: userMeta.full_name || 'Usuário',
+          slug: '',
+          descricao: '',
+          logo_url: null,
+          banner_url: null,
+          cor_primaria: '#093b6c',
+          asaas_subaccount_id: null,
+          created_at: new Date().toISOString()
+        };
       }
     } catch (err) {
       console.error('[getCurrentCreatorStore] Erro:', err);

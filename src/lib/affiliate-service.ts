@@ -63,39 +63,6 @@ export async function getMyAffiliations(): Promise<Affiliate[]> {
   return data as Affiliate[];
 }
 
-export async function applyForAffiliation(storeId: string): Promise<{ success: boolean; message: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Usuário não autenticado' };
-
-  // Check if already applied
-  const { data: existing } = await supabase
-    .from('affiliates')
-    .select('id')
-    .eq('store_id', storeId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (existing) {
-    return { success: false, message: 'Você já enviou uma solicitação para esta loja.' };
-  }
-
-  const { error } = await supabase
-    .from('affiliates')
-    .insert([
-      {
-        store_id: storeId,
-        user_id: user.id,
-        status: 'pendente'
-      }
-    ]);
-
-  if (error) {
-    console.error('Error applying for affiliation:', error);
-    return { success: false, message: 'Erro ao enviar solicitação.' };
-  }
-
-  return { success: true, message: 'Solicitação enviada com sucesso!' };
-}
 
 export async function updateAffiliateCommission(affiliateId: string, commission_rate: number | null): Promise<boolean> {
   const { error } = await supabase
@@ -167,6 +134,53 @@ export async function getAvailableMarketplaceProducts(): Promise<any[]> {
     
   if (error) return [];
   return data;
+}
+
+export async function getAvailableMarketplaceStores(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('stores')
+    .select('id, nome_loja, slug, logo_url, descricao, affiliate_commission_type, affiliate_commission_rate')
+    .eq('affiliate_program_enabled', true)
+    .order('created_at', { ascending: false });
+    
+  if (error) return [];
+  return data;
+}
+
+export async function applyForAffiliation(storeId: string): Promise<{ success: boolean; message: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Usuário não autenticado' };
+
+  // Check if already applied to this store (without specific product)
+  const { data: existing } = await supabase
+    .from('affiliates')
+    .select('id')
+    .is('product_id', null)
+    .eq('store_id', storeId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (existing) {
+    return { success: false, message: 'Você já é afiliado desta loja.' };
+  }
+
+  const { error } = await supabase
+    .from('affiliates')
+    .insert([
+      {
+        store_id: storeId,
+        product_id: null,
+        user_id: user.id,
+        status: 'aprovado' // Store level affiliations default to auto approve for now
+      }
+    ]);
+
+  if (error) {
+    console.error('Error applying for store affiliation:', error);
+    return { success: false, message: 'Erro ao enviar solicitação.' };
+  }
+
+  return { success: true, message: 'Afiliação à loja concluída com sucesso!' };
 }
 
 export async function applyForProductAffiliation(productId: string, storeId: string, autoApprove: boolean = true): Promise<{ success: boolean; message: string }> {
