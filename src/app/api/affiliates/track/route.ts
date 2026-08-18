@@ -6,7 +6,7 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 
 export async function POST(request: Request) {
   try {
-    const { ref, pathname } = await request.json();
+    const { ref, pathname, referer } = await request.json();
 
     if (!ref || !pathname) {
       return NextResponse.json({ error: 'Missing ref or pathname' }, { status: 400 });
@@ -87,6 +87,56 @@ export async function POST(request: Request) {
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 // 30 dias
     });
+
+    // 6. Rastreamento Persistente de Cliques (affiliate_clicks)
+    let visitorId = cookieStore.get('educalizando_affiliate_visitor')?.value;
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      cookieStore.set({
+        name: 'educalizando_affiliate_visitor',
+        value: visitorId,
+        path: '/',
+        httpOnly: true,
+        secure: isProd,
+        sameSite: 'lax',
+        maxAge: 365 * 24 * 60 * 60 // 1 ano
+      });
+    }
+
+    // Tentar extrair product_id do pathname
+    let productId = null;
+    if (segments.includes('produto')) {
+      const idx = segments.indexOf('produto');
+      if (segments.length > idx + 1) {
+        const potentialId = segments[idx + 1];
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(potentialId)) {
+          productId = potentialId;
+        }
+      }
+    }
+
+    // Deduplicação: Verificar se já existe um clique nas últimas 24h para esse visitante/afiliado/loja
+    const { data: recentClick } = await supabaseAdmin
+      .from('affiliate_clicks')
+      .select('id')
+      .eq('visitor_id', visitorId)
+      .eq('affiliate_id', ref)
+      .eq('store_id', store.id)
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(1)
+      .maybeSingle();
+
+    if (!recentClick) {
+      // Registrar novo clique
+      await supabaseAdmin.from('affiliate_clicks').insert([{
+        affiliate_id: ref,
+        store_id: store.id,
+        product_id: productId,
+        visitor_id: visitorId,
+        referer: referer || null
+      }]);
+    }
 
     return NextResponse.json({ success: true });
 

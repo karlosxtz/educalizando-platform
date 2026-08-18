@@ -55,6 +55,22 @@ export async function GET(request: Request) {
       }
     });
 
+    // Contabilizar cliques de afiliados
+    let totalCliques = 0;
+    const { data: userAffiliates } = await supabaseAdmin
+      .from('affiliates')
+      .select('id')
+      .eq('user_id', userId);
+      
+    if (userAffiliates && userAffiliates.length > 0) {
+      const affiliateIds = userAffiliates.map(a => a.id);
+      const { count } = await supabaseAdmin
+        .from('affiliate_clicks')
+        .select('*', { count: 'exact', head: true })
+        .in('affiliate_id', affiliateIds);
+      if (count) totalCliques = count;
+    }
+
     return NextResponse.json({
       success: true,
       stats: {
@@ -62,7 +78,7 @@ export async function GET(request: Request) {
         totalVendas,
         pendente,
         pago,
-        cliques: 0, // A tabela de cliques não existe no momento
+        cliques: totalCliques,
       },
       recentTransactions: validTransactions.slice(0, 10).map(t => ({
         id: t.id,

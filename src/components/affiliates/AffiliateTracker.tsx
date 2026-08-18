@@ -17,7 +17,11 @@ export default function AffiliateTracker() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ref, pathname })
+        body: JSON.stringify({ 
+          ref, 
+          pathname,
+          referer: typeof document !== 'undefined' ? document.referrer : null 
+        })
       }).catch(err => console.error('[AffiliateTracker] Erro:', err));
     }
   }, [searchParams, pathname]);

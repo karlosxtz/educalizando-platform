@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
-  const [stats, setStats] = useState({ totalComissoes: 0, totalVendas: 0, pendente: 0, pago: 0 });
+  const [stats, setStats] = useState({ totalComissoes: 0, totalVendas: 0, pendente: 0, pago: 0, cliques: 0 });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -140,8 +140,8 @@ export default function AffiliateDashboardPage() {
             </div>
             <h3 className="font-medium text-slate-700">Cliques nos Links</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">-</p>
-          <p className="text-xs text-slate-500 mt-1">Recurso em breve</p>
+          <p className="text-3xl font-bold text-slate-900">{stats.cliques}</p>
+          <p className="text-xs text-slate-500 mt-1">Últimos 30 dias</p>
         </motion.div>
       </div>
 
