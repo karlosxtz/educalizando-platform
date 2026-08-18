@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getMyAffiliations } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle } from 'lucide-react';
+import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { AffiliateWallet } from './AffiliateWallet';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
@@ -28,6 +29,7 @@ export default function AffiliateDashboardPage() {
   const [userId, setUserId] = useState<string | null>(null);
   
   const [dateFilter, setDateFilter] = useState('30_days');
+  const [activeTab, setActiveTab] = useState<'stats' | 'wallet'>('stats');
 
   useEffect(() => {
     loadData();
@@ -161,10 +163,43 @@ export default function AffiliateDashboardPage() {
         )}
       </div>
 
-      {/* Barra de Filtros */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-slate-600 font-medium">
-          <Calendar className="w-5 h-5 text-slate-400" />
+      {/* Tabs */}
+      <div className="flex items-center gap-4 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('stats')}
+          className={`pb-4 px-2 text-sm font-bold transition-all relative ${
+            activeTab === 'stats' ? 'text-brand-primary' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Estatísticas e Links
+          {activeTab === 'stats' && (
+            <motion.div layoutId="affiliate-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-brand-primary rounded-t-full" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('wallet')}
+          className={`pb-4 px-2 text-sm font-bold transition-all relative flex items-center gap-2 ${
+            activeTab === 'wallet' ? 'text-brand-primary' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Wallet className="w-4 h-4" />
+          Saques e Carteira
+          {activeTab === 'wallet' && (
+            <motion.div layoutId="affiliate-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-brand-primary rounded-t-full" />
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'wallet' ? (
+        <div className="mt-8">
+          <AffiliateWallet />
+        </div>
+      ) : (
+        <>
+          {/* Barra de Filtros */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-slate-600 font-medium">
+              <Calendar className="w-5 h-5 text-slate-400" />
           <span>Período de Análise</span>
         </div>
         <select 
@@ -504,6 +539,8 @@ export default function AffiliateDashboardPage() {
           </table>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

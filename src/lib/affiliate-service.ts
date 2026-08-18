@@ -295,3 +295,143 @@ export async function calculateAffiliateCommission({
     return { affiliateCommissionAmount: 0, affiliateId: null };
   }
 }
+
+// ============================================================================
+// ETAPA 8: SAQUES DE AFILIADOS
+// ============================================================================
+
+export async function getAffiliateAvailableBalance(userId: string): Promise<number> {
+  if (!userId) return 0;
+  let availableBalance = 0;
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('wallet_transactions')
+      .select('net_amount')
+      .eq('creator_id', userId)
+      .eq('status', 'COMPLETED');
+
+    if (!error && data) {
+      availableBalance = data.reduce((sum, tx) => sum + Number(tx.net_amount), 0);
+    }
+  } catch (err) {
+    console.error('[getAffiliateAvailableBalance] Erro:', err);
+  }
+
+  return Math.max(0, availableBalance);
+}
+
+export async function requestAffiliateWithdrawal(data: {
+  userId: string;
+  amount: number;
+  userProfileCpf: string;
+}): Promise<any> {
+  const { WITHDRAWAL_ENABLED, MIN_WITHDRAWAL_AMOUNT, getActiveCreatorPixKey } = await import('./withdrawal-service');
+  
+  if (!WITHDRAWAL_ENABLED) {
+    throw new Error('Os saques estão temporariamente indisponíveis.');
+  }
+
+  if (data.amount < MIN_WITHDRAWAL_AMOUNT) {
+    throw new Error(`O valor mínimo para saque é de R$ ${MIN_WITHDRAWAL_AMOUNT.toFixed(2).replace('.', ',')}.`);
+  }
+
+  // 1. O Afiliado tem um perfil de loja para ancorar a chave PIX
+  const affiliateStore = await getAffiliateProfile(data.userId);
+  if (!affiliateStore) {
+    throw new Error('Perfil de afiliado não encontrado.');
+  }
+
+  const { data: storeData } = await supabaseAdmin
+    .from('stores')
+    .select('id')
+    .eq('creator_id', data.userId)
+    .single();
+
+  const affiliateStoreId = storeData?.id;
+  if (!affiliateStoreId) {
+    throw new Error('Erro de integridade do perfil do afiliado.');
+  }
+
+  // 2. Chave PIX do Afiliado
+  const activeKey = await getActiveCreatorPixKey(affiliateStoreId);
+  if (!activeKey || activeKey.validationStatus !== 'VALID') {
+    throw new Error('Você precisa cadastrar e validar uma chave PIX CPF antes de solicitar um saque.');
+  }
+
+  const now = new Date().toISOString();
+  const withdrawalId = `wtd_aff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const externalRef = `withdrawal-${withdrawalId}`;
+
+  // 3. Trava Atômica (Previne Race Condition e verifica saldo)
+  const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('process_affiliate_withdrawal_safe', {
+    p_creator_id: data.userId,
+    p_amount: data.amount,
+    p_pix_key_id: activeKey.id,
+    p_pix_key_type: 'CPF',
+    p_pix_key_masked: activeKey.pixKeyMasked,
+    p_asaas_external_ref: externalRef,
+    p_withdrawal_id: withdrawalId,
+    p_store_id: affiliateStoreId
+  });
+
+  if (rpcError) {
+    console.error('[requestAffiliateWithdrawal] Erro RPC:', rpcError);
+    throw new Error(`Erro interno: ${rpcError.message}`);
+  }
+
+  if (!rpcResult.success) {
+    throw new Error(rpcResult.error || 'Não foi possível processar o saque de forma segura.');
+  }
+
+  // 4. Criação da Transferência no Asaas
+  const { createAsaasTransfer } = await import('./asaas-service');
+  const { recordWalletTransaction } = await import('./wallet-service');
+
+  try {
+    const asaasTransfer = await createAsaasTransfer({
+      value: data.amount,
+      pixAddressKey: activeKey.pixKey,
+      pixAddressKeyType: 'CPF',
+      description: `Saque Afiliado Educalizando — Ref ${withdrawalId.substring(8, 14).toUpperCase()}`,
+      externalReference: externalRef
+    });
+
+    await supabaseAdmin.from('withdrawals').update({
+      status: 'PROCESSING',
+      asaas_transfer_id: asaasTransfer.id,
+      processing_at: new Date().toISOString()
+    }).eq('id', withdrawalId);
+
+    return { success: true, withdrawalId };
+
+  } catch (err: any) {
+    console.error('[requestAffiliateWithdrawal] Erro ao criar transferência Asaas:', err);
+
+    const failureReason = err.message || 'Falha na API de transferência Asaas.';
+    
+    // Atualiza status do saque
+    await supabaseAdmin.from('withdrawals').update({
+      status: 'FAILED',
+      failure_reason: failureReason,
+      failed_at: new Date().toISOString()
+    }).eq('id', withdrawalId);
+
+    // Estorna a reserva de saldo
+    await recordWalletTransaction({
+      storeId: affiliateStoreId,
+      creatorId: data.userId,
+      orderId: withdrawalId,
+      type: 'ADJUSTMENT',
+      grossAmount: data.amount,
+      platformFixedFeeAmount: 0,
+      platformPercentageFeeAmount: 0,
+      platformFeeAmount: 0,
+      asaasFeeAmount: 0,
+      netAmount: data.amount,
+      description: `Devolução de saldo por falha no saque (${failureReason})`
+    });
+
+    throw new Error(`Não foi possível concluir seu saque: ${failureReason}. O valor permaneceu no seu saldo.`);
+  }
+}
