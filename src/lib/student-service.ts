@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { supabase, isRealSupabaseConfigured, signOutUser } from './supabase';
 import { Purchase, Product, Kit, Store } from './types';
 import { getPublicProductsByStoreId } from './store-service';
 import { getPublicKitsByStoreId } from './kit-service';
@@ -212,17 +212,7 @@ export async function signInStudent({ email, password }: { email: string; passwo
 
 // 4. Encerrar Sessão do Aluno
 export async function signOutStudent() {
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
-  if (isRealSupabase) {
-    await supabase.auth.signOut();
-  }
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('educalizando_student_session');
-  }
+  await signOutUser();
 }
 
 // 5. Obter Sessão Atual do Aluno

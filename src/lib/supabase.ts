@@ -271,6 +271,7 @@ export async function signOutUser() {
     localStorage.removeItem('educalizando_creator_session');
     localStorage.removeItem('educalizando_student_session');
     localStorage.removeItem('educalizando_stores_v3');
+    localStorage.removeItem('educalizando_active_role');
     
     // Clear tracking cookies properly
     document.cookie = 'educalizando_affiliates=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
