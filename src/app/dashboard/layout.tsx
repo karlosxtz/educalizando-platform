@@ -9,7 +9,7 @@ import SaleToast from '@/components/dashboard/SaleToast';
 import { getCurrentUserSession, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Store } from '@/lib/types';
-import { resolveUserRoles, getActiveRole, getRolePreference, UserRoles } from '@/lib/role-service';
+import { resolveUserRoles, getValidatedActiveRole, getRolePreference, UserRoles } from '@/lib/role-service';
 import { supabase } from '@/lib/supabase';
 import SystemBanners from '@/components/dashboard/SystemBanners';
 
@@ -57,9 +57,9 @@ export default function DashboardLayout({
           const userRoles = await resolveUserRoles(user.id);
           setRoles(userRoles);
 
-          // Determinar papel ativo baseado na preferência salva
+          // Determinar papel ativo validando a preferência contra a permissão real
           const preference = getRolePreference();
-          const role = getActiveRole(userRoles, preference);
+          const role = getValidatedActiveRole(preference, userRoles);
           setActiveRole(role);
 
           // Carregar loja apenas se for criador e tiver uma loja real

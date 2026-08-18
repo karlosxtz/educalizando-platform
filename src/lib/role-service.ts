@@ -68,26 +68,26 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
 }
 
 /**
- * Retorna o papel ativo preferido do usuário.
- * Se for criador+afiliado, usa o cookie/localStorage para determinar a preferência.
- * Se for apenas um, retorna esse.
+ * Retorna o papel ativo preferido do usuário, validando estritamente contra as permissões reais (BACKEND VENCE).
+ * Se ele pedir 'affiliate' mas não for, ele será jogado para o papel primário que tiver.
+ * Se tiver os dois papéis, a preferência decide.
  */
-export function getActiveRole(roles: UserRoles, preference?: string | null): 'creator' | 'affiliate' {
+export function getValidatedActiveRole(requestedRole: string | null, roles: UserRoles): 'creator' | 'affiliate' {
+  // Se tem ambos, a preferência (requestedRole) é validada e respeitada.
   if (roles.isCreator && roles.isAffiliate) {
-    // Ambos os papéis — respeitar preferência
-    if (preference === 'affiliate') return 'affiliate';
-    if (preference === 'creator') return 'creator';
-    // Default: criador (comportamento legacy)
+    if (requestedRole === 'affiliate') return 'affiliate';
+    if (requestedRole === 'creator') return 'creator';
     return 'creator';
   }
   
+  // Se ele só tem UM papel, o backend vence o localStorage ignorando a preferência
   if (roles.isAffiliate) return 'affiliate';
   if (roles.isCreator) return 'creator';
   
-  // Fallback seguro para novas contas que ainda não propagaram o DB
-  if (preference === 'affiliate') return 'affiliate';
+  // Fallback seguro para novas contas que acabaram de ser criadas (sem DB propagado)
+  if (requestedRole === 'affiliate') return 'affiliate';
 
-  // Fallback: criador (para novos usuários sem nenhum papel ainda)
+  // Fallback final: criador (legacy behavior)
   return 'creator';
 }
 
