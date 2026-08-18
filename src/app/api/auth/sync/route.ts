@@ -11,6 +11,8 @@ export async function POST(request: Request) {
     if (event === 'SIGNED_OUT') {
       cookieStore.delete('sb-access-token');
       cookieStore.delete('sb-refresh-token');
+      cookieStore.delete('educalizando_affiliates');
+      cookieStore.delete('educalizando_affiliate_id');
       return NextResponse.json({ success: true, message: 'Cookies cleared' });
     }
 

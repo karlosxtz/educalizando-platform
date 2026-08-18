@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { Affiliate, AffiliateStatus } from './types';
 
 export async function getStoreAffiliates(storeId: string): Promise<Affiliate[]> {
@@ -214,4 +214,84 @@ export async function getAffiliateProfile(userId: string) {
 
   if (error || !data) return null;
   return data;
+}
+
+export async function calculateAffiliateCommission({
+  affiliateId,
+  storeId,
+  buyerId,
+  baseSubtotal
+}: {
+  affiliateId: string | null;
+  storeId: string;
+  buyerId: string;
+  baseSubtotal: number;
+}): Promise<{ affiliateCommissionAmount: number; affiliateId: string | null }> {
+  if (!affiliateId || !storeId || !buyerId || baseSubtotal <= 0) {
+    return { affiliateCommissionAmount: 0, affiliateId: null };
+  }
+
+  try {
+    const { data: affiliate } = await supabaseAdmin
+      .from('affiliates')
+      .select(`
+        id, 
+        user_id,
+        status, 
+        commission_type, 
+        commission_rate, 
+        stores (
+          affiliate_program_enabled, 
+          affiliate_commission_type, 
+          affiliate_commission_rate
+        )
+      `)
+      .eq('id', affiliateId)
+      .eq('store_id', storeId)
+      .single();
+
+    if (!affiliate) {
+      return { affiliateCommissionAmount: 0, affiliateId: null };
+    }
+
+    // BLOQUEIO DEFINITIVO DE SELF-REFERRAL / AUTOAFILIAÇÃO
+    // Se o comprador for o próprio dono do link de afiliado, a comissão é 0.
+    // O pedido segue normalmente, apenas a comissão é anulada.
+    if (affiliate.user_id === buyerId) {
+      console.log(`[AffiliateService] Self-referral bloqueado: Comprador ${buyerId} tentou usar o próprio link de afiliado ${affiliateId}`);
+      return { affiliateCommissionAmount: 0, affiliateId: null };
+    }
+
+    if (affiliate.status !== 'aprovado') {
+      return { affiliateCommissionAmount: 0, affiliateId: null };
+    }
+
+    const storeConfig = Array.isArray(affiliate.stores) ? affiliate.stores[0] : affiliate.stores;
+    if (!storeConfig || !storeConfig.affiliate_program_enabled) {
+      return { affiliateCommissionAmount: 0, affiliateId: null };
+    }
+
+    const rate = affiliate.commission_rate ?? storeConfig.affiliate_commission_rate ?? 0;
+    const type = affiliate.commission_type ?? storeConfig.affiliate_commission_type ?? 'percentual';
+
+    if (rate <= 0) {
+      return { affiliateCommissionAmount: 0, affiliateId: affiliate.id };
+    }
+
+    let commission = 0;
+    if (type === 'percentual') {
+      commission = baseSubtotal * (Number(rate) / 100);
+    } else {
+      commission = Math.min(Number(rate), baseSubtotal);
+    }
+
+    // Retornar arredondado em 2 casas decimais (centavos)
+    return { 
+      affiliateCommissionAmount: Number(commission.toFixed(2)), 
+      affiliateId: affiliate.id 
+    };
+  } catch (error) {
+    console.error('[calculateAffiliateCommission] Erro:', error);
+    return { affiliateCommissionAmount: 0, affiliateId: null };
+  }
 }

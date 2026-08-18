@@ -127,6 +127,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Um ou mais produtos não existem ou estão indisponíveis.' }, { status: 400 });
     }
 
+    // 3.5 Definir a Loja Efetiva Baseada no Banco (Não confiar no frontend)
+    const effectiveStoreId = realProducts[0]?.store_id;
+    if (!effectiveStoreId) {
+      return NextResponse.json({ success: false, error: 'Não foi possível determinar a loja do produto.' }, { status: 400 });
+    }
+
     // 4. Reconstruir array de items com PREÇO REAL e QUANTIDADE validada
     const realItems: any[] = [];
     for (const item of items) {
@@ -137,7 +143,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: `Produto indisponível para venda: ${realProd.titulo}` }, { status: 400 });
       }
 
-      if (realProd.store_id !== storeId) {
+      // Validar se todos os produtos pertencem à mesma loja efetiva do banco
+      if (realProd.store_id !== effectiveStoreId) {
         return NextResponse.json({ success: false, error: 'Todos os produtos devem pertencer exclusivamente à mesma loja.' }, { status: 400 });
       }
       
@@ -154,7 +161,7 @@ export async function POST(request: Request) {
 
       // Validação Estrita do Cupom no Servidor
       if (couponCode) {
-        const couponRes = await validateCouponCode(storeId, couponCode, 'product', realProd.id, finalPrice);
+        const couponRes = await validateCouponCode(effectiveStoreId, couponCode, 'product', realProd.id, finalPrice);
         if (couponRes.valid && couponRes.finalPrice !== undefined) {
           finalPrice = couponRes.finalPrice;
         }
@@ -183,37 +190,37 @@ export async function POST(request: Request) {
     
     // Process affiliate
     const cookieStore = await cookies();
-    const affiliateCookie = cookieStore.get('educalizando_affiliate_id');
     let affiliateId = null;
     let affiliateCommissionAmount = 0;
+    
+    // 1. Tentar ler o novo cookie seguro JSON (Cross-store tracking)
+    const secureCookie = cookieStore.get('educalizando_affiliates');
+    let rawAffiliateId = null;
+    
+    if (secureCookie && secureCookie.value) {
+      try {
+        const parsed = JSON.parse(secureCookie.value);
+        if (parsed[effectiveStoreId]) {
+          rawAffiliateId = parsed[effectiveStoreId];
+        }
+      } catch (e) {
+        // Ignorar erro de parse
+      }
+    }
 
     const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
-    if (affiliateCookie && affiliateCookie.value) {
-      const { data: affiliate } = await supabaseAdmin
-        .from('affiliates')
-        .select('id, commission_type, commission_rate, stores(affiliate_commission_type, affiliate_commission_rate)')
-        .eq('id', affiliateCookie.value)
-        .eq('status', 'aprovado')
-        .eq('store_id', storeId)
-        .single();
-        
-      if (affiliate) {
-        affiliateId = affiliate.id;
-        const affData = affiliate as any;
-        const rate = affData.commission_rate || affData.stores?.affiliate_commission_rate || 0;
-        const type = affData.commission_type || affData.stores?.affiliate_commission_type || 'percentual';
-        
-        if (rate > 0) {
-          if (type === 'percentual') {
-            affiliateCommissionAmount = Number((baseSubtotal * (rate / 100)).toFixed(2));
-          } else {
-            // Fixo
-            // Limit to subtotal so we don't pay more than the sale
-            affiliateCommissionAmount = Math.min(Number(rate), baseSubtotal);
-          }
-        }
-      }
+    if (rawAffiliateId) {
+      const { calculateAffiliateCommission } = await import('@/lib/affiliate-service');
+      const commissionResult = await calculateAffiliateCommission({
+        affiliateId: rawAffiliateId,
+        storeId: effectiveStoreId,
+        buyerId: studentId,
+        baseSubtotal
+      });
+      
+      affiliateId = commissionResult.affiliateId;
+      affiliateCommissionAmount = commissionResult.affiliateCommissionAmount;
     }
 
     const financials = calculateOrderFinancials(realItems, 0, platformSettings || undefined, affiliateCommissionAmount);
@@ -242,8 +249,8 @@ export async function POST(request: Request) {
     // 8. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
     const orderRecord = await createOrderRecord({
       id: tempOrderId,
-      storeId,
-      buyerName,
+      storeId: effectiveStoreId,
+      buyerName: buyerName,
       buyerEmail,
       buyerCpf,
       buyerPhone: body.buyerPhone,

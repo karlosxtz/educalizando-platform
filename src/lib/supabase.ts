@@ -272,6 +272,10 @@ export async function signOutUser() {
     localStorage.removeItem('educalizando_student_session');
     localStorage.removeItem('educalizando_stores_v3');
     
+    // Clear tracking cookies properly
+    document.cookie = 'educalizando_affiliates=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'educalizando_affiliate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
     try {
       await fetch('/api/auth/sync', {
         method: 'POST',
