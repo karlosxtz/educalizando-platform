@@ -43,11 +43,9 @@ export async function GET(request: Request) {
         if (tx.type === 'REFUND') {
           totalComissoes += tx.net_amount || tx.gross_amount; // valor é negativo no banco
           pago += tx.net_amount || tx.gross_amount;
-          totalVendas -= 1; // desconta a venda estornada
         } else {
           totalComissoes += tx.net_amount || tx.gross_amount;
           pago += tx.net_amount || tx.gross_amount;
-          totalVendas += 1; // soma a venda
         }
       } else if (tx.status === 'PENDING') {
         // Atualmente wallet-service gera tudo como COMPLETED, mas mantemos o fallback
@@ -55,21 +53,39 @@ export async function GET(request: Request) {
       }
     });
 
-    // Contabilizar cliques de afiliados
     let totalCliques = 0;
+    let receitaGerada = 0;
+
     const { data: userAffiliates } = await supabaseAdmin
       .from('affiliates')
       .select('id')
       .eq('user_id', userId);
-      
+
     if (userAffiliates && userAffiliates.length > 0) {
       const affiliateIds = userAffiliates.map(a => a.id);
-      const { count } = await supabaseAdmin
+      
+      // 1. Cliques
+      const { count: clicksCount } = await supabaseAdmin
         .from('affiliate_clicks')
         .select('*', { count: 'exact', head: true })
         .in('affiliate_id', affiliateIds);
-      if (count) totalCliques = count;
+      if (clicksCount) totalCliques = clicksCount;
+
+      // 2. Vendas Pagas (Pedidos reais concluídos)
+      const { data: validOrders } = await supabaseAdmin
+        .from('orders')
+        .select('total_amount')
+        .in('affiliate_id', affiliateIds)
+        .eq('status', 'paid');
+        
+      if (validOrders && validOrders.length > 0) {
+        totalVendas = validOrders.length;
+        receitaGerada = validOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+      }
     }
+
+    const conversao = totalCliques > 0 ? (totalVendas / totalCliques) * 100 : 0;
+    const ticketMedio = totalVendas > 0 ? receitaGerada / totalVendas : 0;
 
     return NextResponse.json({
       success: true,
@@ -79,6 +95,9 @@ export async function GET(request: Request) {
         pendente,
         pago,
         cliques: totalCliques,
+        receitaGerada,
+        conversao,
+        ticketMedio
       },
       recentTransactions: validTransactions.slice(0, 10).map(t => ({
         id: t.id,

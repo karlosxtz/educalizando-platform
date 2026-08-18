@@ -4,13 +4,22 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getMyAffiliations } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store } from 'lucide-react';
+import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
-  const [stats, setStats] = useState({ totalComissoes: 0, totalVendas: 0, pendente: 0, pago: 0, cliques: 0 });
+  const [stats, setStats] = useState({ 
+    totalComissoes: 0, 
+    totalVendas: 0, 
+    pendente: 0, 
+    pago: 0, 
+    cliques: 0,
+    receitaGerada: 0,
+    conversao: 0,
+    ticketMedio: 0
+  });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -93,56 +102,117 @@ export default function AffiliateDashboardPage() {
         )}
       </div>
 
-      {/* Resumo Financeiro */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Resumo Financeiro e Analítico */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        
+        {/* Cliques */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
         >
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-              <DollarSign className="w-5 h-5" />
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+              <MousePointerClick className="w-4 h-4" />
             </div>
-            <h3 className="font-medium text-slate-700">Comissões Recebidas</h3>
+            <h3 className="font-medium text-slate-700 text-sm">Cliques</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalComissoes)}
-          </p>
+          <p className="text-2xl font-bold text-slate-900">{stats.cliques}</p>
         </motion.div>
+
+        {/* Vendas */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
         >
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-              <ShoppingBag className="w-5 h-5" />
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+              <ShoppingBag className="w-4 h-4" />
             </div>
-            <h3 className="font-medium text-slate-700">Vendas Realizadas</h3>
+            <h3 className="font-medium text-slate-700 text-sm">Vendas Pagas</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">{stats.totalVendas}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.totalVendas}</p>
         </motion.div>
+
+        {/* Conversão */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
-          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer opacity-70"
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
         >
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
-              <MousePointerClick className="w-5 h-5" />
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <Percent className="w-4 h-4" />
             </div>
-            <h3 className="font-medium text-slate-700">Cliques nos Links</h3>
+            <h3 className="font-medium text-slate-700 text-sm">Conversão</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">{stats.cliques}</p>
-          <p className="text-xs text-slate-500 mt-1">Últimos 30 dias</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.conversao.toFixed(2)}%</p>
         </motion.div>
+
+        {/* Receita Gerada */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+        >
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <h3 className="font-medium text-slate-700 text-sm">Receita Gerada</h3>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.receitaGerada)}
+          </p>
+        </motion.div>
+
+        {/* Ticket Médio */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+        >
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+              <BarChart className="w-4 h-4" />
+            </div>
+            <h3 className="font-medium text-slate-700 text-sm">Ticket Médio</h3>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.ticketMedio)}
+          </p>
+        </motion.div>
+
+        {/* Comissão */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+          whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm cursor-pointer bg-green-50/30"
+        >
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-700">
+              <DollarSign className="w-4 h-4" />
+            </div>
+            <h3 className="font-medium text-green-800 text-sm">Comissão</h3>
+          </div>
+          <p className="text-2xl font-bold text-green-900">
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalComissoes)}
+          </p>
+        </motion.div>
+
       </div>
 
       {/* Lojas Afiliadas */}
