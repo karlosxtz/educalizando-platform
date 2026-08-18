@@ -10,6 +10,8 @@ import { motion } from 'framer-motion';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
+  const [stats, setStats] = useState({ totalComissoes: 0, totalVendas: 0, pendente: 0, pago: 0 });
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -27,8 +29,24 @@ export default function AffiliateDashboardPage() {
       }
       setUserId(user.id);
       
-      const data = await getMyAffiliations();
-      setAffiliations(data);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const [affData, statsRes] = await Promise.all([
+        getMyAffiliations(),
+        fetch('/api/affiliates/stats', {
+          headers: session ? { 'Authorization': `Bearer ${session.access_token}` } : {}
+        })
+      ]);
+      
+      setAffiliations(affData);
+      
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        if (statsData.success) {
+          setStats(statsData.stats);
+          setRecentTransactions(statsData.recentTransactions || []);
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -75,7 +93,7 @@ export default function AffiliateDashboardPage() {
         )}
       </div>
 
-      {/* Resumo Financeiro (Mocked for now) */}
+      {/* Resumo Financeiro */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -90,7 +108,9 @@ export default function AffiliateDashboardPage() {
             </div>
             <h3 className="font-medium text-slate-700">Comissões Recebidas</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">R$ 0,00</p>
+          <p className="text-3xl font-bold text-slate-900">
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalComissoes)}
+          </p>
         </motion.div>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -105,14 +125,14 @@ export default function AffiliateDashboardPage() {
             </div>
             <h3 className="font-medium text-slate-700">Vendas Realizadas</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">0</p>
+          <p className="text-3xl font-bold text-slate-900">{stats.totalVendas}</p>
         </motion.div>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
           whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer"
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm cursor-pointer opacity-70"
         >
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
@@ -120,7 +140,8 @@ export default function AffiliateDashboardPage() {
             </div>
             <h3 className="font-medium text-slate-700">Cliques nos Links</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">0</p>
+          <p className="text-3xl font-bold text-slate-900">-</p>
+          <p className="text-xs text-slate-500 mt-1">Recurso em breve</p>
         </motion.div>
       </div>
 
@@ -177,10 +198,10 @@ export default function AffiliateDashboardPage() {
                 {affiliate.status === 'aprovado' && affiliate.store?.slug && (
                   <div className="flex-1 max-w-md bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                     <div className="flex-1 truncate text-sm text-slate-600 font-mono">
-                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${affiliate.store.slug}?ref=${userId}`}
+                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/loja/${affiliate.store.slug}?ref=${affiliate.id}`}
                     </div>
                     <button 
-                      onClick={() => handleCopyLink(affiliate.store!.slug, userId || affiliate.id)}
+                      onClick={() => handleCopyLink(affiliate.store!.slug, affiliate.id)}
                       className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-600 shrink-0"
                       title="Copiar Link"
                     >
@@ -191,6 +212,57 @@ export default function AffiliateDashboardPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* Histórico Recente de Comissões */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Comissões Recentes</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-sm">
+                <th className="p-4 font-medium">Data</th>
+                <th className="p-4 font-medium">Produto</th>
+                <th className="p-4 font-medium">Valor Recebido</th>
+                <th className="p-4 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {recentTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-500">
+                    Nenhuma venda registrada ainda. Divulgue seu link para começar a ganhar!
+                  </td>
+                </tr>
+              ) : (
+                recentTransactions.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-slate-50/50">
+                    <td className="p-4 text-sm text-slate-600">
+                      {new Date(tx.date).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="p-4 text-sm text-slate-900 font-medium">
+                      {tx.productName}
+                    </td>
+                    <td className="p-4 text-sm text-slate-900 font-medium">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(tx.amount)}
+                    </td>
+                    <td className="p-4">
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                        tx.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                        tx.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {tx.status === 'COMPLETED' ? 'APROVADO' : tx.status === 'PENDING' ? 'PENDENTE' : tx.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
