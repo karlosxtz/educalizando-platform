@@ -61,10 +61,10 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
 
     if (!countError && count !== null) {
       result.affiliateCount = count;
-      if (count > 0 || isAffiliateRole) {
+      if (count > 0 || isAffiliateRole || result.isCreator) {
         result.isAffiliate = true;
       }
-    } else if (isAffiliateRole) {
+    } else if (isAffiliateRole || result.isCreator) {
       result.isAffiliate = true;
     }
   } catch (err) {

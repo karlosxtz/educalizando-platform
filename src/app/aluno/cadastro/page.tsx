@@ -49,6 +49,7 @@ function StudentSignupForm() {
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar cadastro do aluno.');
+    } finally {
       setLoading(false);
     }
   };

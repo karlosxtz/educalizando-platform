@@ -157,6 +157,18 @@ export async function registerStudentInSupabase({
 
     if (typeof window !== 'undefined' && authData.user) {
       localStorage.setItem('educalizando_student_session', JSON.stringify(authData.user));
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: authData.session?.access_token,
+            refresh_token: authData.session?.refresh_token
+          })
+        });
+      } catch (e) {
+        console.error('Erro ao sincronizar cookie seguro no registro de aluno:', e);
+      }
     }
 
     return { user: authData.user };
