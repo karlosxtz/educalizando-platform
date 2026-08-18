@@ -436,12 +436,16 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       }
     }
 
-    // Match all possible store_id formats (with or without 'store_' prefix)
-    const allStoreIdVariants = Array.from(new Set([
-      ...validStoreIds,
-      ...validStoreIds.map(id => `store_${id}`),
-      ...validStoreIds.map(id => id.replace(/^store_/i, ''))
-    ]));
+    // CORREÇÃO DEFINITIVA: Apenas UUIDs válidos (store_id é tipo UUID no banco)
+    // Incluir 'store_xxx' causava erro de type-casting no PostgREST,
+    // rejeitando TODA a query e retornando 0 produtos.
+    const allStoreIdVariants = Array.from(new Set(
+      validStoreIds.map(id => id.replace(/^store_/i, ''))
+    )).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+
+    console.log('[getPublicProductsByStoreId] cleanStoreId:', cleanStoreId);
+    console.log('[getPublicProductsByStoreId] validStoreIds:', validStoreIds);
+    console.log('[getPublicProductsByStoreId] allStoreIdVariants (somente UUIDs válidos):', allStoreIdVariants);
 
     // Containers for aggregating public products and tracking IDs
     const allProducts: Product[] = [];
@@ -457,16 +461,20 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       .order('created_at', { ascending: false });
 
     if (ownProducts && Array.isArray(ownProducts)) {
+      console.log(`[getPublicProductsByStoreId] Query retornou ${ownProducts.length} produto(s) publicado(s)`);
       for (const p of ownProducts as Product[]) {
         if (!ownProductIds.has(p.id)) {
           allProducts.push(p);
           ownProductIds.add(p.id);
+          console.log(`[getPublicProductsByStoreId] Produto encontrado: id=${p.id}, titulo="${p.titulo}", status="${p.status}", store_id="${p.store_id}"`);
         }
       }
+    } else {
+      console.warn('[getPublicProductsByStoreId] Query retornou null/undefined para ownProducts');
     }
 
     if (ownError) {
-      console.error('[getPublicProductsByStoreId] Erro ao buscar produtos próprios:', ownError);
+      console.error('[getPublicProductsByStoreId] Erro ao buscar produtos próprios:', ownError.message, ownError);
     }
 
     // --- Step 3: Fetch approved affiliate products if creator has affiliations ---
