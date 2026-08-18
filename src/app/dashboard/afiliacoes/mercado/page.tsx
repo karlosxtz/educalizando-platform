@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Store, Search, Filter, AlertCircle, ShoppingBag, DollarSign, Loader2, CheckCircle2, Users } from 'lucide-react';
-import { getAvailableMarketplaceProducts, getAvailableMarketplaceStores, applyForProductAffiliation, applyForAffiliation, getMyAffiliations } from '@/lib/affiliate-service';
+import { applyForProductAffiliation, applyForAffiliation, getMyAffiliations } from '@/lib/affiliate-service';
+import { getMarketplaceProductsAction, getMarketplaceStoresAction } from '@/app/actions/affiliate-actions';
 
 export default function AffiliateMarketplacePage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -19,8 +20,8 @@ export default function AffiliateMarketplacePage() {
     async function load() {
       try {
         const [marketProducts, marketStores, myAff] = await Promise.all([
-          getAvailableMarketplaceProducts(),
-          getAvailableMarketplaceStores(),
+          getMarketplaceProductsAction(),
+          getMarketplaceStoresAction(),
           getMyAffiliations()
         ]);
         setProducts(marketProducts);

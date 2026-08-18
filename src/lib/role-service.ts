@@ -42,15 +42,23 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
       result.store = storeData as Store;
     }
 
-    // 2. Verificar se possui afiliações (afiliado)
+    // 2. Verificar se a conta tem natureza de afiliado (Metadata)
+    const { data: authData } = await supabase.auth.getUser();
+    const isAffiliateRole = authData?.user?.user_metadata?.role === 'affiliate' || authData?.user?.user_metadata?.is_affiliate === true;
+
+    // 3. Verificar se possui afiliações ativas no banco (afiliado estrutural)
     const { count, error: countError } = await supabase
       .from('affiliates')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    if (!countError && count && count > 0) {
-      result.isAffiliate = true;
+    if (!countError && count !== null) {
       result.affiliateCount = count;
+      if (count > 0 || isAffiliateRole) {
+        result.isAffiliate = true;
+      }
+    } else if (isAffiliateRole) {
+      result.isAffiliate = true;
     }
   } catch (err) {
     console.error('[resolveUserRoles] Erro:', err);
@@ -76,6 +84,9 @@ export function getActiveRole(roles: UserRoles, preference?: string | null): 'cr
   if (roles.isAffiliate) return 'affiliate';
   if (roles.isCreator) return 'creator';
   
+  // Fallback seguro para novas contas que ainda não propagaram o DB
+  if (preference === 'affiliate') return 'affiliate';
+
   // Fallback: criador (para novos usuários sem nenhum papel ainda)
   return 'creator';
 }
