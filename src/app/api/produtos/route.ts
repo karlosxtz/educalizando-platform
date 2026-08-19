@@ -57,7 +57,9 @@ export async function POST(request: Request) {
       education_level_id,
       gallery_urls,
       is_plr = false,
-      preco_plr = 0
+      preco_plr = 0,
+      allow_affiliates = false,
+      affiliate_commission_rate = 0
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -117,6 +119,8 @@ export async function POST(request: Request) {
       education_level_id: sanitizeUUID(education_level_id),
       is_plr: Boolean(is_plr),
       preco_plr: Number(preco_plr) || 0,
+      allow_affiliates: Boolean(allow_affiliates),
+      affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       created_at: new Date().toISOString()
     };
 
@@ -147,6 +151,8 @@ export async function POST(request: Request) {
         status: status || 'publicado',
         is_plr: Boolean(is_plr),
         preco_plr: Number(preco_plr) || 0,
+        allow_affiliates: Boolean(allow_affiliates),
+        affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
         created_at: new Date().toISOString()
       };
 
