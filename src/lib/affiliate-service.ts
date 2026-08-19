@@ -126,10 +126,10 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
 export async function getAvailableMarketplaceProducts(): Promise<any[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('*, store:stores(nome_loja, logo_url)')
+    .select('*, store:stores!inner(nome_loja, logo_url, affiliate_program_enabled)')
     .eq('status', 'publicado')
     .is('excluido_em', null)
-    .eq('allow_affiliates', true)
+    .eq('store.affiliate_program_enabled', true)
     .order('created_at', { ascending: false });
     
   if (error) return [];

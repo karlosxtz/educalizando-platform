@@ -19,10 +19,10 @@ export async function getMarketplaceStoresAction() {
 export async function getMarketplaceProductsAction() {
   const { data, error } = await supabaseAdmin
     .from('products')
-    .select('*, store:stores(nome_loja, logo_url)')
+    .select('*, store:stores!inner(nome_loja, logo_url, affiliate_program_enabled)')
     .eq('status', 'publicado')
     .is('excluido_em', null)
-    .eq('allow_affiliates', true)
+    .eq('store.affiliate_program_enabled', true)
     .order('created_at', { ascending: false });
     
   if (error) {

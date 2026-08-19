@@ -323,7 +323,7 @@ export default function AffiliateDashboardPage() {
               <p className="text-slate-500 text-sm mt-1 mb-6">
                 Explore a vitrine e envie solicitações de parceria.
               </p>
-              <Link href="/vitrine" className="px-6 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">
+              <Link href="/dashboard/afiliacoes/mercado" className="px-6 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">
                 Explorar Lojas
               </Link>
             </div>
