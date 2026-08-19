@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Store, Search, Filter, AlertCircle, ShoppingBag, DollarSign, Loader2, CheckCircle2, Users } from 'lucide-react';
-import { applyForProductAffiliation, applyForAffiliation, getMyAffiliations } from '@/lib/affiliate-service';
+import { applyForProductAffiliation, getMyAffiliations } from '@/lib/affiliate-service';
 import { getMarketplaceProductsAction, getMarketplaceStoresAction } from '@/app/actions/affiliate-actions';
 
 export default function AffiliateMarketplacePage() {
@@ -56,24 +56,7 @@ export default function AffiliateMarketplacePage() {
     }
   };
 
-  const handleAffiliateStore = async (storeId: string) => {
-    setAffiliatingId(storeId);
-    setSuccessMsg(null);
-    try {
-      const res = await applyForAffiliation(storeId);
-      if (res.success) {
-        setSuccessMsg(res.message);
-        const newAffs = await getMyAffiliations();
-        setMyAffiliations(newAffs);
-      } else {
-        alert(res.message);
-      }
-    } catch (err) {
-      alert('Erro ao se afiliar. Tente novamente.');
-    } finally {
-      setAffiliatingId(null);
-    }
-  };
+
 
   const filtered = products.filter(p => 
     p.titulo.toLowerCase().includes(search.toLowerCase()) || 
@@ -142,66 +125,7 @@ export default function AffiliateMarketplacePage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Stores Section */}
-          {filteredStores.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-teal-600" />
-                Lojas com Programa de Afiliados
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredStores.map(store => {
-                  const storeAffiliation = myAffiliations.find(a => a.store_id === store.id);
-                  return (
-                    <motion.div
-                      key={store.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {store.logo_url ? (
-                            <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
-                          ) : (
-                            <Store className="w-6 h-6 text-slate-400" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-slate-900 text-sm truncate">{store.nome_loja}</h3>
-                          <p className="text-xs text-slate-500 truncate">{store.descricao || 'Loja na Educalizando'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                        <div className="text-xs text-emerald-600 font-bold">
-                          Comissão: {store.affiliate_commission_rate || 10}%
-                        </div>
-                        {storeAffiliation ? (
-                          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 ${
-                            storeAffiliation.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
-                            storeAffiliation.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {storeAffiliation.status === 'aprovado' && <><CheckCircle2 className="w-3.5 h-3.5" /> Afiliado Aprovado</>}
-                            {storeAffiliation.status === 'pendente' && 'Aguardando aprovação'}
-                            {storeAffiliation.status === 'rejeitado' && 'Solicitação rejeitada'}
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleAffiliateStore(store.id)}
-                            disabled={affiliatingId === store.id}
-                            className="text-xs font-bold bg-brand-navy hover:bg-brand-navy-hover text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-70"
-                          >
-                            {affiliatingId === store.id ? 'Processando...' : 'Afiliar-se à Loja'}
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
 
           {/* Products Section */}
           {filtered.length > 0 && (
@@ -212,7 +136,7 @@ export default function AffiliateMarketplacePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map(product => {
-                  const storeAffiliation = myAffiliations.find(a => a.store_id === product.store_id);
+                  const storeAffiliation = myAffiliations.find(a => a.store_id === product.store_id && (a.product_id === product.id || a.product_id === null));
                   const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                   const comissaoText = product.affiliate_commission_rate ? `${product.affiliate_commission_rate}%` : 'Não definida';
                   const comissaoCalc = product.affiliate_commission_rate ? (product.preco * (product.affiliate_commission_rate / 100)) : 0;

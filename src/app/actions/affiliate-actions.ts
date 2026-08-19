@@ -54,7 +54,8 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     .from('affiliates')
     .select(`
       *,
-      user:auth.users(id, email, raw_user_meta_data)
+      user:auth.users(id, email, raw_user_meta_data),
+      product:products(id, titulo, capa_url)
     `)
     .eq('store_id', storeId)
     .order('created_at', { ascending: false });

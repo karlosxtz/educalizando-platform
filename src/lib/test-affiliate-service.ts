@@ -48,7 +48,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_1', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 100
+      affiliateId: 'aff_1', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0, got ${result.affiliateCommissionAmount}`);
@@ -65,7 +65,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_1', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: 'aff_1', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 30) throw new Error(`Expected 30, got ${result.affiliateCommissionAmount}`);
@@ -81,7 +81,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_3', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: 'aff_3', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -97,7 +97,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_4', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: 'aff_4', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -113,7 +113,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_5', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: 'aff_5', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -123,7 +123,7 @@ async function main() {
     mockSupabaseResponse(null);
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_fake', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: 'aff_fake', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -132,7 +132,7 @@ async function main() {
   await runTest('TESTE 7 — COMPRA NORMAL SEM AFILIADO', async () => {
     // Should not even call supabase if affiliateId is null
     const result = await calculateAffiliateCommission({
-      affiliateId: null, storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
+      affiliateId: null, productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -149,7 +149,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_8', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 200
+      affiliateId: 'aff_8', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_B', baseSubtotal: 200
     });
     
     if (result.affiliateCommissionAmount !== 30) throw new Error(`Expected 30`);
@@ -166,7 +166,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_9', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 200
+      affiliateId: 'aff_9', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 200
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);
@@ -183,7 +183,7 @@ async function main() {
     });
     
     const result = await calculateAffiliateCommission({
-      affiliateId: 'aff_10', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 100
+      affiliateId: 'aff_10', productId: 'prod-123', storeId: 'store_1', buyerId: 'user_A', baseSubtotal: 100
     });
     
     if (result.affiliateCommissionAmount !== 0) throw new Error(`Expected 0`);

@@ -123,54 +123,23 @@ export async function getAvailableMarketplaceStores(): Promise<any[]> {
   return data;
 }
 
-export async function applyForAffiliation(storeId: string): Promise<{ success: boolean; message: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Usuário não autenticado' };
 
-  // Check if already applied to this store
-  const { data: existing } = await supabase
-    .from('affiliates')
-    .select('id')
-    .eq('store_id', storeId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (existing) {
-    return { success: false, message: 'Você já é afiliado ou possui uma solicitação pendente para esta loja.' };
-  }
-
-  const { error } = await supabase
-    .from('affiliates')
-    .insert([
-      {
-        store_id: storeId,
-        user_id: user.id,
-        status: 'pendente' // Fixed to pendente
-      }
-    ]);
-
-  if (error) {
-    console.error('Error applying for store affiliation:', error);
-    return { success: false, message: 'Erro ao enviar solicitação.' };
-  }
-
-  return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
-}
 
 export async function applyForProductAffiliation(productId: string, storeId: string): Promise<{ success: boolean; message: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Usuário não autenticado' };
 
-  // Check if already applied (checks store, since affiliation is store-based)
+  // Check if already applied for THIS product specifically
   const { data: existing } = await supabase
     .from('affiliates')
     .select('id')
     .eq('store_id', storeId)
     .eq('user_id', user.id)
+    .eq('product_id', productId)
     .single();
 
   if (existing) {
-    return { success: false, message: 'Você já possui uma afiliação ou solicitação pendente para a loja deste produto.' };
+    return { success: false, message: 'Você já possui uma afiliação ou solicitação pendente para este produto.' };
   }
 
   const { error } = await supabase
@@ -179,6 +148,7 @@ export async function applyForProductAffiliation(productId: string, storeId: str
       {
         store_id: storeId,
         user_id: user.id,
+        product_id: productId,
         status: 'pendente' // Forced pending status
       }
     ]);
@@ -206,15 +176,17 @@ export async function getAffiliateProfile(userId: string) {
 export async function calculateAffiliateCommission({
   affiliateId,
   storeId,
+  productId,
   buyerId,
   baseSubtotal
 }: {
   affiliateId: string | null;
   storeId: string;
+  productId: string;
   buyerId: string;
   baseSubtotal: number;
 }): Promise<{ affiliateCommissionAmount: number; affiliateId: string | null }> {
-  if (!affiliateId || !storeId || !buyerId || baseSubtotal <= 0) {
+  if (!affiliateId || !storeId || !buyerId || !productId || baseSubtotal <= 0) {
     return { affiliateCommissionAmount: 0, affiliateId: null };
   }
 
@@ -224,6 +196,7 @@ export async function calculateAffiliateCommission({
       .select(`
         id, 
         user_id,
+        product_id,
         status, 
         commission_type, 
         commission_rate, 
@@ -238,6 +211,13 @@ export async function calculateAffiliateCommission({
       .single();
 
     if (!affiliate) {
+      return { affiliateCommissionAmount: 0, affiliateId: null };
+    }
+
+    // Validação de produto: Se for nulo, é legado (aprova para a loja toda). 
+    // Se tiver valor, DEVE ser exatamente o produto do carrinho.
+    if (affiliate.product_id !== null && affiliate.product_id !== productId) {
+      console.log(`[AffiliateService] Afiliação ${affiliateId} não é válida para o produto ${productId}`);
       return { affiliateCommissionAmount: 0, affiliateId: null };
     }
 

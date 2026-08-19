@@ -228,6 +228,7 @@ export interface Affiliate {
   updated_at?: string;
   store?: Store | null;
   user?: StudentProfile | null;
+  product?: { id: string; titulo: string; capa_url?: string } | null;
 }
 
 export interface StoreThemeProps {

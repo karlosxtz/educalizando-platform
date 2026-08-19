@@ -5,7 +5,7 @@ import { updateAffiliateStatus } from '@/lib/affiliate-service';
 import { getStoreAffiliatesAction } from '@/app/actions/affiliate-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Affiliate, Store } from '@/lib/types';
-import { Users, CheckCircle, XCircle, Settings, TrendingUp } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Settings, TrendingUp, ShoppingBag, Store as StoreIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function CreatorAffiliatesPage() {
@@ -229,7 +229,18 @@ export default function CreatorAffiliatesPage() {
                               <div>
                                 <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
                                 <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
-                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 mt-1 inline-block">
+                                {affiliate.product ? (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-sm w-fit">
+                                    <ShoppingBag className="w-3.5 h-3.5 text-brand-teal" />
+                                    <span>Produto: {affiliate.product.titulo}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md w-fit">
+                                    <StoreIcon className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Afiliação da Loja (Legado)</span>
+                                  </div>
+                                )}
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 mt-2 inline-block uppercase tracking-wider">
                                   PENDENTE
                                 </span>
                               </div>
@@ -266,7 +277,18 @@ export default function CreatorAffiliatesPage() {
                               <div>
                                 <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
                                 <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
-                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 mt-1 inline-block">
+                                {affiliate.product ? (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-sm w-fit">
+                                    <ShoppingBag className="w-3.5 h-3.5 text-brand-teal" />
+                                    <span>Produto: {affiliate.product.titulo}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md w-fit">
+                                    <StoreIcon className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Afiliação da Loja (Legado)</span>
+                                  </div>
+                                )}
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 mt-2 inline-block uppercase tracking-wider">
                                   APROVADO
                                 </span>
                               </div>
@@ -300,7 +322,18 @@ export default function CreatorAffiliatesPage() {
                               <div>
                                 <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
                                 <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
-                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 mt-1 inline-block">
+                                {affiliate.product ? (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-sm w-fit">
+                                    <ShoppingBag className="w-3.5 h-3.5 text-brand-teal" />
+                                    <span>Produto: {affiliate.product.titulo}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md w-fit">
+                                    <StoreIcon className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Afiliação da Loja (Legado)</span>
+                                  </div>
+                                )}
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 mt-2 inline-block uppercase tracking-wider">
                                   REJEITADO
                                 </span>
                               </div>

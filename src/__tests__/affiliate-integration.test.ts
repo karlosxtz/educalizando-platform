@@ -27,7 +27,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve calcular comissão correta para um afiliado válido e aprovado', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockAffiliateId,
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -40,7 +40,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve retornar 0 para um ID de afiliado inexistente no banco', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: 'invalid_id_not_in_db',
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -52,7 +52,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve retornar 0 se o afiliado estiver com status rejeitado', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockRejectedAffiliateId,
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -64,7 +64,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve retornar 0 se o afiliado estiver com status pendente', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockPendingAffiliateId,
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -76,7 +76,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve retornar 0 se o programa de afiliados da loja estiver desativado', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockAffiliateId,
-      storeId: mockDisabledProgramStoreId,
+      productId: 'prod-123', storeId: mockDisabledProgramStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -88,7 +88,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve retornar 0 se o afiliado não pertencer à loja do checkout (Cross-Store Protection)', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockAffiliateOtherStoreId,
-      storeId: mockStoreId, // Loja diferente
+      productId: 'prod-123', storeId: mockStoreId, // Loja diferente
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -100,7 +100,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve bloquear self-referral retornando 0 de comissão quando buyerId == affiliateUserId', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockAffiliateId,
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: 'user_affiliate_owner_1', // O ID do dono da afiliação
       baseSubtotal: mockBaseSubtotal
     });
@@ -112,7 +112,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   it('[INTEGRAÇÃO] Deve autorizar a compra e computar se buyerId != affiliateUserId', async () => {
     const result = await calculateAffiliateCommission({
       affiliateId: mockAffiliateId,
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: 'user_buyer_random_3',
       baseSubtotal: mockBaseSubtotal
     });
@@ -125,7 +125,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
     // o DB vai barrar no service. Simulando o ID adulterado:
     const result = await calculateAffiliateCommission({
       affiliateId: 'hack_id_123',
-      storeId: mockStoreId,
+      productId: 'prod-123', storeId: mockStoreId,
       buyerId: mockBuyerId,
       baseSubtotal: mockBaseSubtotal
     });
@@ -135,7 +135,7 @@ describe('Affiliate Commission Engine - Integration Tests', () => {
   // 10. storeId adulterado
   it('[INTEGRAÇÃO] O Backend redefine a loja efetiva (effectiveStoreId) no Checkout, blindando ataques de Payload', async () => {
     // Checkout extrai effectiveStoreId do realProduct[0]. 
-    // Logo se o cliente manda `storeId: "falsa"`, o backend sobrepõe com a verdadeira.
+    // Logo se o cliente manda `productId: 'prod-123', storeId: "falsa"`, o backend sobrepõe com a verdadeira.
     expect(true).toBe(true);
   });
 

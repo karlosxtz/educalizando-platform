@@ -215,6 +215,7 @@ export async function POST(request: Request) {
       const commissionResult = await calculateAffiliateCommission({
         affiliateId: rawAffiliateId,
         storeId: effectiveStoreId,
+        productId: realItems[0]?.productId,
         buyerId: studentId,
         baseSubtotal
       });
