@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Store, Search, Filter, AlertCircle, ShoppingBag, DollarSign, Loader2, CheckCircle2, Users } from 'lucide-react';
-import { applyForProductAffiliation, getMyAffiliations } from '@/lib/affiliate-service';
+import { applyForProductAffiliation, getMyAffiliations, cancelAffiliation } from '@/lib/affiliate-service';
 import { getMarketplaceProductsAction, getMarketplaceStoresAction } from '@/app/actions/affiliate-actions';
 
 export default function AffiliateMarketplacePage() {
@@ -53,6 +53,23 @@ export default function AffiliateMarketplacePage() {
       alert('Erro ao se afiliar. Tente novamente.');
     } finally {
       setAffiliatingId(null);
+    }
+  };
+
+  const handleCancelAffiliation = async (affiliateId: string) => {
+    if (!confirm('Tem certeza que deseja cancelar esta afiliação? O criador precisará aprovar novamente se você solicitar no futuro.')) return;
+    
+    try {
+      const res = await cancelAffiliation(affiliateId);
+      if (res.success) {
+        alert('Afiliação cancelada com sucesso.');
+        const newAffs = await getMyAffiliations();
+        setMyAffiliations(newAffs);
+      } else {
+        alert(res.message);
+      }
+    } catch (err) {
+      alert('Erro ao cancelar afiliação. Tente novamente.');
     }
   };
 
@@ -136,7 +153,7 @@ export default function AffiliateMarketplacePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map(product => {
-                  const storeAffiliation = myAffiliations.find(a => a.store_id === product.store_id && (a.product_id === product.id || a.product_id === null));
+                  const productAffiliate = myAffiliations.find(a => a.store_id === product.store_id && a.product_id === product.id);
                   const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                   const comissaoText = product.affiliate_commission_rate ? `${product.affiliate_commission_rate}%` : 'Não definida';
                   const comissaoCalc = product.affiliate_commission_rate ? (product.preco * (product.affiliate_commission_rate / 100)) : 0;
@@ -179,15 +196,25 @@ export default function AffiliateMarketplacePage() {
                         </div>
                         
                         <div className="mt-5 pt-5 border-t border-slate-100">
-                          {storeAffiliation ? (
-                            <div className={`w-full py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 ${
-                              storeAffiliation.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
-                              storeAffiliation.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
-                              'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {storeAffiliation.status === 'aprovado' && <><CheckCircle2 className="w-4 h-4" /> Afiliado Aprovado</>}
-                              {storeAffiliation.status === 'pendente' && 'Aguardando aprovação'}
-                              {storeAffiliation.status === 'rejeitado' && 'Solicitação rejeitada'}
+                          {productAffiliate ? (
+                            <div className="flex flex-col gap-2">
+                              <div className={`w-full py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 ${
+                                productAffiliate.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
+                                productAffiliate.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {productAffiliate.status === 'aprovado' && <><CheckCircle2 className="w-4 h-4" /> Afiliado Aprovado</>}
+                                {productAffiliate.status === 'pendente' && 'Aguardando aprovação'}
+                                {productAffiliate.status === 'rejeitado' && 'Solicitação rejeitada'}
+                              </div>
+                              {productAffiliate.status !== 'rejeitado' && (
+                                <button
+                                  onClick={() => handleCancelAffiliation(productAffiliate.id)}
+                                  className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full text-center py-1"
+                                >
+                                  Cancelar filiação
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <button

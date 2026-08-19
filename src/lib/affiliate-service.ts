@@ -161,6 +161,25 @@ export async function applyForProductAffiliation(productId: string, storeId: str
   return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
 }
 
+export async function cancelAffiliation(affiliateId: string): Promise<{ success: boolean; message: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Usuário não autenticado' };
+
+  // Delete matching affiliate.id and user_id to ensure ownership
+  const { error } = await supabase
+    .from('affiliates')
+    .delete()
+    .eq('id', affiliateId)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Error canceling affiliation:', error);
+    return { success: false, message: 'Erro ao cancelar afiliação.' };
+  }
+
+  return { success: true, message: 'Afiliação cancelada com sucesso.' };
+}
+
 export async function getAffiliateProfile(userId: string) {
   // We fetch their store data which acts as their profile
   const { data, error } = await supabase
