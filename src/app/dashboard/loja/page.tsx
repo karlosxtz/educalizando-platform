@@ -541,6 +541,23 @@ export default function StoreSettingsPage() {
               </div>
             </div>
 
+            {/* Validation Errors Alert */}
+            {Object.keys(errors).length > 0 && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex flex-col gap-2 font-semibold">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                  <span>Não foi possível salvar. Verifique os erros abaixo:</span>
+                </div>
+                <ul className="list-disc pl-8 font-medium">
+                  {errors.nome_loja && <li>Nome da Loja: {errors.nome_loja.message}</li>}
+                  {errors.slug && <li>Slug (Link): {errors.slug.message}</li>}
+                  {errors.cor_primaria && <li>Cor: {errors.cor_primaria.message}</li>}
+                  {errors.whatsapp && <li>WhatsApp: {errors.whatsapp.message}</li>}
+                  {errors.website && <li>Website: {errors.website.message}</li>}
+                </ul>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
