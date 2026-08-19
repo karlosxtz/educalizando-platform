@@ -143,13 +143,17 @@ export async function getCurrentCreatorStore(): Promise<Store> {
         const userMeta = authUser.user.user_metadata || {};
 
         // Buscar loja existente — NÃO criar automaticamente
-        let { data: storeData } = await supabase
+        const { data: storeData, error: storeError } = await supabase
           .from('stores')
           .select('*')
-          .or(`creator_id.eq.${userId},creator_id.eq.${userEmail}`)
+          .eq('creator_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+          
+        if (storeError) {
+          console.error('[getCurrentCreatorStore] Supabase query error:', storeError.message);
+        }
 
         if (storeData) {
           if (storeData.nome_loja && storeData.nome_loja.includes('@')) {

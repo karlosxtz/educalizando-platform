@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         const { data: storeRow } = await supabaseAdmin
           .from('stores')
           .select('id, creator_id')
-          .or(`slug.eq.${cleanStoreId},id.eq.${cleanStoreId},creator_id.eq.${cleanStoreId}`)
+          .eq('slug', cleanStoreId)
           .limit(1)
           .maybeSingle();
 
