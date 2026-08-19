@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { getStoreAffiliates, updateAffiliateStatus } from '@/lib/affiliate-service';
+import { updateAffiliateStatus } from '@/lib/affiliate-service';
+import { getStoreAffiliatesAction } from '@/app/actions/affiliate-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Affiliate, Store } from '@/lib/types';
 import { Users, CheckCircle, XCircle, Settings, TrendingUp } from 'lucide-react';
@@ -37,7 +38,7 @@ export default function CreatorAffiliatesPage() {
         setCommissionType(myStore.affiliate_commission_type || 'percentual');
         setCommissionRate(myStore.affiliate_commission_rate || 30);
         
-        const myAffiliates = await getStoreAffiliates(myStore.id);
+        const myAffiliates = await getStoreAffiliatesAction(myStore.id);
         setAffiliates(myAffiliates);
       }
     } catch (e) {
@@ -209,64 +210,112 @@ export default function CreatorAffiliatesPage() {
                   </p>
                 </div>
               ) : (
-                affiliates.map(affiliate => (
-                  <div key={affiliate.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      {affiliate.user?.avatar_url ? (
-                        <img src={affiliate.user.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium">
-                          {affiliate.user?.full_name?.charAt(0).toUpperCase() || 'A'}
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
-                        <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            affiliate.status === 'aprovado' ? 'bg-green-100 text-green-700' :
-                            affiliate.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {affiliate.status.toUpperCase()}
-                          </span>
-                          {affiliate.commission_rate && (
-                            <span className="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
-                              Taxa Especial: {affiliate.commission_type === 'fixo' ? `R$ ${affiliate.commission_rate}` : `${affiliate.commission_rate}%`}
-                            </span>
-                          )}
-                        </div>
+                <div className="p-6 space-y-8">
+                  {/* PENDENTES */}
+                  {affiliates.some(a => a.status === 'pendente') && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">Solicitações Pendentes</h3>
+                      <div className="space-y-4">
+                        {affiliates.filter(a => a.status === 'pendente').map(affiliate => (
+                          <div key={affiliate.id} className="p-4 bg-yellow-50/50 rounded-xl border border-yellow-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                            <div className="flex items-center gap-4">
+                              {affiliate.user?.avatar_url ? (
+                                <img src={affiliate.user.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium border border-slate-200">
+                                  {affiliate.user?.full_name?.charAt(0).toUpperCase() || 'A'}
+                                </div>
+                              )}
+                              <div>
+                                <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
+                                <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 mt-1 inline-block">
+                                  PENDENTE
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleStatusChange(affiliate.id, 'aprovado')} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors">
+                                <CheckCircle className="w-4 h-4" /> Aprovar
+                              </button>
+                              <button onClick={() => handleStatusChange(affiliate.id, 'rejeitado')} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors">
+                                <XCircle className="w-4 h-4" /> Rejeitar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {affiliate.status === 'pendente' && (
-                        <>
-                          <button 
-                            onClick={() => handleStatusChange(affiliate.id, 'aprovado')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            <CheckCircle className="w-4 h-4" /> Aprovar
-                          </button>
-                          <button 
-                            onClick={() => handleStatusChange(affiliate.id, 'rejeitado')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            <XCircle className="w-4 h-4" /> Rejeitar
-                          </button>
-                        </>
-                      )}
-                      {affiliate.status === 'aprovado' && (
-                        <button 
-                          onClick={() => handleStatusChange(affiliate.id, 'rejeitado')}
-                          className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-sm font-medium transition-colors"
-                        >
-                          Revogar
-                        </button>
-                      )}
+                  )}
+
+                  {/* APROVADOS */}
+                  {affiliates.some(a => a.status === 'aprovado') && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">Afiliados Aprovados</h3>
+                      <div className="space-y-4">
+                        {affiliates.filter(a => a.status === 'aprovado').map(affiliate => (
+                          <div key={affiliate.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                            <div className="flex items-center gap-4">
+                              {affiliate.user?.avatar_url ? (
+                                <img src={affiliate.user.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium border border-slate-200">
+                                  {affiliate.user?.full_name?.charAt(0).toUpperCase() || 'A'}
+                                </div>
+                              )}
+                              <div>
+                                <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
+                                <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 mt-1 inline-block">
+                                  APROVADO
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleStatusChange(affiliate.id, 'rejeitado')} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Suspender
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )}
+
+                  {/* REJEITADOS */}
+                  {affiliates.some(a => a.status === 'rejeitado') && (
+                    <div className="opacity-70">
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">Rejeitados</h3>
+                      <div className="space-y-4">
+                        {affiliates.filter(a => a.status === 'rejeitado').map(affiliate => (
+                          <div key={affiliate.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                            <div className="flex items-center gap-4 grayscale">
+                              {affiliate.user?.avatar_url ? (
+                                <img src={affiliate.user.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium border border-slate-200">
+                                  {affiliate.user?.full_name?.charAt(0).toUpperCase() || 'A'}
+                                </div>
+                              )}
+                              <div>
+                                <h4 className="font-medium text-slate-900">{affiliate.user?.full_name || 'Usuário Desconhecido'}</h4>
+                                <p className="text-sm text-slate-500">{affiliate.user?.email}</p>
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 mt-1 inline-block">
+                                  REJEITADO
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleStatusChange(affiliate.id, 'aprovado')} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Reaprovar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

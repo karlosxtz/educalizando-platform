@@ -1,32 +1,8 @@
 import { supabase, supabaseAdmin } from './supabase';
 import { Affiliate, AffiliateStatus } from './types';
 
-export async function getStoreAffiliates(storeId: string): Promise<Affiliate[]> {
-  const { data, error } = await supabase
-    .from('affiliates')
-    .select(`
-      *,
-      user:auth.users(id, email, raw_user_meta_data)
-    `)
-    .eq('store_id', storeId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching affiliates:', error);
-    return [];
-  }
-  
-  // Map the raw_user_meta_data to match StudentProfile format for ease of use
-  return data.map((item: any) => ({
-    ...item,
-    user: item.user ? {
-      id: item.user.id,
-      email: item.user.email,
-      full_name: item.user.raw_user_meta_data?.full_name || 'Desconhecido',
-      avatar_url: item.user.raw_user_meta_data?.avatar_url
-    } : null
-  })) as Affiliate[];
-}
+// getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
+// Use getStoreAffiliatesAction from src/app/actions/affiliate-actions.ts instead.
 
 export async function updateAffiliateStatus(affiliateId: string, status: AffiliateStatus): Promise<boolean> {
   const { error } = await supabase
@@ -151,17 +127,16 @@ export async function applyForAffiliation(storeId: string): Promise<{ success: b
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Usuário não autenticado' };
 
-  // Check if already applied to this store (without specific product)
+  // Check if already applied to this store
   const { data: existing } = await supabase
     .from('affiliates')
     .select('id')
-    .is('product_id', null)
     .eq('store_id', storeId)
     .eq('user_id', user.id)
     .single();
 
   if (existing) {
-    return { success: false, message: 'Você já é afiliado desta loja.' };
+    return { success: false, message: 'Você já é afiliado ou possui uma solicitação pendente para esta loja.' };
   }
 
   const { error } = await supabase
@@ -169,9 +144,8 @@ export async function applyForAffiliation(storeId: string): Promise<{ success: b
     .insert([
       {
         store_id: storeId,
-        product_id: null,
         user_id: user.id,
-        status: 'aprovado' // Store level affiliations default to auto approve for now
+        status: 'pendente' // Fixed to pendente
       }
     ]);
 
@@ -180,23 +154,23 @@ export async function applyForAffiliation(storeId: string): Promise<{ success: b
     return { success: false, message: 'Erro ao enviar solicitação.' };
   }
 
-  return { success: true, message: 'Afiliação à loja concluída com sucesso!' };
+  return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
 }
 
-export async function applyForProductAffiliation(productId: string, storeId: string, autoApprove: boolean = true): Promise<{ success: boolean; message: string }> {
+export async function applyForProductAffiliation(productId: string, storeId: string): Promise<{ success: boolean; message: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Usuário não autenticado' };
 
-  // Check if already applied
+  // Check if already applied (checks store, since affiliation is store-based)
   const { data: existing } = await supabase
     .from('affiliates')
     .select('id')
-    .eq('product_id', productId)
+    .eq('store_id', storeId)
     .eq('user_id', user.id)
     .single();
 
   if (existing) {
-    return { success: false, message: 'Você já é afiliado deste produto.' };
+    return { success: false, message: 'Você já possui uma afiliação ou solicitação pendente para a loja deste produto.' };
   }
 
   const { error } = await supabase
@@ -204,9 +178,8 @@ export async function applyForProductAffiliation(productId: string, storeId: str
     .insert([
       {
         store_id: storeId,
-        product_id: productId,
         user_id: user.id,
-        status: autoApprove ? 'aprovado' : 'pendente' // Product level affiliations default to auto approve if set
+        status: 'pendente' // Forced pending status
       }
     ]);
 
@@ -215,7 +188,7 @@ export async function applyForProductAffiliation(productId: string, storeId: str
     return { success: false, message: 'Erro ao enviar solicitação.' };
   }
 
-  return { success: true, message: autoApprove ? 'Afiliação concluída com sucesso! O produto já está na sua vitrine.' : 'Solicitação enviada com sucesso!' };
+  return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
 }
 
 export async function getAffiliateProfile(userId: string) {

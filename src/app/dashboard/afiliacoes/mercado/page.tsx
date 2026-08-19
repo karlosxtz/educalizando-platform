@@ -40,7 +40,7 @@ export default function AffiliateMarketplacePage() {
     setAffiliatingId(productId);
     setSuccessMsg(null);
     try {
-      const res = await applyForProductAffiliation(productId, storeId, true);
+      const res = await applyForProductAffiliation(productId, storeId);
       if (res.success) {
         setSuccessMsg(res.message);
         // Refresh affiliations to show "Afiliado" instead of the button
@@ -151,7 +151,7 @@ export default function AffiliateMarketplacePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredStores.map(store => {
-                  const isAffiliated = myAffiliations.some(a => a.store_id === store.id && !a.product_id);
+                  const storeAffiliation = myAffiliations.find(a => a.store_id === store.id);
                   return (
                     <motion.div
                       key={store.id}
@@ -176,9 +176,15 @@ export default function AffiliateMarketplacePage() {
                         <div className="text-xs text-emerald-600 font-bold">
                           Comissão: {store.affiliate_commission_rate || 10}%
                         </div>
-                        {isAffiliated ? (
-                          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Afiliado
+                        {storeAffiliation ? (
+                          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 ${
+                            storeAffiliation.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
+                            storeAffiliation.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {storeAffiliation.status === 'aprovado' && <><CheckCircle2 className="w-3.5 h-3.5" /> Afiliado Aprovado</>}
+                            {storeAffiliation.status === 'pendente' && 'Aguardando aprovação'}
+                            {storeAffiliation.status === 'rejeitado' && 'Solicitação rejeitada'}
                           </span>
                         ) : (
                           <button
@@ -186,7 +192,7 @@ export default function AffiliateMarketplacePage() {
                             disabled={affiliatingId === store.id}
                             className="text-xs font-bold bg-brand-navy hover:bg-brand-navy-hover text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-70"
                           >
-                            {affiliatingId === store.id ? 'Processando...' : 'Afiliar-se'}
+                            {affiliatingId === store.id ? 'Processando...' : 'Afiliar-se à Loja'}
                           </button>
                         )}
                       </div>
@@ -206,7 +212,7 @@ export default function AffiliateMarketplacePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map(product => {
-                  const isAffiliated = myAffiliations.some(a => a.product_id === product.id);
+                  const storeAffiliation = myAffiliations.find(a => a.store_id === product.store_id);
                   const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                   const comissaoText = product.affiliate_commission_rate ? `${product.affiliate_commission_rate}%` : 'Não definida';
                   const comissaoCalc = product.affiliate_commission_rate ? (product.preco * (product.affiliate_commission_rate / 100)) : 0;
@@ -249,9 +255,15 @@ export default function AffiliateMarketplacePage() {
                         </div>
                         
                         <div className="mt-5 pt-5 border-t border-slate-100">
-                          {isAffiliated ? (
-                            <div className="w-full py-2.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-xl flex items-center justify-center gap-2">
-                              <CheckCircle2 className="w-4 h-4" /> Afiliado Aprovado
+                          {storeAffiliation ? (
+                            <div className={`w-full py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 ${
+                              storeAffiliation.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
+                              storeAffiliation.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {storeAffiliation.status === 'aprovado' && <><CheckCircle2 className="w-4 h-4" /> Afiliado Aprovado</>}
+                              {storeAffiliation.status === 'pendente' && 'Aguardando aprovação'}
+                              {storeAffiliation.status === 'rejeitado' && 'Solicitação rejeitada'}
                             </div>
                           ) : (
                             <button
