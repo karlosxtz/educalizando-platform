@@ -120,17 +120,11 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
-      label: 'Meus Afiliados',
-      href: '/dashboard/afiliados',
+      label: 'Minhas Afiliações',
+      href: '/dashboard/gerenciar-afiliacoes',
       icon: Users,
       badge: 'NOVO'
     },
-    ...(hasAffiliateRole ? [{
-      label: 'Minhas Afiliações',
-      href: '/dashboard/afiliacoes',
-      icon: Users,
-      badge: 'NOVO'
-    }] : []),
     {
       label: 'Financeiro',
       href: '/dashboard/financeiro',

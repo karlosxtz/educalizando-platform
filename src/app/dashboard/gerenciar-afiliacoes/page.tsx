@@ -90,8 +90,8 @@ export default function CreatorAffiliatesPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Programa de Afiliados</h1>
-        <p className="text-slate-500 mt-1">Gerencie seus parceiros de vendas e configure suas comissões.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas Afiliações</h1>
+        <p className="text-slate-500 mt-1">Gerencie as solicitações e afiliados dos seus produtos.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
