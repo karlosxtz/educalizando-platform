@@ -56,6 +56,16 @@ function ProductWizardContent() {
         const currentStore = await getCurrentCreatorStore();
         setStore(currentStore);
 
+        // Alerta imediato: o usuário não tem loja configurada
+        const isValidUUID = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+        if (!currentStore.id || !isValidUUID(currentStore.id)) {
+          setErrorMsg(
+            '⚠️ Você ainda não configurou sua loja. ' +
+            'Acesse "Configurações da Loja" no menu lateral, preencha o nome e slug, e salve. ' +
+            'Após salvar, volte aqui para cadastrar seus produtos.'
+          );
+        }
+
         const [cats, edLevels] = await Promise.all([
           getCategories(currentStore.id),
           getEducationLevels()
@@ -137,6 +147,18 @@ function ProductWizardContent() {
 
   const handleSaveProduct = async () => {
     if (!store) return;
+
+    // Guarda de segurança: verificar se a loja possui um ID real no banco
+    const isValidUUID = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+    if (!store.id || !isValidUUID(store.id)) {
+      setErrorMsg(
+        '⚠️ Sua loja ainda não foi configurada. Antes de cadastrar produtos, acesse ' +
+        '"Configurações da Loja" (menu lateral) e salve os dados da sua loja. ' +
+        'Isso é necessário para vincular os produtos corretamente.'
+      );
+      return;
+    }
+
     setSaving(true);
     setErrorMsg(null);
 

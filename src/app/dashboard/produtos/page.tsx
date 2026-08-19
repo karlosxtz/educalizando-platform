@@ -199,8 +199,25 @@ export default function ProductsManagementPage() {
     );
   }
 
+  const storeIsConfigured = store && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(store.id);
+
   return (
     <div className="space-y-8">
+      {!storeIsConfigured && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-5 rounded-2xl flex items-start gap-4">
+          <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-black text-sm">Sua loja ainda não está configurada</p>
+            <p className="text-xs font-medium mt-1">
+              Para cadastrar produtos, você precisa primeiro salvar as informações da sua loja.
+              Acesse <strong>"Configurações da Loja"</strong> no menu lateral, preencha o nome e slug, e clique em Salvar.
+            </p>
+            <a href="/dashboard/loja" className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold rounded-lg transition-colors">
+              Configurar Minha Loja Agora
+            </a>
+          </div>
+        </div>
+      )}
       {/* Page Title & Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>

@@ -318,6 +318,13 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
+  // Guard: se não há um UUID válido, não buscar no banco
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanStoreId);
+  if (!isUUID) {
+    console.warn('[getProductsByStoreId] store_id inválido ou vazio. Nenhum produto será carregado.', cleanStoreId);
+    return [];
+  }
+
   let mergedProducts: Product[] = [];
 
   // Fallback Local (Isolamento estrito por loja)
@@ -540,99 +547,70 @@ function cleanProductPayload<T extends Record<string, any>>(data: T): T {
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
   let payload = cleanProductPayload(productData);
 
-  // 1. Tentar gravar via API Route backend (/api/produtos) para ignorar restrições de RLS de cliente
+  // Validação antecipada: store_id deve ser um UUID válido
+  if (!payload.store_id || !isValidUUID(payload.store_id)) {
+    throw new Error(
+      'Não é possível criar o produto: a loja ainda não foi configurada. ' +
+      'Acesse "Configurações da Loja" e salve os dados da sua loja antes de cadastrar produtos.'
+    );
+  }
+
+  // 1. Obter token de autenticação
+  let token = '';
+  if (typeof window !== 'undefined') {
+    const rawSession = localStorage.getItem('educalizando_creator_session');
+    if (rawSession) {
+      try {
+        const sess = JSON.parse(rawSession);
+        if (sess.access_token) token = sess.access_token;
+      } catch (e) {}
+    }
+  }
+  const { data: authSession } = await supabase.auth.getSession();
+  if (authSession?.session?.access_token) {
+    token = authSession.session.access_token;
+  }
+
+  if (!token) {
+    throw new Error('Sessão expirada. Faça login novamente para cadastrar produtos.');
+  }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  headers['Authorization'] = `Bearer ${token}`;
+
+  // 2. Chamar API backend — ÚNICA fonte de verdade
+  let res: Response;
   try {
-    let token = '';
-    if (typeof window !== 'undefined') {
-      const rawSession = localStorage.getItem('educalizando_creator_session');
-      if (rawSession) {
-        try {
-          const sess = JSON.parse(rawSession);
-          if (sess.access_token) token = sess.access_token;
-        } catch (e) {}
-      }
-    }
-    const { data: authSession } = await supabase.auth.getSession();
-    if (authSession?.session?.access_token) {
-      token = authSession.session.access_token;
-    }
-
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch('/api/produtos', {
+    res = await fetch('/api/produtos', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
     });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result.success && result.product) {
-        removeDeletedProductId(result.product.id);
-        const products = getLocalProducts();
-        products.unshift(result.product as Product);
-        saveLocalProducts(products);
-        return result.product as Product;
-      }
-    }
-  } catch (err: any) {
-    console.warn('[createProduct] Tentando inserção direta via Supabase client...', err);
+  } catch (networkErr: any) {
+    throw new Error(`Falha de rede ao criar produto: ${networkErr.message}. Verifique sua conexão.`);
   }
 
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
+  const result = await res.json().catch(() => null);
 
-  if (isRealSupabase) {
-    try {
-      const { data: authUser } = await supabase.auth.getUser();
-      if (authUser?.user) {
-        const userId = authUser.user.id;
-        const userEmail = (authUser.user.email || '').toLowerCase().trim();
-
-        const { data: userStore } = await supabase
-          .from('stores')
-          .select('id')
-          .or(`creator_id.eq.${userId},creator_id.eq.${userEmail}`)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (userStore?.id) {
-          payload.store_id = userStore.id;
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('products')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (!error && data) {
-        const products = getLocalProducts();
-        products.unshift(data as Product);
-        saveLocalProducts(products);
-        return data as Product;
-      }
-    } catch (err: any) {
-      console.warn('[createProduct] Supabase sync fallback:', err.message);
-    }
+  if (!res.ok) {
+    // Propagar o erro real da API para o frontend — NÃO cair em fallback
+    const errMsg = result?.error || `Erro ${res.status} ao criar produto no servidor.`;
+    console.error('[createProduct] Erro retornado pela API:', errMsg);
+    throw new Error(errMsg);
   }
 
-  // Fallback Local Seguro (garante que a criação NUNCA falhe para o usuário)
-  const newProduct: Product = {
-    ...payload,
-    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `prod_${Date.now()}`,
-    created_at: new Date().toISOString()
-  };
+  if (!result?.success || !result?.product) {
+    throw new Error('O servidor não retornou o produto criado. Tente novamente.');
+  }
 
-  const products = getLocalProducts();
-  products.unshift(newProduct);
-  saveLocalProducts(products);
-  return newProduct;
+  // 3. Sucesso: atualizar cache local com o produto real do banco
+  const created = result.product as Product;
+  removeDeletedProductId(created.id);
+  const localProducts = getLocalProducts();
+  localProducts.unshift(created);
+  saveLocalProducts(localProducts);
+
+  return created;
 }
 
 // 7. Atualizar Produto
