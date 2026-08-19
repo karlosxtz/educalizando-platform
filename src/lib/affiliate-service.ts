@@ -132,13 +132,27 @@ export async function applyForProductAffiliation(productId: string, storeId: str
   // Check if already applied for THIS product specifically
   const { data: existing } = await supabase
     .from('affiliates')
-    .select('id')
+    .select('id, status')
     .eq('store_id', storeId)
     .eq('user_id', user.id)
     .eq('product_id', productId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
+    if (existing.status === 'cancelado' || existing.status === 'rejeitado') {
+      // Re-activate as pendente
+      const { error: updateErr } = await supabase
+        .from('affiliates')
+        .update({ status: 'pendente' })
+        .eq('id', existing.id);
+      
+      if (updateErr) {
+        console.error('Error re-applying for product affiliation:', updateErr);
+        return { success: false, message: 'Erro ao reenviar solicitação.' };
+      }
+      return { success: true, message: 'Solicitação de afiliação reenviada com sucesso! Aguarde a aprovação.' };
+    }
+    
     return { success: false, message: 'Você já possui uma afiliação ou solicitação pendente para este produto.' };
   }
 
@@ -158,6 +172,7 @@ export async function applyForProductAffiliation(productId: string, storeId: str
     return { success: false, message: 'Erro ao enviar solicitação.' };
   }
 
+
   return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
 }
 
@@ -165,10 +180,10 @@ export async function cancelAffiliation(affiliateId: string): Promise<{ success:
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Usuário não autenticado' };
 
-  // Delete matching affiliate.id and user_id to ensure ownership
+  // Update matching affiliate.id and user_id to status 'cancelado' to preserve historical ledger
   const { error } = await supabase
     .from('affiliates')
-    .delete()
+    .update({ status: 'cancelado' })
     .eq('id', affiliateId)
     .eq('user_id', user.id);
 

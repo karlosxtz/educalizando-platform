@@ -214,7 +214,7 @@ export interface StudentProfile {
   avatar_url?: string | null;
 }
 
-export type AffiliateStatus = 'pendente' | 'aprovado' | 'rejeitado';
+export type AffiliateStatus = 'pendente' | 'aprovado' | 'rejeitado' | 'cancelado';
 
 export interface Affiliate {
   id: string;

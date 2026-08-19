@@ -49,15 +49,15 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     return [];
   }
 
-  // Fetch using supabaseAdmin to securely join auth.users
+  // Fetch using supabaseAdmin, BUT WITHOUT the invalid auth.users join
   const { data, error } = await supabaseAdmin
     .from('affiliates')
     .select(`
       *,
-      user:auth.users(id, email, raw_user_meta_data),
       product:products(id, titulo, capa_url)
     `)
     .eq('store_id', storeId)
+    .neq('status', 'cancelado')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -65,14 +65,28 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     return [];
   }
 
-  // Map to match the interface
-  return data.map((item: any) => ({
-    ...item,
-    user: item.user ? {
-      id: item.user.id,
-      email: item.user.email,
-      full_name: item.user.raw_user_meta_data?.full_name || item.user.raw_user_meta_data?.name || 'Desconhecido',
-      avatar_url: item.user.raw_user_meta_data?.avatar_url
-    } : null
-  })) as Affiliate[];
+  // Fetch users securely
+  const affiliatesWithUsers = await Promise.all(data.map(async (item: any) => {
+    let userData = null;
+    try {
+      const { data: userResp } = await supabaseAdmin.auth.admin.getUserById(item.user_id);
+      if (userResp?.user) {
+        userData = {
+          id: userResp.user.id,
+          email: userResp.user.email,
+          full_name: userResp.user.user_metadata?.full_name || userResp.user.user_metadata?.name || 'Desconhecido',
+          avatar_url: userResp.user.user_metadata?.avatar_url
+        };
+      }
+    } catch (e) {
+      console.error(`Error fetching user ${item.user_id}:`, e);
+    }
+
+    return {
+      ...item,
+      user: userData
+    };
+  }));
+
+  return affiliatesWithUsers as Affiliate[];
 }
