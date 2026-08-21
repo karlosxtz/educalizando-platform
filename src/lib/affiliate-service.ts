@@ -160,13 +160,13 @@ export async function applyForProductAffiliation(productId: string, storeId: str
         
         await createNotification({
           storeId,
+          creatorId: storeInfo.creator_id,
           type: 'AFFILIATE_PENDING',
           title: 'Nova Solicitação de Afiliação',
-          description: `Você recebeu uma nova solicitação de afiliação. ${metadataDesc}`,
-          isRead: false,
+          body: `Você recebeu uma nova solicitação de afiliação. ${metadataDesc}`,
           metadata: {
             affiliateId: existing.id,
-            productId: productId || null
+            productId: productId || undefined
           }
         });
       }
@@ -204,12 +204,12 @@ export async function applyForProductAffiliation(productId: string, storeId: str
     
     await createNotification({
       storeId,
+      creatorId: storeInfo.creator_id,
       type: 'AFFILIATE_PENDING',
       title: 'Nova Solicitação de Afiliação',
-      description: `Você recebeu uma nova solicitação de afiliação pendente de aprovação. ${metadataDesc}`,
-      isRead: false,
+      body: `Você recebeu uma nova solicitação de afiliação pendente de aprovação. ${metadataDesc}`,
       metadata: {
-        productId: productId || null
+        productId: productId || undefined
       }
     });
   }

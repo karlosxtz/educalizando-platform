@@ -25,6 +25,7 @@ const ICON_MAP: Record<NotificationType, React.ComponentType<{ className?: strin
   WITHDRAWAL_APPROVED: CheckCircle2,
   WITHDRAWAL_FAILED:   XCircle,
   NEW_REVIEW:          Star,
+  AFFILIATE_PENDING:   CheckCircle2, // or import something else, but CheckCircle2 is fine or maybe Link2? CheckCircle2 is already imported
   SYSTEM:              Megaphone,
 };
 
