@@ -38,8 +38,10 @@ import { cookies } from 'next/headers';
 export async function getStoreAffiliatesAction(storeId: string): Promise<Affiliate[]> {
   const cookieStore = await cookies();
   const token = cookieStore.get('sb-access-token')?.value;
+  console.log('[DEBUG getStoreAffiliatesAction] token presente?', !!token);
   if (!token) return [];
   const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  console.log('[DEBUG getStoreAffiliatesAction] user após getUser(token):', user ? user.id : 'NENHUM USUARIO ENCONTRADO');
   if (!user) return [];
 
   // Verify ownership to prevent unauthorized access
@@ -50,6 +52,7 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     .eq('creator_id', user.id)
     .single();
 
+  console.log('[DEBUG getStoreAffiliatesAction] store encontrada na checagem de propriedade:', store?.id, '| check passou?', !!store);
   if (!store) {
     console.error('getStoreAffiliatesAction: Acesso negado. Usuário não é dono da loja.');
     return [];
@@ -65,6 +68,7 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     }
   );
 
+  console.log('[DEBUG getStoreAffiliatesAction] Preparando query final. Client scoped instanciado.', '| storeId filtrado:', storeId);
   const { data, error } = await supabaseUserScoped
     .from('affiliates')
     .select(`
@@ -74,6 +78,8 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     .eq('store_id', storeId)
     .neq('status', 'cancelado')
     .order('created_at', { ascending: false });
+
+  console.log('[DEBUG getStoreAffiliatesAction] Resultado da query em affiliates. Data length:', data ? data.length : 0, '| Error:', error ? JSON.stringify(error) : 'NENHUM ERRO');
 
   if (error) {
     console.error('Error fetching affiliates via action:', error);
