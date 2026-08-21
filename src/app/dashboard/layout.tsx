@@ -70,7 +70,8 @@ export default function DashboardLayout({
           // Se o contexto resolve como 'affiliate' mas a rota era /dashboard (sem /afiliacoes),
           // isso significa que é afiliado puro tentando /dashboard → redirecionar
           const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
-          if (!isAffiliateRoute && context === 'affiliate') {
+          const isSharedRoute = pathname?.includes('/dashboard/conta'); // rotas permitidas para ambos os contextos
+          if (!isAffiliateRoute && !isSharedRoute && context === 'affiliate') {
             router.replace('/dashboard/afiliacoes');
             return;
           }
@@ -110,7 +111,8 @@ export default function DashboardLayout({
     }
 
     const isAffiliateRoute = pathname?.includes('/dashboard/afiliacoes');
-    if (!isAffiliateRoute && context === 'affiliate') {
+    const isSharedRoute = pathname?.includes('/dashboard/conta');
+    if (!isAffiliateRoute && !isSharedRoute && context === 'affiliate') {
       router.replace('/dashboard/afiliacoes');
       return;
     }
