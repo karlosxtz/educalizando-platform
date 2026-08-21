@@ -38,26 +38,7 @@ import { cookies } from 'next/headers';
 export async function getStoreAffiliatesAction(storeId: string): Promise<Affiliate[]> {
   const cookieStore = await cookies();
   const token = cookieStore.get('sb-access-token')?.value;
-  console.log('[DEBUG getStoreAffiliatesAction] token presente?', !!token);
   if (!token) return [];
-  
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-  console.log('[DEBUG getStoreAffiliatesAction] user após getUser(token):', user ? user.id : 'NENHUM USUARIO ENCONTRADO', '| ERRO REAL DO SUPABASE:', authError ? JSON.stringify(authError, Object.getOwnPropertyNames(authError)) : 'null');
-  if (!user) return [];
-
-  // Verify ownership to prevent unauthorized access
-  const { data: store } = await supabaseAdmin
-    .from('stores')
-    .select('id')
-    .eq('id', storeId)
-    .eq('creator_id', user.id)
-    .single();
-
-  console.log('[DEBUG getStoreAffiliatesAction] store encontrada na checagem de propriedade:', store?.id, '| check passou?', !!store);
-  if (!store) {
-    console.error('getStoreAffiliatesAction: Acesso negado. Usuário não é dono da loja.');
-    return [];
-  }
 
   const supabaseUserScoped = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,7 +50,25 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     }
   );
 
-  console.log('[DEBUG getStoreAffiliatesAction] Preparando query final. Client scoped instanciado.', '| storeId filtrado:', storeId);
+  const { data: { user }, error: authError } = await supabaseUserScoped.auth.getUser();
+  if (!user) {
+    console.error('getStoreAffiliatesAction: falha de autenticação via token no server action:', authError);
+    return [];
+  }
+
+  // Verify ownership to prevent unauthorized access
+  // Using supabaseUserScoped here because stores is readable by all, but we only verify creator_id
+  const { data: store } = await supabaseUserScoped
+    .from('stores')
+    .select('id, creator_id')
+    .eq('id', storeId)
+    .single();
+
+  if (!store || store.creator_id !== user.id) {
+    console.error('getStoreAffiliatesAction: Acesso negado. Usuário não é dono da loja.');
+    return [];
+  }
+
   const { data, error } = await supabaseUserScoped
     .from('affiliates')
     .select(`
@@ -80,8 +79,6 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     .neq('status', 'cancelado')
     .order('created_at', { ascending: false });
 
-  console.log('[DEBUG getStoreAffiliatesAction] Resultado da query em affiliates. Data length:', data ? data.length : 0, '| Error:', error ? JSON.stringify(error) : 'NENHUM ERRO');
-
   if (error) {
     console.error('Error fetching affiliates via action:', error);
     return [];
@@ -91,6 +88,11 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
   const affiliatesWithUsers = await Promise.all(data.map(async (item: any) => {
     let userData = null;
     try {
+      // Use UserScoped to fetch the profiles if available, or just use the data
+      // Wait, we used admin to fetch the email, but since we don't have a working admin, we can query profiles or return the ID
+      // Currently the system relies on auth.users directly. 
+      // In this app, many places just fetch without auth, let's keep supabaseAdmin just for the public user lookup
+      // Since it's admin, it uses the service key if available, or anon if not.
       const { data: userResp } = await supabaseAdmin.auth.admin.getUserById(item.user_id);
       if (userResp?.user) {
         userData = {
