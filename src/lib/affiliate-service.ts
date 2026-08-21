@@ -1,5 +1,5 @@
 import { supabase, supabaseAdmin } from './supabase';
-import { Affiliate, AffiliateStatus } from './types';
+import { Affiliate, AffiliateStatus, AffiliateProfile } from './types';
 import { createNotification } from './notification-service';
 
 // getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
@@ -237,15 +237,91 @@ export async function cancelAffiliation(affiliateId: string): Promise<{ success:
 }
 
 export async function getAffiliateProfile(userId: string) {
-  // We fetch their store data which acts as their profile
   const { data, error } = await supabase
-    .from('stores')
-    .select('nome_loja, logo_url, banner_url, descricao, slug')
-    .eq('creator_id', userId)
+    .from('affiliate_profiles')
+    .select('*')
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (error || !data) return null;
-  return data;
+  return data as AffiliateProfile;
+}
+
+export async function getAffiliateProfileBySlug(slug: string) {
+  const { data, error } = await supabase
+    .from('affiliate_profiles')
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as AffiliateProfile;
+}
+
+export async function getOrCreateAffiliateProfile(userId: string, userName: string | null) {
+  const existing = await getAffiliateProfile(userId);
+  if (existing) return existing;
+
+  // Generate a basic slug from the name
+  let baseSlug = userName ? userName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `afiliado-${userId.substring(0, 8)}`;
+  if (!baseSlug || baseSlug === '-') baseSlug = `afiliado-${userId.substring(0, 8)}`;
+  baseSlug = baseSlug.replace(/^-+|-+$/g, '');
+
+  let slug = baseSlug;
+  let attempt = 0;
+  
+  // Basic collision avoidance (in real scenario, we might want a while loop checking db, 
+  // but using UUID fallback is safe enough for automatic profile)
+  
+  const { data, error } = await supabase
+    .from('affiliate_profiles')
+    .insert({
+      user_id: userId,
+      slug: slug,
+      nome: userName || 'Afiliado',
+      cor_primaria: '#2563eb',
+      tema: 'default'
+    })
+    .select()
+    .single();
+    
+  if (error) {
+    if (error.code === '23505') { // Unique violation on slug
+      slug = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+      const retry = await supabase
+        .from('affiliate_profiles')
+        .insert({
+          user_id: userId,
+          slug: slug,
+          nome: userName || 'Afiliado',
+          cor_primaria: '#2563eb',
+          tema: 'default'
+        })
+        .select()
+        .single();
+      if (!retry.error && retry.data) return retry.data as AffiliateProfile;
+    }
+    console.error('Error creating affiliate profile:', error);
+    return null;
+  }
+  
+  return data as AffiliateProfile;
+}
+
+export async function updateAffiliateProfile(userId: string, updates: Partial<AffiliateProfile>) {
+  const { data, error } = await supabase
+    .from('affiliate_profiles')
+    .update(updates)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating affiliate profile:', error);
+    throw error;
+  }
+
+  return data as AffiliateProfile;
 }
 
 export async function calculateAffiliateCommission({

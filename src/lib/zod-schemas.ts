@@ -88,6 +88,26 @@ export const storeSettingsSchema = z.object({
 
 export type StoreSettingsFormValues = z.infer<typeof storeSettingsSchema>;
 
+export const affiliateProfileSchema = z.object({
+  nome: z.string().min(3, { message: 'O nome da vitrine deve ter pelo menos 3 caracteres.' }),
+  slug: z
+    .string()
+    .min(3, { message: 'O link da vitrine (slug) deve ter pelo menos 3 caracteres.' })
+    .regex(/^[a-z0-9-]+$/, { message: 'O link deve conter apenas letras minúsculas, números e hífens.' }),
+  descricao: z.string().optional(),
+  logo_url: z.string().url({ message: 'URL da imagem de logo inválida.' }).or(z.literal('')).optional(),
+  banner_url: z.string().url({ message: 'URL da imagem do banner inválida.' }).or(z.literal('')).optional(),
+  cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' }),
+  whatsapp: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: 'Use o formato (XX) XXXXX-XXXX' }).or(z.literal('')).optional(),
+  instagram: z.string().or(z.literal('')).optional(),
+  tema: z.string().optional(),
+  youtube: z.string().or(z.literal('')).optional(),
+  tiktok: z.string().or(z.literal('')).optional(),
+  facebook: z.string().or(z.literal('')).optional()
+});
+
+export type AffiliateProfileFormValues = z.infer<typeof affiliateProfileSchema>;
+
 // Product Form Schema
 export const productFormSchema = z.object({
   titulo: z.string().min(4, { message: 'O título do material deve ter pelo menos 4 caracteres.' }),

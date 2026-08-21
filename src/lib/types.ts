@@ -1,6 +1,25 @@
 export type ProductType = 'pdf' | 'ebook' | 'video' | 'curso' | 'simulado';
 export type ProductStatus = 'rascunho' | 'publicado' | 'excluido';
 
+export interface AffiliateProfile {
+  id: string;
+  user_id: string;
+  slug: string;
+  nome: string | null;
+  descricao: string | null;
+  logo_url: string | null;
+  banner_url: string | null;
+  cor_primaria: string;
+  tema: string;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  facebook?: string | null;
+  youtube?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Store {
   id: string;
   creator_id: string;

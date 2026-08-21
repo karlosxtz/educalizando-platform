@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { getMyAffiliations } from '@/lib/affiliate-service';
-import { Affiliate } from '@/lib/types';
+import { getMyAffiliations, getAffiliateProfile } from '@/lib/affiliate-service';
+import { Affiliate, AffiliateProfile } from '@/lib/types';
 import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -27,6 +27,7 @@ export default function AffiliateDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [profileSlug, setProfileSlug] = useState<string | null>(null);
   
   const [dateFilter, setDateFilter] = useState('30_days');
   const [activeTab, setActiveTab] = useState<'stats' | 'wallet'>('stats');
@@ -111,14 +112,16 @@ export default function AffiliateDashboardPage() {
         ? '/api/affiliates/stats' 
         : `/api/affiliates/stats?startDate=${start}&endDate=${end}`;
 
-      const [affData, statsRes] = await Promise.all([
+      const [affData, statsRes, profile] = await Promise.all([
         getMyAffiliations(),
         fetch(statsUrl, {
           headers: session ? { 'Authorization': `Bearer ${session.access_token}` } : {}
-        })
+        }),
+        getAffiliateProfile(user.id)
       ]);
       
       setAffiliations(affData);
+      if (profile) setProfileSlug(profile.slug);
       
       if (statsRes.ok) {
         const statsData = await statsRes.json();
@@ -175,14 +178,24 @@ export default function AffiliateDashboardPage() {
               <Store className="w-4 h-4 text-brand-teal" />
               Mercado de Produtos
             </Link>
-            <Link 
-              href={`/afiliado/${userId}`} 
-              target="_blank"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Minha Loja
-            </Link>
+            {profileSlug ? (
+              <Link 
+                href={`/afiliado/${profileSlug}`} 
+                target="_blank"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Minha Vitrine
+              </Link>
+            ) : (
+              <Link 
+                href="/dashboard/afiliacoes/vitrine"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Configurar Vitrine
+              </Link>
+            )}
           </div>
         )}
       </div>

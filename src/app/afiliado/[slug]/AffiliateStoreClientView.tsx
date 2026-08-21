@@ -3,16 +3,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ShieldCheck, ArrowLeft, Tags, GraduationCap, Star, ExternalLink, Sparkles
+  ShieldCheck, ExternalLink, Sparkles
 } from 'lucide-react';
+import { AffiliateProfile } from '@/lib/types';
 
 interface AffiliateStoreClientViewProps {
-  affiliateId: string;
-  profile: any;
+  profile: AffiliateProfile;
   products: any[];
 }
 
-export default function AffiliateStoreClientView({ affiliateId, profile, products }: AffiliateStoreClientViewProps) {
+export default function AffiliateStoreClientView({ profile, products }: AffiliateStoreClientViewProps) {
   const [searchFilter, setSearchFilter] = useState('');
 
   const filteredProducts = products.filter(p => {
@@ -28,32 +28,35 @@ export default function AffiliateStoreClientView({ affiliateId, profile, product
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
       {/* Banner & Profile */}
-      <div className="bg-brand-navy w-full pt-12 pb-24 relative overflow-hidden">
+      <div 
+        className="w-full pt-12 pb-24 relative overflow-hidden"
+        style={{ backgroundColor: profile.cor_primaria || '#1e293b' }}
+      >
         <div className="absolute inset-0 bg-[url('/branding/mesh-bg.png')] opacity-10 bg-cover bg-center"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-teal/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 relative z-10 text-center space-y-4 mt-8">
           {profile.logo_url ? (
             <img 
               src={profile.logo_url} 
-              alt={profile.nome_loja} 
+              alt={profile.nome || 'Vitrine'} 
               className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-xl bg-white object-cover" 
             />
           ) : (
-            <div className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-xl bg-gradient-to-tr from-brand-navy to-brand-teal flex items-center justify-center text-3xl font-black text-white">
-              {profile.nome_loja.substring(0, 2).toUpperCase()}
+            <div className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-xl bg-gradient-to-tr from-white/20 to-white/5 flex items-center justify-center text-3xl font-black text-white">
+              {(profile.nome || 'A').substring(0, 2).toUpperCase()}
             </div>
           )}
           
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-            Vitrine de {profile.nome_loja}
+            Vitrine de {profile.nome || 'Afiliado'}
           </h1>
           {profile.descricao && (
-            <p className="text-blue-100 max-w-2xl mx-auto text-sm sm:text-base font-medium">
+            <p className="text-white/90 max-w-2xl mx-auto text-sm sm:text-base font-medium">
               {profile.descricao}
             </p>
           )}
           <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/20 mt-4 backdrop-blur-md">
-            <ShieldCheck className="w-4 h-4 text-brand-teal" />
+            <ShieldCheck className="w-4 h-4 text-white" />
             <span className="text-xs font-bold text-white tracking-wide">
               Afiliado Autorizado Educalizando
             </span>
@@ -83,6 +86,9 @@ export default function AffiliateStoreClientView({ affiliateId, profile, product
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((prod, index) => {
+              // Extract the affiliate ID for this specific affiliation link
+              const refId = prod.affiliateInfo?.id || '';
+              
               return (
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
@@ -92,7 +98,7 @@ export default function AffiliateStoreClientView({ affiliateId, profile, product
                   className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
                   <a 
-                    href={`/loja/${prod.store.slug}?ref=${affiliateId}`}
+                    href={`/loja/${prod.store?.slug || 'loja'}/produto/${prod.id}?ref=${refId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 p-5 flex flex-col justify-between space-y-4"
@@ -123,7 +129,7 @@ export default function AffiliateStoreClientView({ affiliateId, profile, product
                           {prod.titulo}
                         </h3>
                         <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium">
-                          Criado por: <strong>{prod.store.nome_loja}</strong>
+                          Criado por: <strong>{prod.store?.nome_loja || 'Autor'}</strong>
                         </p>
                       </div>
                     </div>
@@ -132,12 +138,13 @@ export default function AffiliateStoreClientView({ affiliateId, profile, product
                       <div>
                         <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
                         <span className="text-xl font-black tracking-tight text-slate-900">
-                          R$ {prod.preco.toFixed(2).replace('.', ',')}
+                          R$ {prod.preco ? prod.preco.toFixed(2).replace('.', ',') : '0,00'}
                         </span>
                       </div>
 
                       <div
-                        className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-white shadow-md group-hover:shadow-lg transition-all flex items-center gap-1.5 bg-brand-navy group-hover:bg-brand-navy-hover"
+                        className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-white shadow-md group-hover:shadow-lg transition-all flex items-center gap-1.5"
+                        style={{ backgroundColor: profile.cor_primaria || '#1e293b' }}
                       >
                         <span>Acessar</span>
                         <ExternalLink className="w-3 h-3" />
