@@ -201,13 +201,15 @@ export default function AffiliateMarketplacePage() {
                               <div className={`w-full py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 ${
                                 productAffiliate.status === 'aprovado' ? 'bg-emerald-100 text-emerald-700' :
                                 productAffiliate.status === 'rejeitado' ? 'bg-red-100 text-red-700' :
+                                productAffiliate.status === 'cancelado' ? 'bg-slate-100 text-slate-700' :
                                 'bg-yellow-100 text-yellow-700'
                               }`}>
                                 {productAffiliate.status === 'aprovado' && <><CheckCircle2 className="w-4 h-4" /> Afiliado Aprovado</>}
                                 {productAffiliate.status === 'pendente' && 'Aguardando aprovação'}
                                 {productAffiliate.status === 'rejeitado' && 'Solicitação rejeitada'}
+                                {productAffiliate.status === 'cancelado' && 'Afiliação cancelada'}
                               </div>
-                              {productAffiliate.status !== 'rejeitado' && (
+                              {productAffiliate.status !== 'rejeitado' && productAffiliate.status !== 'cancelado' && (
                                 <button
                                   onClick={() => handleCancelAffiliation(productAffiliate.id)}
                                   className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full text-center py-1"

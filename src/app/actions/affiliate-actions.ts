@@ -1,6 +1,7 @@
 'use server';
 
-import { supabaseAdmin, supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { Affiliate } from '@/lib/types';
 export async function getMarketplaceStoresAction() {
   const { data, error } = await supabaseAdmin
@@ -33,11 +34,12 @@ export async function getMarketplaceProductsAction() {
 }
 
 export async function getStoreAffiliatesAction(storeId: string): Promise<Affiliate[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabaseServer = await createSupabaseServerClient();
+  const { data: { user } } = await supabaseServer.auth.getUser();
   if (!user) return [];
 
   // Verify ownership to prevent unauthorized access
-  const { data: store } = await supabase
+  const { data: store } = await supabaseAdmin
     .from('stores')
     .select('id')
     .eq('id', storeId)
