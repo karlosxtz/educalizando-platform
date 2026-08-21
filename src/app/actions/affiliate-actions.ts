@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase';
 import { Affiliate } from '@/lib/types';
+import { createClient } from '@supabase/supabase-js';
 export async function getMarketplaceStoresAction() {
   const { data, error } = await supabaseAdmin
     .from('stores')
@@ -54,21 +55,17 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     return [];
   }
 
-  // Create an authenticated client to pass RLS
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.supabase.co';
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykeyforlocaltesting';
-  
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabaseAuthClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+  const supabaseUserScoped = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: { Authorization: `Bearer ${token}` },
+      },
     }
-  });
+  );
 
-  // Fetch using the newly created authenticated client to pass RLS
-  const { data, error } = await supabaseAuthClient
+  const { data, error } = await supabaseUserScoped
     .from('affiliates')
     .select(`
       *,

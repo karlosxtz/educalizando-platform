@@ -4,10 +4,16 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykeyforlocaltesting';
 
 // supabaseServiceKey só existe no servidor (sem NEXT_PUBLIC_)
-const supabaseServiceKey =
-  typeof process !== 'undefined' && typeof window === 'undefined'
-    ? (process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey)
-    : supabaseAnonKey;
+const supabaseServiceKey = (() => {
+  if (typeof process !== 'undefined' && typeof window === 'undefined') {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('⚠️ AVISO CRÍTICO: SUPABASE_SERVICE_ROLE_KEY não está definida. O supabaseAdmin usará a chave anônima e ficará sujeito a regras de RLS, o que causará retornos silenciosos de array vazio em queries administrativas.');
+      return supabaseAnonKey;
+    }
+    return process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+  return supabaseAnonKey;
+})();
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
