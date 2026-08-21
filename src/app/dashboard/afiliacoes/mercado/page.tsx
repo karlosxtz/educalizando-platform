@@ -153,7 +153,7 @@ export default function AffiliateMarketplacePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map(product => {
-                  const productAffiliate = myAffiliations.find(a => a.store_id === product.store_id && a.product_id === product.id);
+                  const productAffiliate = myAffiliations.find(a => a.store_id === product.store_id && a.product_id === product.id && a.status !== 'cancelado');
                   const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                   const comissaoText = product.affiliate_commission_rate ? `${product.affiliate_commission_rate}%` : 'Não definida';
                   const comissaoCalc = product.affiliate_commission_rate ? (product.preco * (product.affiliate_commission_rate / 100)) : 0;

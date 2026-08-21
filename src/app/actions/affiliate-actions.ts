@@ -1,7 +1,6 @@
 'use server';
 
 import { supabaseAdmin } from '@/lib/supabase';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { Affiliate } from '@/lib/types';
 export async function getMarketplaceStoresAction() {
   const { data, error } = await supabaseAdmin
@@ -33,9 +32,13 @@ export async function getMarketplaceProductsAction() {
   return data || [];
 }
 
+import { cookies } from 'next/headers';
+
 export async function getStoreAffiliatesAction(storeId: string): Promise<Affiliate[]> {
-  const supabaseServer = await createSupabaseServerClient();
-  const { data: { user } } = await supabaseServer.auth.getUser();
+  const cookieStore = await cookies();
+  const token = cookieStore.get('sb-access-token')?.value;
+  if (!token) return [];
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
   if (!user) return [];
 
   // Verify ownership to prevent unauthorized access
