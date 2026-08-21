@@ -32,6 +32,30 @@ export default function AffiliateDashboardPage() {
   const [activeTab, setActiveTab] = useState<'stats' | 'wallet'>('stats');
 
   useEffect(() => {
+    const handleHash = () => {
+      if (window.location.hash === '#carteira') {
+        setActiveTab('wallet');
+      } else if (window.location.hash === '#stats' || window.location.hash === '') {
+        // não forçamos para stats se tiver outro hash, mas se for vazio ou stats, sim
+        if (window.location.hash === '' && activeTab !== 'stats') {
+           // não resetar na primeira carga se não precisar, mas se vier vazio, é stats
+        }
+      }
+    };
+    
+    // Ler no primeiro carregamento
+    handleHash();
+    
+    // Escutar mudanças
+    window.addEventListener('hashchange', handleHash);
+    
+    // Fallback: em Next.js App Router, clicks em Link com hash as vezes não disparam hashchange.
+    // Uma forma simples de contornar é interceptar os clicks se necessário, mas o Sidebar
+    // já usa Link do Next. O hashchange deve pegar a maioria.
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  useEffect(() => {
     loadData();
   }, [dateFilter]);
 
