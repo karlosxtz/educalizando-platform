@@ -1,5 +1,6 @@
 import { supabase, supabaseAdmin } from './supabase';
 import { Affiliate, AffiliateStatus } from './types';
+import { createNotification } from './notification-service';
 
 // getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
 // Use getStoreAffiliatesAction from src/app/actions/affiliate-actions.ts instead.
@@ -150,6 +151,26 @@ export async function applyForProductAffiliation(productId: string, storeId: str
         console.error('Error re-applying for product affiliation:', updateErr);
         return { success: false, message: 'Erro ao reenviar solicitação.' };
       }
+
+      // Buscar info da loja para saber o criador
+      const { data: storeInfo } = await supabaseAdmin.from('stores').select('creator_id, nome_loja').eq('id', storeId).maybeSingle();
+      if (storeInfo?.creator_id) {
+        const { data: productInfo } = productId ? await supabaseAdmin.from('products').select('nome_produto').eq('id', productId).maybeSingle() : { data: null };
+        const metadataDesc = productInfo ? `Produto: ${productInfo.nome_produto}` : 'Afiliação geral da loja';
+        
+        await createNotification({
+          storeId,
+          type: 'AFFILIATE_PENDING',
+          title: 'Nova Solicitação de Afiliação',
+          description: `Você recebeu uma nova solicitação de afiliação. ${metadataDesc}`,
+          isRead: false,
+          metadata: {
+            affiliateId: existing.id,
+            productId: productId || null
+          }
+        });
+      }
+
       return { success: true, message: 'Solicitação de afiliação reenviada com sucesso! Aguarde a aprovação.' };
     }
     
@@ -172,6 +193,26 @@ export async function applyForProductAffiliation(productId: string, storeId: str
     return { success: false, message: 'Erro ao enviar solicitação.' };
   }
 
+  // Buscar info da loja para saber o criador e notificar
+  const { data: storeInfo } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
+  if (storeInfo?.creator_id) {
+    const { data: productInfo } = productId ? await supabaseAdmin.from('products').select('nome_produto').eq('id', productId).maybeSingle() : { data: null };
+    const metadataDesc = productInfo ? `Produto: ${productInfo.nome_produto}` : 'Afiliação geral da loja';
+    
+    // Obter ID recém-criado (opcional, como inserimos, error é null mas a row não vem por padrão sem .select(). Se não vier, deixamos sem ID).
+    // Para simplificar, vou passar affiliateId vazio se não soubermos, mas createNotification não exige.
+    
+    await createNotification({
+      storeId,
+      type: 'AFFILIATE_PENDING',
+      title: 'Nova Solicitação de Afiliação',
+      description: `Você recebeu uma nova solicitação de afiliação pendente de aprovação. ${metadataDesc}`,
+      isRead: false,
+      metadata: {
+        productId: productId || null
+      }
+    });
+  }
 
   return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
 }
