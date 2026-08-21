@@ -209,6 +209,15 @@ export default function AffiliateMarketplacePage() {
                                 {productAffiliate.status === 'rejeitado' && 'Solicitação rejeitada'}
                                 {productAffiliate.status === 'cancelado' && 'Afiliação cancelada'}
                               </div>
+                              {productAffiliate.status === 'rejeitado' && (
+                                <button
+                                  onClick={() => handleAffiliate(product.id, product.store_id)}
+                                  disabled={affiliatingId === product.id}
+                                  className="text-xs font-bold text-brand-navy hover:underline transition-colors w-full text-center py-1 disabled:opacity-50"
+                                >
+                                  {affiliatingId === product.id ? 'Processando...' : 'Solicitar Novamente'}
+                                </button>
+                              )}
                               {productAffiliate.status !== 'rejeitado' && productAffiliate.status !== 'cancelado' && (
                                 <button
                                   onClick={() => handleCancelAffiliation(productAffiliate.id)}
