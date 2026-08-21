@@ -40,8 +40,9 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
   const token = cookieStore.get('sb-access-token')?.value;
   console.log('[DEBUG getStoreAffiliatesAction] token presente?', !!token);
   if (!token) return [];
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-  console.log('[DEBUG getStoreAffiliatesAction] user após getUser(token):', user ? user.id : 'NENHUM USUARIO ENCONTRADO');
+  
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+  console.log('[DEBUG getStoreAffiliatesAction] user após getUser(token):', user ? user.id : 'NENHUM USUARIO ENCONTRADO', '| ERRO REAL DO SUPABASE:', authError ? JSON.stringify(authError, Object.getOwnPropertyNames(authError)) : 'null');
   if (!user) return [];
 
   // Verify ownership to prevent unauthorized access
