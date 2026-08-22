@@ -7,7 +7,6 @@ import { Affiliate, AffiliateProfile } from '@/lib/types';
 import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { AffiliateWallet } from './AffiliateWallet';
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
@@ -30,31 +29,6 @@ export default function AffiliateDashboardPage() {
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
   
   const [dateFilter, setDateFilter] = useState('30_days');
-  const [activeTab, setActiveTab] = useState<'stats' | 'wallet'>('stats');
-
-  useEffect(() => {
-    const handleHash = () => {
-      if (window.location.hash === '#carteira') {
-        setActiveTab('wallet');
-      } else if (window.location.hash === '#stats' || window.location.hash === '') {
-        // não forçamos para stats se tiver outro hash, mas se for vazio ou stats, sim
-        if (window.location.hash === '' && activeTab !== 'stats') {
-           // não resetar na primeira carga se não precisar, mas se vier vazio, é stats
-        }
-      }
-    };
-    
-    // Ler no primeiro carregamento
-    handleHash();
-    
-    // Escutar mudanças
-    window.addEventListener('hashchange', handleHash);
-    
-    // Fallback: em Next.js App Router, clicks em Link com hash as vezes não disparam hashchange.
-    // Uma forma simples de contornar é interceptar os clicks se necessário, mas o Sidebar
-    // já usa Link do Next. O hashchange deve pegar a maioria.
-    return () => window.removeEventListener('hashchange', handleHash);
-  }, []);
 
   useEffect(() => {
     loadData();
@@ -209,39 +183,7 @@ export default function AffiliateDashboardPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-4 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`pb-4 px-2 text-sm font-bold transition-all relative ${
-            activeTab === 'stats' ? 'text-brand-primary' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          Estatísticas e Links
-          {activeTab === 'stats' && (
-            <motion.div layoutId="affiliate-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-brand-primary rounded-t-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('wallet')}
-          className={`pb-4 px-2 text-sm font-bold transition-all relative flex items-center gap-2 ${
-            activeTab === 'wallet' ? 'text-brand-primary' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Wallet className="w-4 h-4" />
-          Saques e Carteira
-          {activeTab === 'wallet' && (
-            <motion.div layoutId="affiliate-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-brand-primary rounded-t-full" />
-          )}
-        </button>
-      </div>
 
-      {activeTab === 'wallet' ? (
-        <div className="mt-8">
-          <AffiliateWallet />
-        </div>
-      ) : (
-        <>
           {/* Barra de Filtros */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-slate-600 font-medium">
@@ -585,8 +527,7 @@ export default function AffiliateDashboardPage() {
           </table>
         </div>
       </div>
-      </>
-      )}
+
     </div>
   );
 }

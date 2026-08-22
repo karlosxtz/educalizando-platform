@@ -51,10 +51,9 @@ export default function AffiliateSidebar({
     },
     {
       label: 'Carteira & Saques',
-      href: '/dashboard/afiliacoes',
+      href: '/dashboard/afiliacoes/carteira',
       icon: Wallet,
-      badge: null,
-      hash: '#carteira'
+      badge: null
     },
     {
       label: 'Personalizar Vitrine',
@@ -162,7 +161,7 @@ export default function AffiliateSidebar({
 
               return (
                 <Link
-                  key={item.href + (item.hash || '')}
+                  key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
