@@ -52,8 +52,6 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
           <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-blue-600 mb-2">
             <TrendingUp className="w-4 h-4" /> Desempenho Financeiro
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            {viewMode === 'revenue' ? `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `${totalSales} vendas`}
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             Desempenho de Vendas
           </h2>
