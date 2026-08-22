@@ -15,19 +15,45 @@ export function saveLocalOrders(orders: RecentOrder[]) {
   }
 }
 
+function getPeriodDates(period: PeriodFilter): { startDate: string, endDate: string } {
+  const now = new Date();
+  const end = new Date(now);
+  let start = new Date(now);
+
+  if (period === '7d') {
+    start.setDate(now.getDate() - 6);
+  } else if (period === '30d') {
+    start.setDate(now.getDate() - 29);
+  } else if (period === 'month') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (period === 'year') {
+    start = new Date(now.getFullYear(), 0, 1);
+  }
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return { startDate: start.toISOString(), endDate: end.toISOString() };
+}
+
 // 1. Fetch Real Sales Analytics by Period
-export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter): Promise<SalesDataPoint[]> {
+export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter): Promise<{ chartData: SalesDataPoint[], totalGeneratedCount: number }> {
   let realOrders: RecentOrder[] = [];
+  const { startDate, endDate } = getPeriodDates(period);
+  let totalGeneratedCount = 0;
 
   if (isRealSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('orders')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('store_id', storeId)
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
         .order('created_at', { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
+        totalGeneratedCount = count || data.length;
         realOrders = data.map(o => {
           const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
           const isRefunded = o.status === 'refunded' || o.status === 'expirado';
@@ -53,7 +79,10 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
 
   // Fallback to local storage real orders if Supabase returned 0
   if (realOrders.length === 0) {
-    realOrders = getLocalOrders();
+    const local = getLocalOrders();
+    const filteredLocal = local.filter(o => o.dataCompra >= startDate && o.dataCompra <= endDate);
+    realOrders = filteredLocal;
+    totalGeneratedCount = filteredLocal.length;
   }
 
   // Only paid orders generate revenue and sales count
@@ -81,14 +110,13 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
         salesCount: dayOrders.length
       });
     }
-    return days;
+    return { chartData: days, totalGeneratedCount };
   }
 
   if (period === '30d') {
-    // Usar os últimos 30 dias reais a partir de hoje
     const now = new Date();
     const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - 29); // 30 dias atrás (inclusive hoje)
+    cutoff.setDate(cutoff.getDate() - 29); 
 
     const weeks: SalesDataPoint[] = [
       { date: 'Semana 1', label: 'Sem 1', revenue: 0, salesCount: 0 },
@@ -97,69 +125,76 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
       { date: 'Semana 4', label: 'Sem 4', revenue: 0, salesCount: 0 }
     ];
 
-    // FIX: agrupar pela data REAL da compra, não pelo índice do array
     paidOrders.forEach(o => {
-      const orderDate = new Date(o.dataCompra);
-      if (orderDate < cutoff) return; // ignora pedidos fora da janela de 30 dias
-
-      // Dias desde o início da janela (0–29)
-      const daysFromStart = Math.floor((orderDate.getTime() - cutoff.getTime()) / (1000 * 60 * 60 * 24));
-      // Semana 0–3 (cada semana = 7 dias)
-      const weekIdx = Math.min(Math.floor(daysFromStart / 7), 3);
-      weeks[weekIdx].revenue += o.valorTotal;
-      weeks[weekIdx].salesCount += 1;
+      const oDate = new Date(o.dataCompra);
+      if (oDate >= cutoff) {
+        const diffTime = Math.abs(oDate.getTime() - cutoff.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        let weekIndex = Math.floor(diffDays / 7);
+        if (weekIndex > 3) weekIndex = 3; 
+        
+        weeks[weekIndex].revenue += o.valorTotal;
+        weeks[weekIndex].salesCount += 1;
+      }
     });
 
-    return weeks;
+    return { chartData: weeks, totalGeneratedCount };
   }
 
-
   if (period === 'month') {
-    const monthDays: SalesDataPoint[] = [
-      { date: 'Dia 01-05', label: '01-05', revenue: 0, salesCount: 0 },
-      { date: 'Dia 06-10', label: '06-10', revenue: 0, salesCount: 0 },
-      { date: 'Dia 11-15', label: '11-15', revenue: 0, salesCount: 0 },
-      { date: 'Dia 16-20', label: '16-20', revenue: 0, salesCount: 0 },
-      { date: 'Dia 21-25', label: '21-25', revenue: 0, salesCount: 0 },
-      { date: 'Dia 26-31', label: '26-31', revenue: 0, salesCount: 0 }
-    ];
-    paidOrders.forEach(o => {
-      const dayNum = new Date(o.dataCompra).getDate();
-      const idx = Math.min(Math.floor((dayNum - 1) / 5), 5);
-      monthDays[idx].revenue += o.valorTotal;
-      monthDays[idx].salesCount += 1;
-    });
-    return monthDays;
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthDays: SalesDataPoint[] = [];
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const dayOrders = paidOrders.filter(o => o.dataCompra.startsWith(dStr));
+      const revenue = dayOrders.reduce((sum, o) => sum + o.valorTotal, 0);
+
+      monthDays.push({
+        date: dStr,
+        label: `${i}`,
+        revenue,
+        salesCount: dayOrders.length
+      });
+    }
+    return { chartData: monthDays, totalGeneratedCount };
   }
 
   // year
-  const monthsStr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const months: SalesDataPoint[] = monthsStr.map(m => ({
-    date: m,
-    label: m,
-    revenue: 0,
-    salesCount: 0
-  }));
+  const months: SalesDataPoint[] = [];
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const now = new Date();
+  
+  for (let i = 0; i < 12; i++) {
+    const mStr = `${now.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
+    const mOrders = paidOrders.filter(o => o.dataCompra.startsWith(mStr));
+    const revenue = mOrders.reduce((sum, o) => sum + o.valorTotal, 0);
 
-  paidOrders.forEach(o => {
-    const monthIdx = new Date(o.dataCompra).getMonth();
-    months[monthIdx].revenue += o.valorTotal;
-    months[monthIdx].salesCount += 1;
-  });
+    months.push({
+      date: mStr,
+      label: monthNames[i],
+      revenue,
+      salesCount: mOrders.length
+    });
+  }
 
-  return months;
+  return { chartData: months, totalGeneratedCount };
 }
 
 // 2. Fetch Top Performing Products Report
-export async function getTopProductsReport(storeId: string, products: Product[]): Promise<TopProductStat[]> {
+export async function getTopProductsReport(storeId: string, products: Product[], period: PeriodFilter = '30d'): Promise<TopProductStat[]> {
   let realOrders: RecentOrder[] = [];
+  const { startDate, endDate } = getPeriodDates(period);
 
   if (isRealSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, total_amount, subtotal_amount, valor_total, product_title, produto_titulo, status, created_at')
         .eq('store_id', storeId)
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
@@ -167,8 +202,8 @@ export async function getTopProductsReport(storeId: string, products: Product[])
           const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
           return {
             id: o.id,
-            clienteNome: o.buyer_name || o.cliente_nome || '',
-            clienteEmail: o.buyer_email || o.cliente_email || '',
+            clienteNome: '',
+            clienteEmail: '',
             produtoTitulo: o.product_title || o.produto_titulo || '',
             tipoProduto: 'pdf',
             valorTotal: Number(o.total_amount || o.subtotal_amount || o.valor_total || 0),
@@ -184,7 +219,11 @@ export async function getTopProductsReport(storeId: string, products: Product[])
   }
 
   if (realOrders.length === 0) {
-    realOrders = getLocalOrders().filter(o => o.statusPagamento === 'pago');
+    const local = getLocalOrders();
+    const filteredLocal = local.filter(o => o.dataCompra >= startDate && o.dataCompra <= endDate);
+    realOrders = filteredLocal.filter(o => o.statusPagamento === 'pago');
+  } else {
+    realOrders = realOrders.filter(o => o.statusPagamento === 'pago');
   }
 
   const totalStoreRevenue = realOrders.reduce((acc, o) => acc + o.valorTotal, 0);
@@ -253,5 +292,5 @@ export async function getRecentOrdersFeed(storeId: string): Promise<RecentOrder[
   }
 
   // Fallback to real local storage orders
-  return getLocalOrders();
+  return getLocalOrders().slice(0, 10);
 }

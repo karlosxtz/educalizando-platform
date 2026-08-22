@@ -19,6 +19,7 @@ export default function DashboardOverviewPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(0);
   const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(0);
+  const [chartConversionRate, setChartConversionRate] = useState<number>(0);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
@@ -41,9 +42,10 @@ export default function DashboardOverviewPage() {
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
 
-  const handleChartDataLoaded = (rev: number, count: number) => {
+  const handleChartDataLoaded = (rev: number, count: number, conversionRate: number) => {
     setChartTotalRevenue(rev);
     setChartTotalSalesCount(count);
+    setChartConversionRate(conversionRate);
   };
 
   return (
@@ -211,7 +213,7 @@ export default function DashboardOverviewPage() {
           </div>
           <div>
             <span className="text-2xl font-black text-purple-700">
-              {chartTotalSalesCount > 0 ? '4.8%' : '0.0%'}
+              {chartTotalSalesCount > 0 ? `${chartConversionRate.toFixed(1)}%` : '0.0%'}
             </span>
             <span className="text-xs text-slate-500 block mt-0.5">Visitas convertidas em compras</span>
           </div>

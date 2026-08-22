@@ -8,7 +8,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface SalesOverviewChartProps {
   storeId?: string;
-  onDataLoaded?: (totalRevenue: number, totalSalesCount: number) => void;
+  onDataLoaded?: (totalRevenue: number, totalSalesCount: number, conversionRate: number) => void;
 }
 
 export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverviewChartProps) {
@@ -22,11 +22,12 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
       setLoading(true);
       try {
         const res = await getSalesDataByPeriod(storeId || '', period);
-        setData(res);
+        setData(res.chartData);
         if (onDataLoaded) {
-          const totRev = res.reduce((acc, curr) => acc + curr.revenue, 0);
-          const totCount = res.reduce((acc, curr) => acc + curr.salesCount, 0);
-          onDataLoaded(totRev, totCount);
+          const totRev = res.chartData.reduce((acc, curr) => acc + curr.revenue, 0);
+          const totCount = res.chartData.reduce((acc, curr) => acc + curr.salesCount, 0);
+          const conversionRate = res.totalGeneratedCount > 0 ? (totCount / res.totalGeneratedCount) * 100 : 0;
+          onDataLoaded(totRev, totCount, conversionRate);
         }
       } catch (err) {
         console.error('Erro ao carregar dados do gráfico:', err);
