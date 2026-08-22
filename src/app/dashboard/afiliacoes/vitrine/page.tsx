@@ -49,6 +49,7 @@ export default function AffiliateStoreSettingsPage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
   const router = useRouter();
 
   const {
@@ -109,9 +110,12 @@ export default function AffiliateStoreSettingsPage() {
             tiktok: profile.tiktok || '',
             facebook: profile.facebook || ''
           });
+        } else {
+          setPageError('Não foi possível criar sua vitrine automaticamente. Por favor, tente novamente.');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setPageError(err.message || 'Erro inesperado ao inicializar perfil da vitrine.');
       } finally {
         setLoading(false);
       }
@@ -163,11 +167,18 @@ export default function AffiliateStoreSettingsPage() {
     );
   }
 
-  if (!currentProfile) {
+  if (pageError || !currentProfile) {
     return (
-      <div className="p-8 text-center bg-white rounded-xl shadow-sm border border-slate-200">
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Vitrine não configurada</h2>
-        <p className="text-slate-600">Ocorreu um erro ao carregar sua vitrine.</p>
+      <div className="flex flex-col items-center justify-center p-8 text-center bg-white rounded-xl shadow-sm border border-slate-200 min-h-[400px]">
+        <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Falha na Configuração</h2>
+        <p className="text-slate-600 max-w-md mb-6">{pageError || 'Ocorreu um erro ao carregar ou inicializar sua vitrine.'}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-6 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white font-bold rounded-xl shadow-md transition-all"
+        >
+          Tentar Novamente
+        </button>
       </div>
     );
   }
@@ -214,8 +225,27 @@ export default function AffiliateStoreSettingsPage() {
         
         {/* Form Container */}
         <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit, (errors) => {
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) {
+              const element = document.getElementsByName(firstErrorKey)[0];
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.focus();
+              }
+            }
+          })} className="space-y-6">
             
+            {/* Validation Errors Alert - Top */}
+            {Object.keys(errors).length > 0 && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex flex-col gap-2 font-semibold">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                  <span>Não foi possível salvar. Verifique {Object.keys(errors).length} campo(s) com erro abaixo:</span>
+                </div>
+              </div>
+            )}
+
             {actionError && (
               <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
                 <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
@@ -278,6 +308,9 @@ export default function AffiliateStoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none"
                 placeholder="Apresente sua experiência e o objetivo das suas recomendações..."
               />
+              {errors.descricao && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.descricao.message}</p>
+              )}
             </div>
 
             {/* WhatsApp para Contato */}
@@ -312,6 +345,9 @@ export default function AffiliateStoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
                 placeholder="@seuinstagram ou link completo"
               />
+              {errors.instagram && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.instagram.message}</p>
+              )}
             </div>
 
             {/* YouTube */}
@@ -325,6 +361,9 @@ export default function AffiliateStoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
                 placeholder="https://youtube.com/@seucanal"
               />
+              {errors.youtube && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.youtube.message}</p>
+              )}
             </div>
 
             {/* TikTok */}
@@ -338,6 +377,9 @@ export default function AffiliateStoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
                 placeholder="@seutiktok"
               />
+              {errors.tiktok && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.tiktok.message}</p>
+              )}
             </div>
 
             {/* Facebook */}
@@ -351,6 +393,9 @@ export default function AffiliateStoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
                 placeholder="https://facebook.com/suapagina"
               />
+              {errors.facebook && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.facebook.message}</p>
+              )}
             </div>
 
             {/* Cor Primária */}
@@ -381,6 +426,9 @@ export default function AffiliateStoreSettingsPage() {
                   ))}
                 </div>
               </div>
+              {errors.cor_primaria && (
+                <p className="text-xs text-rose-500 mt-1 font-medium">{errors.cor_primaria.message}</p>
+              )}
             </div>
 
             {/* Upload do Logo */}
@@ -396,6 +444,9 @@ export default function AffiliateStoreSettingsPage() {
               isImage={true}
               aspectRatio="1:1"
             />
+            {errors.logo_url && (
+              <p className="text-xs text-rose-500 -mt-4 font-medium">{errors.logo_url.message}</p>
+            )}
 
             {/* Upload do Banner */}
             <FileUpload
@@ -410,6 +461,9 @@ export default function AffiliateStoreSettingsPage() {
               isImage={true}
               aspectRatio="3:1"
             />
+            {errors.banner_url && (
+              <p className="text-xs text-rose-500 -mt-4 font-medium">{errors.banner_url.message}</p>
+            )}
 
             {/* Seletor de Tema */}
             <div className="space-y-3 pb-2">
@@ -443,19 +497,18 @@ export default function AffiliateStoreSettingsPage() {
               </div>
             </div>
 
-            {/* Validation Errors Alert */}
-            {Object.keys(errors).length > 0 && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex flex-col gap-2 font-semibold">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
-                  <span>Não foi possível salvar. Verifique os erros abaixo:</span>
-                </div>
-                <ul className="list-disc pl-8 font-medium">
-                  {errors.nome && <li>Nome da Vitrine: {errors.nome.message}</li>}
-                  {errors.slug && <li>Slug (Link): {errors.slug.message}</li>}
-                  {errors.cor_primaria && <li>Cor: {errors.cor_primaria.message}</li>}
-                  {errors.whatsapp && <li>WhatsApp: {errors.whatsapp.message}</li>}
-                </ul>
+            {/* Feedback messages right above the submit button */}
+            {actionError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
+            {savedSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
+                <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <span>Configurações salvas com sucesso!</span>
               </div>
             )}
 

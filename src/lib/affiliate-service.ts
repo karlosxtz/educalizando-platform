@@ -286,6 +286,12 @@ export async function getOrCreateAffiliateProfile(userId: string, userName: stri
     .single();
     
   if (error) {
+    console.error('[getOrCreateAffiliateProfile] ERRO AO CRIAR PERFIL (1a tentativa):', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
     if (error.code === '23505') { // Unique violation on slug
       slug = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
       const retry = await supabase
@@ -299,6 +305,15 @@ export async function getOrCreateAffiliateProfile(userId: string, userName: stri
         })
         .select()
         .single();
+        
+      if (retry.error) {
+        console.error('[getOrCreateAffiliateProfile] ERRO AO CRIAR PERFIL (2a tentativa):', {
+          code: retry.error.code,
+          message: retry.error.message,
+          details: retry.error.details,
+          hint: retry.error.hint
+        });
+      }
       if (!retry.error && retry.data) return retry.data as AffiliateProfile;
     }
     console.error('Error creating affiliate profile:', error);
