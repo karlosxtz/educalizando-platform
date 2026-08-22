@@ -210,13 +210,13 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
 
             <div className="space-y-1">
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400 block">
-                Espaço Exclusivo da Loja
+                Minha Biblioteca
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                {storeName}
+                Meus Materiais — {storeName}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Seus materiais contratados exclusivamente nesta loja ({purchases.length} {purchases.length === 1 ? 'item' : 'itens'})
+                Aqui estão todos os materiais didáticos que você adquiriu. Baixe quando precisar.
               </p>
             </div>
           </div>
@@ -242,22 +242,24 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
 
             <div className="space-y-2">
               <h3 className="text-lg font-black text-slate-900">
-                Nenhum material encontrado nesta loja
+                Nenhum material adquirido ainda
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
-                Você ainda não possui apostilas ou e-books adquiridos especificamente na {storeName}.
+                Você ainda não possui apostilas ou e-books adquiridos nesta biblioteca. Explore a vitrine para adicionar novos materiais à sua estante.
               </p>
             </div>
 
             <Link
-              href="/aluno/dashboard"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all"
+              href={`/loja/${store?.slug || ''}`}
+              target="_blank"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md transition-all active:scale-95"
+              style={{ backgroundColor: primaryColor }}
             >
-              <ArrowLeft className="w-4 h-4" /> Voltar para Minhas Lojas
+              <StoreIcon className="w-4 h-4" /> Explorar Loja
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {purchases.map((pur) => {
               const itemTitle = pur.product?.titulo || pur.kit?.titulo || 'Material Didático';
               const itemCover = pur.product?.capa_url || pur.kit?.capa_url || null;
@@ -268,110 +270,101 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={pur.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
                 >
-                  <div className="p-5 space-y-4">
+                  <div className="flex flex-col">
                     {/* Item Cover */}
-                    <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
+                    <div className="aspect-[3/4] w-full bg-slate-100 relative overflow-hidden">
                       {itemCover ? (
                         <img src={itemCover} alt={itemTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-tr from-slate-900 to-slate-800 text-white">
-                          {isKit ? <Boxes className="w-8 h-8 text-blue-400 mb-1" /> : <BookOpen className="w-8 h-8 text-blue-400 mb-1" />}
-                          <span>{itemTitle}</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-br from-slate-50 to-slate-100">
+                          {isKit ? <Boxes className="w-10 h-10 text-slate-300 mb-2" /> : <BookOpen className="w-10 h-10 text-slate-300 mb-2" />}
                         </div>
                       )}
 
                       {/* Content Type Badge */}
-                      <span className="absolute top-3 left-3 bg-slate-900/90 text-white text-[10px] font-extrabold px-3 py-1 rounded-xl uppercase shadow-md backdrop-blur-xs flex items-center gap-1.5 border border-white/20">
+                      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-800 text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase shadow-sm flex items-center gap-1.5 border border-white/50">
                         {isKit ? (
                           <>
-                            <Boxes className="w-3.5 h-3.5 text-blue-400" />
-                            <span>COMBO ({pur.kit?.products?.length || 0} ITENS)</span>
+                            <Boxes className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Combo ({pur.kit?.products?.length || 0})</span>
                           </>
                         ) : (
                           <>
                             {getTipoIcon(pur.product?.tipo)}
-                            <span>{pur.product?.tipo}</span>
+                            <span>{pur.product?.tipo || 'Arquivo'}</span>
                           </>
                         )}
-                      </span>
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="font-black text-slate-900 text-base sm:text-lg group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                    <div className="p-4 space-y-1">
+                      <h3 className="font-bold text-slate-800 text-base line-clamp-2 leading-snug">
                         {itemTitle}
                       </h3>
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
-                        {pur.product?.descricao || pur.kit?.descricao || 'Material didático digital.'}
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                        {storeName}
                       </p>
                     </div>
                   </div>
 
-                  {/* Direct Download Action Footer */}
-                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                          <ShieldCheck className="w-4 h-4" /> Acesso Liberado
-                        </span>
-                        
-                        <div className="flex gap-2">
-                          {pur.is_plr_purchase && pur.product?.plr_license_url && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleDownloadPurchase(pur, e, 'plr')}
-                              disabled={downloadingId === `${pur.id}-plr`}
-                              className="px-3 py-2.5 rounded-xl font-extrabold text-xs text-amber-700 bg-amber-100 border border-amber-200 shadow-sm transition-all flex items-center gap-1.5 hover:bg-amber-200 active:scale-95 cursor-pointer disabled:opacity-50"
-                            >
-                              {downloadingId === `${pur.id}-plr` ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Download className="w-3.5 h-3.5" />
-                              )}
-                              <span>{downloadingId === `${pur.id}-plr` ? 'Baixando...' : 'Licença PLR'}</span>
-                            </button>
+                  {/* Actions Footer */}
+                  <div className="p-4 pt-0 mt-auto flex flex-col gap-2">
+                    {/* Botão de Avaliação (Discreto) */}
+                    {(() => {
+                      const existingReview = myReviews.find(r => r.product_id === (pur.product_id || pur.id));
+                      return (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setReviewTarget({ productId: pur.product_id || pur.id, storeId });
+                          }}
+                          className={`w-full py-1.5 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                            existingReview 
+                              ? 'text-amber-600 hover:bg-amber-50' 
+                              : 'text-slate-400 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${existingReview ? 'fill-amber-500 text-amber-500' : ''}`} />
+                          {existingReview ? 'Sua Avaliação' : 'Avaliar Material'}
+                        </button>
+                      );
+                    })()}
+
+                    {/* Download Action */}
+                    <div className="flex gap-2">
+                      {pur.is_plr_purchase && pur.product?.plr_license_url && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDownloadPurchase(pur, e, 'plr')}
+                          disabled={downloadingId === `${pur.id}-plr`}
+                          className="w-1/3 py-3 rounded-xl font-bold text-xs text-amber-700 bg-amber-100 transition-all flex justify-center items-center gap-1.5 hover:bg-amber-200 active:scale-95 disabled:opacity-50"
+                        >
+                          {downloadingId === `${pur.id}-plr` ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FileText className="w-4 h-4" />
                           )}
-                          
-                          <button
-                            type="button"
-                            onClick={(e) => handleDownloadPurchase(pur, e)}
-                            disabled={downloadingId === pur.id}
-                            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
-                            style={{ backgroundColor: primaryColor }}
-                          >
-                            {downloadingId === pur.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Download className="w-3.5 h-3.5" />
-                            )}
-                            <span>{downloadingId === pur.id ? 'Baixando...' : 'Acessar Material'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    
-                    {/* Botão Avaliar */}
-                    <div className="pt-2 border-t border-slate-200/50">
-                      {(() => {
-                        const existingReview = myReviews.find(r => r.product_id === (pur.product_id || pur.id));
-                        return (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setReviewTarget({ productId: pur.product_id || pur.id, storeId });
-                            }}
-                            className={`w-full py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
-                              existingReview 
-                                ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' 
-                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                            }`}
-                          >
-                            <Star className={`w-3.5 h-3.5 ${existingReview ? 'fill-amber-500 text-amber-500' : ''}`} />
-                            {existingReview ? 'Minha Avaliação' : 'Avaliar'}
-                          </button>
-                        );
-                      })()}
+                        </button>
+                      )}
+                      
+                      <button
+                        type="button"
+                        onClick={(e) => handleDownloadPurchase(pur, e)}
+                        disabled={downloadingId === pur.id}
+                        className="flex-1 py-3 rounded-xl font-bold text-sm text-white shadow-sm transition-all flex justify-center items-center gap-2 hover:brightness-110 active:scale-95 disabled:opacity-50 w-full"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {downloadingId === pur.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        <span>{downloadingId === pur.id ? 'Baixando...' : 'Baixar Arquivo'}</span>
+                      </button>
                     </div>
                   </div>
                 </motion.div>
