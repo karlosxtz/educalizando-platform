@@ -707,7 +707,7 @@ function ProductWizardContent() {
                   </div>
 
                   <div className="pt-2 flex items-center justify-between border-t border-slate-200">
-                    <span className="text-2xl font-black text-slate-900">R$ {preco}</span>
+                    <span className="text-2xl font-black text-slate-900">{isFree ? 'Grátis' : `R$ ${preco || '0,00'}`}</span>
                     
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-bold text-slate-600">Status:</label>

@@ -448,6 +448,7 @@ export default function ProductsManagementPage() {
         onClose={() => setIsWizardOpen(false)}
         storeId={store?.id}
         editingProduct={editingProduct}
+        isBrindeMode={true}
         onSave={handleWizardSave}
       />
 

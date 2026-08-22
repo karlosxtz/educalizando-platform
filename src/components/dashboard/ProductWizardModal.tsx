@@ -16,6 +16,7 @@ interface ProductWizardModalProps {
   onClose: () => void;
   storeId?: string;
   editingProduct?: Product | null;
+  isBrindeMode?: boolean;
   onSave: (productData: {
     titulo: string;
     descricao: string | null;
@@ -26,6 +27,7 @@ interface ProductWizardModalProps {
     status: 'publicado' | 'rascunho';
     category_id: string | null;
     education_level_id: string | null;
+    is_free?: boolean;
   }) => Promise<void>;
 }
 
@@ -34,6 +36,7 @@ export default function ProductWizardModal({
   onClose,
   storeId,
   editingProduct,
+  isBrindeMode,
   onSave
 }: ProductWizardModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -45,7 +48,7 @@ export default function ProductWizardModal({
   const [capaUrl, setCapaUrl] = useState<string | null>(editingProduct?.capa_url || null);
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(editingProduct?.arquivo_url || null);
   const [videoLink, setVideoLink] = useState<string>(editingProduct?.arquivo_url || '');
-  const [preco, setPreco] = useState<number>(editingProduct?.preco || 49.90);
+  const [preco, setPreco] = useState<number>(editingProduct?.preco || (isBrindeMode ? 0 : 49.90));
   const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status === 'rascunho' ? 'rascunho' : 'publicado');
   const [categoryId, setCategoryId] = useState<string | null>(editingProduct?.category_id || null);
   const [educationLevelId, setEducationLevelId] = useState<string | null>(editingProduct?.education_level_id || null);
@@ -163,12 +166,13 @@ export default function ProductWizardModal({
         titulo,
         descricao: descricao || null,
         tipo,
-        preco: Number(preco) || 0,
+        preco: isBrindeMode ? 0 : (Number(preco) || 0),
         capa_url: capaUrl,
         arquivo_url: finalFileUrl,
         status,
         category_id: categoryId,
-        education_level_id: educationLevelId
+        education_level_id: educationLevelId,
+        is_free: isBrindeMode || false
       });
       onClose();
     } catch (err: any) {
@@ -444,22 +448,24 @@ export default function ProductWizardModal({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
               
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                    Preço de Venda (R$) *
-                  </label>
-                  <div className="relative">
-                    <DollarSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={preco}
-                      onChange={(e) => setPreco(parseFloat(e.target.value) || 0)}
-                      placeholder="49.90"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-bold focus:outline-none"
-                    />
+                {!isBrindeMode && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                      Preço de Venda (R$) *
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={preco}
+                        onChange={(e) => setPreco(parseFloat(e.target.value) || 0)}
+                        placeholder="49.90"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-bold focus:outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
@@ -499,7 +505,7 @@ export default function ProductWizardModal({
                   </div>
                   <div>
                     <span className="text-slate-400 block font-bold">Investimento:</span>
-                    <span className="font-black text-emerald-600 text-sm">R$ {preco.toFixed(2).replace('.', ',')}</span>
+                    <span className="font-black text-emerald-600 text-sm">{isBrindeMode ? 'Grátis' : `R$ ${preco.toFixed(2).replace('.', ',')}`}</span>
                   </div>
                 </div>
               </div>
