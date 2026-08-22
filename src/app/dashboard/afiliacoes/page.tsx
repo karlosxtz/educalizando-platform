@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getMyAffiliations, getAffiliateProfile } from '@/lib/affiliate-service';
 import { Affiliate, AffiliateProfile } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet } from 'lucide-react';
+import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { AffiliateWallet } from './AffiliateWallet';
@@ -179,14 +179,23 @@ export default function AffiliateDashboardPage() {
               Mercado de Produtos
             </Link>
             {profileSlug ? (
-              <Link 
-                href={`/afiliado/${profileSlug}`} 
-                target="_blank"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Minha Vitrine
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link 
+                  href={`/afiliado/${profileSlug}`} 
+                  target="_blank"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-brand-navy-hover text-white rounded-xl text-sm font-bold shadow-md transition-all"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Minha Vitrine
+                </Link>
+                <Link 
+                  href="/dashboard/afiliacoes/vitrine"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold shadow-sm transition-all"
+                >
+                  <Pencil className="w-4 h-4 text-slate-500" />
+                  Editar Vitrine
+                </Link>
+              </div>
             ) : (
               <Link 
                 href="/dashboard/afiliacoes/vitrine"

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, ShoppingBag, Link2, Wallet, Settings, 
   LogOut, Menu, X, ChevronRight, User, Store, BarChart3,
-  MousePointerClick, ArrowLeftRight
+  MousePointerClick, ArrowLeftRight, Palette
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { saveRolePreference } from '@/lib/role-service';
@@ -55,6 +55,12 @@ export default function AffiliateSidebar({
       icon: Wallet,
       badge: null,
       hash: '#carteira'
+    },
+    {
+      label: 'Personalizar Vitrine',
+      href: '/dashboard/afiliacoes/vitrine',
+      icon: Palette,
+      badge: null
     },
     {
       label: 'Configurações da Conta',
