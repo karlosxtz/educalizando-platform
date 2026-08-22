@@ -50,9 +50,10 @@ export default async function PublicStorePage({ params }: PageProps) {
 
   console.log(`[PublicStorePage] Loja encontrada: id=${store.id}, nome="${store.nome_loja}"`);
 
-  const products = await getPublicProductsByStoreId(store.id);
+  const allProducts = await getPublicProductsByStoreId(store.id);
+  const products = allProducts.filter(p => !p.is_free && (p.preco || 0) > 0);
 
-  console.log(`[PublicStorePage] Produtos encontrados: ${products.length} para store.id="${store.id}"`);
+  console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 
   return (
     <PublicStoreClientView store={store} initialProducts={products} />

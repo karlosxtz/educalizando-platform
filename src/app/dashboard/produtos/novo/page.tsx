@@ -43,6 +43,7 @@ function ProductWizardContent() {
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
+  const [isFree, setIsFree] = useState<boolean>(false);
   const [isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
@@ -103,6 +104,7 @@ function ProductWizardContent() {
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
+            setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             setPlrLicenseUrl(existing.plr_license_url || null);
@@ -127,10 +129,12 @@ function ProductWizardContent() {
         setErrorMsg('Por favor, informe o título do produto didático.');
         return;
       }
-      const numPrice = parseFloat(preco.replace(',', '.'));
-      if (isNaN(numPrice) || numPrice < 0) {
-        setErrorMsg('Informe um preço de venda válido.');
-        return;
+      if (!isFree) {
+        const numPrice = parseFloat(preco.replace(',', '.'));
+        if (isNaN(numPrice) || numPrice <= 0) {
+          setErrorMsg('Informe um preço de venda maior que zero, ou marque como Material Gratuito.');
+          return;
+        }
       }
     }
     if (currentStep < 4) {
@@ -162,7 +166,7 @@ function ProductWizardContent() {
     setSaving(true);
     setErrorMsg(null);
 
-    const numericPrice = parseFloat(preco.replace(',', '.')) || 0;
+    const numericPrice = isFree ? 0 : (parseFloat(preco.replace(',', '.')) || 0);
     const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
     const numericCommissionRate = parseFloat(affiliateCommissionRate.replace(',', '.')) || 0;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
@@ -180,6 +184,7 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           gallery_urls: galleryUrls,
+          is_free: isFree,
           is_plr: isPlr,
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
@@ -199,6 +204,7 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           gallery_urls: galleryUrls,
+          is_free: isFree,
           is_plr: isPlr,
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
@@ -350,19 +356,47 @@ function ProductWizardContent() {
                   />
                 </div>
 
+                <div className="pt-2">
+                  <div 
+                    onClick={() => {
+                      setIsFree(!isFree);
+                      if (!isFree) setPreco('0,00');
+                      else setPreco('29,90');
+                    }}
+                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isFree ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isFree ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-300'}`}>
+                      {isFree && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${isFree ? 'text-emerald-900' : 'text-slate-700'}`}>🎁 Material Gratuito (Brinde para os Alunos)</span>
+                      </div>
+                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isFree ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        Se marcado, o aluno poderá baixar este material na área de brindes sem precisar passar pelo checkout.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                      Preço de Venda (R$) *
+                      Preço de Venda (R$) {isFree ? '' : '*'}
                     </label>
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
                       <input
                         type="text"
-                        value={preco}
+                        value={isFree ? '0,00' : preco}
+                        disabled={isFree}
                         onChange={(e) => setPreco(e.target.value)}
                         placeholder="29,90"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none"
+                        className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-black focus:outline-none transition-colors ${
+                          isFree 
+                            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
+                            : 'bg-slate-50 border-slate-200 focus:border-blue-600 text-slate-900'
+                        }`}
                       />
                     </div>
                   </div>

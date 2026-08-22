@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
-  Gift, Search, Loader2, Sparkles, Download, Eye, ExternalLink, ShieldCheck
+  ArrowLeft, BookOpen, FileText, Video, Layers, 
+  HelpCircle, Sparkles, Loader2, Gift, Download, ExternalLink, Store as StoreIcon
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { getCurrentStudentSession } from '@/lib/student-service';
 import { getAllFreeProducts } from '@/lib/store-service';
-import { Product, Store } from '@/lib/types';
+import { Product, Store, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
 
 export default function StudentFreeProductsPage() {
@@ -19,7 +21,8 @@ export default function StudentFreeProductsPage() {
   const [loading, setLoading] = useState(true);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [freeProducts, setFreeProducts] = useState<(Product & { store?: Store })[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -42,6 +45,39 @@ export default function StudentFreeProductsPage() {
     loadData();
   }, [router]);
 
+  const downloadSingleProduct = async (productId: string) => {
+    const downloadUrl = `/api/aluno/materiais/${productId}/download`;
+    window.location.assign(downloadUrl);
+  };
+
+  const handleDownloadPurchase = async (product: Product, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setDownloadingId(product.id);
+
+    try {
+      await downloadSingleProduct(product.id);
+      toast.success('Download do brinde iniciado!');
+    } catch (err: any) {
+      console.error('[Download Error]:', err);
+      toast.error('Não foi possível baixar o material agora. Tente novamente em instantes.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const getTipoIcon = (tipo?: ProductType) => {
+    switch (tipo) {
+      case 'pdf': return <FileText className="w-3.5 h-3.5 text-sky-600" />;
+      case 'ebook': return <BookOpen className="w-3.5 h-3.5 text-indigo-600" />;
+      case 'video': return <Video className="w-3.5 h-3.5 text-purple-600" />;
+      case 'curso': return <Layers className="w-3.5 h-3.5 text-blue-600" />;
+      case 'simulado': return <HelpCircle className="w-3.5 h-3.5 text-amber-600" />;
+      default: return <BookOpen className="w-3.5 h-3.5 text-blue-600" />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -49,11 +85,6 @@ export default function StudentFreeProductsPage() {
       </div>
     );
   }
-
-  const filteredProducts = freeProducts.filter(p => 
-    p.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.store?.nome_loja && p.store.nome_loja.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-brand-teal selection:text-white">
@@ -63,115 +94,135 @@ export default function StudentFreeProductsPage() {
         studentAvatarUrl={studentSession?.avatarUrl}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
-        {/* Welcome & Section Title */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-brand-teal bg-teal-50 px-3 py-1 rounded-full border border-teal-200 inline-flex items-center gap-1.5">
-              <Gift className="w-3.5 h-3.5 text-brand-teal" /> Materiais 100% Gratuitos
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Central de Materiais Grátis
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">
-              Aproveite apostilas, e-books e materiais gratuitos disponibilizados pelos melhores criadores da Educalizando. Baixe diretamente sem custo.
-            </p>
-          </div>
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <Link href="/aluno/dashboard" className="hover:text-brand-teal transition-colors flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Voltar para Minhas Lojas</span>
+          </Link>
+        </nav>
 
-          <div className="relative w-full md:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Buscar material ou loja..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-teal focus:border-brand-teal outline-none transition-all placeholder:text-slate-400 font-medium"
-            />
+        {/* Identity Header Card */}
+        <div 
+          className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
+        >
+          {/* Decorative Primary Color Top Accent Bar */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-brand-teal" />
+
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl p-1 bg-teal-50 border-2 border-teal-100 shadow-md flex-shrink-0 relative overflow-hidden flex items-center justify-center text-teal-600">
+              <Gift className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-teal-500 block">
+                Materiais Gratuitos
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                Meus Brindes <span className="text-2xl">🎁</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Materiais gratuitos liberados para você baixar a qualquer momento.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Free Products Grid */}
-        {filteredProducts.length === 0 ? (
+        {/* Store's Free Products Grid */}
+        {freeProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
-            <div className="w-20 h-20 rounded-full bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center mx-auto shadow-inner">
-              <Gift className="w-10 h-10" />
+            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-500 border border-slate-200 flex items-center justify-center mx-auto shadow-inner">
+              <Gift className="w-8 h-8" />
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-slate-900">
-                Nenhum material grátis encontrado
+              <h3 className="text-lg font-black text-slate-900">
+                Nenhum brinde disponível
               </h3>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
-                No momento não há nenhum material gratuito correspondente à sua busca ou os criadores ainda não adicionaram materiais grátis.
+              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
+                No momento, não há nenhum material gratuito disponibilizado. Fique de olho, os criadores sempre liberam novos brindes.
               </p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product, idx) => (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                key={product.id}
-                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
-              >
-                {/* Cover Image */}
-                <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden border-b border-slate-100">
-                  {product.capa_url ? (
-                    <img 
-                      src={product.capa_url} 
-                      alt={product.titulo}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-2">
-                      <Gift className="w-12 h-12 opacity-50" />
-                      <span className="text-xs font-bold uppercase tracking-widest">Sem Capa</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {freeProducts.map((product) => {
+              const itemTitle = product.titulo || 'Material Didático';
+              const itemCover = product.capa_url || null;
+              const storeName = product.store?.nome_loja || 'Loja do Criador';
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={product.id}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
+                >
+                  <div className="flex flex-col">
+                    {/* Item Cover */}
+                    <div className="aspect-[3/4] w-full bg-slate-100 relative overflow-hidden">
+                      {itemCover ? (
+                        <img src={itemCover} alt={itemTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-br from-slate-50 to-slate-100">
+                          <Gift className="w-10 h-10 text-slate-300 mb-2" />
+                        </div>
+                      )}
+
+                      {/* Content Type Badge */}
+                      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-800 text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase shadow-sm flex items-center gap-1.5 border border-white/50">
+                        {getTipoIcon(product.tipo)}
+                        <span>{product.tipo || 'Arquivo'}</span>
+                      </div>
+                      
+                      {/* Free Badge */}
+                      <div className="absolute top-3 right-3 bg-brand-teal text-white text-[10px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Grátis
+                      </div>
                     </div>
-                  )}
 
-                  {/* Free Badge */}
-                  <div className="absolute top-3 left-3 bg-brand-teal text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Grátis
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4 sm:p-5 flex flex-col flex-1">
-                  <div className="flex-1 space-y-1">
-                    <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-teal transition-colors">
-                      {product.titulo}
-                    </h3>
-                    {product.store && (
-                      <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                        Por <span className="text-brand-navy">{product.store.nome_loja}</span>
+                    <div className="p-4 space-y-1">
+                      <h3 className="font-bold text-slate-800 text-base line-clamp-2 leading-snug">
+                        {itemTitle}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                        Por {storeName}
                       </p>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="mt-5 space-y-2">
-                    <Link
-                      href={`/aluno/brindes/${product.id}`}
-                      className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-brand-navy text-white py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm"
+                  {/* Actions Footer */}
+                  <div className="p-4 pt-0 mt-auto flex flex-col gap-2">
+                    {/* Download Action */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDownloadPurchase(product, e)}
+                      disabled={downloadingId === product.id}
+                      className="w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm transition-all flex justify-center items-center gap-2 bg-brand-teal hover:bg-teal-600 active:scale-95 disabled:opacity-50"
                     >
-                      <Eye className="w-4 h-4" /> Ver Detalhes
-                    </Link>
+                      {downloadingId === product.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      <span>{downloadingId === product.id ? 'Baixando...' : 'Baixar Brinde'}</span>
+                    </button>
+                    
                     {product.store && (
                       <Link
                         href={`/loja/${product.store.slug}`}
                         target="_blank"
-                        className="w-full flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 rounded-xl font-bold text-[11px] sm:text-xs transition-all border border-teal-200"
+                        className="w-full flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 py-2 rounded-xl font-bold text-[11px] transition-all border border-slate-200"
                       >
                         Acesse a loja desse criador <ExternalLink className="w-3 h-3" />
                       </Link>
                     )}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </main>
