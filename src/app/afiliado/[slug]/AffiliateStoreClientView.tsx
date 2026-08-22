@@ -17,18 +17,32 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [selectedStore, setSelectedStore] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('recent');
+
+  const availableStores = Array.from(
+    new Map(products.filter(p => p.store).map(p => [p.store.id, p.store])).values()
+  ) as {id: string, nome_loja: string}[];
 
   const availableCategories = Array.from(
     new Map(products.filter(p => p.category).map(p => [p.category.id, p.category])).values()
   ) as {id: string, nome: string}[];
 
-  const filteredProducts = products.filter(p => {
+  let filteredProducts = products.filter(p => {
     const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
     const matchCategory = !selectedCategory || p.category?.id === selectedCategory;
     const matchMinPrice = !minPrice || p.preco >= parseFloat(minPrice);
     const matchMaxPrice = !maxPrice || p.preco <= parseFloat(maxPrice);
-    return matchSearch && matchCategory && matchMinPrice && matchMaxPrice;
+    const matchStore = !selectedStore || p.store?.id === selectedStore;
+    return matchSearch && matchCategory && matchMinPrice && matchMaxPrice && matchStore;
+  });
+
+  filteredProducts = filteredProducts.sort((a, b) => {
+    if (sortBy === 'price_asc') return (a.preco || 0) - (b.preco || 0);
+    if (sortBy === 'price_desc') return (b.preco || 0) - (a.preco || 0);
+    // default 'recent'
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
   const getTipoIcon = (tipo: string) => {
@@ -104,6 +118,19 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
             ))}
           </select>
 
+          {availableStores.length > 1 && (
+            <select
+              value={selectedStore}
+              onChange={e => setSelectedStore(e.target.value)}
+              className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[160px] text-slate-700"
+            >
+              <option value="">Todas as lojas</option>
+              {availableStores.map(store => (
+                <option key={store.id} value={store.id}>{store.nome_loja}</option>
+              ))}
+            </select>
+          )}
+
           <div className="flex gap-2 w-full lg:w-auto">
             <input
               type="number"
@@ -119,6 +146,16 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
               onChange={e => setMaxPrice(e.target.value)}
               className="w-full lg:w-28 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
             />
+            
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[140px] text-slate-700"
+            >
+              <option value="recent">Mais recente</option>
+              <option value="price_asc">Mais barato</option>
+              <option value="price_desc">Mais caro</option>
+            </select>
           </div>
         </div>
 
@@ -137,6 +174,8 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                   setSelectedCategory('');
                   setMinPrice('');
                   setMaxPrice('');
+                  setSelectedStore('');
+                  setSortBy('recent');
                 }}
                 className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors"
               >
