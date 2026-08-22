@@ -70,9 +70,9 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
               <LineChart className="w-4 h-4" /> Receita
             </button>
             <button
-              onClick={() => setViewMode('sales')}
+              onClick={() => setViewMode('volume')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                viewMode === 'sales' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'volume' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <BarChart3 className="w-4 h-4" /> Vendas
