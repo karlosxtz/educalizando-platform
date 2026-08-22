@@ -29,10 +29,18 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
       {/* Banner & Profile */}
       <div 
-        className="w-full pt-12 pb-24 relative overflow-hidden"
-        style={{ backgroundColor: profile.cor_primaria || '#1e293b' }}
+        className="w-full pt-12 pb-24 relative overflow-hidden bg-cover bg-center"
+        style={{ 
+          backgroundColor: profile.cor_primaria || '#1e293b',
+          backgroundImage: profile.banner_url ? `url(${profile.banner_url})` : undefined
+        }}
       >
-        <div className="absolute inset-0 bg-[url('/branding/mesh-bg.png')] opacity-10 bg-cover bg-center"></div>
+        {!profile.banner_url && (
+          <div className="absolute inset-0 bg-[url('/branding/mesh-bg.png')] opacity-10 bg-cover bg-center"></div>
+        )}
+        {profile.banner_url && (
+          <div className="absolute inset-0 bg-black/40"></div>
+        )}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 relative z-10 text-center space-y-4 mt-8">
           {profile.logo_url ? (
