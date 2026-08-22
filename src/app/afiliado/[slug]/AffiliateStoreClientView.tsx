@@ -98,19 +98,19 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
 
       <main className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
         {/* Filters */}
-        <div className="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-wrap lg:flex-nowrap items-center gap-2 border border-slate-100 mb-8 max-w-4xl mx-auto">
+        <div className="bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-wrap items-center gap-3 border border-slate-100 mb-8 max-w-5xl mx-auto">
           <input
             type="text"
             placeholder="Buscar recomendações..."
             value={searchFilter}
             onChange={e => setSearchFilter(e.target.value)}
-            className="flex-1 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[200px]"
+            className="flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[200px]"
           />
           
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[160px] text-slate-700"
+            className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[160px] text-slate-700"
           >
             <option value="">Todas as categorias</option>
             {availableCategories.map(cat => (
@@ -122,7 +122,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
             <select
               value={selectedStore}
               onChange={e => setSelectedStore(e.target.value)}
-              className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[160px] text-slate-700"
+              className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[160px] text-slate-700"
             >
               <option value="">Todas as lojas</option>
               {availableStores.map(store => (
@@ -131,32 +131,33 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
             </select>
           )}
 
-          <div className="flex gap-2 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto flex-1 md:flex-none">
             <input
               type="number"
-              placeholder="Preço mín."
+              placeholder="Mín (R$)"
               value={minPrice}
               onChange={e => setMinPrice(e.target.value)}
-              className="w-full lg:w-28 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+              className="w-full min-w-[100px] flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
             />
+            <span className="text-slate-400 font-medium">-</span>
             <input
               type="number"
-              placeholder="Preço máx."
+              placeholder="Máx (R$)"
               value={maxPrice}
               onChange={e => setMaxPrice(e.target.value)}
-              className="w-full lg:w-28 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+              className="w-full min-w-[100px] flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
             />
-            
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[140px] text-slate-700"
-            >
-              <option value="recent">Mais recente</option>
-              <option value="price_asc">Mais barato</option>
-              <option value="price_desc">Mais caro</option>
-            </select>
           </div>
+            
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[140px] text-slate-700"
+          >
+            <option value="recent">Mais recente</option>
+            <option value="price_asc">Mais barato</option>
+            <option value="price_desc">Mais caro</option>
+          </select>
         </div>
 
         {filteredProducts.length === 0 ? (
