@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ShieldCheck, ExternalLink, Sparkles
+  ShieldCheck, ExternalLink, Sparkles, Star, Flame
 } from 'lucide-react';
 import { AffiliateProfile } from '@/lib/types';
 
@@ -107,28 +107,64 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
             className="flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[200px]"
           />
           
-          <select
-            value={selectedCategory}
-            onChange={e => setSelectedCategory(e.target.value)}
-            className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[160px] text-slate-700"
-          >
-            <option value="">Todas as categorias</option>
-            {availableCategories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.nome}</option>
-            ))}
-          </select>
-
-          {availableStores.length > 1 && (
-            <select
-              value={selectedStore}
-              onChange={e => setSelectedStore(e.target.value)}
-              className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[160px] text-slate-700"
+          {/* Categorias Pills */}
+          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide w-full flex-1 md:flex-none">
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                !selectedCategory 
+                  ? 'text-white' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+              style={{ backgroundColor: !selectedCategory ? (profile.cor_primaria || '#1e293b') : undefined }}
             >
-              <option value="">Todas as lojas</option>
+              Todas as categorias
+            </button>
+            {availableCategories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                  selectedCategory === cat.id 
+                    ? 'text-white' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+                style={{ backgroundColor: selectedCategory === cat.id ? (profile.cor_primaria || '#1e293b') : undefined }}
+              >
+                {cat.nome}
+              </button>
+            ))}
+          </div>
+
+          {/* Lojas Pills */}
+          {availableStores.length > 1 && (
+            <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide w-full flex-1 md:flex-none">
+              <button
+                onClick={() => setSelectedStore('')}
+                className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                  !selectedStore 
+                    ? 'text-white' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+                style={{ backgroundColor: !selectedStore ? (profile.cor_primaria || '#1e293b') : undefined }}
+              >
+                Todas as lojas
+              </button>
               {availableStores.map(store => (
-                <option key={store.id} value={store.id}>{store.nome_loja}</option>
+                <button
+                  key={store.id}
+                  onClick={() => setSelectedStore(store.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                    selectedStore === store.id 
+                      ? 'text-white' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  style={{ backgroundColor: selectedStore === store.id ? (profile.cor_primaria || '#1e293b') : undefined }}
+                >
+                  {store.nome_loja}
+                </button>
               ))}
-            </select>
+            </div>
           )}
 
           <div className="flex items-center gap-2 w-full md:w-auto flex-1 md:flex-none">
@@ -185,7 +221,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [perspective:1000px]">
             {filteredProducts.map((prod, index) => {
               // Extract the affiliate ID for this specific affiliation link
               const refId = prod.affiliateInfo?.id || '';
@@ -194,9 +230,10 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -5, scale: 1.02, rotateX: 2, rotateY: -2 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
                   key={prod.id}
-                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-2xl transition-shadow duration-300 group flex flex-col justify-between"
                 >
                   <a 
                     href={`/loja/${prod.store?.slug || 'loja'}/produto/${prod.id}?ref=${refId}`}
@@ -224,13 +261,24 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                           {getTipoIcon(prod.tipo)}
                           <span>{prod.tipo}</span>
                         </span>
+                        {/* Hot Badge */}
+                        <span className="absolute top-2.5 right-2.5 bg-rose-500/90 backdrop-blur-sm text-white text-[10px] font-black px-2 py-1 rounded-md flex items-center gap-1 z-10 shadow-md">
+                          <Flame className="w-3 h-3" />Em Alta
+                        </span>
                       </div>
 
                       <div>
                         <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
                           {prod.titulo}
                         </h3>
-                        <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium">
+                        {prod.average_rating ? (
+                          <div className="flex items-center gap-1 mt-1.5">
+                            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                            <span className="text-xs font-bold text-slate-700">{prod.average_rating.toFixed(1)}</span>
+                            <span className="text-xs font-medium text-slate-400">({prod.review_count || 0})</span>
+                          </div>
+                        ) : null}
+                        <p className="text-xs text-slate-500 line-clamp-1 mt-1.5 font-medium">
                           Criado por: <strong>{prod.store?.nome_loja || 'Autor'}</strong>
                         </p>
                       </div>
