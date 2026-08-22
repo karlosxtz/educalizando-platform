@@ -35,6 +35,7 @@ export default function ProductDetailClientView({
 
   const [isBuying, setIsBuying] = useState(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
+  const [acceptOrderBump, setAcceptOrderBump] = useState(false);
   const { addToCart } = useCart();
 
   // Coupon State
@@ -113,6 +114,19 @@ export default function ProductDetailClientView({
         imageUrl: product.capa_url || undefined,
         quantity: 1
       });
+
+      if (acceptOrderBump && product.order_bump_product) {
+        addToCart({
+          productId: product.order_bump_product.id,
+          title: product.order_bump_product.titulo,
+          price: product.order_bump_product.preco,
+          isPlr: false, // Opcional: Se Order Bumps podem ser PLR, ajuste
+          storeId: store.id,
+          type: product.order_bump_product.tipo,
+          imageUrl: product.order_bump_product.capa_url || undefined,
+          quantity: 1
+        });
+      }
     } finally {
       setIsBuying(false);
     }
@@ -380,6 +394,32 @@ export default function ProductDetailClientView({
                   </div>
                 )}
               </div>
+
+              {/* Order Bump Box */}
+              {product.order_bump_product && (
+                <div className="bg-blue-50/50 border-dashed border-2 border-blue-300 rounded-2xl p-4 sm:p-5 flex items-start gap-4 cursor-pointer hover:bg-blue-50 transition-colors" onClick={() => setAcceptOrderBump(!acceptOrderBump)}>
+                  <div className="pt-1">
+                    <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${acceptOrderBump ? 'bg-blue-600 border-blue-600' : 'bg-white border-blue-300'}`}>
+                      {acceptOrderBump && <Check className="w-4 h-4 text-white" />}
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-bold text-slate-900 leading-tight">
+                        Sim, quero adicionar <span className="text-blue-700">{product.order_bump_product.titulo}</span>
+                      </h4>
+                      <span className="font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-sm whitespace-nowrap">
+                        + R$ {product.order_bump_product.preco.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+                    {product.order_bump_product.descricao && (
+                      <p className="text-xs text-slate-500 line-clamp-2">
+                        {product.order_bump_product.descricao}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Primary Call to Action Button */}
               <button

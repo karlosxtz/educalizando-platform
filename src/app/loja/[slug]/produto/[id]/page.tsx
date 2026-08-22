@@ -30,6 +30,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
+  if (product.order_bump_id) {
+    const bump = await getProductById(product.order_bump_id);
+    if (bump && !bump.excluido_em && bump.status === 'publicado') {
+      product.order_bump_product = bump;
+    }
+  }
+
   const [categories, educationLevels] = await Promise.all([
     getCategories(store.id),
     getEducationLevels()

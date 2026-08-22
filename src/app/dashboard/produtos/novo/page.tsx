@@ -16,6 +16,7 @@ import { ProductType, Category, EducationLevel, Store, Product } from '@/lib/typ
 import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import { getPublicProductsByStoreId } from '@/lib/store-service';
 
 function ProductWizardContent() {
   const router = useRouter();
@@ -51,6 +52,10 @@ function ProductWizardContent() {
   const [allowAffiliates, setAllowAffiliates] = useState<boolean>(false);
   const [affiliateCommissionRate, setAffiliateCommissionRate] = useState<string>('50');
 
+  // Order Bump
+  const [orderBumpId, setOrderBumpId] = useState<string>('');
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+
   useEffect(() => {
     async function initData() {
       try {
@@ -67,12 +72,14 @@ function ProductWizardContent() {
           );
         }
 
-        const [cats, edLevels] = await Promise.all([
+        const [cats, edLevels, storeProducts] = await Promise.all([
           getCategories(currentStore.id),
-          getEducationLevels()
+          getEducationLevels(),
+          getPublicProductsByStoreId(currentStore.id)
         ]);
         setCategories(cats);
         setEducationLevels(edLevels);
+        setAvailableProducts(storeProducts);
 
         if (editId) {
           const existing = await getProductById(editId);
@@ -109,7 +116,8 @@ function ProductWizardContent() {
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             setPlrLicenseUrl(existing.plr_license_url || null);
             setAllowAffiliates(existing.allow_affiliates || false);
-            if (existing.affiliate_commission_rate) setAffiliateCommissionRate(existing.affiliate_commission_rate.toString().replace('.', ','));
+            setAffiliateCommissionRate(existing.affiliate_commission_rate ? existing.affiliate_commission_rate.toString() : '50');
+            setOrderBumpId(existing.order_bump_id || '');
           }
         }
       } catch (err: any) {
@@ -189,7 +197,8 @@ function ProductWizardContent() {
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
           allow_affiliates: allowAffiliates,
-          affiliate_commission_rate: numericCommissionRate
+          affiliate_commission_rate: numericCommissionRate,
+          order_bump_id: orderBumpId || null
         });
       } else {
         await createProduct({
@@ -209,7 +218,8 @@ function ProductWizardContent() {
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
           allow_affiliates: allowAffiliates,
-          affiliate_commission_rate: numericCommissionRate
+          affiliate_commission_rate: numericCommissionRate,
+          order_bump_id: orderBumpId || null
         });
       }
 
@@ -723,6 +733,35 @@ function ProductWizardContent() {
                   </div>
                 </div>
               </div>
+
+              {/* Aumente seu Ticket Médio (Order Bump) */}
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mt-6 space-y-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-500" /> Aumente seu Ticket Médio (Order Bump)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Ofereça um produto complementar na tela de checkout com apenas 1 clique.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700">Produto Complementar</label>
+                  <select
+                    value={orderBumpId}
+                    onChange={(e) => setOrderBumpId(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  >
+                    <option value="">Nenhum (Desativado)</option>
+                    {availableProducts.filter(p => p.id !== editId).map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.titulo} - R$ {p.preco.toFixed(2).replace('.', ',')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
             </motion.div>
           )}
 

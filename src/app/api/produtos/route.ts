@@ -60,7 +60,8 @@ export async function POST(request: Request) {
       is_plr = false,
       preco_plr = 0,
       allow_affiliates = false,
-      affiliate_commission_rate = 0
+      affiliate_commission_rate = 0,
+      order_bump_id = null
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
       preco_plr: Number(preco_plr) || 0,
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
+      order_bump_id: isValidUUID(order_bump_id) ? order_bump_id : null,
       created_at: new Date().toISOString()
     };
 
@@ -239,6 +241,9 @@ export async function PUT(request: Request) {
     }
     if ('education_level_id' in cleanedUpdates) {
       cleanedUpdates.education_level_id = sanitizeUUID(cleanedUpdates.education_level_id);
+    }
+    if ('order_bump_id' in cleanedUpdates) {
+      cleanedUpdates.order_bump_id = sanitizeUUID(cleanedUpdates.order_bump_id);
     }
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);
