@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       category_id,
       education_level_id,
       gallery_urls,
+      is_free = false,
       is_plr = false,
       preco_plr = 0,
       allow_affiliates = false,
@@ -117,12 +118,17 @@ export async function POST(request: Request) {
       status: status || 'publicado',
       category_id: sanitizeUUID(category_id),
       education_level_id: sanitizeUUID(education_level_id),
+      is_free: Boolean(is_free),
       is_plr: Boolean(is_plr),
       preco_plr: Number(preco_plr) || 0,
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       created_at: new Date().toISOString()
     };
+
+    if (productPayload.is_free) {
+      productPayload.preco = 0;
+    }
 
     if (targetStoreId) {
       productPayload.store_id = targetStoreId;
@@ -149,6 +155,7 @@ export async function POST(request: Request) {
         capa_url: capa_url || null,
         arquivo_url: arquivo_url || null,
         status: status || 'publicado',
+        is_free: Boolean(is_free),
         is_plr: Boolean(is_plr),
         preco_plr: Number(preco_plr) || 0,
         allow_affiliates: Boolean(allow_affiliates),
@@ -232,6 +239,10 @@ export async function PUT(request: Request) {
     }
     if ('education_level_id' in cleanedUpdates) {
       cleanedUpdates.education_level_id = sanitizeUUID(cleanedUpdates.education_level_id);
+    }
+    if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
+      cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);
+      cleanedUpdates.preco = 0;
     }
     
     // Validar movimentação de loja (novo store_id)

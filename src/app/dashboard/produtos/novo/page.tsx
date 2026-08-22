@@ -36,7 +36,7 @@ function ProductWizardContent() {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [tipo, setTipo] = useState<ProductType>('pdf');
-  const [preco, setPreco] = useState<string>('29,90');
+  const [preco, setPreco] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('upload');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
