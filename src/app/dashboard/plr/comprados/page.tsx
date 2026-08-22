@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
-import { Package, Download, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Info } from 'lucide-react';
 import Link from 'next/link';
 import Sidebar from '@/components/dashboard/Sidebar';
 
@@ -120,6 +120,19 @@ export default function PLRsCompradosPage() {
             <p className="text-sm text-slate-500 mt-1">
               Todos os produtos com licença de revenda que você adquiriu.
             </p>
+
+            <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Sparkles className="w-24 h-24 text-indigo-600" />
+              </div>
+              <h2 className="text-indigo-900 font-black mb-2 flex items-center gap-2 relative z-10 text-base">
+                <Sparkles className="w-5 h-5 text-indigo-600" />
+                Meus Direitos de Revenda (PLR)
+              </h2>
+              <p className="text-sm text-indigo-800 leading-relaxed max-w-3xl relative z-10">
+                Para maximizar suas vendas e evitar concorrência direta, recomendamos fortemente que você crie uma nova capa e altere o título do produto antes de publicá-lo na sua loja.
+              </p>
+            </div>
           </div>
         </header>
 
@@ -176,22 +189,52 @@ export default function PLRsCompradosPage() {
                   </h3>
                   
                   <div className="mt-auto">
-                    {item.product.arquivo_url ? (
-                      <a 
-                        href={item.product.arquivo_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        <span className="bg-slate-200 text-slate-700 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">1</span>
+                        Baixar Original
+                      </div>
+                      
+                      {item.product.arquivo_url ? (
+                        <a 
+                          href={item.product.arquivo_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                        >
+                          <Download className="w-4 h-4" />
+                          Baixar Arquivo
+                        </a>
+                      ) : (
+                        <button disabled className="w-full flex items-center justify-center gap-2 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-xs font-bold cursor-not-allowed">
+                          Arquivo Indisponível
+                        </button>
+                      )}
+
+                      <div className="h-px bg-slate-200 w-full my-2"></div>
+
+                      <div className="flex items-center justify-between gap-2 text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">2</span>
+                          Revender
+                        </div>
+                        <div className="group relative cursor-help">
+                          <Info className="w-4 h-4 text-blue-400" />
+                          <div className="absolute bottom-full right-0 mb-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center leading-relaxed">
+                            Lembre-se de personalizar o título e a capa!
+                          </div>
+                        </div>
+                      </div>
+
+                      <Link 
+                        href="/dashboard/produtos/novo"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-600/20"
                       >
-                        <Download className="w-4 h-4" />
-                        Baixar Arquivo Original
-                      </a>
-                    ) : (
-                      <button disabled className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl text-xs font-bold cursor-not-allowed">
-                        Arquivo Indisponível
-                      </button>
-                    )}
-                    <p className="text-[10px] text-center text-slate-400 mt-3 font-medium">
+                        <Plus className="w-4 h-4" />
+                        Publicar na Minha Loja
+                      </Link>
+                    </div>
+                    <p className="text-[10px] text-center text-slate-400 mt-4 font-medium">
                       Pedido #{item.orderId.split('_').pop()?.toUpperCase()} • {new Date(item.paidAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
