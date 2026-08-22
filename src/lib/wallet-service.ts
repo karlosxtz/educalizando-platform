@@ -309,7 +309,7 @@ export async function recordWalletTransaction(data: {
   if (isRealSupabaseConfigured()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('wallet_transactions').insert([{
+      const { error } = await supabaseAdmin.from('wallet_transactions').insert([{
         id: newTx.id,
         store_id: newTx.storeId,
         creator_id: newTx.creatorId,
@@ -325,8 +325,20 @@ export async function recordWalletTransaction(data: {
         description: newTx.description,
         created_at: newTx.createdAt
       }]);
-    } catch (err) {
-      console.error('[recordWalletTransaction] Erro Supabase:', err);
+      
+      if (error) {
+        if (error.code === '23505') {
+          console.log(`[recordWalletTransaction] Trava de integridade do banco acionada: transação duplicada impedida para o pedido ${newTx.orderId}.`);
+        } else {
+          console.error('[recordWalletTransaction] Erro Supabase:', error);
+        }
+      }
+    } catch (err: any) {
+      if (err.code === '23505') {
+        console.log(`[recordWalletTransaction] Trava de integridade do banco acionada (catch): transação duplicada impedida.`);
+      } else {
+        console.error('[recordWalletTransaction] Erro de Exceção Supabase:', err);
+      }
     }
   }
 

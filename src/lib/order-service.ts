@@ -423,14 +423,31 @@ export async function updateOrderStatus(
   if (isRealSupabaseConfigured()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('orders').update({
+      
+      // ATUALIZAÇÃO ATÔMICA (Optimistic Locking)
+      // Tenta atualizar o status APENAS se ele já não for o novo status.
+      const { data: updatedOrder, error } = await supabaseAdmin.from('orders').update({
         status: newStatus,
         paid_at: nowPaidAt,
         asaas_fee_amount: updatedAsaasFee,
         creator_net_amount: updatedCreatorNet
-      }).eq('id', order.id);
+      })
+      .eq('id', order.id)
+      .neq('status', newStatus) // A MÁGICA: Impede que a 2ª thread atualize.
+      .select()
+      .maybeSingle();
+
+      // Se maybeSingle retornar null sem erro, ou der erro de 0 rows, a thread concorrente já processou.
+      if (!updatedOrder) {
+        console.log(`[Webhook Seguro] Pedido ${order.id} já estava em ${newStatus}. Processamento concorrente abortado.`);
+        return order; // Aborta para evitar repasse duplo
+      }
+
+      if (error) {
+        console.error('[updateOrderStatus] Erro Supabase na atualização atômica:', error);
+      }
     } catch (err) {
-      console.error('[updateOrderStatus] Erro Supabase:', err);
+      console.error('[updateOrderStatus] Erro Exceção Supabase:', err);
     }
   }
 
