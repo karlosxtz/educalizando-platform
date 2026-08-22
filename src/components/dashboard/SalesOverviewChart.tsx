@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, BarChart3, Loader2 } from 'lucide-react';
+import { TrendingUp, DollarSign, BarChart3, Loader2, LineChart } from 'lucide-react';
 import { PeriodFilter, SalesDataPoint } from '@/lib/types';
 import { getSalesDataByPeriod } from '@/lib/sales-service';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -54,42 +54,41 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             {viewMode === 'revenue' ? `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `${totalSales} vendas`}
+          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Desempenho de Vendas
           </h2>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Ticket Médio: <strong className="text-slate-900 font-bold">R$ {averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-          </p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe a receita e volume do seu negócio</p>
         </div>
 
-        {/* View Mode & Period Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Mode Switcher */}
-          <div className="bg-slate-100/80 p-1.5 rounded-xl flex items-center border border-slate-200/60 text-xs font-bold backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {/* View Toggle */}
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center shadow-inner">
             <button
               onClick={() => setViewMode('revenue')}
-              className={`px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all ${
-                viewMode === 'revenue' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                viewMode === 'revenue' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <DollarSign className="w-4 h-4" /> Receita
+              <LineChart className="w-4 h-4" /> Receita
             </button>
             <button
-              onClick={() => setViewMode('volume')}
-              className={`px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all ${
-                viewMode === 'volume' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              onClick={() => setViewMode('sales')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                viewMode === 'sales' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <BarChart3 className="w-4 h-4" /> Vendas
             </button>
           </div>
 
-          {/* Period Filter Buttons */}
-          <div className="bg-slate-100/80 p-1.5 rounded-xl flex items-center border border-slate-200/60 text-xs font-bold backdrop-blur-sm">
+          {/* Period Filter Tabs */}
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center shadow-inner text-xs font-bold">
             {(['7d', '30d', 'month', 'year'] as PeriodFilter[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-3 py-2 rounded-lg uppercase tracking-wider transition-all ${
-                  period === p ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-500 hover:text-slate-900'
+                className={`px-4 py-2 rounded-lg uppercase tracking-wider transition-all ${
+                  period === p ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : p === 'month' ? 'Mês' : 'Ano'}
