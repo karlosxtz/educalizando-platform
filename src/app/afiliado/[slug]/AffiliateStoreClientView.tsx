@@ -66,15 +66,15 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
           <div className="absolute inset-0 bg-black/40"></div>
         )}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 relative z-10 text-center space-y-4 mt-8">
+        <div className="max-w-3xl mx-auto px-4 relative z-10 text-center space-y-4 mt-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-8 shadow-2xl">
           {profile.logo_url ? (
             <img 
               src={profile.logo_url} 
               alt={profile.nome || 'Vitrine'} 
-              className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-xl bg-white object-cover" 
+              className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-2xl bg-white object-cover" 
             />
           ) : (
-            <div className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-xl bg-gradient-to-tr from-white/20 to-white/5 flex items-center justify-center text-3xl font-black text-white">
+            <div className="w-24 h-24 rounded-full mx-auto border-4 border-white shadow-2xl bg-gradient-to-tr from-white/20 to-white/5 flex items-center justify-center text-3xl font-black text-white">
               {(profile.nome || 'A').substring(0, 2).toUpperCase()}
             </div>
           )}
@@ -98,7 +98,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
 
       <main className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
         {/* Filters */}
-        <div className="bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-wrap items-center gap-3 border border-slate-100 mb-8 max-w-5xl mx-auto">
+        <div className="sticky top-4 z-40 backdrop-blur-xl bg-white/80 border border-slate-200/60 p-3 rounded-2xl shadow-sm flex flex-wrap items-center gap-3 mb-8 max-w-5xl mx-auto">
           <input
             type="text"
             placeholder="Buscar recomendações..."
@@ -196,7 +196,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
                   key={prod.id}
-                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between"
                 >
                   <a 
                     href={`/loja/${prod.store?.slug || 'loja'}/produto/${prod.id}?ref=${refId}`}
@@ -217,8 +217,9 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                             Material Didático Digital
                           </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-0 pointer-events-none" />
                         <span 
-                          className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs bg-brand-navy"
+                          className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs bg-brand-navy z-10"
                         >
                           {getTipoIcon(prod.tipo)}
                           <span>{prod.tipo}</span>
@@ -235,20 +236,23 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
-                        <span className="text-xl font-black tracking-tight text-slate-900">
-                          R$ {prod.preco ? prod.preco.toFixed(2).replace('.', ',') : '0,00'}
-                        </span>
+                    <div className="pt-3 border-t border-slate-100 flex flex-col gap-3 mt-auto">
+                      <div className="text-center">
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold mb-0.5">Investimento</span>
+                        <div className="text-slate-900 flex items-end justify-center gap-1">
+                          <span className="text-sm font-bold mb-0.5">R$</span>
+                          <span className="text-2xl font-black tracking-tight">
+                            {prod.preco ? prod.preco.toFixed(2).replace('.', ',') : '0,00'}
+                          </span>
+                        </div>
                       </div>
 
                       <div
-                        className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-white shadow-md group-hover:shadow-lg transition-all flex items-center gap-1.5"
+                        className="w-full py-3 rounded-xl font-black text-sm text-white text-center flex justify-center items-center gap-2 transition-transform active:scale-95 shadow-md group-hover:shadow-lg"
                         style={{ backgroundColor: profile.cor_primaria || '#1e293b' }}
                       >
                         <span>Acessar</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-4 h-4" />
                       </div>
                     </div>
                   </a>
