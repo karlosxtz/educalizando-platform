@@ -210,6 +210,11 @@ export async function POST(request: Request) {
 
     const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
+    // Calcular as taxas para fornecer a base líquida correta ao motor de afiliados
+    const { estimateAsaasFee, calculateOrderFinancials } = await import('@/lib/order-service');
+    const estimatedGatewayFee = estimateAsaasFee(normalizedMethod, baseSubtotal);
+    const tempFinancials = calculateOrderFinancials(realItems, estimatedGatewayFee, platformSettings || undefined, 0);
+    
     if (rawAffiliateId) {
       const { calculateAffiliateCommission } = await import('@/lib/affiliate-service');
       const commissionResult = await calculateAffiliateCommission({
@@ -217,14 +222,16 @@ export async function POST(request: Request) {
         storeId: effectiveStoreId,
         productId: realItems[0]?.productId,
         buyerId: studentId,
-        baseSubtotal
+        baseSubtotal,
+        gatewayFee: tempFinancials.asaasFeeAmount,
+        platformFee: tempFinancials.platformFeeAmount
       });
       
       affiliateId = commissionResult.affiliateId;
       affiliateCommissionAmount = commissionResult.affiliateCommissionAmount;
     }
 
-    const financials = calculateOrderFinancials(realItems, 0, platformSettings || undefined, affiliateCommissionAmount);
+    const financials = calculateOrderFinancials(realItems, tempFinancials.asaasFeeAmount, platformSettings || undefined, affiliateCommissionAmount);
 
     // 6. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
     const asaasCustomerId = await createOrGetAsaasCustomer({

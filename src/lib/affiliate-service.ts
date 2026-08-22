@@ -344,13 +344,17 @@ export async function calculateAffiliateCommission({
   storeId,
   productId,
   buyerId,
-  baseSubtotal
+  baseSubtotal,
+  gatewayFee,
+  platformFee
 }: {
   affiliateId: string | null;
   storeId: string;
   productId: string;
   buyerId: string;
   baseSubtotal: number;
+  gatewayFee?: number;
+  platformFee?: number;
 }): Promise<{ affiliateCommissionAmount: number; affiliateId: string | null }> {
   if (!affiliateId || !storeId || !buyerId || !productId || baseSubtotal <= 0) {
     return { affiliateCommissionAmount: 0, affiliateId: null };
@@ -411,16 +415,32 @@ export async function calculateAffiliateCommission({
       return { affiliateCommissionAmount: 0, affiliateId: affiliate.id };
     }
 
-    let commission = 0;
-    if (type === 'percentual') {
-      commission = baseSubtotal * (Number(rate) / 100);
-    } else {
-      commission = Math.min(Number(rate), baseSubtotal);
+    // 2. Cálculo da Base Líquida (Liquid Base)
+    const totalFees = (gatewayFee || 0) + (platformFee || 0);
+    const liquidBase = baseSubtotal - totalFees;
+
+    // Se as taxas forem maiores que o preço do produto, não há lucro nem comissão
+    if (liquidBase <= 0) {
+      return { affiliateCommissionAmount: 0, affiliateId: affiliate.id };
     }
 
-    // Retornar arredondado em 2 casas decimais (centavos)
+    // 3. O Cálculo Seguro
+    let calculatedCommission = 0;
+    if (type === 'percentual') {
+      calculatedCommission = liquidBase * (Number(rate) / 100);
+    } else {
+      calculatedCommission = Number(rate);
+    }
+
+    // 4. A Trava de Segurança (Hard Cap de 80%)
+    const MAX_COMMISSION_PERCENTAGE = 0.80; // 80% do lucro líquido
+    const maxAllowedCommission = liquidBase * MAX_COMMISSION_PERCENTAGE;
+
+    // A comissão final será o menor valor entre a comissão configurada e o teto máximo permitido
+    const finalCommission = Math.min(calculatedCommission, maxAllowedCommission);
+
     return { 
-      affiliateCommissionAmount: Number(commission.toFixed(2)), 
+      affiliateCommissionAmount: Number(finalCommission.toFixed(2)), 
       affiliateId: affiliate.id 
     };
   } catch (error) {
