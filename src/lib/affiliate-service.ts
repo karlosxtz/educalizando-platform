@@ -73,7 +73,7 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
   // 2. Fetch all public products for those stores OR specific products
   let query = supabase
     .from('products')
-    .select('*, store:stores(nome_loja, slug, id, logo_url)')
+    .select('*, store:stores(nome_loja, slug, id, logo_url), category:categories(id, nome)')
     .eq('status', 'publicado')
     .is('excluido_em', null);
 

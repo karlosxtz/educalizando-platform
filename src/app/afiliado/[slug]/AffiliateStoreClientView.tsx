@@ -14,11 +14,21 @@ interface AffiliateStoreClientViewProps {
 
 export default function AffiliateStoreClientView({ profile, products }: AffiliateStoreClientViewProps) {
   const [searchFilter, setSearchFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+
+  const availableCategories = Array.from(
+    new Map(products.filter(p => p.category).map(p => [p.category.id, p.category])).values()
+  ) as {id: string, nome: string}[];
 
   const filteredProducts = products.filter(p => {
     const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
       (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
-    return matchSearch;
+    const matchCategory = !selectedCategory || p.category?.id === selectedCategory;
+    const matchMinPrice = !minPrice || p.preco >= parseFloat(minPrice);
+    const matchMaxPrice = !maxPrice || p.preco <= parseFloat(maxPrice);
+    return matchSearch && matchCategory && matchMinPrice && matchMaxPrice;
   });
 
   const getTipoIcon = (tipo: string) => {
@@ -73,23 +83,66 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
       </div>
 
       <main className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
-        {/* Search */}
-        <div className="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-wrap lg:flex-nowrap items-center gap-2 border border-slate-100 mb-8 max-w-2xl mx-auto">
+        {/* Filters */}
+        <div className="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-wrap lg:flex-nowrap items-center gap-2 border border-slate-100 mb-8 max-w-4xl mx-auto">
           <input
             type="text"
             placeholder="Buscar recomendações..."
             value={searchFilter}
             onChange={e => setSearchFilter(e.target.value)}
-            className="flex-1 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto"
+            className="flex-1 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[200px]"
           />
+          
+          <select
+            value={selectedCategory}
+            onChange={e => setSelectedCategory(e.target.value)}
+            className="flex-1 lg:flex-none bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full lg:w-auto min-w-[160px] text-slate-700"
+          >
+            <option value="">Todas as categorias</option>
+            {availableCategories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.nome}</option>
+            ))}
+          </select>
+
+          <div className="flex gap-2 w-full lg:w-auto">
+            <input
+              type="number"
+              placeholder="Preço mín."
+              value={minPrice}
+              onChange={e => setMinPrice(e.target.value)}
+              className="w-full lg:w-28 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+            />
+            <input
+              type="number"
+              placeholder="Preço máx."
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+              className="w-full lg:w-28 bg-slate-50 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+            />
+          </div>
         </div>
 
         {filteredProducts.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100">
             <h3 className="text-xl font-black text-slate-800 mb-2">Nenhum material encontrado</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">
-              Ainda não há materiais aprovados para a vitrine deste afiliado, ou sua busca não retornou resultados.
+            <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
+              {products.length > 0 
+                ? 'Nenhum material corresponde aos filtros selecionados.' 
+                : 'Ainda não há materiais aprovados para a vitrine deste afiliado.'}
             </p>
+            {products.length > 0 && (
+              <button
+                onClick={() => {
+                  setSearchFilter('');
+                  setSelectedCategory('');
+                  setMinPrice('');
+                  setMaxPrice('');
+                }}
+                className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors"
+              >
+                Limpar Filtros
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
