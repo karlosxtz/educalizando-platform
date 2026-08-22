@@ -49,17 +49,32 @@ export async function GET(request: Request) {
     // Map store comissoes
     const storeCommissions: Record<string, number> = {};
 
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
     validTransactions.forEach(tx => {
       // O netAmount é o valor final líquido recebido da comissão (seja + ou -)
       const amount = tx.net_amount || tx.gross_amount;
+      
       if (tx.status === 'COMPLETED') {
         totalComissoes += amount;
-        pago += amount;
+        
+        if (tx.type === 'AFFILIATE_COMMISSION') {
+          const txDate = new Date(tx.created_at).getTime();
+          // Quarentena de 7 dias para disponibilizar o saque
+          if (now - txDate > SEVEN_DAYS_MS) {
+            pago += amount;
+          } else {
+            pendente += amount;
+          }
+        } else {
+          // REFUND, WITHDRAWAL, etc (geralmente negativos) deduzem o saldo disponível imediatamente
+          pago += amount;
+        }
+
         if (tx.store_id) {
           storeCommissions[tx.store_id] = (storeCommissions[tx.store_id] || 0) + amount;
         }
-      } else if (tx.status === 'PENDING') {
-        pendente += amount;
       }
     });
 
