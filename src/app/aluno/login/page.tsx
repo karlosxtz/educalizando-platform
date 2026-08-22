@@ -49,6 +49,7 @@ function StudentLoginForm() {
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar login de aluno. Verifique seus dados.');
+    } finally {
       setLoading(false);
     }
   };
@@ -75,6 +76,7 @@ function StudentLoginForm() {
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao criar conta de aluno.');
+    } finally {
       setLoading(false);
     }
   };

@@ -207,6 +207,22 @@ export async function signInStudent({ email, password }: { email: string; passwo
 
     if (typeof window !== 'undefined' && data.user) {
       localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
+      
+      // FIX: Sincronizar cookie de sessão seguro para que o middleware (proxy.ts) valide a rota protegida
+      if (data.session) {
+        try {
+          await fetch('/api/auth/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token
+            })
+          });
+        } catch (e) {
+          console.error('Erro ao sincronizar cookie seguro no login de aluno:', e);
+        }
+      }
     }
 
     return data;
