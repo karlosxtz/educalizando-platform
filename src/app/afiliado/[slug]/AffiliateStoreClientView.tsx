@@ -19,6 +19,8 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [selectedStore, setSelectedStore] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('recent');
+  const [filterTopRated, setFilterTopRated] = useState(false);
+  const [filterUnder50, setFilterUnder50] = useState(false);
 
   const availableStores = Array.from(
     new Map(products.filter(p => p.store).map(p => [p.store.id, p.store])).values()
@@ -35,7 +37,9 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
     const matchMinPrice = !minPrice || p.preco >= parseFloat(minPrice);
     const matchMaxPrice = !maxPrice || p.preco <= parseFloat(maxPrice);
     const matchStore = !selectedStore || p.store?.id === selectedStore;
-    return matchSearch && matchCategory && matchMinPrice && matchMaxPrice && matchStore;
+    const matchTopRated = !filterTopRated || (p.average_rating && p.average_rating >= 4.5);
+    const matchUnder50 = !filterUnder50 || p.preco <= 50;
+    return matchSearch && matchCategory && matchMinPrice && matchMaxPrice && matchStore && matchTopRated && matchUnder50;
   });
 
   filteredProducts = filteredProducts.sort((a, b) => {
@@ -98,102 +102,133 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
 
       <main className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
         {/* Filters */}
-        <div className="sticky top-4 z-40 backdrop-blur-xl bg-white/80 border border-slate-200/60 p-3 rounded-2xl shadow-sm flex flex-wrap items-center gap-3 mb-8 max-w-5xl mx-auto">
-          <input
-            type="text"
-            placeholder="Buscar recomendações..."
-            value={searchFilter}
-            onChange={e => setSearchFilter(e.target.value)}
-            className="flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[200px]"
-          />
+        <div className="sticky top-4 z-40 backdrop-blur-xl bg-white/80 border border-slate-200/60 p-4 rounded-2xl shadow-sm flex flex-col gap-4 mb-8 max-w-6xl mx-auto">
           
-          {/* Categorias Pills */}
-          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide w-full flex-1 md:flex-none">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
-                !selectedCategory 
-                  ? 'text-white' 
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-              style={{ backgroundColor: !selectedCategory ? (profile.cor_primaria || '#1e293b') : undefined }}
-            >
-              Todas as categorias
-            </button>
-            {availableCategories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
-                  selectedCategory === cat.id 
-                    ? 'text-white' 
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-                style={{ backgroundColor: selectedCategory === cat.id ? (profile.cor_primaria || '#1e293b') : undefined }}
+          {/* ANDAR 1: Busca e Ordenação */}
+          <div className="flex flex-col md:flex-row gap-3 justify-between items-center w-full">
+            <div className="w-full flex-1">
+              <input
+                type="text"
+                placeholder="Buscar recomendações..."
+                value={searchFilter}
+                onChange={e => setSearchFilter(e.target.value)}
+                className="w-full bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="w-full bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all text-slate-700 cursor-pointer"
               >
-                {cat.nome}
-              </button>
-            ))}
+                <option value="recent">Mais recente</option>
+                <option value="price_asc">Mais barato</option>
+                <option value="price_desc">Mais caro</option>
+              </select>
+            </div>
           </div>
 
-          {/* Lojas Pills */}
-          {availableStores.length > 1 && (
-            <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide w-full flex-1 md:flex-none">
+          {/* ANDAR 2: Categorias e Lojas (Pills) */}
+          <div className="flex flex-col gap-3 w-full">
+            {/* Categorias */}
+            <div className="flex overflow-x-auto gap-2 scrollbar-hide items-center w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
               <button
-                onClick={() => setSelectedStore('')}
+                onClick={() => setSelectedCategory('')}
                 className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
-                  !selectedStore 
+                  !selectedCategory 
                     ? 'text-white' 
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
-                style={{ backgroundColor: !selectedStore ? (profile.cor_primaria || '#1e293b') : undefined }}
+                style={{ backgroundColor: !selectedCategory ? (profile.cor_primaria || '#1e293b') : undefined }}
               >
-                Todas as lojas
+                Todas as categorias
               </button>
-              {availableStores.map(store => (
+              {availableCategories.map(cat => (
                 <button
-                  key={store.id}
-                  onClick={() => setSelectedStore(store.id)}
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
                   className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
-                    selectedStore === store.id 
+                    selectedCategory === cat.id 
                       ? 'text-white' 
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
-                  style={{ backgroundColor: selectedStore === store.id ? (profile.cor_primaria || '#1e293b') : undefined }}
+                  style={{ backgroundColor: selectedCategory === cat.id ? (profile.cor_primaria || '#1e293b') : undefined }}
                 >
-                  {store.nome_loja}
+                  {cat.nome}
                 </button>
               ))}
             </div>
-          )}
 
-          <div className="flex items-center gap-2 w-full md:w-auto flex-1 md:flex-none">
-            <input
-              type="number"
-              placeholder="Mín (R$)"
-              value={minPrice}
-              onChange={e => setMinPrice(e.target.value)}
-              className="w-full min-w-[100px] flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
-            />
-            <span className="text-slate-400 font-medium">-</span>
-            <input
-              type="number"
-              placeholder="Máx (R$)"
-              value={maxPrice}
-              onChange={e => setMaxPrice(e.target.value)}
-              className="w-full min-w-[100px] flex-1 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
-            />
+            {/* Lojas Pills */}
+            {availableStores.length > 1 && (
+              <div className="flex overflow-x-auto gap-2 scrollbar-hide items-center w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
+                <button
+                  onClick={() => setSelectedStore('')}
+                  className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                    !selectedStore 
+                      ? 'text-white' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  style={{ backgroundColor: !selectedStore ? (profile.cor_primaria || '#1e293b') : undefined }}
+                >
+                  Todas as lojas
+                </button>
+                {availableStores.map(store => (
+                  <button
+                    key={store.id}
+                    onClick={() => setSelectedStore(store.id)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                      selectedStore === store.id 
+                        ? 'text-white' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                    style={{ backgroundColor: selectedStore === store.id ? (profile.cor_primaria || '#1e293b') : undefined }}
+                  >
+                    {store.nome_loja}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* ANDAR 3: Preço Mín/Máx e Smart Toggles */}
+          <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between w-full">
             
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            className="flex-1 md:flex-none bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all w-full md:w-auto min-w-[140px] text-slate-700"
-          >
-            <option value="recent">Mais recente</option>
-            <option value="price_asc">Mais barato</option>
-            <option value="price_desc">Mais caro</option>
-          </select>
+            {/* Filtros Rápidos (Smart Toggles) */}
+            <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
+              <button 
+                onClick={() => setFilterTopRated(!filterTopRated)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${filterTopRated ? 'bg-yellow-100 border-yellow-400 text-yellow-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+              >
+                ⭐ Top Avaliados
+              </button>
+              <button 
+                onClick={() => setFilterUnder50(!filterUnder50)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${filterUnder50 ? 'bg-emerald-100 border-emerald-400 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+              >
+                💸 Até R$ 50
+              </button>
+            </div>
+
+            {/* Inputs de Preço (Mín / Máx) */}
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <input
+                type="number"
+                placeholder="Mín (R$)"
+                value={minPrice}
+                onChange={e => setMinPrice(e.target.value)}
+                className="w-full md:w-24 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+              />
+              <span className="text-slate-400 font-medium">-</span>
+              <input
+                type="number"
+                placeholder="Máx (R$)"
+                value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)}
+                className="w-full md:w-24 bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium focus:outline-none border border-transparent focus:border-brand-navy focus:bg-white transition-all"
+              />
+            </div>
+          </div>
         </div>
 
         {filteredProducts.length === 0 ? (
