@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes } from 'lucide-react';
-import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star } from 'lucide-react';
+import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import { Store } from '@/lib/types';
 
@@ -69,9 +69,52 @@ function ProductCard({ product }: { product: Product & { store?: Store } }) {
   );
 }
 
+function StoreCard({ store }: { store: Store }) {
+  const primaryColor = store.cor_primaria || '#2563eb';
+  return (
+    <Link href={`/loja/${store.slug}`} className="group bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col p-6 hover:-translate-y-1 relative">
+      <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: primaryColor }} />
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-800 overflow-hidden flex items-center justify-center shadow-md">
+          {store.logo_url ? (
+            <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl font-black text-slate-800">{store.nome_loja.charAt(0).toUpperCase()}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-white text-lg truncate group-hover:text-blue-400 transition-colors">
+            {store.nome_loja}
+          </h3>
+          <div className="flex items-center gap-1 mt-1">
+            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span className="text-[11px] font-bold text-amber-500">5.0</span>
+            <span className="text-[11px] text-slate-400 ml-1">Top Criador</span>
+          </div>
+        </div>
+      </div>
+      {store.descricao ? (
+        <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed flex-1 mb-6">
+          {store.descricao}
+        </p>
+      ) : (
+        <p className="text-sm text-slate-500 italic flex-1 mb-6">
+          Materiais didáticos de excelência.
+        </p>
+      )}
+      <div className="mt-auto">
+        <span className="inline-flex w-full justify-center items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-bold transition-colors">
+          Visitar Loja <ChevronRight className="w-4 h-4" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default async function Home() {
   // 1. Buscar dados no lado do servidor
   const allProducts = await getAllPublicMarketplaceProducts(100);
+  const topStores = await getTopMarketplaceStores(4);
 
   // 2. Filtrar as prateleiras
   const produtosEmAlta = allProducts.slice(0, 8);
@@ -326,6 +369,32 @@ export default async function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {produtosPLR.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Seção 4: Lojas Parceiras */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white border-t border-slate-200/60 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <StoreIcon className="w-8 h-8 text-blue-600" />
+              Conheça as Lojas Parceiras
+            </h2>
+            <Link href="/buscar?filter=stores" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
+              Ver Todas <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          
+          {topStores.length === 0 ? (
+            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-slate-200">
+              <StoreIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Nenhuma loja cadastrada no momento.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {topStores.map(store => (
+                <StoreCard key={store.id} store={store} />
               ))}
             </div>
           )}

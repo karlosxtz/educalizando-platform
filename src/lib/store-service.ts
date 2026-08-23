@@ -1085,3 +1085,30 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50): Promi
   ).slice(0, limit);
   return publicProducts as (Product & { store?: Store })[];
 }
+
+export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[]> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (!error && data) {
+        return data as Store[];
+      }
+    } catch (err) {
+      console.error('[getTopMarketplaceStores] Erro:', err);
+    }
+  }
+
+  // Fallback Local
+  const stores = getLocalStores();
+  return stores.slice(0, limit);
+}
