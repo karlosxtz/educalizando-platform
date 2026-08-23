@@ -1047,3 +1047,41 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
   );
   return freeProducts as (Product & { store?: Store })[];
 }
+
+export async function getAllPublicMarketplaceProducts(limit: number = 50): Promise<(Product & { store?: Store })[]> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          store:stores (
+            id, nome_loja, slug, logo_url
+          )
+        `)
+        .eq('status', 'publicado')
+        .is('excluido_em', null)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (!error && data) {
+        return data as (Product & { store?: Store })[];
+      }
+    } catch (err) {
+      console.error('[getAllPublicMarketplaceProducts] Erro:', err);
+    }
+  }
+
+  // Fallback Local
+  const products = getLocalProducts();
+  const publicProducts = products.filter(p => 
+    p.status === 'publicado' && 
+    !p.excluido_em
+  ).slice(0, limit);
+  return publicProducts as (Product & { store?: Store })[];
+}

@@ -1,45 +1,25 @@
-import Header from '@/components/Header';
-import Hero from '@/components/Hero';
-import SocialProof from '@/components/SocialProof';
-import HowItWorks from '@/components/HowItWorks';
-import Benefits from '@/components/Benefits';
-import Pricing from '@/components/Pricing';
-import FAQ from '@/components/FAQ';
-import SignupForm from '@/components/SignupForm';
-import Footer from '@/components/Footer';
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      {/* Fixed Navigation Bar */}
-      <Header />
-
-      {/* Main Page Content */}
-      <main className="flex-1">
-        {/* 1. Hero Section */}
-        <Hero />
-
-        {/* 2. Impact Social Proof Metrics */}
-        <SocialProof />
-
-        {/* 3. How It Works (4 Steps) */}
-        <HowItWorks />
-
-        {/* 4. Creator Benefits & Differentials */}
-        <Benefits />
-
-        {/* 5. Transparent Commission & Pricing */}
-        <Pricing />
-
-        {/* 6. Frequently Asked Questions */}
-        <FAQ />
-
-        {/* 7. Creator Signup Form (Zod + Supabase) */}
-        <SignupForm />
-      </main>
-
-      {/* Footer */}
-      <Footer />
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center">
+      <h1 className="text-4xl font-black text-slate-900 mb-4">Educalizando Marketplace</h1>
+      <p className="text-lg text-slate-600 mb-8 max-w-lg">
+        Estamos construindo a maior vitrine de materiais didáticos do Brasil. Em breve você poderá explorar e adquirir os melhores infoprodutos.
+      </p>
+      
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-sm w-full">
+        <h3 className="font-bold text-slate-800 mb-2">Você é um criador de conteúdo?</h3>
+        <p className="text-sm text-slate-500 mb-4">
+          Comece a vender suas apostilas, e-books e cursos hoje mesmo.
+        </p>
+        <Link 
+          href="/vender" 
+          className="inline-block w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+        >
+          Seja um Produtor
+        </Link>
+      </div>
     </div>
   );
 }
