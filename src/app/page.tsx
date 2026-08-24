@@ -109,16 +109,7 @@ function StoreCard({ store }: { store: Store }) {
   );
 }
 
-const VISUAL_CATEGORIES = [
-  { name: 'Alfabetização', icon: BookOpen, bgColor: 'bg-blue-100', textColor: 'text-blue-600', hoverColor: 'group-hover:bg-blue-200' },
-  { name: 'Educação Infantil', icon: Baby, bgColor: 'bg-pink-100', textColor: 'text-pink-600', hoverColor: 'group-hover:bg-pink-200' },
-  { name: 'Datas Comemorativas', icon: Calendar, bgColor: 'bg-orange-100', textColor: 'text-orange-600', hoverColor: 'group-hover:bg-orange-200' },
-  { name: 'Matemática', icon: Calculator, bgColor: 'bg-emerald-100', textColor: 'text-emerald-600', hoverColor: 'group-hover:bg-emerald-200' },
-  { name: 'Jogos Lúdicos', icon: Puzzle, bgColor: 'bg-purple-100', textColor: 'text-purple-600', hoverColor: 'group-hover:bg-purple-200' },
-  { name: 'Inclusão', icon: HeartHandshake, bgColor: 'bg-amber-100', textColor: 'text-amber-600', hoverColor: 'group-hover:bg-amber-200' },
-  { name: 'Ciências', icon: Microscope, bgColor: 'bg-cyan-100', textColor: 'text-cyan-600', hoverColor: 'group-hover:bg-cyan-200' },
-  { name: 'Arte & Cores', icon: Palette, bgColor: 'bg-red-100', textColor: 'text-red-600', hoverColor: 'group-hover:bg-red-200' },
-];
+
 
 export default async function Home() {
   // 1. Buscar dados no lado do servidor
@@ -205,28 +196,40 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* 2. Navegação Secundária (Pills de Categoria) */}
-        <div className="border-t border-slate-100 bg-white">
+        {/* 2. Navegação Secundária (Fiel ao Concorrente) */}
+        <div className="border-t border-slate-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 py-3 overflow-x-auto no-scrollbar pb-3 sm:pb-3 hide-scroll-bar">
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold transition-all shadow-sm">
-                Início
-              </button>
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
-                <TrendingUp className="w-3.5 h-3.5 text-orange-500" /> 🔥 Em Alta
-              </button>
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
-                <BookOpen className="w-3.5 h-3.5 text-blue-500" /> 📚 Alfabetização
-              </button>
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
-                <Baby className="w-3.5 h-3.5 text-pink-500" /> 🎨 Educação Infantil
-              </button>
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
-                <Gift className="w-3.5 h-3.5 text-emerald-500" /> 🎁 Gratuitos
-              </button>
-              <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
-                <Rocket className="w-3.5 h-3.5 text-purple-500" /> 🚀 PLR para Revenda
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-4">
+              
+              {/* Esquerda: Links Simples */}
+              <div className="flex items-center gap-6 overflow-x-auto hide-scroll-bar">
+                <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                  Início
+                </Link>
+                <Link href="/buscar" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
+                  Todas as categorias
+                </Link>
+                <Link href="/buscar?filter=stores" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
+                  Lojas
+                </Link>
+              </div>
+
+              {/* Direita: Pills Elegantes */}
+              <div className="flex items-center gap-2 overflow-x-auto hide-scroll-bar">
+                <Link href="/buscar?cat=alfabetizacao" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  📚 Alfabetização
+                </Link>
+                <Link href="/buscar?cat=infantil" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🎨 Educação Infantil
+                </Link>
+                <Link href="/buscar?filter=free" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🎁 Gratuitos
+                </Link>
+                <Link href="/buscar?filter=plr" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🚀 PLR
+                </Link>
+              </div>
+              
             </div>
           </div>
         </div>
@@ -240,18 +243,10 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         
-        {/* 3. Hero Section (Banner Promocional Lúdico) */}
-        <section className="w-full bg-blue-50 py-16 md:py-24 relative overflow-hidden flex flex-col items-center justify-center text-center">
-          <div className="max-w-3xl mx-auto px-4 space-y-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-blue-100 text-blue-600 text-xs font-extrabold uppercase tracking-widest shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-              </span>
-              O Marketplace da Educação
-            </div>
-            
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+        {/* 3. Hero Section (Banner Padrão) */}
+        <section className="w-full bg-blue-50 py-16 relative overflow-hidden flex flex-col items-center justify-center text-center border-b border-slate-200">
+          <div className="max-w-3xl mx-auto px-4 space-y-6 relative z-10">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
               Educação que transforma. <br className="hidden md:block" />
               <span className="text-blue-600">
                 Materiais de alto nível.
@@ -263,33 +258,13 @@ export default async function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <button className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(37,99,235,0.2)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+              <Link href="/buscar" className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition-all shadow-sm">
                 Explorar Materiais
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl border border-slate-200 shadow-sm transition-all text-center">
+              </Link>
+              <Link href="/vender" className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-full border border-slate-200 shadow-sm transition-all text-center">
                 Sou Produtor
               </Link>
             </div>
-          </div>
-        </section>
-
-        {/* Seção de Categorias Visuais */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8 pb-8 border-b border-slate-100">
-          <div className="flex overflow-x-auto gap-6 pb-6 hide-scroll-bar snap-x snap-mandatory px-2">
-            {VISUAL_CATEGORIES.map((cat, index) => {
-              const Icon = cat.icon;
-              return (
-                <div key={index} className="flex flex-col items-center gap-3 min-w-[80px] sm:min-w-[96px] cursor-pointer group snap-start">
-                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full ${cat.bgColor} border border-slate-100/50 flex items-center justify-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 ${cat.hoverColor}`}>
-                    <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.textColor} group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-slate-700 text-center leading-tight">
-                    {cat.name}
-                  </span>
-                </div>
-              );
-            })}
           </div>
         </section>
 
