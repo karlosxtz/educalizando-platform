@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Header from '@/components/Header';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { getAllPublicStores } from '@/lib/store-service';
 import { Store } from '@/lib/types';
@@ -13,9 +13,9 @@ export default async function LojasPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      <Header />
+      <MarketplaceHeader />
 
-      <main className="flex-1">
+      <main className="flex-1 pt-8">
         {/* Cabeçalho da Página */}
         <section className="bg-slate-50 py-12 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
