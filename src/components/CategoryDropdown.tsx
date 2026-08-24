@@ -5,18 +5,14 @@ import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 
 const CATEGORIES = [
-  { name: 'Educação Infantil', href: '/buscar?categoria=educacao-infantil' },
-  { name: 'Ensino Fundamental I', href: '/buscar?categoria=ensino-fundamental-1' },
-  { name: 'Ensino Fundamental II', href: '/buscar?categoria=ensino-fundamental-2' },
-  { name: 'Ensino Médio', href: '/buscar?categoria=ensino-medio' },
-  { name: 'Matemática', href: '/buscar?categoria=matematica' },
-  { name: 'Português & Literatura', href: '/buscar?categoria=portugues-literatura' },
-  { name: 'Ciências & Biologia', href: '/buscar?categoria=ciencias-biologia' },
-  { name: 'História & Geografia', href: '/buscar?categoria=historia-geografia' },
+  { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },
   { name: 'Artes', href: '/buscar?categoria=artes' },
-  { name: 'Inclusão & Ed. Especial', href: '/buscar?categoria=inclusao' },
+  { name: 'Ciência e Biologia', href: '/buscar?categoria=ciencia-biologia' },
   { name: 'Datas Comemorativas', href: '/buscar?categoria=datas-comemorativas' },
-  { name: 'Jogos Lúdicos', href: '/buscar?categoria=jogos' }
+  { name: 'Educação Especial', href: '/buscar?categoria=educacao-especial' },
+  { name: 'Educação Infantil', href: '/buscar?categoria=educacao-infantil' },
+  { name: 'Ensino Fundamental', href: '/buscar?categoria=ensino-fundamental' },
+  { name: 'Matemática', href: '/buscar?categoria=matematica' }
 ];
 
 export default function CategoryDropdown() {
@@ -28,14 +24,14 @@ export default function CategoryDropdown() {
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
-      <Link 
-        href="/buscar" 
-        className="flex items-center gap-1 whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors py-2"
-        onClick={() => setIsOpen(false)}
+      <button 
+        type="button"
+        className="flex items-center gap-1 whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors py-2 cursor-pointer focus:outline-none"
+        onClick={() => setIsOpen(!isOpen)}
       >
         Todas as categorias
         <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
-      </Link>
+      </button>
 
       {/* Dropdown Menu */}
       <div 
