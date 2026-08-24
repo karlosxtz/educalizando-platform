@@ -4,6 +4,7 @@ import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/
 import { Product } from '@/lib/types';
 import { Store } from '@/lib/types';
 import Footer from '@/components/Footer';
+import CategoryDropdown from '@/components/CategoryDropdown';
 
 // Helper Component for the Product Card
 function ProductCard({ product }: { product: Product & { store?: Store } }) {
@@ -220,9 +221,7 @@ export default async function Home() {
                 <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
                   Início
                 </Link>
-                <Link href="/buscar" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
-                  Todas as categorias
-                </Link>
+                <CategoryDropdown />
                 <Link href="/buscar?filter=stores" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
                   Lojas
                 </Link>
