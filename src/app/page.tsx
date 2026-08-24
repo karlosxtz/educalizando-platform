@@ -217,7 +217,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-4">
               
               {/* Esquerda: Links Simples */}
-              <div className="flex items-center gap-6 overflow-x-auto hide-scroll-bar">
+              <div className="flex items-center gap-6">
                 <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
                   Início
                 </Link>
