@@ -48,10 +48,10 @@ export default function Footer() {
             <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Compradores</h4>
             <ul className="space-y-4">
               <li><Link href="/buscar" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Explorar Categorias</Link></li>
-              <li><Link href="/buscar?filter=stores" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
-              <li><Link href="/buscar?filter=bncc" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>
-              <li><Link href="/buscar?filter=kits" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Kits e Combos</Link></li>
-              <li><Link href="/aluno" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
+              <li><Link href="/lojas" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
+              <li><Link href="/atividades-por-ano" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>
+              <li><Link href="/buscar?categoria=combo" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Kits e Combos</Link></li>
+              <li><Link href="/minhas-compras" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
             </ul>
           </div>
 
@@ -60,7 +60,8 @@ export default function Footer() {
             <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Vendedores</h4>
             <ul className="space-y-4">
               <li><Link href="/vender" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Comece a Vender</Link></li>
-              <li><Link href="/login" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Painel do Vendedor</Link></li>
+              <li><Link href="/painel" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Painel do Vendedor</Link></li>
+              <li><Link href="/afiliados" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Área do Afiliado</Link></li>
             </ul>
           </div>
 
@@ -99,9 +100,10 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mr-2 hidden sm:block">Pagamentos seguros por</span>
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mr-2 hidden sm:block">Pagamentos Seguros</span>
             <div className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-xs font-bold text-slate-700 flex items-center gap-1 shadow-sm">
-              Mercado Pago
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              Cartão de Crédito
             </div>
             <div className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-xs font-bold text-slate-700 flex items-center gap-1 shadow-sm">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
