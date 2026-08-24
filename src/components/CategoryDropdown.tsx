@@ -7,12 +7,24 @@ import { ChevronDown } from 'lucide-react';
 const CATEGORIES = [
   { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },
   { name: 'Artes', href: '/buscar?categoria=artes' },
-  { name: 'Ciência e Biologia', href: '/buscar?categoria=ciencia-biologia' },
+  { name: 'Berçário', href: '/buscar?categoria=bercario' },
+  { name: 'Ciência e Biologia', href: '/buscar?categoria=ciencia-e-biologia' },
+  { name: 'Combo', href: '/buscar?categoria=combo' },
   { name: 'Datas Comemorativas', href: '/buscar?categoria=datas-comemorativas' },
   { name: 'Educação Especial', href: '/buscar?categoria=educacao-especial' },
+  { name: 'Educação Financeira', href: '/buscar?categoria=educacao-financeira' },
   { name: 'Educação Infantil', href: '/buscar?categoria=educacao-infantil' },
   { name: 'Ensino Fundamental', href: '/buscar?categoria=ensino-fundamental' },
-  { name: 'Matemática', href: '/buscar?categoria=matematica' }
+  { name: 'Ensino Religioso', href: '/buscar?categoria=ensino-religioso' },
+  { name: 'Geografia', href: '/buscar?categoria=geografia' },
+  { name: 'História', href: '/buscar?categoria=historia' },
+  { name: 'Inglês', href: '/buscar?categoria=ingles' },
+  { name: 'Jogos', href: '/buscar?categoria=jogos' },
+  { name: 'Libras', href: '/buscar?categoria=libras' },
+  { name: 'Matemática', href: '/buscar?categoria=matematica' },
+  { name: 'Música', href: '/buscar?categoria=musica' },
+  { name: 'Planners e Organização', href: '/buscar?categoria=planners-e-organizacao' },
+  { name: 'Outros', href: '/buscar?categoria=outros' }
 ];
 
 export default function CategoryDropdown() {
@@ -35,7 +47,7 @@ export default function CategoryDropdown() {
 
       {/* Dropdown Menu */}
       <div 
-        className={`absolute top-full left-0 mt-2 w-64 bg-white shadow-2xl rounded-xl z-[9999] border border-slate-200 p-2 flex flex-col max-h-[70vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-left ${
+        className={`absolute top-full left-0 mt-2 w-64 bg-white shadow-2xl rounded-xl z-[9999] border border-slate-200 p-2 flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-left ${
           isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
         }`}
       >

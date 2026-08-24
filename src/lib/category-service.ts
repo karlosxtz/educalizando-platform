@@ -4,14 +4,26 @@ import { Category, EducationLevel } from './types';
 // Initial Mock Seed Data for Local Development
 // Initial Global Seed Data with valid UUIDs
 export const INITIAL_GLOBAL_CATEGORIES: Category[] = [
-  { id: '11111111-1111-4111-a111-111111111101', nome: 'Matemática', slug: 'matematica', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111102', nome: 'Português & Literatura', slug: 'portugues-literatura', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111103', nome: 'Redação 1000', slug: 'redacao-1000', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111104', nome: 'Ciências & Biologia', slug: 'ciencias-biologia', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111105', nome: 'História & Geografia', slug: 'historia-geografia', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111106', nome: 'Concursos Públicos', slug: 'concursos-publicos', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111107', nome: 'Vestibular & ENEM', slug: 'vestibular-enem', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111108', nome: 'Outros Conteúdos', slug: 'outros-conteudos', store_id: null, created_at: new Date().toISOString() }
+  { id: '11111111-1111-4111-a111-111111111101', nome: 'Alfabetização', slug: 'alfabetizacao', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111102', nome: 'Artes', slug: 'artes', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111103', nome: 'Berçário', slug: 'bercario', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111104', nome: 'Ciência e Biologia', slug: 'ciencia-e-biologia', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111105', nome: 'Combo', slug: 'combo', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111106', nome: 'Datas Comemorativas', slug: 'datas-comemorativas', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111107', nome: 'Educação Especial', slug: 'educacao-especial', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111108', nome: 'Educação Financeira', slug: 'educacao-financeira', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111109', nome: 'Educação Infantil', slug: 'educacao-infantil', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111110', nome: 'Ensino Fundamental', slug: 'ensino-fundamental', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111111', nome: 'Ensino Religioso', slug: 'ensino-religioso', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111112', nome: 'Geografia', slug: 'geografia', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111113', nome: 'História', slug: 'historia', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111114', nome: 'Inglês', slug: 'ingles', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111115', nome: 'Jogos', slug: 'jogos', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111116', nome: 'Libras', slug: 'libras', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111117', nome: 'Matemática', slug: 'matematica', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111118', nome: 'Música', slug: 'musica', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111119', nome: 'Planners e Organização', slug: 'planners-e-organizacao', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111120', nome: 'Outros', slug: 'outros', store_id: null, created_at: new Date().toISOString() }
 ];
 
 export const INITIAL_EDUCATION_LEVELS: EducationLevel[] = [
