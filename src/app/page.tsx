@@ -449,6 +449,45 @@ export default async function Home() {
           )}
         </section>
 
+        {/* Prateleira Temática (Especial do Mês) */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-indigo-50/50 border-y border-indigo-100 mt-6 mb-12 rounded-[2.5rem]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 mb-2">
+                <Calendar className="w-8 h-8 text-indigo-600" />
+                Especial do Mês
+              </h2>
+              <p className="text-slate-600 font-medium text-sm sm:text-base">
+                Prepare suas aulas para as principais datas comemorativas
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              {['Independência', 'Primavera', 'Trânsito'].map(tag => (
+                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="px-4 py-1.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-full text-xs font-bold transition-colors">
+                  {tag}
+                </Link>
+              ))}
+              <Link href="/buscar?filter=sazonal" className="ml-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                Ver Todos <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+          
+          {produtosEmAlta.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-slate-200">
+              <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Nenhum material sazonal no momento.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {produtosEmAlta.slice(0, 4).map(produto => (
+                <ProductCard key={produto.id} product={produto} />
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Seção 2: Gratuitos */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white border-y border-slate-200/60 shadow-sm">
           <div className="flex items-center justify-between mb-8">
@@ -499,6 +538,33 @@ export default async function Home() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Nuvem de Tags (Categorias Populares) */}
+        <section className="bg-slate-50 py-16 border-t border-slate-200/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 tracking-tight">Categorias Populares de Materiais Pedagógicos</h2>
+            
+            <div className="flex flex-wrap justify-center gap-3 mt-6 mb-8">
+              {['Alfabetização', 'Matemática', 'Educação Infantil', 'Datas Comemorativas', 'Ciências', 'Língua Portuguesa', 'Combo', 'Artes'].map(tag => (
+                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="rounded-full border border-slate-300 bg-white px-6 py-2 text-slate-700 hover:border-blue-500 hover:text-blue-600 font-medium transition-colors cursor-pointer shadow-sm">
+                  {tag}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold text-slate-500">
+              <Link href="/buscar?q=atividades+para+imprimir" className="hover:text-blue-600 hover:underline transition-all">Atividades para Imprimir</Link>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <Link href="/buscar?q=jogos+educativos" className="hover:text-blue-600 hover:underline transition-all">Jogos Educativos</Link>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <Link href="/buscar?q=reforco+escolar" className="hover:text-blue-600 hover:underline transition-all">Reforço Escolar</Link>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <Link href="/buscar?q=planos+de+aula" className="hover:text-blue-600 hover:underline transition-all">Planos de Aula</Link>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <Link href="/buscar" className="hover:text-blue-600 hover:underline transition-all text-blue-600">Ver Todos os Materiais</Link>
+            </div>
+          </div>
         </section>
 
         {/* 5. Seção de Confiança & Recrutamento de Vendedores */}
