@@ -21,6 +21,7 @@ function ProductCard({ product }: { product: Product & { store?: Store } }) {
   const storeSlug = product.store?.slug || product.store_id;
   const productLink = `/loja/${storeSlug}/produto/${product.id}`;
 
+  return (
     <Link href={productLink} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
       {/* Imagem (Capa) */}
       <div className="aspect-[4/3] sm:aspect-square w-full bg-slate-100 relative overflow-hidden">
