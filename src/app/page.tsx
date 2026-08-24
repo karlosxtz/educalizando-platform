@@ -134,9 +134,9 @@ export default async function Home() {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       
       {/* 1. Cabeçalho de Marketplace (Header B2C) */}
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+      <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between h-auto md:h-20 py-4 md:py-0 gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
             {/* Esquerda: Logo */}
             <div className="flex items-center justify-between w-full md:w-auto">
@@ -144,7 +144,7 @@ export default async function Home() {
                 <div className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
                   <span className="font-black text-lg sm:text-xl leading-none block">E</span>
                 </div>
-                <span className="font-black text-xl sm:text-2xl tracking-tight text-slate-800">
+                <span className="font-black text-xl sm:text-2xl tracking-tight text-slate-900">
                   Educalizando
                 </span>
               </Link>
@@ -241,75 +241,41 @@ export default async function Home() {
       <main className="flex-1 pb-20">
         
         {/* 3. Hero Section (Banner Promocional Lúdico) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-          <div className="relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 border border-blue-500/30 shadow-[0_8px_30px_rgb(59,130,246,0.2)]">
+        <section className="w-full bg-blue-50 py-16 md:py-24 relative overflow-hidden flex flex-col items-center justify-center text-center">
+          <div className="max-w-3xl mx-auto px-4 space-y-8 relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-blue-100 text-blue-600 text-xs font-extrabold uppercase tracking-widest shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              O Marketplace da Educação
+            </div>
             
-            {/* Background Lúdico */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob"></div>
-            <div className="absolute top-0 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-emerald-400/20 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+              Educação que transforma. <br className="hidden md:block" />
+              <span className="text-blue-600">
+                Materiais de alto nível.
+              </span>
+            </h1>
             
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent bg-[length:20px_20px]"></div>
-
-            <div className="relative px-6 py-16 sm:px-12 sm:py-24 md:py-32 lg:px-20 flex flex-col md:flex-row items-center justify-between gap-12">
-              <div className="w-full max-w-2xl text-center md:text-left space-y-6 md:space-y-8 z-10">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-xs font-extrabold uppercase tracking-widest shadow-sm backdrop-blur-md">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  O Marketplace da Educação
-                </div>
-                
-                <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-white leading-[1.1] tracking-tight drop-shadow-sm">
-                  Educação que transforma. <br className="hidden md:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-cyan-300 drop-shadow-sm">
-                    Materiais de alto nível.
-                  </span>
-                </h1>
-                
-                <p className="text-base sm:text-lg text-blue-50 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
-                  Explore milhares de atividades lúdicas, apostilas completas e planos de aula prontos para usar. Adquira direto dos melhores produtores do Brasil.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-4">
-                  <button className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-blue-700 font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(255,255,255,0.2)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                    Explorar Materiais
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                  <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-blue-700/30 hover:bg-blue-700/50 text-white font-bold rounded-2xl border border-blue-400/30 shadow-sm transition-all text-center backdrop-blur-md">
-                    Sou Produtor
-                  </Link>
-                </div>
-              </div>
-
-              {/* Decorativo Gráfico */}
-              <div className="hidden md:flex relative w-full max-w-md items-center justify-center z-10">
-                <div className="absolute inset-0 bg-blue-100 blur-[100px] rounded-full"></div>
-                <div className="relative bg-white/60 p-6 rounded-[2rem] border border-white backdrop-blur-xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] rotate-3 hover:rotate-0 transition-transform duration-500">
-                  <div className="bg-white rounded-2xl p-5 space-y-5 shadow-sm border border-slate-100">
-                    <div className="h-4 w-24 bg-slate-100 rounded-full"></div>
-                    <div className="flex gap-4">
-                      <div className="w-20 h-24 bg-slate-100 rounded-xl"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-3 w-full bg-slate-100 rounded-full"></div>
-                        <div className="h-3 w-3/4 bg-slate-100 rounded-full"></div>
-                        <div className="pt-2 flex justify-between">
-                          <div className="h-4 w-12 bg-blue-100 rounded-full"></div>
-                          <div className="h-4 w-12 bg-emerald-100 rounded-full"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
+            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed max-w-xl mx-auto">
+              Explore milhares de atividades lúdicas, apostilas completas e planos de aula prontos para usar. Adquira direto dos melhores produtores do Brasil.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <button className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(37,99,235,0.2)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                Explorar Materiais
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl border border-slate-200 shadow-sm transition-all text-center">
+                Sou Produtor
+              </Link>
             </div>
           </div>
         </section>
 
         {/* Seção de Categorias Visuais */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 border-b border-slate-100">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-8 pb-8 border-b border-slate-100">
           <div className="flex overflow-x-auto gap-6 pb-6 hide-scroll-bar snap-x snap-mandatory px-2">
             {VISUAL_CATEGORIES.map((cat, index) => {
               const Icon = cat.icon;
