@@ -21,8 +21,7 @@ function ProductCard({ product }: { product: Product & { store?: Store } }) {
   const storeSlug = product.store?.slug || product.store_id;
   const productLink = `/loja/${storeSlug}/produto/${product.id}`;
 
-  return (
-    <Link href={productLink} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
+    <Link href={productLink} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
       {/* Imagem (Capa) */}
       <div className="aspect-[4/3] sm:aspect-square w-full bg-slate-100 relative overflow-hidden">
         {itemCover ? (
@@ -71,7 +70,7 @@ function ProductCard({ product }: { product: Product & { store?: Store } }) {
 
 function StoreCard({ store }: { store: Store }) {
   return (
-    <Link href={`/loja/${store.slug}`} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col p-6 hover:-translate-y-1">
+    <Link href={`/loja/${store.slug}`} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col p-6 hover:-translate-y-1">
       <div className="flex items-center gap-4 mb-4">
         <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-sm">
           {store.logo_url ? (
@@ -240,39 +239,44 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         
-        {/* 3. Hero Section (Banner Promocional) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="relative rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-slate-900 to-indigo-900 opacity-90"></div>
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent bg-[length:20px_20px]"></div>
+        {/* 3. Hero Section (Banner Promocional Premium) */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+          <div className="relative rounded-[2.5rem] overflow-hidden bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            
+            {/* Background Light & Mesh Gradients */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
+            <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+            <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
+            
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-200 via-transparent to-transparent bg-[length:20px_20px]"></div>
 
-            <div className="relative px-6 py-16 sm:px-12 sm:py-20 md:py-24 lg:px-16 flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="relative px-6 py-16 sm:px-12 sm:py-24 md:py-32 lg:px-20 flex flex-col md:flex-row items-center justify-between gap-12">
               <div className="w-full max-w-2xl text-center md:text-left space-y-6 md:space-y-8 z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-100 text-slate-600 text-xs font-extrabold uppercase tracking-widest shadow-sm">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                   </span>
-                  Lançamento do Marketplace
+                  Marketplace 2030
                 </div>
                 
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-slate-900 leading-[1.1] tracking-tight">
                   Educação que transforma. <br className="hidden md:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-300">
-                    Materiais criados por quem entende.
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Materiais de alto nível.
                   </span>
                 </h1>
                 
-                <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
+                <p className="text-base sm:text-lg text-slate-500 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
                   Explore milhares de atividades lúdicas, apostilas completas e planos de aula prontos para usar. Adquira direto dos melhores produtores do Brasil.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-2">
-                  <button className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-blue-900 font-black rounded-xl transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-4">
+                  <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
                     Explorar Materiais
                     <ChevronRight className="w-5 h-5" />
                   </button>
-                  <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-slate-800/50 hover:bg-slate-700/50 text-white font-bold rounded-xl border border-slate-600 backdrop-blur-sm transition-all text-center">
+                  <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl border border-slate-200 shadow-sm transition-all text-center">
                     Sou Produtor
                   </Link>
                 </div>
@@ -280,18 +284,18 @@ export default async function Home() {
 
               {/* Decorativo Gráfico */}
               <div className="hidden md:flex relative w-full max-w-md items-center justify-center z-10">
-                <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-                <div className="relative bg-white/10 p-6 rounded-3xl border border-white/20 backdrop-blur-md shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
-                  <div className="bg-slate-800 rounded-xl p-4 space-y-4 shadow-inner border border-slate-700">
-                    <div className="h-4 w-24 bg-slate-700 rounded-full"></div>
+                <div className="absolute inset-0 bg-blue-100 blur-[100px] rounded-full"></div>
+                <div className="relative bg-white/60 p-6 rounded-[2rem] border border-white backdrop-blur-xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] rotate-3 hover:rotate-0 transition-transform duration-500">
+                  <div className="bg-white rounded-2xl p-5 space-y-5 shadow-sm border border-slate-100">
+                    <div className="h-4 w-24 bg-slate-100 rounded-full"></div>
                     <div className="flex gap-4">
-                      <div className="w-20 h-24 bg-slate-700 rounded-lg"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3 w-full bg-slate-600 rounded-full"></div>
-                        <div className="h-3 w-3/4 bg-slate-600 rounded-full"></div>
+                      <div className="w-20 h-24 bg-slate-100 rounded-xl"></div>
+                      <div className="flex-1 space-y-3">
+                        <div className="h-3 w-full bg-slate-100 rounded-full"></div>
+                        <div className="h-3 w-3/4 bg-slate-100 rounded-full"></div>
                         <div className="pt-2 flex justify-between">
-                          <div className="h-4 w-12 bg-emerald-500/50 rounded-full"></div>
-                          <div className="h-4 w-12 bg-blue-500/50 rounded-full"></div>
+                          <div className="h-4 w-12 bg-blue-100 rounded-full"></div>
+                          <div className="h-4 w-12 bg-emerald-100 rounded-full"></div>
                         </div>
                       </div>
                     </div>
@@ -305,15 +309,15 @@ export default async function Home() {
 
         {/* Seção de Categorias Visuais */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 border-b border-slate-100">
-          <div className="flex overflow-x-auto gap-6 pb-4 hide-scroll-bar snap-x snap-mandatory">
+          <div className="flex overflow-x-auto gap-6 pb-6 hide-scroll-bar snap-x snap-mandatory px-2">
             {VISUAL_CATEGORIES.map((cat, index) => {
               const Icon = cat.icon;
               return (
                 <div key={index} className="flex flex-col items-center gap-3 min-w-[80px] sm:min-w-[96px] cursor-pointer group snap-start">
-                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full ${cat.bgColor} flex items-center justify-center shadow-sm group-hover:scale-105 group-hover:shadow-md transition-all duration-300 ${cat.hoverColor}`}>
+                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300`}>
                     <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.textColor} group-hover:scale-110 transition-transform`} strokeWidth={1.5} />
                   </div>
-                  <span className="text-xs sm:text-sm font-medium text-slate-700 text-center leading-tight">
+                  <span className="text-xs sm:text-sm font-bold text-slate-700 text-center leading-tight">
                     {cat.name}
                   </span>
                 </div>
