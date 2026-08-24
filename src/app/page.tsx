@@ -7,10 +7,6 @@ import Footer from '@/components/Footer';
 import CategoryDropdown from '@/components/CategoryDropdown';
 import ProductCard from '@/components/ProductCard';
 import StoreCard from '@/components/StoreCard';
-
-  );
-}
-
 const VISUAL_CATEGORIES = [
   { name: 'Educação Infantil', emoji: '🎨', bgColor: 'bg-slate-100', href: '?categoria=infantil' },
   { name: 'Ensino Fundamental', emoji: '🎒', bgColor: 'bg-slate-100', href: '?categoria=fundamental' },
