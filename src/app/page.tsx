@@ -240,44 +240,44 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         
-        {/* 3. Hero Section (Banner Promocional Premium) */}
+        {/* 3. Hero Section (Banner Promocional Lúdico) */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-          <div className="relative rounded-[2.5rem] overflow-hidden bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 border border-blue-500/30 shadow-[0_8px_30px_rgb(59,130,246,0.2)]">
             
-            {/* Background Light & Mesh Gradients */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-            <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
+            {/* Background Lúdico */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob"></div>
+            <div className="absolute top-0 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
+            <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-emerald-400/20 rounded-full mix-blend-overlay filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
             
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-200 via-transparent to-transparent bg-[length:20px_20px]"></div>
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent bg-[length:20px_20px]"></div>
 
             <div className="relative px-6 py-16 sm:px-12 sm:py-24 md:py-32 lg:px-20 flex flex-col md:flex-row items-center justify-between gap-12">
               <div className="w-full max-w-2xl text-center md:text-left space-y-6 md:space-y-8 z-10">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-100 text-slate-600 text-xs font-extrabold uppercase tracking-widest shadow-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-xs font-extrabold uppercase tracking-widest shadow-sm backdrop-blur-md">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  Marketplace 2030
+                  O Marketplace da Educação
                 </div>
                 
-                <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-white leading-[1.1] tracking-tight drop-shadow-sm">
                   Educação que transforma. <br className="hidden md:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-cyan-300 drop-shadow-sm">
                     Materiais de alto nível.
                   </span>
                 </h1>
                 
-                <p className="text-base sm:text-lg text-slate-500 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
+                <p className="text-base sm:text-lg text-blue-50 font-medium leading-relaxed max-w-xl mx-auto md:mx-0">
                   Explore milhares de atividades lúdicas, apostilas completas e planos de aula prontos para usar. Adquira direto dos melhores produtores do Brasil.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-4">
-                  <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                  <button className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-blue-700 font-bold rounded-2xl transition-all shadow-[0_8px_30px_rgb(255,255,255,0.2)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
                     Explorar Materiais
                     <ChevronRight className="w-5 h-5" />
                   </button>
-                  <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl border border-slate-200 shadow-sm transition-all text-center">
+                  <Link href="/vender" className="w-full sm:w-auto px-8 py-4 bg-blue-700/30 hover:bg-blue-700/50 text-white font-bold rounded-2xl border border-blue-400/30 shadow-sm transition-all text-center backdrop-blur-md">
                     Sou Produtor
                   </Link>
                 </div>
@@ -315,8 +315,8 @@ export default async function Home() {
               const Icon = cat.icon;
               return (
                 <div key={index} className="flex flex-col items-center gap-3 min-w-[80px] sm:min-w-[96px] cursor-pointer group snap-start">
-                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300`}>
-                    <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.textColor} group-hover:scale-110 transition-transform`} strokeWidth={1.5} />
+                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full ${cat.bgColor} border border-slate-100/50 flex items-center justify-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 ${cat.hoverColor}`}>
+                    <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.textColor} group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
                   </div>
                   <span className="text-xs sm:text-sm font-bold text-slate-700 text-center leading-tight">
                     {cat.name}
