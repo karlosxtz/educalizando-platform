@@ -35,7 +35,7 @@ export default function CategoryDropdown() {
 
       {/* Dropdown Menu */}
       <div 
-        className={`absolute top-full left-0 mt-0 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_10px_40px_rgb(0,0,0,0.08)] border border-slate-100 p-2 z-[60] flex flex-col max-h-[70vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-left ${
+        className={`absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_10px_40px_rgb(0,0,0,0.08)] border border-slate-100 p-2 z-[100] flex flex-col max-h-[70vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-left ${
           isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
         }`}
       >
