@@ -109,7 +109,16 @@ function StoreCard({ store }: { store: Store }) {
   );
 }
 
-
+const VISUAL_CATEGORIES = [
+  { name: 'Alfabetização', icon: BookOpen, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
+  { name: 'Educação Infantil', icon: Baby, bgColor: 'bg-pink-50', textColor: 'text-pink-600' },
+  { name: 'Datas Comemorativas', icon: Calendar, bgColor: 'bg-orange-50', textColor: 'text-orange-600' },
+  { name: 'Matemática', icon: Calculator, bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+  { name: 'Jogos Lúdicos', icon: Puzzle, bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
+  { name: 'Inclusão', icon: HeartHandshake, bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+  { name: 'Ciências', icon: Microscope, bgColor: 'bg-cyan-50', textColor: 'text-cyan-600' },
+  { name: 'Arte & Cores', icon: Palette, bgColor: 'bg-red-50', textColor: 'text-red-600' },
+];
 
 export default async function Home() {
   // 1. Buscar dados no lado do servidor
@@ -124,8 +133,8 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       
-      {/* 1. Cabeçalho de Marketplace (Header B2C) */}
-      <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 py-4">
+      {/* 1. Cabeçalho de Marketplace (Header Premium B2C) */}
+      <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100 transition-all py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
@@ -159,7 +168,7 @@ export default async function Home() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-11 pr-4 py-3 sm:py-3.5 bg-slate-100/80 border border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
+                  className="block w-full pl-11 pr-6 py-3 sm:py-3.5 bg-slate-100/50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
                   placeholder="O que você procura hoje? (Atividades, apostilas, jogos...)"
                 />
                 <button className="absolute inset-y-1.5 right-1.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-full transition-colors hidden sm:block shadow-sm">
@@ -172,13 +181,13 @@ export default async function Home() {
             <div className="hidden md:flex items-center gap-3">
               <Link 
                 href="/vender" 
-                className="text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100"
+                className="text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100"
               >
                 Criar Loja
               </Link>
               <Link 
                 href="/login" 
-                className="text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-5 py-2.5 rounded-full transition-all border border-slate-200 shadow-xs"
+                className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20"
               >
                 Entrar
               </Link>
@@ -243,8 +252,27 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         
+        {/* Categorias Visuais Premium */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex gap-6 overflow-x-auto hide-scroll-bar px-4">
+            {VISUAL_CATEGORIES.map((cat, index) => {
+              const Icon = cat.icon;
+              return (
+                <div key={index} className="flex flex-col items-center min-w-max cursor-pointer group">
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${cat.bgColor} flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_16px_rgb(0,0,0,0.08)] group-hover:-translate-y-1 transition-all duration-300`}>
+                    <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${cat.textColor}`} strokeWidth={1.5} />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600 mt-3 text-center">
+                    {cat.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* 3. Hero Section (Banner Padrão) */}
-        <section className="w-full bg-blue-50 py-16 relative overflow-hidden flex flex-col items-center justify-center text-center border-b border-slate-200">
+        <section className="w-full bg-blue-50 pt-8 pb-16 relative overflow-hidden flex flex-col items-center justify-center text-center border-b border-slate-200">
           <div className="max-w-3xl mx-auto px-4 space-y-6 relative z-10">
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
               Educação que transforma. <br className="hidden md:block" />
