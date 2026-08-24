@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star } from 'lucide-react';
+import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import { Store } from '@/lib/types';
@@ -108,6 +108,17 @@ function StoreCard({ store }: { store: Store }) {
     </Link>
   );
 }
+
+const VISUAL_CATEGORIES = [
+  { name: 'Alfabetização', icon: BookOpen, bgColor: 'bg-blue-100', textColor: 'text-blue-600', hoverColor: 'group-hover:bg-blue-200' },
+  { name: 'Educação Infantil', icon: Baby, bgColor: 'bg-pink-100', textColor: 'text-pink-600', hoverColor: 'group-hover:bg-pink-200' },
+  { name: 'Datas Comemorativas', icon: Calendar, bgColor: 'bg-orange-100', textColor: 'text-orange-600', hoverColor: 'group-hover:bg-orange-200' },
+  { name: 'Matemática', icon: Calculator, bgColor: 'bg-emerald-100', textColor: 'text-emerald-600', hoverColor: 'group-hover:bg-emerald-200' },
+  { name: 'Jogos Lúdicos', icon: Puzzle, bgColor: 'bg-purple-100', textColor: 'text-purple-600', hoverColor: 'group-hover:bg-purple-200' },
+  { name: 'Inclusão', icon: HeartHandshake, bgColor: 'bg-amber-100', textColor: 'text-amber-600', hoverColor: 'group-hover:bg-amber-200' },
+  { name: 'Ciências', icon: Microscope, bgColor: 'bg-cyan-100', textColor: 'text-cyan-600', hoverColor: 'group-hover:bg-cyan-200' },
+  { name: 'Arte & Cores', icon: Palette, bgColor: 'bg-red-100', textColor: 'text-red-600', hoverColor: 'group-hover:bg-red-200' },
+];
 
 export default async function Home() {
   // 1. Buscar dados no lado do servidor
@@ -289,6 +300,25 @@ export default async function Home() {
               </div>
               
             </div>
+          </div>
+        </section>
+
+        {/* Seção de Categorias Visuais */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 border-b border-slate-100">
+          <div className="flex overflow-x-auto gap-6 pb-4 hide-scroll-bar snap-x snap-mandatory">
+            {VISUAL_CATEGORIES.map((cat, index) => {
+              const Icon = cat.icon;
+              return (
+                <div key={index} className="flex flex-col items-center gap-3 min-w-[80px] sm:min-w-[96px] cursor-pointer group snap-start">
+                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full ${cat.bgColor} flex items-center justify-center shadow-sm group-hover:scale-105 group-hover:shadow-md transition-all duration-300 ${cat.hoverColor}`}>
+                    <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.textColor} group-hover:scale-110 transition-transform`} strokeWidth={1.5} />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-slate-700 text-center leading-tight">
+                    {cat.name}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </section>
 
