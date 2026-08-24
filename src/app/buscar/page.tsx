@@ -14,10 +14,11 @@ export const revalidate = 0;
 export default async function BuscarPage({ 
   searchParams 
 }: { 
-  searchParams: { q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, page?: string } 
+  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, page?: string }> 
 }) {
-  const { q, categoria, preco, ano_escolar, formato, sort } = searchParams;
-  const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
+  const resolvedParams = await searchParams;
+  const { q, categoria, preco, ano_escolar, formato, sort } = resolvedParams;
+  const page = resolvedParams.page ? parseInt(resolvedParams.page, 10) : 1;
 
   // Realiza a busca no service
   const { data: products, count, totalPages } = await searchProducts({
