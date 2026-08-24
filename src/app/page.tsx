@@ -110,14 +110,18 @@ function StoreCard({ store }: { store: Store }) {
 }
 
 const VISUAL_CATEGORIES = [
-  { name: 'Alfabetização', icon: BookOpen, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-  { name: 'Educação Infantil', icon: Baby, bgColor: 'bg-pink-50', textColor: 'text-pink-600' },
-  { name: 'Datas Comemorativas', icon: Calendar, bgColor: 'bg-orange-50', textColor: 'text-orange-600' },
-  { name: 'Matemática', icon: Calculator, bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
-  { name: 'Jogos Lúdicos', icon: Puzzle, bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
-  { name: 'Inclusão', icon: HeartHandshake, bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
-  { name: 'Ciências', icon: Microscope, bgColor: 'bg-cyan-50', textColor: 'text-cyan-600' },
-  { name: 'Arte & Cores', icon: Palette, bgColor: 'bg-red-50', textColor: 'text-red-600' },
+  { name: 'Educação Infantil', emoji: '🎨', bgColor: 'bg-slate-100', href: '?categoria=infantil' },
+  { name: 'Ensino Fundamental', emoji: '🎒', bgColor: 'bg-slate-100', href: '?categoria=fundamental' },
+  { name: 'Alfabetização', emoji: '📚', bgColor: 'bg-slate-100', href: '?categoria=alfabetizacao' },
+  { name: 'Matemática', emoji: '🧮', bgColor: 'bg-slate-100', href: '?categoria=matematica' },
+  { name: 'Ciências', emoji: '🔬', bgColor: 'bg-slate-100', href: '?categoria=ciencias' },
+  { name: 'Inglês', emoji: '🌎', bgColor: 'bg-slate-100', href: '?categoria=ingles' },
+  { name: 'Datas Comemorativas', emoji: '🎉', bgColor: 'bg-slate-100', href: '?categoria=datas-comemorativas' },
+  { name: 'Inclusão', emoji: '🧩', bgColor: 'bg-slate-100', href: '?categoria=inclusao' },
+  { name: 'Jogos Lúdicos', emoji: '🎲', bgColor: 'bg-slate-100', href: '?categoria=jogos' },
+  { name: 'Coordenação Motora', emoji: '🏃', bgColor: 'bg-slate-100', href: '?categoria=coordenacao' },
+  { name: 'Berçário', emoji: '🍼', bgColor: 'bg-slate-100', href: '?categoria=bercario' },
+  { name: 'Artes', emoji: '🖍️', bgColor: 'bg-slate-100', href: '?categoria=artes' },
 ];
 
 export default async function Home() {
@@ -225,17 +229,17 @@ export default async function Home() {
 
               {/* Direita: Pills Elegantes */}
               <div className="flex items-center gap-2 overflow-x-auto hide-scroll-bar">
-                <Link href="/buscar?cat=alfabetizacao" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  📚 Alfabetização
+                <Link href="/buscar?filter=mais-vendidos" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🔥 Mais Vendidos
                 </Link>
-                <Link href="/buscar?cat=infantil" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  🎨 Educação Infantil
+                <Link href="/buscar?cat=fundamental" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🎒 Ensino Fundamental
                 </Link>
-                <Link href="/buscar?filter=free" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  🎁 Gratuitos
+                <Link href="/buscar?cat=recursos-ludicos" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  🧩 Recursos Lúdicos
                 </Link>
-                <Link href="/buscar?filter=plr" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  🚀 PLR
+                <Link href="/buscar?filter=revenda" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  💼 Revenda Autorizada
                 </Link>
               </div>
               
@@ -254,45 +258,138 @@ export default async function Home() {
         
         {/* Categorias Visuais Premium */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex gap-6 overflow-x-auto hide-scroll-bar px-4">
+          <div className="flex gap-6 overflow-x-auto hide-scroll-bar px-4 pb-2">
             {VISUAL_CATEGORIES.map((cat, index) => {
-              const Icon = cat.icon;
               return (
-                <div key={index} className="flex flex-col items-center min-w-max cursor-pointer group">
-                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${cat.bgColor} flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_16px_rgb(0,0,0,0.08)] group-hover:-translate-y-1 transition-all duration-300`}>
-                    <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${cat.textColor}`} strokeWidth={1.5} />
+                <Link href={cat.href} key={index} className="flex flex-col items-center min-w-max cursor-pointer group">
+                  <div className={`w-16 h-16 rounded-full ${cat.bgColor} flex items-center justify-center border border-slate-200/50 shadow-[0_2px_8px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_16px_rgb(0,0,0,0.08)] group-hover:-translate-y-1 transition-all duration-300`}>
+                    <span className="text-3xl sm:text-4xl">{cat.emoji}</span>
                   </div>
-                  <span className="text-xs font-semibold text-slate-600 mt-3 text-center">
+                  <span className="text-xs font-semibold text-slate-700 mt-3 text-center group-hover:text-blue-600 transition-colors">
                     {cat.name}
                   </span>
-                </div>
+                </Link>
               );
             })}
           </div>
         </section>
 
-        {/* 3. Hero Section (Banner Padrão) */}
-        <section className="w-full bg-blue-50 pt-8 pb-16 relative overflow-hidden flex flex-col items-center justify-center text-center border-b border-slate-200">
-          <div className="max-w-3xl mx-auto px-4 space-y-6 relative z-10">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
-              Educação que transforma. <br className="hidden md:block" />
-              <span className="text-blue-600">
-                Materiais de alto nível.
-              </span>
-            </h1>
+        {/* 3. Hero Section (Carrossel) */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
+          <div className="flex overflow-x-auto snap-x snap-mandatory hide-scroll-bar rounded-3xl shadow-sm gap-4">
             
-            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed max-w-xl mx-auto">
-              Explore milhares de atividades lúdicas, apostilas completas e planos de aula prontos para usar. Adquira direto dos melhores produtores do Brasil.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link href="/buscar" className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full transition-all shadow-sm">
-                Explorar Materiais
-              </Link>
-              <Link href="/vender" className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-full border border-slate-200 shadow-sm transition-all text-center">
-                Sou Produtor
-              </Link>
+            {/* Banner 1 */}
+            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="relative z-10 space-y-4">
+                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
+                  Banner 1
+                </span>
+                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+                  Especial Volta às Aulas
+                </h1>
+                <p className="text-blue-100 text-lg font-medium max-w-lg mx-auto">
+                  Materiais exclusivos para iniciar o ano letivo com excelência.
+                </p>
+                <div className="pt-4">
+                  <button className="px-8 py-3.5 bg-white text-blue-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Ver Materiais
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Banner 2 */}
+            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-orange-400 to-pink-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="relative z-10 space-y-4">
+                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
+                  Banner 2
+                </span>
+                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+                  Matemática Descomplicada
+                </h1>
+                <p className="text-orange-50 text-lg font-medium max-w-lg mx-auto">
+                  Jogos e apostilas para ensinar matemática de forma lúdica.
+                </p>
+                <div className="pt-4">
+                  <button className="px-8 py-3.5 bg-white text-pink-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Conferir
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Banner 3 */}
+            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-emerald-400 to-teal-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="relative z-10 space-y-4">
+                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
+                  Banner 3
+                </span>
+                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+                  Educação Infantil
+                </h1>
+                <p className="text-emerald-50 text-lg font-medium max-w-lg mx-auto">
+                  Recursos coloridos e interativos para os pequenos.
+                </p>
+                <div className="pt-4">
+                  <button className="px-8 py-3.5 bg-white text-teal-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Explorar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Banner 4 */}
+            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="relative z-10 space-y-4">
+                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
+                  Banner 4
+                </span>
+                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+                  Revenda Autorizada (PLR)
+                </h1>
+                <p className="text-purple-100 text-lg font-medium max-w-lg mx-auto">
+                  Compre com direito de revenda e crie seu próprio negócio.
+                </p>
+                <div className="pt-4">
+                  <button className="px-8 py-3.5 bg-white text-purple-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Ver Oportunidades
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Banner 5 */}
+            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="relative z-10 space-y-4">
+                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
+                  Banner 5
+                </span>
+                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+                  Materiais Gratuitos
+                </h1>
+                <p className="text-amber-50 text-lg font-medium max-w-lg mx-auto">
+                  Baixe conteúdos exclusivos sem custo nenhum.
+                </p>
+                <div className="pt-4">
+                  <button className="px-8 py-3.5 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Baixar Agora
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          
+          {/* Dica de arrastar (Mobile) */}
+          <div className="flex justify-center mt-3 sm:hidden">
+            <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+              Deslize para ver mais 👉
+            </span>
           </div>
         </section>
 
@@ -316,9 +413,11 @@ export default async function Home() {
               <p className="text-slate-500 font-medium">Nenhuma loja cadastrada no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto snap-x gap-6 pb-6 hide-scroll-bar">
               {topStores.map(store => (
-                <StoreCard key={store.id} store={store} />
+                <div key={store.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] snap-start flex">
+                  <StoreCard store={store} />
+                </div>
               ))}
             </div>
           )}
