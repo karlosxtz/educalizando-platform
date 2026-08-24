@@ -222,7 +222,7 @@ export default async function Home() {
                   Início
                 </Link>
                 <CategoryDropdown />
-                <Link href="/buscar?filter=stores" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
+                <Link href="/lojas" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
                   Lojas
                 </Link>
               </div>

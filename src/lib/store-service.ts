@@ -1112,3 +1112,29 @@ export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[
   const stores = getLocalStores();
   return stores.slice(0, limit);
 }
+
+export async function getAllPublicStores(): Promise<Store[]> {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id, nome_loja, slug, descricao, logo_url, banner_url, created_at')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        return data as Store[];
+      }
+    } catch (err) {
+      console.error('[getAllPublicStores] Erro:', err);
+    }
+  }
+
+  // Fallback Local
+  return getLocalStores();
+}
