@@ -3,6 +3,7 @@ import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, Chevron
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import { Store } from '@/lib/types';
+import Footer from '@/components/Footer';
 
 // Helper Component for the Product Card
 function ProductCard({ product }: { product: Product & { store?: Store } }) {
@@ -768,6 +769,7 @@ export default async function Home() {
         </section>
 
       </main>
+      <Footer />
     </div>
   );
 }
