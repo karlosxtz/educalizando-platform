@@ -106,8 +106,8 @@ export default async function Home() {
                 return (
                   <Link href={`/loja/${store.slug}`} key={store.id} className="flex flex-col items-center gap-3 min-w-[6.5rem] snap-start group cursor-pointer">
                     <div className="w-24 h-24 rounded-full border-2 border-slate-200 bg-white p-1 shadow-sm group-hover:border-blue-500 group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
-                      {store.avatar_url ? (
-                        <img src={store.avatar_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
+                      {store.logo_url ? (
+                        <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
                       ) : (
                         <div className="w-full h-full rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black text-3xl">
                           {initial}
