@@ -100,7 +100,7 @@ export default function ProductDetailClientView({
     }
   };
 
-  // FLUXO DE ADICIONAR AO CARRINHO
+  // FLUXO DE COMPRA RÁPIDA (1-CLICK CHECKOUT STYLE)
   const handleStartCheckout = async () => {
     setIsBuying(true);
     try {
@@ -127,7 +127,10 @@ export default function ProductDetailClientView({
           quantity: 1
         });
       }
-    } finally {
+
+      // Redireciona imediatamente para a página de checkout da loja
+      router.push(`/loja/${store.slug}/checkout`);
+    } catch (error) {
       setIsBuying(false);
     }
   };
@@ -426,15 +429,15 @@ export default function ProductDetailClientView({
                 type="button"
                 onClick={handleStartCheckout}
                 disabled={isBuying}
-                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
                 style={{ backgroundColor: primaryColor }}
               >
                 {isBuying ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <ShoppingBag className="w-5 h-5 fill-transparent group-hover:animate-bounce" />
-                    <span>Adicionar ao Carrinho</span>
+                    <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
+                    <span className="tracking-wide">Comprar Agora</span>
                   </>
                 )}
               </button>
@@ -532,15 +535,15 @@ export default function ProductDetailClientView({
           type="button"
           onClick={handleStartCheckout}
           disabled={isBuying}
-          className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 min-h-[44px]"
+          className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
           style={{ backgroundColor: primaryColor }}
         >
           {isBuying ? (
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <>
-              <ShoppingBag className="w-4 h-4 fill-transparent" />
-              <span>Adicionar ao Carrinho</span>
+              <Zap className="w-4 h-4 fill-transparent" />
+              <span className="tracking-wide">Comprar Agora</span>
             </>
           )}
         </button>
