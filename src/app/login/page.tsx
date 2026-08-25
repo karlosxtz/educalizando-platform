@@ -218,7 +218,7 @@ export default function LoginPage() {
 
               <div className="text-center pt-4 border-t border-slate-100 text-xs text-slate-600">
                 Ainda não possui uma loja?{' '}
-                <Link href="/#cadastro" className="text-brand-navy font-bold hover:underline">
+                <Link href="/cadastro/produtor" className="text-brand-navy font-bold hover:underline">
                   Cadastre-se gratuitamente
                 </Link>
               </div>

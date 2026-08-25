@@ -5,7 +5,7 @@ import HowItWorks from '@/components/HowItWorks';
 import Benefits from '@/components/Benefits';
 import Pricing from '@/components/Pricing';
 import FAQ from '@/components/FAQ';
-import SignupForm from '@/components/SignupForm';
+
 import Footer from '@/components/Footer';
 
 export default function Home() {
@@ -34,8 +34,18 @@ export default function Home() {
         {/* 6. Frequently Asked Questions */}
         <FAQ />
 
-        {/* 7. Creator Signup Form (Zod + Supabase) */}
-        <SignupForm />
+        {/* 7. CTA de Conversão Final */}
+        <div className="py-24 bg-white text-center">
+          <div className="max-w-4xl mx-auto px-4 space-y-6">
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">Pronto para monetizar seus materiais?</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">Junte-se aos melhores educadores do Brasil e comece a vender hoje mesmo.</p>
+            <div className="pt-4">
+              <a href="/cadastro/produtor" className="inline-block px-8 py-4 bg-blue-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:scale-105 transition-all">
+                Criar Minha Loja Grátis Agora
+              </a>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Footer */}

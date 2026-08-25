@@ -36,7 +36,7 @@ export default function RegisterTriagePage() {
           </Link>
 
           {/* Card 2 - Produtor */}
-          <Link href="/vender" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:blue-300 transition-all duration-300 hover:-translate-y-1 group">
+          <Link href="/cadastro/produtor" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:blue-300 transition-all duration-300 hover:-translate-y-1 group">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Store className="w-8 h-8" />
             </div>
