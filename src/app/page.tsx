@@ -1,35 +1,31 @@
 import Link from 'next/link';
 import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
-import { Product } from '@/lib/types';
-import { Store } from '@/lib/types';
+import { Product, Store } from '@/lib/types';
 import Footer from '@/components/Footer';
-import CategoryDropdown from '@/components/CategoryDropdown';
 import ProductCard from '@/components/ProductCard';
-import StoreCard from '@/components/StoreCard';
-const VISUAL_CATEGORIES = [
-  { name: 'Educação Infantil', emoji: '🎨', bgColor: 'bg-slate-100', href: '?categoria=infantil' },
-  { name: 'Ensino Fundamental', emoji: '🎒', bgColor: 'bg-slate-100', href: '?categoria=fundamental' },
-  { name: 'Alfabetização', emoji: '📚', bgColor: 'bg-slate-100', href: '?categoria=alfabetizacao' },
-  { name: 'Matemática', emoji: '🧮', bgColor: 'bg-slate-100', href: '?categoria=matematica' },
-  { name: 'Ciências', emoji: '🔬', bgColor: 'bg-slate-100', href: '?categoria=ciencias' },
-  { name: 'Inglês', emoji: '🌎', bgColor: 'bg-slate-100', href: '?categoria=ingles' },
-  { name: 'Datas Comemorativas', emoji: '🎉', bgColor: 'bg-slate-100', href: '?categoria=datas-comemorativas' },
-  { name: 'Inclusão', emoji: '🧩', bgColor: 'bg-slate-100', href: '?categoria=inclusao' },
-  { name: 'Jogos Lúdicos', emoji: '🎲', bgColor: 'bg-slate-100', href: '?categoria=jogos' },
-  { name: 'Coordenação Motora', emoji: '🏃', bgColor: 'bg-slate-100', href: '?categoria=coordenacao' },
-  { name: 'Berçário', emoji: '🍼', bgColor: 'bg-slate-100', href: '?categoria=bercario' },
-  { name: 'Artes', emoji: '🖍️', bgColor: 'bg-slate-100', href: '?categoria=artes' },
-];
-
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 
-export default async function Home() {
-  // 1. Buscar dados no lado do servidor
-  const allProducts = await getAllPublicMarketplaceProducts(100);
-  const topStores = await getTopMarketplaceStores(4);
+// 1. Nova Identidade Visual (Navegação Rápida)
+const QUICK_CATEGORIES = [
+  { name: 'Top Materiais', href: '/buscar?sort=popular' },
+  { name: 'Kits Escolares', href: '/buscar?q=kit' },
+  { name: 'Jogos e Dinâmicas', href: '/buscar?categoria=jogos' },
+  { name: 'Licenças PLR', href: '/buscar?filter=plr' },
+  { name: 'Educação Básica', href: '/buscar?categoria=fundamental' },
+  { name: 'Educação Infantil', href: '/buscar?categoria=infantil' },
+  { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },
+  { name: 'Matemática', href: '/buscar?categoria=matematica' },
+];
 
-  // 2. Filtrar as prateleiras
+export default async function Home() {
+  // Buscar dados no lado do servidor
+  const allProducts = await getAllPublicMarketplaceProducts(100);
+  
+  // 2. Busca aumentada de parceiros (Para preencher o carrossel de bolinhas)
+  const topStores = await getTopMarketplaceStores(12);
+
+  // Filtrar as prateleiras
   const produtosEmAlta = allProducts.slice(0, 8);
   const produtosGratuitos = allProducts.filter(p => p.is_free === true || p.preco === 0).slice(0, 4);
   const produtosPLR = allProducts.filter(p => p.is_plr === true).slice(0, 4);
@@ -39,159 +35,60 @@ export default async function Home() {
       
       <MarketplaceHeader />
 
-      {/* Estilo local para esconder a scrollbar nas pills */}
+      {/* Estilo local para esconder a scrollbar nas pills e carrosseis */}
       <style dangerouslySetInnerHTML={{__html: `
         .hide-scroll-bar::-webkit-scrollbar { display: none; }
         .hide-scroll-bar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
+      {/* Barra de Navegação Rápida (Pills/Badges) */}
+      <nav className="bg-white border-b border-slate-200 sticky top-[72px] z-30 shadow-sm hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 overflow-x-auto hide-scroll-bar py-3">
+            {QUICK_CATEGORIES.map((cat, index) => (
+              <Link 
+                key={index} 
+                href={cat.href}
+                className="whitespace-nowrap px-4 py-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-600 hover:text-blue-700 text-sm font-bold rounded-full transition-colors"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
+
       <main className="flex-1 pb-20">
         
-        {/* Categorias Visuais Premium */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex gap-6 overflow-x-auto hide-scroll-bar px-4 pb-2">
-            {VISUAL_CATEGORIES.map((cat, index) => {
-              return (
-                <Link href={cat.href} key={index} className="flex flex-col items-center min-w-max cursor-pointer group">
-                  <div className={`w-16 h-16 rounded-full ${cat.bgColor} flex items-center justify-center border border-slate-200/50 shadow-[0_2px_8px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_16px_rgb(0,0,0,0.08)] group-hover:-translate-y-1 transition-all duration-300`}>
-                    <span className="text-3xl sm:text-4xl">{cat.emoji}</span>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-700 mt-3 text-center group-hover:text-blue-600 transition-colors">
-                    {cat.name}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 3. Hero Section (Carrossel) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
-          <div className="flex overflow-x-auto snap-x snap-mandatory hide-scroll-bar rounded-3xl shadow-sm gap-4">
-            
-            {/* Banner 1 */}
-            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
-              <div className="relative z-10 space-y-4">
-                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
-                  Banner 1
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                  Especial Volta às Aulas
-                </h1>
-                <p className="text-blue-100 text-lg font-medium max-w-lg mx-auto">
-                  Materiais exclusivos para iniciar o ano letivo com excelência.
-                </p>
-                <div className="pt-4">
-                  <button className="px-8 py-3.5 bg-white text-blue-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Ver Materiais
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Banner 2 */}
-            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-orange-400 to-pink-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
-              <div className="relative z-10 space-y-4">
-                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
-                  Banner 2
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                  Matemática Descomplicada
-                </h1>
-                <p className="text-orange-50 text-lg font-medium max-w-lg mx-auto">
-                  Jogos e apostilas para ensinar matemática de forma lúdica.
-                </p>
-                <div className="pt-4">
-                  <button className="px-8 py-3.5 bg-white text-pink-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Conferir
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Banner 3 */}
-            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-emerald-400 to-teal-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
-              <div className="relative z-10 space-y-4">
-                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
-                  Banner 3
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                  Educação Infantil
-                </h1>
-                <p className="text-emerald-50 text-lg font-medium max-w-lg mx-auto">
-                  Recursos coloridos e interativos para os pequenos.
-                </p>
-                <div className="pt-4">
-                  <button className="px-8 py-3.5 bg-white text-teal-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Explorar
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Banner 4 */}
-            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
-              <div className="relative z-10 space-y-4">
-                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
-                  Banner 4
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                  Revenda Autorizada (PLR)
-                </h1>
-                <p className="text-purple-100 text-lg font-medium max-w-lg mx-auto">
-                  Compre com direito de revenda e crie seu próprio negócio.
-                </p>
-                <div className="pt-4">
-                  <button className="px-8 py-3.5 bg-white text-purple-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Ver Oportunidades
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Banner 5 */}
-            <div className="min-w-full snap-center h-[400px] sm:h-[450px] bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl flex flex-col items-center justify-center text-center px-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
-              <div className="relative z-10 space-y-4">
-                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs sm:text-sm font-bold uppercase tracking-wider">
-                  Banner 5
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-                  Materiais Gratuitos
-                </h1>
-                <p className="text-amber-50 text-lg font-medium max-w-lg mx-auto">
-                  Baixe conteúdos exclusivos sem custo nenhum.
-                </p>
-                <div className="pt-4">
-                  <button className="px-8 py-3.5 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Baixar Agora
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
+        {/* HERO BANNER FULL-WIDTH */}
+        <section className="w-full bg-gradient-to-r from-blue-900 to-blue-700 pt-20 pb-24 overflow-hidden relative">
+          <div className="absolute inset-0 bg-black/5"></div>
           
-          {/* Dica de arrastar (Mobile) */}
-          <div className="flex justify-center mt-3 sm:hidden">
-            <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-              Deslize para ver mais 👉
-            </span>
+          {/* Decorações premium no fundo */}
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6 py-16">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight tracking-tight max-w-4xl mx-auto drop-shadow-sm">
+              O Maior Acervo de Atividades para <span className="text-cyan-300">Transformar sua Aula</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-blue-50 font-medium max-w-2xl mx-auto drop-shadow-sm">
+              Materiais didáticos criados por professores especialistas, prontos para imprimir e aplicar.
+            </p>
+            <div className="pt-6">
+              <Link href="/buscar" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-900 hover:bg-slate-50 font-black rounded-full shadow-xl shadow-blue-900/20 transition-transform hover:-translate-y-1 text-lg">
+                <Search className="w-5 h-5" /> Explorar Materiais
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* 4. Prateleiras de Produtos (Grids) */}
-        
-        {/* Seção de Destaque: Lojas Parceiras */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white shadow-sm border-b border-slate-200">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <StoreIcon className="w-8 h-8 text-blue-600" />
-              Conheça as Lojas Parceiras
+        {/* CARROSSEL DE LOJAS EM MOVIMENTO (BOLINHAS) */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-b border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <StoreIcon className="w-6 h-6 text-blue-600" />
+              Nossas Lojas Parceiras
             </h2>
             <Link href="/buscar?filter=stores" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
               Ver Todas <ChevronRight className="w-4 h-4" />
@@ -199,20 +96,35 @@ export default async function Home() {
           </div>
           
           {topStores.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-slate-200">
-              <StoreIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Nenhuma loja cadastrada no momento.</p>
+            <div className="text-center py-8">
+              <p className="text-slate-500 font-medium text-sm">Nenhuma loja ativa no momento.</p>
             </div>
           ) : (
-            <div className="flex overflow-x-auto snap-x gap-6 pb-6 hide-scroll-bar">
-              {topStores.map(store => (
-                <div key={store.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] snap-start flex">
-                  <StoreCard store={store} />
-                </div>
-              ))}
+            <div className="flex overflow-x-auto hide-scroll-bar gap-6 py-6 px-2 snap-x">
+              {topStores.map((store) => {
+                const initial = store.nome_loja ? store.nome_loja.charAt(0).toUpperCase() : 'L';
+                return (
+                  <Link href={`/loja/${store.slug}`} key={store.id} className="flex flex-col items-center gap-3 min-w-[6.5rem] snap-start group cursor-pointer">
+                    <div className="w-24 h-24 rounded-full border-2 border-slate-200 bg-white p-1 shadow-sm group-hover:border-blue-500 group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
+                      {store.avatar_url ? (
+                        <img src={store.avatar_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black text-3xl">
+                          {initial}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 truncate w-full text-center px-1">
+                      {store.nome_loja}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
+
+        {/* 4. Prateleiras de Produtos (Grids) */}
 
         {/* Seção 1: Em Alta */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -241,11 +153,11 @@ export default async function Home() {
         </section>
 
         {/* Prateleira Temática (Especial do Mês) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-indigo-50/50 border-y border-indigo-100 mt-6 mb-12 rounded-[2.5rem]">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-blue-50/50 border-y border-blue-100 mt-6 mb-12 rounded-[2.5rem]">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 mb-2">
-                <Calendar className="w-8 h-8 text-indigo-600" />
+                <Calendar className="w-8 h-8 text-blue-600" />
                 Especial do Mês
               </h2>
               <p className="text-slate-600 font-medium text-sm sm:text-base">
@@ -255,11 +167,11 @@ export default async function Home() {
             
             <div className="flex flex-wrap items-center gap-2">
               {['Independência', 'Primavera', 'Trânsito'].map(tag => (
-                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="px-4 py-1.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-full text-xs font-bold transition-colors">
+                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="px-4 py-1.5 bg-white border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white rounded-full text-xs font-bold transition-colors">
                   {tag}
                 </Link>
               ))}
-              <Link href="/buscar?filter=sazonal" className="ml-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+              <Link href="/buscar?filter=sazonal" className="ml-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
                 Ver Todos <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -310,7 +222,7 @@ export default async function Home() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Rocket className="w-8 h-8 text-purple-600" />
-              Direitos de Revenda (PLR)
+              Licenças PLR (Direitos de Revenda)
             </h2>
             <Link href="/buscar?filter=plr" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
               Ver Todos <ChevronRight className="w-4 h-4" />
@@ -329,33 +241,6 @@ export default async function Home() {
               ))}
             </div>
           )}
-        </section>
-
-        {/* Nuvem de Tags (Categorias Populares) */}
-        <section className="bg-slate-50 py-16 border-t border-slate-200/60">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 tracking-tight">Categorias Populares de Materiais Pedagógicos</h2>
-            
-            <div className="flex flex-wrap justify-center gap-3 mt-6 mb-8">
-              {['Alfabetização', 'Matemática', 'Educação Infantil', 'Datas Comemorativas', 'Ciências', 'Língua Portuguesa', 'Combo', 'Artes'].map(tag => (
-                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="rounded-full border border-slate-300 bg-white px-6 py-2 text-slate-700 hover:border-blue-500 hover:text-blue-600 font-medium transition-colors cursor-pointer shadow-sm">
-                  {tag}
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold text-slate-500">
-              <Link href="/buscar?q=atividades+para+imprimir" className="hover:text-blue-600 hover:underline transition-all">Atividades para Imprimir</Link>
-              <span className="hidden sm:inline text-slate-300">|</span>
-              <Link href="/buscar?q=jogos+educativos" className="hover:text-blue-600 hover:underline transition-all">Jogos Educativos</Link>
-              <span className="hidden sm:inline text-slate-300">|</span>
-              <Link href="/buscar?q=reforco+escolar" className="hover:text-blue-600 hover:underline transition-all">Reforço Escolar</Link>
-              <span className="hidden sm:inline text-slate-300">|</span>
-              <Link href="/buscar?q=planos+de+aula" className="hover:text-blue-600 hover:underline transition-all">Planos de Aula</Link>
-              <span className="hidden sm:inline text-slate-300">|</span>
-              <Link href="/buscar" className="hover:text-blue-600 hover:underline transition-all text-blue-600">Ver Todos os Materiais</Link>
-            </div>
-          </div>
         </section>
 
         {/* 5. Seção de Confiança & Recrutamento de Vendedores */}
@@ -550,7 +435,7 @@ export default async function Home() {
               <Link href="/buscar?filter=stores" className="px-8 py-3.5 bg-transparent border border-slate-600 hover:border-slate-500 text-white font-bold rounded-full transition-colors w-full sm:w-auto text-center">
                 Ver todas as lojas
               </Link>
-              <Link href="/afiliados/cadastro" className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
+              <Link href="/afiliados/cadastro" className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
                 Quero ser afiliado
               </Link>
             </div>
