@@ -56,7 +56,7 @@ export default function MarketplaceHeader() {
               Criar Loja
             </Link>
             <Link 
-              href="/login" 
+              href="/entrar" 
               className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20"
             >
               Entrar
