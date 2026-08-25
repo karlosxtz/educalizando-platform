@@ -51,7 +51,7 @@ export default function Footer() {
               <li><Link href="/lojas" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
               <li><Link href="/atividades-por-ano" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>
               <li><Link href="/buscar?categoria=combo" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Kits e Combos</Link></li>
-              <li><Link href="/minhas-compras" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
+              <li><Link href="/aluno/materiais" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
             </ul>
           </div>
 
