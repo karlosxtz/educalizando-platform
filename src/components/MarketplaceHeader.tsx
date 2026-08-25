@@ -50,10 +50,10 @@ export default function MarketplaceHeader() {
           {/* Direita: Ações do Usuário */}
           <div className="hidden md:flex items-center gap-3">
             <Link 
-              href="/vender" 
+              href="/cadastro" 
               className="text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100"
             >
-              Criar Loja
+              Criar Conta
             </Link>
             <Link 
               href="/entrar" 
