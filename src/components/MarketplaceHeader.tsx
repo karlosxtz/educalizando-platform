@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ShoppingCart, Search } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
+import SearchBar from './SearchBar';
 
 export default function MarketplaceHeader() {
   return (
@@ -32,19 +33,7 @@ export default function MarketplaceHeader() {
 
           {/* Centro: Barra de Pesquisa Global */}
           <div className="flex-1 w-full max-w-2xl px-0 md:px-6">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-11 pr-6 py-3 sm:py-3.5 bg-slate-100/50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
-                placeholder="O que você procura hoje? (Atividades, apostilas, jogos...)"
-              />
-              <button className="absolute inset-y-1.5 right-1.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-full transition-colors hidden sm:block shadow-sm">
-                Buscar
-              </button>
-            </div>
+            <SearchBar />
           </div>
 
           {/* Direita: Ações do Usuário */}
