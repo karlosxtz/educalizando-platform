@@ -45,7 +45,7 @@ function StudentLoginForm() {
     setLoading(true);
     try {
       await signInStudent({ email, password });
-      router.push(getSafeReturnUrl());
+      window.location.href = getSafeReturnUrl();
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar login de aluno. Verifique seus dados.');
@@ -71,8 +71,8 @@ function StudentLoginForm() {
         fullName,
         cpf
       });
-      // Após cadastro, confirma autenticação e redireciona automaticamente para a compra
-      router.push(getSafeReturnUrl());
+      // Após cadastro, confirma autenticação e redireciona automaticamente para a compra via hard navigation
+      window.location.href = getSafeReturnUrl();
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao criar conta de aluno.');

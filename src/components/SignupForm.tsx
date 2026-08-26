@@ -75,7 +75,7 @@ export default function SignupForm() {
       setSuccessData({ storeSlug: result.storeSlug });
 
       setTimeout(() => {
-        router.push('/dashboard');
+        window.location.href = '/dashboard/loja';
       }, 3000);
 
     } catch (err: any) {
@@ -117,7 +117,7 @@ export default function SignupForm() {
 
         <div className="pt-2 space-y-3">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => window.location.href = '/dashboard/loja'}
             className="w-full py-3.5 px-6 rounded-2xl bg-brand-navy hover:bg-slate-900 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2"
           >
             <span>Acessar Meu Painel de Criador Agora</span>
