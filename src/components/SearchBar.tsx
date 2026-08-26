@@ -16,18 +16,33 @@ export default function SearchBar() {
   const router = useRouter();
 
   useEffect(() => {
+    let active = true;
+
     async function fetchSuggestions() {
       if (debouncedQuery.trim().length >= 2) {
         setIsSearching(true);
-        const results = await quickSearch(debouncedQuery);
-        setSuggestions(results);
-        setIsSearching(false);
+        try {
+          const results = await quickSearch(debouncedQuery);
+          if (active) {
+            setSuggestions(results);
+          }
+        } catch (err) {
+          console.error('[SearchBar] Erro ao buscar sugestões:', err);
+        } finally {
+          if (active) {
+            setIsSearching(false);
+          }
+        }
       } else {
         setSuggestions([]);
       }
     }
     
     fetchSuggestions();
+
+    return () => {
+      active = false;
+    };
   }, [debouncedQuery]);
 
   const handleSearch = (e: React.FormEvent) => {

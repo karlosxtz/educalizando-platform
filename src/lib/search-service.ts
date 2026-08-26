@@ -180,7 +180,7 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
         .select('titulo')
         .eq('status', 'publicado')
         .is('excluido_em', null)
-        .textSearch('titulo', query, { type: 'websearch', config: 'portuguese' })
+        .ilike('titulo', `%${query}%`)
         .limit(5);
 
       if (!error && data) {
