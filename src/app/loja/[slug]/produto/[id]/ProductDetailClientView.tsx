@@ -154,34 +154,34 @@ export default function ProductDetailClientView({
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
-      {/* Top Educalizando Security Bar */}
-      <div className="bg-slate-900 py-2 px-4 text-center text-xs text-slate-300 flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-        <span>Pagamento Seguro via PIX • Download Imediato na Área de Membros • Garantia Educalizando</span>
-      </div>
+      {/* Top Educalizando Security Bar - Escondido no contexto Global (Marketplace) */}
+      {context !== 'marketplace' && (
+        <>
+          <div className="bg-slate-900 py-2 px-4 text-center text-xs text-slate-300 flex items-center justify-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Pagamento Seguro via PIX • Download Imediato na Área de Membros • Garantia Educalizando</span>
+          </div>
 
-      {/* Navigation Breadcrumb Bar */}
-      <header className="bg-white border-b border-slate-200 py-3.5 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link
-            href={context === 'marketplace' ? '/' : `/loja/${store.slug}`}
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>
-              {context === 'marketplace' ? (
-                <>Voltar para o <strong>Marketplace</strong></>
-              ) : (
-                <>Voltar para a vitrine de <strong>{store.nome_loja}</strong></>
-              )}
-            </span>
-          </Link>
+          {/* Navigation Breadcrumb Bar */}
+          <header className="bg-white border-b border-slate-200 py-3.5 px-4 sm:px-8">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <Link
+                href={`/loja/${store.slug}`}
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>
+                  Voltar para a vitrine de <strong>{store.nome_loja}</strong>
+                </span>
+              </Link>
 
-          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hidden sm:inline-flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> LOJA VERIFICADA
-          </span>
-        </div>
-      </header>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hidden sm:inline-flex items-center gap-1">
+                <Lock className="w-3 h-3" /> Transação Criptografada (SSL)
+              </span>
+            </div>
+          </header>
+        </>
+      )}
 
       {/* Main Page Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -555,16 +555,18 @@ export default function ProductDetailClientView({
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">
-        <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
-        <div className="flex items-center justify-center gap-2 text-slate-500">
-          <span>Tecnologia e Entrega por</span>
-          <Link href="/">
-            <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
-          </Link>
-        </div>
-      </footer>
+      {/* Footer - Escondido no contexto Global (Marketplace) */}
+      {context !== 'marketplace' && (
+        <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">
+          <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
+          <div className="flex items-center justify-center gap-2 text-slate-500">
+            <span>Tecnologia e Entrega por</span>
+            <Link href="/">
+              <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+            </Link>
+          </div>
+        </footer>
+      )}
       {/* Sticky Bottom Bar for Mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] p-4 z-40 safe-padding-bottom flex items-center justify-between gap-4">
         <div>

@@ -8,6 +8,8 @@ interface GlobalProductDetailPageProps {
     id: string;
   }>;
 }
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import Footer from '@/components/Footer';
 
 export default async function GlobalProductDetailPage({ params }: GlobalProductDetailPageProps) {
   const { id } = await params;
@@ -43,13 +45,19 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
     .slice(0, 4);
 
   return (
-    <ProductDetailClientView
-      store={store}
-      product={product}
-      category={category}
-      educationLevel={educationLevel}
-      context="marketplace"
-      relatedProducts={relatedProducts}
-    />
+    <div className="flex flex-col min-h-screen">
+      <MarketplaceHeader />
+      <div className="flex-1">
+        <ProductDetailClientView
+          store={store}
+          product={product}
+          category={category}
+          educationLevel={educationLevel}
+          context="marketplace"
+          relatedProducts={relatedProducts}
+        />
+      </div>
+      <Footer />
+    </div>
   );
 }
