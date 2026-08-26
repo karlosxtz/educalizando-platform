@@ -2,8 +2,11 @@ import Link from 'next/link';
 import { ShoppingCart, Search } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
+import { useCart } from '@/components/store/CartContext';
 
 export default function MarketplaceHeader() {
+  const { items } = useCart();
+  const cartItemsCount = items.reduce((acc, item) => acc + item.quantity, 0);
   return (
     <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100 transition-all py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,13 +23,14 @@ export default function MarketplaceHeader() {
               </span>
             </Link>
             
-            {/* Carrinho Mobile */}
             <div className="flex md:hidden items-center">
               <Link href="/carrinho" className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors relative">
                 <ShoppingCart className="w-6 h-6" />
-                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
-                  0
-                </span>
+                {cartItemsCount > 0 && (
+                  <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
+                    {cartItemsCount > 9 ? '9+' : cartItemsCount}
+                  </span>
+                )}
               </Link>
             </div>
           </div>
@@ -55,9 +59,11 @@ export default function MarketplaceHeader() {
 
             <Link href="/carrinho" className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors relative group">
               <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">
-                0
-              </span>
+              {cartItemsCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">
+                  {cartItemsCount > 9 ? '9+' : cartItemsCount}
+                </span>
+              )}
             </Link>
           </div>
           

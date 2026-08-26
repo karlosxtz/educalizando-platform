@@ -40,7 +40,9 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   };
 
   const router = useRouter();
-  const { items: cartItems, total: cartTotal } = useCart();
+  const { items: globalCartItems } = useCart();
+  const cartItems = product ? [] : globalCartItems.filter(item => item.storeId === store.id);
+  const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
 // Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
@@ -660,7 +662,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                             <UserPlus className="w-4 h-4 text-rose-600" />
                             <span>Criar Conta de Criador</span>
                           </Link>
-                        </  >
+                        </>
                       ) : (
                         <>
                           <Link
