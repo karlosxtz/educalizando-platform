@@ -40,9 +40,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         .eq('status', 'publicado')
         .is('excluido_em', null);
 
-      // 1. Busca Flexível (Fragmentos via ILIKE)
+      // 1. Busca Flexível (Fragmentos via ILIKE na coluna unaccent)
       if (filters.q) {
-        query = query.ilike('titulo', `%${filters.q}%`);
+        const queryLimpo = filters.q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        query = query.ilike('titulo_limpo', `%${queryLimpo}%`);
       }
 
       // 2. Categoria
