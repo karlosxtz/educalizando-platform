@@ -518,6 +518,28 @@ export async function updateOrderStatus(
           netAmount: affComission,
           description: `Comissão de Afiliado - Pedido #${order.id.substring(4, 10).toUpperCase()}`
         });
+
+        // 📧 Disparar e-mail via Resend para o Afiliado
+        try {
+          if (affiliateUserId && isRealSupabaseConfigured()) {
+            const { supabaseAdmin } = await import('./supabase');
+            const { data: affUser } = await supabaseAdmin.auth.admin.getUserById(affiliateUserId);
+            const affEmail = affUser?.user?.email;
+            const affName = affUser?.user?.user_metadata?.full_name || 'Afiliado';
+
+            if (affEmail) {
+              const { sendAffiliateCommissionEmail } = await import('./mail-service');
+              await sendAffiliateCommissionEmail({
+                affiliateEmail: affEmail,
+                affiliateName: affName,
+                amount: affComission,
+                productTitle: order.items[0]?.productTitle || 'Infoproduto Digital'
+              });
+            }
+          }
+        } catch (mailErr) {
+          console.error('[updateOrderStatus] Erro ao disparar e-mail pro afiliado:', mailErr);
+        }
       }
 
       // 2. Conceder Acesso Real ao Material (student_product_access) no Supabase e LocalStorage
@@ -541,6 +563,23 @@ export async function updateOrderStatus(
           orderId: order.id,
           storeId: order.storeId
         });
+      }
+
+      // 📧 Disparar e-mail via Resend para o Aluno
+      try {
+        const { sendStudentAccessEmail } = await import('./mail-service');
+        const productTitles = order.items.length > 0 
+          ? order.items.map(it => it.productTitle || 'Infoproduto Digital').join(', ')
+          : 'Kit Combo Digital';
+          
+        await sendStudentAccessEmail({
+          buyerEmail: studentEmail,
+          buyerName: order.buyerName,
+          orderId: order.id,
+          productTitles
+        });
+      } catch (mailErr) {
+        console.error('[updateOrderStatus] Erro ao disparar e-mail pro aluno:', mailErr);
       }
     } catch (e) {
       console.error('[updateOrderStatus] Erro ao liberar acesso ou registrar lançamento no ledger:', e);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '@/lib/order-service';
 import { validateAsaasTransferWebhook, handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
 import { createNotification } from '@/lib/notification-service';
+import { sendProducerSaleEmail } from '@/lib/mail-service';
 
 export async function POST(request: Request) {
   try {
@@ -109,6 +110,25 @@ export async function POST(request: Request) {
               buyerName: order.buyerName
             }
           }).catch(e => console.error('[Webhook] Erro ao criar notificação de venda:', e));
+
+          // 📧 Disparar e-mail via Resend para o Produtor
+          try {
+            const { supabaseAdmin } = await import('@/lib/supabase');
+            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(order.creatorId);
+            const creatorEmail = userData?.user?.email;
+            const creatorName = userData?.user?.user_metadata?.full_name || 'Produtor';
+
+            if (creatorEmail) {
+              await sendProducerSaleEmail({
+                producerEmail: creatorEmail,
+                producerName: creatorName,
+                amount: order.creatorNetAmount, // O e-mail exibe o valor líquido
+                productTitle: productTitle
+              });
+            }
+          } catch (mailErr) {
+            console.error('[Webhook] Erro ao disparar e-mail de venda pro produtor:', mailErr);
+          }
         }
       }
     }
