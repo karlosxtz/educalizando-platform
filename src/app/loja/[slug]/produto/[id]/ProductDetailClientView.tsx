@@ -41,7 +41,7 @@ export default function ProductDetailClientView({
 
   const [isBuying, setIsBuying] = useState(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
-  const [acceptOrderBump, setAcceptOrderBump] = useState(false);
+  const [showCouponInput, setShowCouponInput] = useState(false);
   const { addToCart } = useCart();
 
   // Coupon State
@@ -121,18 +121,6 @@ export default function ProductDetailClientView({
         quantity: 1
       });
 
-      if (acceptOrderBump && product.order_bump_product) {
-        addToCart({
-          productId: product.order_bump_product.id,
-          title: product.order_bump_product.titulo,
-          price: product.order_bump_product.preco,
-          isPlr: false,
-          storeId: store.id,
-          type: product.order_bump_product.tipo,
-          imageUrl: product.order_bump_product.capa_url || undefined,
-          quantity: 1
-        });
-      }
       setIsBuying(false);
     } catch (error) {
       setIsBuying(false);
@@ -153,19 +141,6 @@ export default function ProductDetailClientView({
         imageUrl: product.capa_url || undefined,
         quantity: 1
       });
-
-      if (acceptOrderBump && product.order_bump_product) {
-        addToCart({
-          productId: product.order_bump_product.id,
-          title: product.order_bump_product.titulo,
-          price: product.order_bump_product.preco,
-          isPlr: false, // Opcional: Se Order Bumps podem ser PLR, ajuste
-          storeId: store.id,
-          type: product.order_bump_product.tipo,
-          imageUrl: product.order_bump_product.capa_url || undefined,
-          quantity: 1
-        });
-      }
 
       // Redireciona imediatamente para a página de checkout da loja
       router.push(`/loja/${store.slug}/checkout`);
@@ -392,109 +367,60 @@ export default function ProductDetailClientView({
                   <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
                     R$ {currentPrice.toFixed(2).replace('.', ',')}
                   </span>
-                  {couponResult?.valid && (
-                    <span className="text-sm font-bold text-slate-400 line-through">
-                      R$ {product.preco.toFixed(2).replace('.', ',')}
-                    </span>
-                  )}
                   <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                     Sem Mensalidade
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
-                  Pagamento único com acesso vitalício ao arquivo digital.
+                <p className="text-xs text-slate-500 font-medium mt-2">
+                  Pagamento único com acesso vitalício ao arquivo.
                 </p>
               </div>
 
-              {/* Coupon Box Input */}
-              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
-                  <Ticket className="w-4 h-4 text-brand-teal" />
-                  <span>Possui um cupom de desconto?</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    placeholder="Código do cupom"
-                    className="flex-1 px-3 py-2 bg-white border border-slate-200 focus:border-brand-navy rounded-xl text-xs font-mono font-black uppercase text-slate-900 focus:outline-none min-h-[40px]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyCoupon}
-                    disabled={validatingCoupon || !couponInput.trim()}
-                    className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-xs font-extrabold disabled:opacity-50 transition-all min-h-[40px] flex items-center gap-1 flex-shrink-0"
+              {/* Coupon Box Input (Minimalist Toggle) */}
+              <div>
+                {!showCouponInput ? (
+                  <button 
+                    onClick={() => setShowCouponInput(true)}
+                    className="text-xs font-bold text-slate-400 hover:text-slate-600 flex items-center justify-center sm:justify-start gap-1 transition-colors w-full sm:w-auto"
                   >
-                    {validatingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Aplicar'}
+                    <Ticket className="w-3.5 h-3.5" /> Adicionar Cupom
                   </button>
-                </div>
+                ) : (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Código do cupom"
+                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-xs font-mono font-black uppercase text-slate-900 focus:outline-none min-h-[40px] transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={validatingCoupon || !couponInput.trim()}
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold disabled:opacity-50 transition-all min-h-[40px] flex items-center gap-1 flex-shrink-0"
+                      >
+                        {validatingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Aplicar'}
+                      </button>
+                    </div>
 
-                {couponResult && (
-                  <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                    couponResult.valid 
-                      ? 'bg-emerald-50 text-brand-green border border-emerald-200' 
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}>
-                    {couponResult.valid ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                    <span>{couponResult.message}</span>
+                    {couponResult && (
+                      <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                        couponResult.valid 
+                          ? 'bg-emerald-50 text-brand-green border border-emerald-200' 
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {couponResult.valid ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                        <span>{couponResult.message}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Order Bump Box */}
-              {product.order_bump_product && (
-                <div className="bg-blue-50/50 border-dashed border-2 border-blue-300 rounded-2xl p-4 sm:p-5 flex items-start gap-4 cursor-pointer hover:bg-blue-50 transition-colors" onClick={() => setAcceptOrderBump(!acceptOrderBump)}>
-                  <div className="pt-1">
-                    <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${acceptOrderBump ? 'bg-blue-600 border-blue-600' : 'bg-white border-blue-300'}`}>
-                      {acceptOrderBump && <Check className="w-4 h-4 text-white" />}
-                    </div>
-                  </div>
-                  {product.order_bump_product.capa_url && (
-                    <div className="flex-shrink-0 w-14 sm:w-16">
-                      <img 
-                        src={product.order_bump_product.capa_url} 
-                        alt={product.order_bump_product.titulo}
-                        className="w-full aspect-[3/4] object-cover rounded-xl shadow-sm border border-slate-200"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-bold text-slate-900 leading-tight">
-                        Sim, quero adicionar <span className="text-blue-700">{product.order_bump_product.titulo}</span>
-                      </h4>
-                      <span className="font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-sm whitespace-nowrap">
-                        + R$ {product.order_bump_product.preco.toFixed(2).replace('.', ',')}
-                      </span>
-                    </div>
-                    {product.order_bump_product.descricao && (
-                      <p className="text-xs text-slate-500 line-clamp-2">
-                        {product.order_bump_product.descricao}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Primary Call to Action Buttons */}
               <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={handleAddOnly}
-                  disabled={isBuying}
-                  className="w-full py-4 rounded-2xl font-black text-base text-slate-700 bg-slate-100 hover:bg-slate-200 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
-                >
-                  {isBuying ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-5 h-5" />
-                      <span className="tracking-wide">Adicionar ao Carrinho</span>
-                    </>
-                  )}
-                </button>
                 <button
                   type="button"
                   onClick={handleStartCheckout}
@@ -511,22 +437,37 @@ export default function ProductDetailClientView({
                     </>
                   )}
                 </button>
+                <button
+                  type="button"
+                  onClick={handleAddOnly}
+                  disabled={isBuying}
+                  className="w-full py-4 rounded-2xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                >
+                  {isBuying ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Adicionar ao Carrinho</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Trust Features Grid */}
-              <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-3 text-xs text-slate-600 font-bold">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-100">
                     <Zap className="w-4 h-4 fill-emerald-600" />
                   </div>
-                  <span>Acesso Imediato na Conta de Aluno</span>
+                  <span>Acesso Imediato na Conta</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-xs text-slate-600 font-bold">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 border border-blue-200">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 border border-blue-100">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <span>Pagamento 100% Criptografado & Seguro</span>
+                  <span>Pagamento 100% Seguro</span>
                 </div>
               </div>
             </div>
