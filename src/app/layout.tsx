@@ -82,6 +82,7 @@ export const metadata: Metadata = {
 import { Suspense } from 'react';
 import AffiliateTracker from '@/components/affiliates/AffiliateTracker';
 import { CartProvider } from '@/components/store/CartContext';
+import CartSidebar from '@/components/store/CartSidebar';
 
 export default function RootLayout({
   children,
@@ -92,6 +93,7 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth overflow-x-hidden`}>
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <CartProvider>
+          <CartSidebar />
           {children}
           <Suspense fallback={null}>
             <AffiliateTracker />

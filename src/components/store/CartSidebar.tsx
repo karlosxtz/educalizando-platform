@@ -5,10 +5,10 @@ import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface CartSidebarProps {
-  storeSlug: string;
+  storeSlug?: string;
 }
 
-export default function CartSidebar({ storeSlug }: CartSidebarProps) {
+export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
   const { items, isOpen, setIsOpen, total, removeFromCart, updateQuantity } = useCart();
 
   if (!isOpen) return null;
@@ -132,11 +132,11 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps) {
               Taxas ou cupons serão calculados no próximo passo.
             </p>
             <Link 
-              href={`/loja/${storeSlug}/checkout`}
+              href={storeSlug ? `/loja/${storeSlug}/checkout` : '/carrinho'}
               onClick={() => setIsOpen(false)}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
             >
-              Finalizar Compra
+              {storeSlug ? 'Finalizar Compra' : 'Ver Carrinho'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
