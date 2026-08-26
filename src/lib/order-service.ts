@@ -528,8 +528,8 @@ export async function updateOrderStatus(
             const affName = affUser?.user?.user_metadata?.full_name || 'Afiliado';
 
             if (affEmail) {
-              const { sendAffiliateCommissionEmail } = await import('./mail-service');
-              await sendAffiliateCommissionEmail({
+              const { sendSaleNotificationToAffiliate } = await import('./mail-service');
+              await sendSaleNotificationToAffiliate({
                 affiliateEmail: affEmail,
                 affiliateName: affName,
                 amount: affComission,
@@ -567,16 +567,24 @@ export async function updateOrderStatus(
 
       // 📧 Disparar e-mail via Resend para o Aluno
       try {
-        const { sendStudentAccessEmail } = await import('./mail-service');
+        let creatorWhatsapp: string | null = null;
+        if (isRealSupabaseConfigured()) {
+          const { supabaseAdmin } = await import('./supabase');
+          const { data: storeData } = await supabaseAdmin.from('stores').select('whatsapp').eq('id', order.storeId).maybeSingle();
+          if (storeData) creatorWhatsapp = storeData.whatsapp;
+        }
+
+        const { sendSaleConfirmationToBuyer } = await import('./mail-service');
         const productTitles = order.items.length > 0 
           ? order.items.map(it => it.productTitle || 'Infoproduto Digital').join(', ')
           : 'Kit Combo Digital';
           
-        await sendStudentAccessEmail({
+        await sendSaleConfirmationToBuyer({
           buyerEmail: studentEmail,
           buyerName: order.buyerName,
           orderId: order.id,
-          productTitles
+          productTitles,
+          creatorWhatsapp
         });
       } catch (mailErr) {
         console.error('[updateOrderStatus] Erro ao disparar e-mail pro aluno:', mailErr);

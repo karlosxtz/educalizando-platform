@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '@/lib/order-service';
 import { validateAsaasTransferWebhook, handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
 import { createNotification } from '@/lib/notification-service';
-import { sendProducerSaleEmail } from '@/lib/mail-service';
+import { sendSaleNotificationToCreator } from '@/lib/mail-service';
 
 export async function POST(request: Request) {
   try {
@@ -119,11 +119,12 @@ export async function POST(request: Request) {
             const creatorName = userData?.user?.user_metadata?.full_name || 'Produtor';
 
             if (creatorEmail) {
-              await sendProducerSaleEmail({
+              await sendSaleNotificationToCreator({
                 producerEmail: creatorEmail,
                 producerName: creatorName,
                 amount: order.creatorNetAmount, // O e-mail exibe o valor líquido
-                productTitle: productTitle
+                productTitle: productTitle,
+                orderId: order.id
               });
             }
           } catch (mailErr) {
