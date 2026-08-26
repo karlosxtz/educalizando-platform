@@ -1,0 +1,49 @@
+import { notFound } from 'next/navigation';
+import { getProductById, getStoreById } from '@/lib/store-service';
+import { getCategories, getEducationLevels } from '@/lib/category-service';
+import ProductDetailClientView from '../../loja/[slug]/produto/[id]/ProductDetailClientView';
+
+interface GlobalProductDetailPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function GlobalProductDetailPage({ params }: GlobalProductDetailPageProps) {
+  const { id } = await params;
+
+  let product = await getProductById(id);
+  if (!product) {
+    notFound();
+  }
+
+  const store = await getStoreById(product.store_id);
+  if (!store) {
+    notFound();
+  }
+
+  if (product.order_bump_id) {
+    const bump = await getProductById(product.order_bump_id);
+    if (bump && !bump.excluido_em && bump.status === 'publicado') {
+      product.order_bump_product = bump;
+    }
+  }
+
+  const [categories, educationLevels] = await Promise.all([
+    getCategories(store.id),
+    getEducationLevels()
+  ]);
+
+  const category = categories.find(c => c.id === product?.category_id) || null;
+  const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
+
+  return (
+    <ProductDetailClientView
+      store={store}
+      product={product}
+      category={category}
+      educationLevel={educationLevel}
+      context="marketplace"
+    />
+  );
+}

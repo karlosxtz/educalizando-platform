@@ -21,9 +21,9 @@ export default function ProductCard({ product }: { product: Product & { store?: 
     priceDisplay = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco);
   }
 
-  // Target link
   const storeSlug = product.store?.slug || product.store_id;
-  const productLink = `/loja/${storeSlug}/produto/${product.id}`;
+  // Target link
+  const productLink = `/produto/${product.id}`;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();

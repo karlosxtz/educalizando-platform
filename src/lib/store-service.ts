@@ -127,6 +127,37 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   return null;
 }
 
+export async function getStoreById(storeId: string): Promise<Store | null> {
+  const cleanId = storeId.replace(/^store_/i, '');
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('stores')
+        .select('*')
+        .eq('id', cleanId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as Store;
+      }
+    } catch (err) {
+      console.error(`[getStoreById] Exceção na busca:`, err);
+    }
+  }
+
+  // Fallback Local
+  const stores = getLocalStores();
+  const found = stores.find(s => s.id === storeId || s.id === cleanId);
+  if (found) return found;
+
+  return null;
+}
+
 // 2. Obter a Loja do Criador Atualmente Autenticado (100% Dinâmico por Usuário Logado)
 export async function getCurrentCreatorStore(): Promise<Store> {
   const isRealSupabase = Boolean(

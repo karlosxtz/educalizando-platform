@@ -21,13 +21,15 @@ interface ProductDetailClientViewProps {
   product: Product;
   category?: Category | null;
   educationLevel?: EducationLevel | null;
+  context?: 'store' | 'marketplace';
 }
 
 export default function ProductDetailClientView({ 
   store, 
   product, 
   category, 
-  educationLevel 
+  educationLevel,
+  context = 'store'
 }: ProductDetailClientViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -183,11 +185,17 @@ export default function ProductDetailClientView({
       <header className="bg-white border-b border-slate-200 py-3.5 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link
-            href={`/loja/${store.slug}`}
+            href={context === 'marketplace' ? '/' : `/loja/${store.slug}`}
             className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Voltar para a vitrine de <strong>{store.nome_loja}</strong></span>
+            <span>
+              {context === 'marketplace' ? (
+                <>Voltar para o <strong>Marketplace</strong></>
+              ) : (
+                <>Voltar para a vitrine de <strong>{store.nome_loja}</strong></>
+              )}
+            </span>
           </Link>
 
           <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hidden sm:inline-flex items-center gap-1">
