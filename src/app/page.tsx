@@ -363,80 +363,53 @@ export default async function Home() {
         </section>
 
         {/* 7. Programa de Afiliados */}
-        <section className="bg-slate-900 text-white py-20 border-t border-slate-800 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-500 rounded-full blur-[120px] opacity-20 -translate-y-1/2 translate-x-1/3"></div>
-          
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight">
-              Ganhe comissão divulgando lojas parceiras
+        <section className="bg-slate-50 text-slate-900 py-24 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4 tracking-tight">
+              Tenha sua Própria Vitrine e Lucre como Afiliado
             </h2>
-            <p className="text-lg text-slate-400 font-medium max-w-2xl mx-auto mb-16">
-              O Programa de Afiliados Educalizando permite que você lucre indicando os melhores materiais didáticos do mercado.
+            <p className="text-lg text-slate-600 font-medium max-w-2xl mx-auto mb-16">
+              Vá além dos links tradicionais. Crie a sua própria loja personalizada dentro do Educalizando e escolha os melhores materiais para indicar. As comissões são justas e definidas diretamente pelos autores.
             </p>
 
-            {/* Grid Simulado de Afiliados */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">
-              
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 text-left group hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-xl">👩‍🏫</div>
-                  <div>
-                    <h4 className="font-bold text-white group-hover:text-indigo-400 transition-colors">Prof. Maria Ensina</h4>
-                    <p className="text-xs text-slate-400">Atividades Lúdicas</p>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                  <StoreIcon className="w-7 h-7" />
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-bold">
-                  <BadgePercent className="w-4 h-4" /> 50% de Comissão
-                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Vitrine Personalizada</h3>
+                <p className="text-slate-600 font-medium">
+                  Organize e divulgue os materiais que você mais confia em uma página exclusiva com o seu nome.
+                </p>
               </div>
 
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 text-left group hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-xl">🎲</div>
-                  <div>
-                    <h4 className="font-bold text-white group-hover:text-indigo-400 transition-colors">Jogos & Saber</h4>
-                    <p className="text-xs text-slate-400">Jogos de Tabuleiro</p>
-                  </div>
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+                  <TrendingUp className="w-7 h-7" />
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-bold">
-                  <BadgePercent className="w-4 h-4" /> 40% de Comissão
-                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Comissões Atrativas</h3>
+                <p className="text-slate-600 font-medium">
+                  Selecione produtos com excelentes taxas de comissão no mercado, definidas diretamente por quem cria.
+                </p>
               </div>
 
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 text-left group hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-xl">🚀</div>
-                  <div>
-                    <h4 className="font-bold text-white group-hover:text-indigo-400 transition-colors">Material PLR PRO</h4>
-                    <p className="text-xs text-slate-400">Direitos de Revenda</p>
-                  </div>
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                  <Banknote className="w-7 h-7" />
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-bold">
-                  <BadgePercent className="w-4 h-4" /> 60% de Comissão
-                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Gestão Descomplicada</h3>
+                <p className="text-slate-600 font-medium">
+                  Acompanhe seus cliques, conversões e solicite seus saques de forma transparente e rápida.
+                </p>
               </div>
-
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 text-left group hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-xl">🖍️</div>
-                  <div>
-                    <h4 className="font-bold text-white group-hover:text-indigo-400 transition-colors">Artes Criativas</h4>
-                    <p className="text-xs text-slate-400">Pinturas e Formas</p>
-                  </div>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-bold">
-                  <BadgePercent className="w-4 h-4" /> 45% de Comissão
-                </div>
-              </div>
-
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/buscar?filter=stores" className="px-8 py-3.5 bg-transparent border border-slate-600 hover:border-slate-500 text-white font-bold rounded-full transition-colors w-full sm:w-auto text-center">
-                Ver todas as lojas
+              <Link href="/cadastro" className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
+                Criar Conta de Afiliado
               </Link>
-              <Link href="/afiliados/cadastro" className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
-                Quero ser afiliado
+              <Link href="/entrar" className="px-8 py-3.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-full transition-colors w-full sm:w-auto text-center">
+                Já sou afiliado
               </Link>
             </div>
             
