@@ -176,12 +176,7 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
   if (isRealSupabase) {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('titulo')
-        .eq('status', 'publicado')
-        .is('excluido_em', null)
-        .ilike('titulo', `%${query}%`)
-        .limit(5);
+        .rpc('fuzzy_search_products', { search_term: query, max_results: 5 });
 
       if (!error && data) {
         return data as Pick<Product, 'titulo'>[];
