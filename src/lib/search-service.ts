@@ -164,7 +164,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 }
 
 // Busca rápida e leve exclusiva para o Auto-complete
-export async function quickSearch(query: string): Promise<Pick<Product, 'id' | 'titulo' | 'slug'>[]> {
+export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'>[]> {
   if (!query || query.trim().length < 2) return [];
 
   const isRealSupabase = Boolean(
@@ -177,14 +177,14 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'id' | '
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, titulo, slug')
+        .select('titulo')
         .eq('status', 'publicado')
         .is('excluido_em', null)
         .textSearch('titulo', query, { type: 'websearch', config: 'portuguese' })
         .limit(5);
 
       if (!error && data) {
-        return data as Pick<Product, 'id' | 'titulo' | 'slug'>[];
+        return data as Pick<Product, 'titulo'>[];
       }
     } catch (err) {
       console.error('[quickSearch] Erro no Supabase:', err);
@@ -197,5 +197,5 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'id' | '
   return all
     .filter(p => p.titulo.toLowerCase().includes(qLower))
     .slice(0, 5)
-    .map(p => ({ id: p.id, titulo: p.titulo, slug: p.slug }));
+    .map(p => ({ titulo: p.titulo }));
 }

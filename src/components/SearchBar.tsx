@@ -66,11 +66,14 @@ export default function SearchBar() {
       {suggestions.length > 0 && (
         <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
           <ul className="max-h-80 overflow-y-auto">
-            {suggestions.map((item) => (
-              <li key={item.id} className="border-b border-slate-100 last:border-0">
+            {suggestions.map((item, index) => (
+              <li key={index} className="border-b border-slate-100 last:border-0">
                 <Link 
-                  href={`/produto/${item.slug}`} 
-                  onClick={() => setSuggestions([])}
+                  href={`/buscar?q=${encodeURIComponent(item.titulo)}`} 
+                  onClick={() => {
+                    setQuery(item.titulo);
+                    setSuggestions([]);
+                  }}
                   className="block px-4 py-3 hover:bg-slate-50 transition-colors"
                 >
                   <span className="text-sm font-medium text-slate-800 line-clamp-1">{item.titulo}</span>
