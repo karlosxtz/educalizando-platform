@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getStoreBySlug, getProductById } from '@/lib/store-service';
+import { getStoreBySlug, getProductById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import ProductDetailClientView from './ProductDetailClientView';
 
@@ -42,15 +42,22 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     getEducationLevels()
   ]);
 
-  const category = categories.find(c => c.id === product.category_id) || null;
-  const educationLevel = educationLevels.find(e => e.id === product.education_level_id) || null;
+  const category = categories.find(c => c.id === product?.category_id) || null;
+  const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
+
+  const storeProducts = await getPublicProductsByStoreId(store.id);
+  const relatedProducts = storeProducts
+    .filter(p => p.id !== product.id)
+    .slice(0, 4);
 
   return (
-    <ProductDetailClientView
-      store={store}
-      product={product}
-      category={category}
+    <ProductDetailClientView 
+      store={store} 
+      product={product} 
+      category={category} 
       educationLevel={educationLevel}
+      context="store"
+      relatedProducts={relatedProducts}
     />
   );
 }

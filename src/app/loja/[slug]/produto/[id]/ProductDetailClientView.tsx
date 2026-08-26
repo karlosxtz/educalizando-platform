@@ -16,12 +16,15 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 
+import ProductCard from '@/components/ProductCard';
+
 interface ProductDetailClientViewProps {
   store: Store;
   product: Product;
   category?: Category | null;
   educationLevel?: EducationLevel | null;
   context?: 'store' | 'marketplace';
+  relatedProducts?: Product[];
 }
 
 export default function ProductDetailClientView({ 
@@ -29,7 +32,8 @@ export default function ProductDetailClientView({
   product, 
   category, 
   educationLevel,
-  context = 'store'
+  context = 'store',
+  relatedProducts = []
 }: ProductDetailClientViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -447,6 +451,15 @@ export default function ProductDetailClientView({
                       {acceptOrderBump && <Check className="w-4 h-4 text-white" />}
                     </div>
                   </div>
+                  {product.order_bump_product.capa_url && (
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={product.order_bump_product.capa_url} 
+                        alt={product.order_bump_product.titulo}
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl shadow-sm border border-slate-200"
+                      />
+                    </div>
+                  )}
                   <div className="flex-1 space-y-1">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-bold text-slate-900 leading-tight">
@@ -518,8 +531,25 @@ export default function ProductDetailClientView({
               </div>
             </div>
           </div>
-
         </div>
+
+        {/* RELATED PRODUCTS SECTION */}
+        {relatedProducts && relatedProducts.length > 0 && (
+          <div className="mt-16 sm:mt-24 pt-10 sm:pt-16 border-t border-slate-200">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Materiais que você também vai gostar
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map(p => (
+                <ProductCard key={p.id} product={{ ...p, store }} />
+              ))}
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* MODAL DE BLOQUEIO PARA CRIADOR (Item 11 da Especificação) */}

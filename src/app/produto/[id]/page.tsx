@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProductById, getStoreById } from '@/lib/store-service';
+import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import ProductDetailClientView from '../../loja/[slug]/produto/[id]/ProductDetailClientView';
 
@@ -37,6 +37,11 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
   const category = categories.find(c => c.id === product?.category_id) || null;
   const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
 
+  const storeProducts = await getPublicProductsByStoreId(store.id);
+  const relatedProducts = storeProducts
+    .filter(p => p.id !== product.id)
+    .slice(0, 4);
+
   return (
     <ProductDetailClientView
       store={store}
@@ -44,6 +49,7 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
       category={category}
       educationLevel={educationLevel}
       context="marketplace"
+      relatedProducts={relatedProducts}
     />
   );
 }
