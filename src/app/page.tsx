@@ -299,12 +299,12 @@ export default async function Home() {
 
               <div className="relative z-10 grid grid-cols-2 gap-4 lg:w-5/12 w-full">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
-                  <div className="text-3xl font-black text-white mb-1">5.000+</div>
-                  <div className="text-sm font-medium text-blue-200">Lojas Ativas</div>
+                  <div className="text-3xl font-black text-white mb-1">+30</div>
+                  <div className="text-sm font-medium text-blue-200">Lojas Parceiras</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
-                  <div className="text-3xl font-black text-white mb-1">R$ 800K+</div>
-                  <div className="text-sm font-medium text-blue-200">Pagos Mensalmente</div>
+                  <div className="text-3xl font-black text-white mb-1">R$ 6 Mil+</div>
+                  <div className="text-sm font-medium text-blue-200">Em comissões geradas</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center col-span-2">
                   <div className="text-3xl font-black text-white mb-1 flex justify-center items-center gap-2">
