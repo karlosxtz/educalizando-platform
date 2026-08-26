@@ -178,11 +178,15 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
       const { data, error } = await supabase
         .rpc('fuzzy_search_products', { search_term: query, max_results: 5 });
 
+      if (error) {
+        console.error('Erro detalhado RPC:', error);
+      }
+
       if (!error && data) {
         return data as Pick<Product, 'titulo'>[];
       }
     } catch (err) {
-      console.error('[quickSearch] Erro no Supabase:', err);
+      console.error('[quickSearch] Exceção na chamada Supabase:', err);
     }
   }
 
