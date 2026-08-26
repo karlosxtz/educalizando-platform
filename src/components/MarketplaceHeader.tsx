@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Search } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
@@ -6,7 +9,13 @@ import { useCart } from '@/components/store/CartContext';
 
 export default function MarketplaceHeader() {
   const { items } = useCart();
-  const cartItemsCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
     <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100 transition-all py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
