@@ -57,8 +57,8 @@ export default function ProductCard({ product }: { product: Product & { store?: 
           <span className={`text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
             {priceDisplay}
           </span>
-          <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm group-hover:bg-blue-700 transition-colors">
-            Ver Material
+          <span className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm group-hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+            Comprar
           </span>
         </div>
       </div>

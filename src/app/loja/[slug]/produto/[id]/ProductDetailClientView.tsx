@@ -100,6 +100,39 @@ export default function ProductDetailClientView({
     }
   };
 
+  // FLUXO DE ADICIONAR AO CARRINHO (Sem Redirecionar)
+  const handleAddOnly = async () => {
+    setIsBuying(true);
+    try {
+      addToCart({
+        productId: product.id,
+        title: product.titulo,
+        price: currentPrice,
+        isPlr: !!isPlrPurchase,
+        storeId: store.id,
+        type: product.tipo,
+        imageUrl: product.capa_url || undefined,
+        quantity: 1
+      });
+
+      if (acceptOrderBump && product.order_bump_product) {
+        addToCart({
+          productId: product.order_bump_product.id,
+          title: product.order_bump_product.titulo,
+          price: product.order_bump_product.preco,
+          isPlr: false,
+          storeId: store.id,
+          type: product.order_bump_product.tipo,
+          imageUrl: product.order_bump_product.capa_url || undefined,
+          quantity: 1
+        });
+      }
+      setIsBuying(false);
+    } catch (error) {
+      setIsBuying(false);
+    }
+  };
+
   // FLUXO DE COMPRA RÁPIDA (1-CLICK CHECKOUT STYLE)
   const handleStartCheckout = async () => {
     setIsBuying(true);
@@ -424,23 +457,40 @@ export default function ProductDetailClientView({
                 </div>
               )}
 
-              {/* Primary Call to Action Button */}
-              <button
-                type="button"
-                onClick={handleStartCheckout}
-                disabled={isBuying}
-                className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {isBuying ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
-                    <span className="tracking-wide">Comprar Agora</span>
-                  </>
-                )}
-              </button>
+              {/* Primary Call to Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={handleAddOnly}
+                  disabled={isBuying}
+                  className="w-full py-4 rounded-2xl font-black text-base text-slate-700 bg-slate-100 hover:bg-slate-200 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                >
+                  {isBuying ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-5 h-5" />
+                      <span className="tracking-wide">Adicionar ao Carrinho</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartCheckout}
+                  disabled={isBuying}
+                  className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {isBuying ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
+                      <span className="tracking-wide">Comprar Agora</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               {/* Trust Features Grid */}
               <div className="space-y-3 pt-2 border-t border-slate-100">
@@ -531,22 +581,33 @@ export default function ProductDetailClientView({
           <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Investimento</span>
           <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">R$ {currentPrice.toFixed(2).replace('.', ',')}</span>
         </div>
-        <button
-          type="button"
-          onClick={handleStartCheckout}
-          disabled={isBuying}
-          className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 min-h-[44px]"
-          style={{ backgroundColor: primaryColor }}
-        >
-          {isBuying ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              <Zap className="w-4 h-4 fill-transparent" />
-              <span className="tracking-wide">Comprar Agora</span>
-            </>
-          )}
-        </button>
+        <div className="flex flex-1 gap-2">
+          <button
+            type="button"
+            onClick={handleAddOnly}
+            disabled={isBuying}
+            className="flex-1 py-3 px-2 rounded-xl font-black text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5 min-h-[44px]"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span className="tracking-wide leading-tight text-center">Adicionar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleStartCheckout}
+            disabled={isBuying}
+            className="flex-[1.5] py-3 px-2 rounded-xl font-black text-xs sm:text-sm text-white shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 min-h-[44px]"
+            style={{ backgroundColor: primaryColor }}
+          >
+            {isBuying ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Zap className="w-4 h-4 fill-transparent" />
+                <span className="tracking-wide leading-tight text-center">Comprar Agora</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
     </div>
