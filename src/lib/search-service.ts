@@ -40,9 +40,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         .eq('status', 'publicado')
         .is('excluido_em', null);
 
-      // 1. Text Search (Inteligente com suporte a plural/singular)
+      // 1. Busca Flexível (Fragmentos via ILIKE)
       if (filters.q) {
-        query = query.textSearch('titulo', filters.q, { type: 'websearch', config: 'portuguese' });
+        query = query.ilike('titulo', `%${filters.q}%`);
       }
 
       // 2. Categoria
