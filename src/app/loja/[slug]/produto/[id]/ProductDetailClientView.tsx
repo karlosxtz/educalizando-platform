@@ -452,11 +452,11 @@ export default function ProductDetailClientView({
                     </div>
                   </div>
                   {product.order_bump_product.capa_url && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 w-14 sm:w-16">
                       <img 
                         src={product.order_bump_product.capa_url} 
                         alt={product.order_bump_product.titulo}
-                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl shadow-sm border border-slate-200"
+                        className="w-full aspect-[3/4] object-cover rounded-xl shadow-sm border border-slate-200"
                       />
                     </div>
                   )}
