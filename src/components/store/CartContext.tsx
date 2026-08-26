@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   CartItem,
+  getCart,
   getCartByStore,
   addToCart as _addToCart,
   removeFromCart as _removeFromCart,
@@ -16,7 +17,7 @@ interface CartContextType {
   total: number;
   itemCount: number;
   isOpen: boolean;
-  storeId: string;
+  storeId?: string;
   setIsOpen: (isOpen: boolean) => void;
   toggleCart: () => void;
   addToCart: (item: Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }) => void;
@@ -27,13 +28,17 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children, storeId }: { children: ReactNode; storeId: string }) {
+export function CartProvider({ children, storeId }: { children: ReactNode; storeId?: string }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
   // Sincroniza o estado do React com o LocalStorage
   const syncCart = () => {
-    setItems(getCartByStore(storeId));
+    if (storeId) {
+      setItems(getCartByStore(storeId));
+    } else {
+      setItems(getCart());
+    }
   };
 
   useEffect(() => {
@@ -71,9 +76,14 @@ export function CartProvider({ children, storeId }: { children: ReactNode; store
   };
 
   const clearCart = () => {
-    // Remover todos os itens DESTA loja
-    const currentStoreItems = getCartByStore(storeId);
-    currentStoreItems.forEach(item => _removeFromCart(item.id));
+    if (storeId) {
+      // Remover todos os itens DESTA loja
+      const currentStoreItems = getCartByStore(storeId);
+      currentStoreItems.forEach(item => _removeFromCart(item.id));
+    } else {
+      // Limpa tudo (modo global)
+      _clearCart();
+    }
     syncCart();
   };
 
