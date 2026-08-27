@@ -90,7 +90,7 @@ export default async function Home() {
               <StoreIcon className="w-6 h-6 text-blue-600" />
               Nossas Lojas Parceiras
             </h2>
-            <Link href="/buscar?filter=stores" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
+            <Link href="/lojas" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
               Ver Todas <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
