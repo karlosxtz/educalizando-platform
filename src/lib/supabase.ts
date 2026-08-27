@@ -358,7 +358,7 @@ export async function resetPasswordForEmail(email: string) {
   if (isRealSupabaseConfigured()) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${siteUrl}/login?reset=true`
+      redirectTo: `${siteUrl}/redefinir-senha`
     });
     if (error) throw new Error(error.message);
   } else {
