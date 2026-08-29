@@ -28,10 +28,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
     router.push('/login');
   };
 
-  const handleLogout = async () => {
-    await signOutUser();
-    router.push('/login');
-  };
+
 
   const storeSlug = store?.slug || 'prof-ricardo';
   const storeName = store?.nome_loja || 'Prof. Ricardo Silva';
