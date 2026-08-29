@@ -58,6 +58,16 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   });
   const [finalPrice, setFinalPrice] = useState<number>(basePrice);
 
+  useEffect(() => {
+    const newBasePrice = product
+      ? (isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco)
+      : cartTotal;
+    setBasePrice(newBasePrice);
+    setFinalPrice(newBasePrice);
+    // Nota: Se houver um cupom já aplicado e o carrinho mudar, o usuário precisará reaplicar o cupom, 
+    // o que é um comportamento padrão de segurança em e-commerces.
+  }, [cartTotal, product, isPlrPurchase]);
+
   // Form State
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
