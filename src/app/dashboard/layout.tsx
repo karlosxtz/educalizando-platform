@@ -158,7 +158,6 @@ export default function DashboardLayout({
             storeId={store?.id}
             creatorName={store?.nome_loja || creatorName || 'Minha Loja'}
             creatorEmail={creatorEmail}
-            hasAffiliateRole={roles ? canAccessAffiliateCenter(roles) : false}
           />
         )}
       </div>
