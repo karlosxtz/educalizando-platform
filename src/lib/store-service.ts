@@ -1109,14 +1109,14 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50): Promi
 let _cachedAdminId: string | null | undefined = undefined;
 
 async function getAdminUserId(): Promise<string | null> {
-  if (_cachedAdminId !== undefined) return _cachedAdminId;
+  if (_cachedAdminId !== undefined) return _cachedAdminId ?? null;
   const adminEmail = process.env.NEXT_PUBLIC_SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
   try {
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+    const { data, error } = await supabase.auth.admin.listUsers();
     if (!error && data?.users) {
-      const adminUser = data.users.find(u => u.email?.toLowerCase() === adminEmail.toLowerCase());
+      const adminUser = data.users.find((u: any) => u.email?.toLowerCase() === adminEmail.toLowerCase());
       _cachedAdminId = adminUser ? adminUser.id : null;
-      return _cachedAdminId;
+      return _cachedAdminId ?? null;
     }
   } catch (err) {
     console.error('[getAdminUserId] Erro ao buscar admin:', err);
