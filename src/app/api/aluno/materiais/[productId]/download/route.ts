@@ -42,7 +42,7 @@ export async function GET(
 
       if (!hasAccess) {
         console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
-        // return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
+        return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
       }
     }
 
