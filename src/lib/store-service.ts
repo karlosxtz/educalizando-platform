@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from './supabase';
+import { supabase } from './supabase';
 import { Store, Product } from './types';
 
 // Store Padrão de Exemplo para Fallback Offline
@@ -97,8 +97,8 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
 
   if (isRealSupabase) {
     try {
-      // Use supabaseAdmin to bypass RLS on server-side (public store page)
-      const { data, error } = await supabaseAdmin
+      // Use supabase to respect RLS
+      const { data, error } = await supabase
         .from('stores')
         .select('*')
         .eq('slug', slug)
@@ -136,7 +136,7 @@ export async function getStoreById(storeId: string): Promise<Store | null> {
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from('stores')
         .select('*')
         .eq('id', cleanId)
@@ -434,8 +434,8 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
 
   try {
     // --- Step 1: Use strictly the requested store ID ---
-    // Use supabaseAdmin to bypass RLS for server-side public reads
-    const db = supabaseAdmin;
+    // Use supabase for public reads (RLS must allow public reads)
+    const db = supabase;
     const validStoreId = cleanStoreId;
 
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(validStoreId)) {
@@ -652,7 +652,12 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 export async function updateProduct(productId: string, updates: Partial<Product>): Promise<Product> {
   const payload = cleanProductPayload(updates);
 
-  try {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
     let token = '';
     if (typeof window !== 'undefined') {
       const rawSession = localStorage.getItem('educalizando_creator_session');
@@ -671,52 +676,36 @@ export async function updateProduct(productId: string, updates: Partial<Product>
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch('/api/produtos', {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({ id: productId, updates: payload })
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result.success && result.product) {
-        const products = getLocalProducts();
-        const idx = products.findIndex(p => p.id === productId);
-        if (idx >= 0) products[idx] = result.product as Product;
-        else products.unshift(result.product as Product);
-        saveLocalProducts(products);
-        return result.product as Product;
-      }
-    }
-  } catch (err: any) {
-    console.warn('[updateProduct] Tentando atualização direta via Supabase client...', err);
-  }
-
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
-  if (isRealSupabase) {
+    let res: Response;
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .update(payload)
-        .eq('id', productId)
-        .select()
-        .single();
-
-      if (!error && data) {
-        const products = getLocalProducts();
-        const idx = products.findIndex(p => p.id === productId);
-        if (idx >= 0) products[idx] = data as Product;
-        else products.unshift(data as Product);
-        saveLocalProducts(products);
-        return data as Product;
-      }
-    } catch (err) {
-      console.warn('[updateProduct] Supabase update notice:', err);
+      res = await fetch('/api/produtos', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ id: productId, updates: payload })
+      });
+    } catch (networkErr: any) {
+      throw new Error(`Falha de rede ao atualizar produto: ${networkErr.message}.`);
     }
+
+    const result = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errMsg = result?.error || `Erro ${res.status} ao atualizar produto no servidor.`;
+      console.error('[updateProduct] Erro retornado pela API:', errMsg);
+      throw new Error(errMsg);
+    }
+
+    if (!result?.success || !result?.product) {
+      throw new Error('O servidor não retornou os dados atualizados.');
+    }
+
+    const created = result.product as Product;
+    const products = getLocalProducts();
+    const idx = products.findIndex(p => p.id === productId);
+    if (idx >= 0) products[idx] = created;
+    else products.unshift(created);
+    saveLocalProducts(products);
+    return created;
   }
 
   // Fallback Local
