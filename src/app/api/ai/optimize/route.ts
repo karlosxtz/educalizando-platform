@@ -1,9 +1,11 @@
+export const runtime = 'edge';
+
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   try {
-    const { titulo, descricao, storeId } = await req.json();
+    const { titulo, descricao, storeId, field } = await req.json();
 
     if (!storeId || !titulo) {
       return NextResponse.json({ error: 'Faltam parâmetros obrigatórios.' }, { status: 400 });
@@ -23,12 +25,13 @@ export async function POST(req: Request) {
     const apiKey = storeData.google_ai_key;
     const cleanApiKey = apiKey.trim().replace(/['"]/g, '');
 
+    const target = field === 'titulo' ? 'título' : 'descrição';
     const prompt = `Atue como um especialista em SEO para infoprodutos educacionais. 
 Eu tenho um material com o seguinte título: "${titulo}" e descrição atual: "${descricao || ''}".
-Por favor, otimize o título para ser mais atrativo e claro, e melhore a descrição para vender mais, focando nos benefícios.
-Retorne um JSON estrito com as chaves "titulo" e "descricao". Nenhuma outra formatação, apenas o JSON puro, sem crases de markdown.`;
+Por favor, otimize APENAS o ${target} para ser mais atrativo e focado em conversão.
+Retorne EXCLUSIVAMENTE o texto puro do ${target} otimizado. Não use markdown, não use JSON, apenas o texto final.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${cleanApiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${cleanApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -39,20 +42,12 @@ Retorne um JSON estrito com as chaves "titulo" e "descricao". Nenhuma outra form
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[AI Debug] Erro da API Gemini:', errorText);
-      throw new Error(`Erro Gemini: ${response.status} - ${errorText}`);
+      return NextResponse.json({ error: `Erro Gemini: ${response.status} - ${errorText}` }, { status: response.status });
     }
 
-    const result = await response.json();
-    const textResponse = result.candidates[0].content.parts[0].text;
-    
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-       throw new Error('Formato de resposta inválido da IA.');
-    }
-    
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    return NextResponse.json(parsed);
+    return new Response(response.body, {
+      headers: { 'Content-Type': 'text/event-stream' },
+    });
 
   } catch (err: any) {
     console.error(err);

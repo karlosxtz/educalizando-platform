@@ -92,15 +92,47 @@ function KitWizardContent() {
         body: JSON.stringify({
           titulo: field === 'titulo' ? titulo : (titulo || 'Kit de Produtos'),
           descricao: field === 'descricao' ? descricao : (descricao || ''),
-          storeId: store.id
+          storeId: store.id,
+          field
         })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao otimizar com IA.');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Erro ao otimizar com IA.');
+      }
 
-      if (field === 'titulo') setTitulo(data.titulo || titulo);
-      if (field === 'descricao') setDescricao(data.descricao || descricao);
+      if (!res.body) throw new Error('Falha ao iniciar leitura de stream.');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedText = '';
+
+      if (field === 'titulo') setTitulo('');
+      if (field === 'descricao') setDescricao('');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              streamedText += textPart;
+              if (field === 'titulo') setTitulo(streamedText);
+              if (field === 'descricao') setDescricao(streamedText);
+            } catch (e) {
+              // ignore partial JSON parse errors
+            }
+          }
+        }
+      }
       
       toast.success(`${field === 'titulo' ? 'Título' : 'Descrição'} otimizado com sucesso!`, { id: loadingToast });
     } catch (err: any) {
