@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useCart } from '@/components/store/CartContext';
 export default function ProductCard({ product }: { product: Product & { store?: Store } }) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const [imageError, setImageError] = useState(false);
 
   const itemTitle = product.titulo || 'Material Didático';
   const itemCover = product.capa_url || null;
@@ -60,8 +62,13 @@ export default function ProductCard({ product }: { product: Product & { store?: 
     <div className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
       {/* Imagem (Capa) */}
       <Link href={productLink} className="aspect-[4/3] sm:aspect-square w-full bg-slate-100 relative overflow-hidden block">
-        {itemCover ? (
-          <img src={itemCover} alt={itemTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        {itemCover && !imageError ? (
+          <img 
+            src={itemCover} 
+            alt={itemTitle} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            onError={() => setImageError(true)}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
             <BookOpen className="w-12 h-12" />
