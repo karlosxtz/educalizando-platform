@@ -26,7 +26,7 @@ Eu tenho um material com o seguinte título: "${titulo}" e descrição atual: "$
 Por favor, otimize o título para ser mais atrativo e claro, e melhore a descrição para vender mais, focando nos benefícios.
 Retorne um JSON estrito com as chaves "titulo" e "descricao". Nenhuma outra formatação, apenas o JSON puro, sem crases de markdown.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
