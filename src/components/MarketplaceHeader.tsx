@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, Search } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
@@ -9,7 +10,11 @@ import { useCart } from '@/components/store/CartContext';
 
 export default function MarketplaceHeader() {
   const { items, toggleCart } = useCart();
+  const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
+
+  const currentCategoria = searchParams?.get('categoria');
+  const currentSort = searchParams?.get('sort');
 
   useEffect(() => {
     setIsMounted(true);
@@ -97,16 +102,28 @@ export default function MarketplaceHeader() {
 
             {/* Direita: Pills Elegantes */}
             <div className="flex items-center gap-2 overflow-x-auto hide-scroll-bar">
-              <Link href="/buscar?filter=mais-vendidos" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+              <Link 
+                href="/buscar?sort=relevancia" 
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentSort === 'relevancia' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+              >
                 🔥 Mais Vendidos
               </Link>
-              <Link href="/buscar?cat=fundamental" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+              <Link 
+                href="/buscar?categoria=ensino-fundamental" 
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'ensino-fundamental' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+              >
                 🎒 Ensino Fundamental
               </Link>
-              <Link href="/buscar?cat=recursos-ludicos" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+              <Link 
+                href="/buscar?categoria=recursos-ludicos" 
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'recursos-ludicos' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+              >
                 🧩 Recursos Lúdicos
               </Link>
-              <Link href="/buscar?filter=revenda" className="whitespace-nowrap bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-blue-100 transition-colors">
+              <Link 
+                href="/buscar?categoria=revenda-autorizada" 
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'revenda-autorizada' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+              >
                 💼 Revenda Autorizada
               </Link>
             </div>
