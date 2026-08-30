@@ -217,7 +217,7 @@ export default function IAConfigPage() {
               <Wand2 className="w-4 h-4 text-purple-600" /> Qual material você quer vender hoje?
             </h3>
             
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col gap-4">
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
