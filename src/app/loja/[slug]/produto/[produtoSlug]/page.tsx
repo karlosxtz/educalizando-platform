@@ -7,21 +7,21 @@ import ProductDetailClientView from './ProductDetailClientView';
 interface ProductDetailPageProps {
   params: Promise<{
     slug: string;
-    id: string;
+    produtoSlug: string;
   }>;
 }
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
-  const { id, slug } = await params;
+  const { produtoSlug, slug } = await params;
   
-  let product = await getProductById(id);
+  let product = await getProductById(produtoSlug);
   const store = await getStoreBySlug(slug);
 
   if (!product && store) {
     const { getPublicProductsByStoreId } = await import('@/lib/store-service');
     const storeProducts = await getPublicProductsByStoreId(store.id);
-    const cleanId = id.replace(/^prod_/i, '');
-    product = storeProducts.find(p => p.id === id || p.id === cleanId || p.id === `prod_${cleanId}`) || null;
+    const cleanId = produtoSlug.replace(/^prod_/i, '');
+    product = storeProducts.find(p => p.id === produtoSlug || p.id === cleanId || p.id === `prod_${cleanId}` || p.slug === produtoSlug) || null;
   }
   
   if (!product) {
@@ -50,19 +50,19 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { slug, id } = await params;
+  const { slug, produtoSlug } = await params;
 
   const store = await getStoreBySlug(slug);
   if (!store) {
     notFound();
   }
 
-  let product = await getProductById(id);
+  let product = await getProductById(produtoSlug);
   if (!product) {
     const { getPublicProductsByStoreId } = await import('@/lib/store-service');
     const storeProducts = await getPublicProductsByStoreId(store.id);
-    const cleanId = id.replace(/^prod_/i, '');
-    product = storeProducts.find(p => p.id === id || p.id === cleanId || p.id === `prod_${cleanId}`) || null;
+    const cleanId = produtoSlug.replace(/^prod_/i, '');
+    product = storeProducts.find(p => p.id === produtoSlug || p.id === cleanId || p.id === `prod_${cleanId}` || p.slug === produtoSlug) || null;
   }
 
   if (!product) {

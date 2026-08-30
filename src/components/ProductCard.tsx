@@ -36,7 +36,7 @@ export default function ProductCard({ product }: { product: Product & { store?: 
 
   const storeSlug = product.store?.slug || product.store_id;
   // Target link
-  const productLink = `/produto/${product.id}`;
+  const productLink = `/produto/${product.slug || product.id}`;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();

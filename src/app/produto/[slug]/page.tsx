@@ -2,19 +2,19 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
-import ProductDetailClientView from '../../loja/[slug]/produto/[id]/ProductDetailClientView';
+import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
 
 interface GlobalProductDetailPageProps {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 }
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 
 export async function generateMetadata({ params }: GlobalProductDetailPageProps): Promise<Metadata> {
-  const { id } = await params;
-  const product = await getProductById(id);
+  const { slug } = await params;
+  const product = await getProductById(slug);
   
   if (!product) {
     return { title: 'Produto não encontrado | Educalizando' };
@@ -43,9 +43,9 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
 }
 
 export default async function GlobalProductDetailPage({ params }: GlobalProductDetailPageProps) {
-  const { id } = await params;
+  const { slug } = await params;
 
-  let product = await getProductById(id);
+  let product = await getProductById(slug);
   if (!product) {
     notFound();
   }
