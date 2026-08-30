@@ -68,21 +68,17 @@ function KitWizardContent() {
     initData();
   }, [editId]);
 
-  const handleOptimizeField = async (field: 'titulo' | 'descricao') => {
+  const handleOptimizeAll = async () => {
     if (!store?.id) {
       toast.error('Loja não configurada.');
       return;
     }
-    if (field === 'titulo' && (!titulo || titulo.length < 3)) {
-      toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
-      return;
-    }
-    if (field === 'descricao' && (!descricao || descricao.length < 10)) {
-      toast.error('Digite pelo menos 10 caracteres na descrição para que a IA possa otimizá-la.');
+    if (!titulo || titulo.length < 10) {
+      toast.error('Digite pelo menos 10 caracteres no título para que a IA possa gerar o material.');
       return;
     }
 
-    const loadingToast = toast.loading(`A IA está otimizando seu ${field}...`);
+    const loadingToast = toast.loading('A IA está gerando o kit mágico...');
     try {
       // In Kits, we inform the AI it's a kit/bundle context by modifying the payload slightly if needed,
       // but the API is generic enough. We just ensure we send the current values.
@@ -90,10 +86,8 @@ function KitWizardContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          titulo: field === 'titulo' ? titulo : (titulo || 'Kit de Produtos'),
-          descricao: field === 'descricao' ? descricao : (descricao || ''),
-          storeId: store.id,
-          field
+          titulo: titulo + " (Kit/Combo de Produtos)",
+          storeId: store.id
         })
       });
 
@@ -108,8 +102,8 @@ function KitWizardContent() {
       const decoder = new TextDecoder();
       let streamedText = '';
 
-      if (field === 'titulo') setTitulo('');
-      if (field === 'descricao') setDescricao('');
+      setTitulo('');
+      setDescricao('');
 
       while (true) {
         const { done, value } = await reader.read();
@@ -125,8 +119,13 @@ function KitWizardContent() {
               const parsed = JSON.parse(dataStr);
               const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
               streamedText += textPart;
-              if (field === 'titulo') setTitulo(streamedText);
-              if (field === 'descricao') setDescricao(streamedText);
+              
+              // Extração progressiva com Regex
+              const titleMatch = streamedText.match(/\[TITULO\]([\s\S]*?)(\[DESCRICAO\]|$)/);
+              const descMatch = streamedText.match(/\[DESCRICAO\]([\s\S]*)/);
+              
+              if (titleMatch) setTitulo(titleMatch[1].trimStart());
+              if (descMatch) setDescricao(descMatch[1].trimStart());
             } catch (e) {
               // ignore partial JSON parse errors
             }
@@ -134,7 +133,7 @@ function KitWizardContent() {
         }
       }
       
-      toast.success(`${field === 'titulo' ? 'Título' : 'Descrição'} otimizado com sucesso!`, { id: loadingToast });
+      toast.success(`Kit gerado com sucesso!`, { id: loadingToast });
     } catch (err: any) {
       toast.error(err.message, { id: loadingToast });
     }
@@ -329,8 +328,8 @@ function KitWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Título do Kit / Combo *
                     </label>
-                    <button type="button" onClick={() => handleOptimizeField('titulo')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
-                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    <button type="button" onClick={handleOptimizeAll} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Gerar com IA
                     </button>
                   </div>
                   <input
@@ -347,9 +346,6 @@ function KitWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Descrição Detalhada do Combo
                     </label>
-                    <button type="button" onClick={() => handleOptimizeField('descricao')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
-                      <Sparkles className="w-4 h-4"/> Otimizar com IA
-                    </button>
                   </div>
                   <textarea
                     rows={4}

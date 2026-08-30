@@ -25,11 +25,16 @@ export async function POST(req: Request) {
     const apiKey = storeData.google_ai_key;
     const cleanApiKey = apiKey.trim().replace(/['"]/g, '');
 
-    const target = field === 'titulo' ? 'título' : 'descrição';
     const prompt = `Atue como um especialista em SEO para infoprodutos educacionais. 
-Eu tenho um material com o seguinte título: "${titulo}" e descrição atual: "${descricao || ''}".
-Por favor, otimize APENAS o ${target} para ser mais atrativo e focado em conversão.
-Retorne EXCLUSIVAMENTE o texto puro do ${target} otimizado. Não use markdown, não use JSON, apenas o texto final.`;
+Eu tenho um material com o seguinte título base: "${titulo}".
+Por favor, gere uma resposta contendo estritamente o seguinte formato de texto puro delimitado:
+
+[TITULO]
+(Título otimizado e atrativo para educadores)
+[DESCRICAO]
+(Descrição detalhada, comercial e pedagógica, deixando claro o que o aluno vai receber e estruturada para o criador apenas ajustar o número de páginas)
+
+Não use markdown, não use JSON. Siga estritamente o formato delimitado.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${cleanApiKey}`, {
       method: 'POST',

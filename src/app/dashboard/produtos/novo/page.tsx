@@ -131,30 +131,24 @@ function ProductWizardContent() {
     initData();
   }, [editId]);
 
-  const handleOptimizeField = async (field: 'titulo' | 'descricao') => {
+  const handleOptimizeAll = async () => {
     if (!store?.id) {
       toast.error('Loja não configurada.');
       return;
     }
-    if (field === 'titulo' && (!titulo || titulo.length < 3)) {
-      toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
-      return;
-    }
-    if (field === 'descricao' && (!descricao || descricao.length < 10)) {
-      toast.error('Digite pelo menos 10 caracteres na descrição para que a IA possa otimizá-la.');
+    if (!titulo || titulo.length < 10) {
+      toast.error('Digite pelo menos 10 caracteres no título para que a IA possa gerar o material.');
       return;
     }
 
-    const loadingToast = toast.loading(`A IA está otimizando seu ${field}...`);
+    const loadingToast = toast.loading('A IA está gerando o material mágico...');
     try {
       const res = await fetch('/api/ai/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          titulo: field === 'titulo' ? titulo : (titulo || 'Produto'),
-          descricao: field === 'descricao' ? descricao : (descricao || ''),
-          storeId: store.id,
-          field
+          titulo,
+          storeId: store.id
         })
       });
 
@@ -169,20 +163,16 @@ function ProductWizardContent() {
       const decoder = new TextDecoder();
       let streamedText = '';
 
-      if (field === 'titulo') setTitulo('');
-      if (field === 'descricao') setDescricao('');
+      setTitulo('');
+      setDescricao('');
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         
-        // Extrai texto progressivo (Google API format SSE pode precisar de parse, mas para SSE cru vamos tentar pegar o textResponse ou apenas decode se for puramente SSE do next, mas Google SSE envia JSONs)
         const chunk = decoder.decode(value, { stream: true });
-        
-        // Gemini stream returns chunks of JSON. We need to parse them.
-        // A simple way is to match "text": "..." within the chunk.
-        // The SSE format is: data: {"candidates": [{"content": {"parts": [{"text": "Hello"}]}}]}
         const lines = chunk.split('\n');
+        
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6);
@@ -191,16 +181,22 @@ function ProductWizardContent() {
               const parsed = JSON.parse(dataStr);
               const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
               streamedText += textPart;
-              if (field === 'titulo') setTitulo(streamedText);
-              if (field === 'descricao') setDescricao(streamedText);
+              
+              // Extração progressiva com Regex
+              const titleMatch = streamedText.match(/\[TITULO\]([\s\S]*?)(\[DESCRICAO\]|$)/);
+              const descMatch = streamedText.match(/\[DESCRICAO\]([\s\S]*)/);
+              
+              if (titleMatch) setTitulo(titleMatch[1].trimStart());
+              if (descMatch) setDescricao(descMatch[1].trimStart());
+              
             } catch (e) {
-              // ignore partial JSON parse errors if chunk is broken
+              // ignore partial JSON parse errors
             }
           }
         }
       }
       
-      toast.success(`${field === 'titulo' ? 'Título' : 'Descrição'} otimizado com sucesso!`, { id: loadingToast });
+      toast.success(`Material gerado com sucesso!`, { id: loadingToast });
     } catch (err: any) {
       toast.error(err.message, { id: loadingToast });
     }
@@ -421,8 +417,8 @@ function ProductWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Título do Material Didático *
                     </label>
-                    <button type="button" onClick={() => handleOptimizeField('titulo')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
-                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    <button type="button" onClick={handleOptimizeAll} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Gerar com IA
                     </button>
                   </div>
                   <input
@@ -439,9 +435,6 @@ function ProductWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Descrição Detalhada & O que o aluno vai receber
                     </label>
-                    <button type="button" onClick={() => handleOptimizeField('descricao')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
-                      <Sparkles className="w-4 h-4"/> Otimizar com IA
-                    </button>
                   </div>
                   <textarea
                     rows={4}
