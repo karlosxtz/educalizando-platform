@@ -471,20 +471,48 @@ export default function ProductDetailClientView({
                 </button>
               </div>
 
-              {/* Trust Features Grid */}
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center gap-3 text-xs text-slate-600 font-bold">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-100">
-                    <Zap className="w-4 h-4 fill-emerald-600" />
+              {/* Quick Specs Block (Alta Conversão) */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-slate-200 text-slate-600 shadow-sm">
+                    {getTipoIcon(product.tipo)}
                   </div>
-                  <span>Acesso Imediato na Conta</span>
+                  <div className="flex flex-col pt-0.5">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Formato</span>
+                    <span className="text-sm font-bold text-slate-800">{product.tipo.toUpperCase()} (Pronto para Uso)</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs text-slate-600 font-bold">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 border border-blue-100">
-                    <Lock className="w-4 h-4" />
+                {educationLevel && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-slate-200 text-slate-600 shadow-sm">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col pt-0.5">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Público</span>
+                      <span className="text-sm font-bold text-slate-800">{educationLevel.nome}</span>
+                    </div>
                   </div>
-                  <span>Pagamento 100% Seguro</span>
+                )}
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 border border-emerald-100 text-emerald-600 shadow-sm">
+                    <Zap className="w-4 h-4 fill-emerald-600" />
+                  </div>
+                  <div className="flex flex-col pt-0.5">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Entrega</span>
+                    <span className="text-sm font-bold text-slate-800">Download imediato após pagamento</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100 text-blue-600 shadow-sm">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col pt-0.5">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Garantia</span>
+                    <span className="text-sm font-bold text-slate-800">Acesso vitalício na plataforma</span>
+                  </div>
                 </div>
               </div>
             </div>
