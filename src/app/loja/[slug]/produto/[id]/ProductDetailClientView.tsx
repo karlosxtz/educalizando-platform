@@ -354,17 +354,23 @@ export default function ProductDetailClientView({
 
                 {/* Social Proof (Stars) */}
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center text-amber-400">
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <Star className="w-4 h-4 fill-amber-400" />
-                    <Star className="w-4 h-4 fill-amber-400" />
-                  </div>
-                  <span className="text-sm font-bold text-slate-700">5.0</span>
-                  <span className="text-xs text-slate-500 font-medium underline decoration-slate-300 underline-offset-2 cursor-pointer hover:text-slate-700">
-                    ({reviews.length > 0 ? reviews.length : 24} avaliações)
-                  </span>
+                  {reviews.length > 0 ? (
+                    <>
+                      <div className="flex items-center text-amber-400">
+                        <Star className="w-4 h-4 fill-amber-400" />
+                        <span className="ml-1 text-sm font-bold text-slate-700">
+                          {(reviews.reduce((acc, rev) => acc + (rev.nota || 5), 0) / reviews.length).toFixed(1)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-500 font-medium underline decoration-slate-300 underline-offset-2 cursor-pointer hover:text-slate-700">
+                        ({reviews.length} avaliaç{reviews.length === 1 ? 'ão' : 'ões'})
+                      </span>
+                    </>
+                  ) : (
+                    <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> Lançamento
+                    </span>
+                  )}
                 </div>
               </div>
               
