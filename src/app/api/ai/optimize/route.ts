@@ -30,12 +30,14 @@ Retorne um JSON estrito com as chaves "titulo" e "descricao". Nenhuma outra form
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: [{ parts: [{ text: prompt }] }],
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Falha ao comunicar com a API do Gemini');
+      const errorText = await response.text();
+      console.error('Erro da API Gemini:', errorText);
+      throw new Error(`Erro Gemini: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
