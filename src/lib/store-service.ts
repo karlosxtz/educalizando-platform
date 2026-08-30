@@ -1118,7 +1118,7 @@ export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[
       let query = supabase
         .from('stores')
         .select('*')
-        .neq('slug', 'educalizando')
+        .neq('slug', 'eduardoadmin')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -1149,7 +1149,7 @@ export async function getAllPublicStores(): Promise<Store[]> {
       let query = supabase
         .from('stores')
         .select('id, nome_loja, slug, descricao, logo_url, banner_url, created_at')
-        .neq('slug', 'educalizando')
+        .neq('slug', 'eduardoadmin')
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
