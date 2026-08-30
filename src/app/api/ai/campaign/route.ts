@@ -33,7 +33,7 @@ Preciso de duas opções separadas:
 2. Uma legenda de Instagram com uma sugestão de enquete para o Stories e 5 a 10 hashtags.
 Separe claramente as seções usando "--- WHATSAPP ---" e "--- INSTAGRAM ---". Retorne apenas o texto final.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
