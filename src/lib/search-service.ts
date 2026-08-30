@@ -48,9 +48,16 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
       // 2. Categoria
       if (filters.categoria) {
-        const categoryObj = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === filters.categoria);
-        if (categoryObj) {
-          query = query.eq('category_id', categoryObj.id);
+        const { data: cat } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', filters.categoria)
+          .single();
+          
+        if (cat) {
+          query = query.eq('category_id', cat.id);
+        } else {
+          query = query.eq('category_id', '00000000-0000-0000-0000-000000000000'); // Força zero resultados
         }
       }
 
