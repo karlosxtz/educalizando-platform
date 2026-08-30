@@ -77,6 +77,7 @@ export interface Product {
   id: string;
   store_id: string;
   titulo: string;
+  slug?: string | null;
   descricao: string | null;
   tipo: ProductType;
   preco: number;

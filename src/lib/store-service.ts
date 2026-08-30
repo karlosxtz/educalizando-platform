@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { Store, Product } from './types';
+import { generateSlug } from './string-utils';
 
 // Store Padrão de Exemplo para Fallback Offline
 export const DEFAULT_MOCK_STORE: Store = {
@@ -581,6 +582,9 @@ function cleanProductPayload<T extends Record<string, any>>(data: T): T {
 // 6. Criar Novo Produto (Persiste diretamente no Supabase via backend API /api/produtos)
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
   let payload = cleanProductPayload(productData);
+  if (payload.titulo) {
+    payload.slug = generateSlug(payload.titulo);
+  }
 
   // Validação antecipada: store_id deve ser um UUID válido
   if (!payload.store_id || !isValidUUID(payload.store_id)) {
@@ -651,6 +655,9 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 // 7. Atualizar Produto
 export async function updateProduct(productId: string, updates: Partial<Product>): Promise<Product> {
   const payload = cleanProductPayload(updates);
+  if (payload.titulo) {
+    payload.slug = generateSlug(payload.titulo);
+  }
 
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
