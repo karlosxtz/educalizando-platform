@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, Search } from 'lucide-react';
@@ -9,6 +9,14 @@ import SearchBar from './SearchBar';
 import { useCart } from '@/components/store/CartContext';
 
 export default function MarketplaceHeader() {
+  return (
+    <Suspense fallback={<div className="h-[73px] w-full bg-white border-b border-slate-100 flex items-center justify-center text-slate-400 text-sm font-semibold">Carregando menu...</div>}>
+      <MarketplaceHeaderInner />
+    </Suspense>
+  );
+}
+
+function MarketplaceHeaderInner() {
   const { items, toggleCart } = useCart();
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
