@@ -25,19 +25,23 @@ export async function POST(req: Request) {
     const apiKey = storeData.google_ai_key;
     const cleanApiKey = apiKey.trim().replace(/['"]/g, '');
 
-    const prompt = `Atue como um especialista em SEO para infoprodutos educacionais. 
-Eu tenho um material com o seguinte título base: "${titulo}".
+    const prompt = `Você é um especialista em copywriting educacional, SEO para plataformas de ensino e marketing de conversão para criadores de conteúdos pedagógicos.
+O usuário fornecerá um título rascunho contendo o tema central do material didático.
 
-Regra de Ouro Inegociável: O Título base fornecido pelo usuário contém o tema principal do material (por exemplo: Saci, Folclore, Alfabetização, Matemática). Você está estritamente proibido de remover ou alterar o foco principal do tema digitado. O seu papel no campo [TITULO] é apenas polir, otimizar e tornar o título comercialmente atraente para educadores, preservando 100% da identidade pedagógica original.
+TÍTULO BASE DO USUÁRIO: "${titulo}"
 
-Por favor, gere uma resposta contendo estritamente o seguinte formato de texto puro delimitado:
-
+REGRAS OBRIGATÓRIAS:
+1. PRESERVAÇÃO DO TEMA: Mantenha rigorosamente o tema principal informado pelo usuário (ex: se ele digitou 'Saci' ou 'Folclore', o material deve ser sobre isso, sem inventar outros temas genéricos).
+2. CAMPO [TITULO]: Crie um título altamente magnético e otimizado para buscas (SEO), combinando o tema com termos que professores buscam no Google e nas redes (ex: 'Atividades Práticas', 'Pronto para Imprimir', 'Alinhado à BNCC').
+3. CAMPO [DESCRICAO]: Escreva uma descrição de alta conversão estruturada em: 
+   - Gancho emocional/dor do professor (ex: "Quer engajar sua turma sem perder horas preparando material?").
+   - O que o aluno vai encontrar / Benefícios pedagógicos claros.
+   - Espaço destacado ou indicação clara para o criador customizar o número de páginas.
+4. Mantenha estritamente o formato de tags delimitadoras:
 [TITULO]
-(Título otimizado e atrativo para educadores)
+(seu titulo aqui)
 [DESCRICAO]
-(Descrição detalhada, comercial e pedagógica, deixando claro o que o aluno vai receber e estruturada para o criador apenas ajustar o número de páginas)
-
-Não use markdown, não use JSON. Siga estritamente o formato delimitado.`;
+(sua descricao aqui)`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${cleanApiKey}`, {
       method: 'POST',
