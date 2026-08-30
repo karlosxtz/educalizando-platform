@@ -51,35 +51,51 @@ export default function DashboardOverviewPage() {
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-4 sm:p-8 -m-4 sm:-m-8">
       <OnboardingTour />
-      {/* Welcome Banner */}
-      <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden group border border-slate-800">
+      {/* Mural Pedagógico Banner */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="relative z-10 space-y-4 max-w-3xl">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-400">
-            <Sparkles className="w-4 h-4" /> Command Center
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-            Bem-vindo{isFirstVisit ? '' : ' de volta'}, {store?.nome_loja || 'Prof. Ricardo'}!
-          </h1>
-          <p className="text-base text-slate-400 leading-relaxed font-medium">
-            Aqui está o resumo da sua operação digital. Cadastre novos materiais, acompanhe suas vendas via PIX instantâneo e dimensione o seu negócio educacional em tempo real.
-          </p>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-4 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-yellow-300" /> Foco Pedagógico & Engajamento
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+              Dica da Semana: BNCC e Ludicidade
+            </h1>
+            <p className="text-base text-blue-100 leading-relaxed font-medium">
+              Alinhamento de atividades lúdicas com as competências da Base. Utilize o nosso <strong>gerador de IA</strong> para transformar rascunhos de temas sazonais em descrições de alta conversão para outros professores.
+            </p>
 
-          <div className="pt-2 flex flex-wrap gap-3">
-            <Link
-              href="/dashboard/produtos"
-              className="px-5 py-3 rounded-xl font-extrabold text-xs bg-white text-slate-900 hover:bg-slate-100 shadow-md flex items-center gap-2 transition-all"
-            >
-              <Plus className="w-4 h-4" /> Cadastrar Produto
-            </Link>
-            <Link
-              href={`/loja/${store?.slug || 'prof-ricardo'}`}
-              target="_blank"
-              className="px-5 py-3 rounded-xl font-bold text-xs bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center gap-2 transition-all"
-            >
-              <ExternalLink className="w-4 h-4" /> Ver Loja Pública
-            </Link>
+            <div className="pt-4 flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/produtos"
+                className="px-5 py-3 rounded-xl font-extrabold text-xs bg-white text-blue-600 hover:bg-blue-50 shadow-lg flex items-center gap-2 transition-all animate-pulse"
+              >
+                <Plus className="w-4 h-4" /> Cadastrar Novo Material
+              </Link>
+              <Link
+                href="/dashboard/ia"
+                className="px-5 py-3 rounded-xl font-bold text-xs bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center gap-2 transition-all"
+              >
+                <Sparkles className="w-4 h-4" /> Gerador de Campanhas
+              </Link>
+            </div>
+          </div>
+          
+          <div className="hidden lg:flex items-center justify-center bg-white/10 p-6 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner min-w-[200px]">
+             <div className="text-center">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-2">Loja Pública</p>
+                <Link
+                  href={`/loja/${store?.slug || 'prof-ricardo'}`}
+                  target="_blank"
+                  className="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                >
+                  Visualizar <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+             </div>
           </div>
         </div>
       </div>
@@ -182,7 +198,7 @@ export default function DashboardOverviewPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
           whileHover={{ y: -5 }}
-          className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md transition-all"
+          className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md transition-all relative group"
         >
           <div className="flex items-center justify-between text-slate-500 mb-4">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Receita Líquida</span>
@@ -194,7 +210,12 @@ export default function DashboardOverviewPage() {
             <span className="text-3xl font-black text-slate-900">
               R$ {chartTotalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
-            <span className="text-xs font-medium text-slate-400 block mt-1">Repasse automático sem mensalidade</span>
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-xs font-medium text-slate-400">Repasse sem mensalidade</span>
+              <Link href="/dashboard/financeiro" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded-md transition-colors opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                Sacar <ArrowRight className="w-3 h-3"/>
+              </Link>
+            </div>
           </div>
         </motion.div>
 
@@ -230,7 +251,7 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Quick Access Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         <div className="glass-panel glass-panel-hover p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -263,6 +284,24 @@ export default function DashboardOverviewPage() {
             className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700"
           >
             <span>Gerenciar Meus Produtos</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="glass-panel glass-panel-hover p-6 space-y-4 border-purple-100 bg-gradient-to-br from-white to-purple-50/30">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" /> Gerador de Campanhas por IA
+            </h3>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Crie títulos magnéticos, posts de WhatsApp e enquetes para seus materiais usando o Google Gemini.
+          </p>
+          <Link
+            href="/dashboard/ia"
+            className="inline-flex items-center gap-2 text-xs font-bold text-purple-600 hover:text-purple-700"
+          >
+            <span>Criar Campanha Inteligente</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
