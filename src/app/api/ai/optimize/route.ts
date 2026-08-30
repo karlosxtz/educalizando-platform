@@ -27,6 +27,9 @@ export async function POST(req: Request) {
 
     const prompt = `Atue como um especialista em SEO para infoprodutos educacionais. 
 Eu tenho um material com o seguinte título base: "${titulo}".
+
+Regra de Ouro Inegociável: O Título base fornecido pelo usuário contém o tema principal do material (por exemplo: Saci, Folclore, Alfabetização, Matemática). Você está estritamente proibido de remover ou alterar o foco principal do tema digitado. O seu papel no campo [TITULO] é apenas polir, otimizar e tornar o título comercialmente atraente para educadores, preservando 100% da identidade pedagógica original.
+
 Por favor, gere uma resposta contendo estritamente o seguinte formato de texto puro delimitado:
 
 [TITULO]
