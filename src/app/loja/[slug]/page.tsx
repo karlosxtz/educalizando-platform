@@ -55,7 +55,23 @@ export default async function PublicStorePage({ params }: PageProps) {
 
   console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: store.nome_loja,
+    url: `https://educalizando.com.br/loja/${store.slug}`,
+    description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+    ...(store.logo_url ? { logo: store.logo_url } : {}),
+    ...(store.banner_url ? { image: store.banner_url } : {}),
+  };
+
   return (
-    <PublicStoreClientView store={store} initialProducts={products} />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <PublicStoreClientView store={store} initialProducts={products} />
+    </>
   );
 }
