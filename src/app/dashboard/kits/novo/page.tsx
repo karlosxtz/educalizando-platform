@@ -13,6 +13,7 @@ import { getCurrentCreatorStore, getPublicProductsByStoreId } from '@/lib/store-
 import { createKit, updateKit, getKitById } from '@/lib/kit-service';
 import { Product, Store, Kit } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
+import { toast } from 'sonner';
 
 function KitWizardContent() {
   const router = useRouter();
@@ -66,6 +67,46 @@ function KitWizardContent() {
     }
     initData();
   }, [editId]);
+
+  const handleOptimizeField = async (field: 'titulo' | 'descricao') => {
+    if (!store?.id) {
+      toast.error('Loja não configurada.');
+      return;
+    }
+    if (field === 'titulo' && (!titulo || titulo.length < 3)) {
+      toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
+      return;
+    }
+    if (field === 'descricao' && (!descricao || descricao.length < 10)) {
+      toast.error('Digite pelo menos 10 caracteres na descrição para que a IA possa otimizá-la.');
+      return;
+    }
+
+    const loadingToast = toast.loading(`A IA está otimizando seu ${field}...`);
+    try {
+      // In Kits, we inform the AI it's a kit/bundle context by modifying the payload slightly if needed,
+      // but the API is generic enough. We just ensure we send the current values.
+      const res = await fetch('/api/ai/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: field === 'titulo' ? titulo : (titulo || 'Kit de Produtos'),
+          descricao: field === 'descricao' ? descricao : (descricao || ''),
+          storeId: store.id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao otimizar com IA.');
+
+      if (field === 'titulo') setTitulo(data.titulo || titulo);
+      if (field === 'descricao') setDescricao(data.descricao || descricao);
+      
+      toast.success(`${field === 'titulo' ? 'Título' : 'Descrição'} otimizado com sucesso!`, { id: loadingToast });
+    } catch (err: any) {
+      toast.error(err.message, { id: loadingToast });
+    }
+  };
 
   // Dynamic real-time calculation of selected products sum
   const selectedProductsSum = selectedProductIds.reduce((sum, id) => {
@@ -252,9 +293,14 @@ function KitWizardContent() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                    Título do Kit / Combo *
-                  </label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Título do Kit / Combo *
+                    </label>
+                    <button type="button" onClick={() => handleOptimizeField('titulo')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={titulo}
@@ -265,9 +311,14 @@ function KitWizardContent() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                    Descrição Detalhada do Combo
-                  </label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Descrição Detalhada do Combo
+                    </label>
+                    <button type="button" onClick={() => handleOptimizeField('descricao')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    </button>
+                  </div>
                   <textarea
                     rows={4}
                     value={descricao}

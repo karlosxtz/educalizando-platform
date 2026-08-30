@@ -19,7 +19,6 @@ import {
 } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { Product, Store, ProductType, Category, EducationLevel } from '@/lib/types';
-import ProductWizardModal from '@/components/dashboard/ProductWizardModal';
 import CategoryManagerModal from '@/components/dashboard/CategoryManagerModal';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
@@ -36,9 +35,7 @@ export default function ProductsManagementPage() {
   const [selectedEducationFilter, setSelectedEducationFilter] = useState<string>('all');
 
   // Modals State
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Styled AlertDialog Delete Confirmation State
@@ -74,15 +71,7 @@ export default function ProductsManagementPage() {
   }, []);
 
   const handleOpenCreateWizard = () => {
-    setEditingProduct(null);
-    setActionError(null);
-    setIsWizardOpen(true);
-  };
-
-  const handleOpenEditWizard = (prod: Product) => {
-    setEditingProduct(prod);
-    setActionError(null);
-    setIsWizardOpen(true);
+    router.push('/dashboard/produtos/novo');
   };
 
   // Delete Execution (Soft Delete)
@@ -133,51 +122,6 @@ export default function ProductsManagementPage() {
     } catch (err: any) {
       setActionError(err.message || 'Erro ao alterar status do produto.');
     }
-  };
-
-  const handleWizardSave = async (data: {
-    titulo: string;
-    descricao: string | null;
-    tipo: ProductType;
-    preco: number;
-    capa_url: string | null;
-    arquivo_url: string | null;
-    status: 'publicado' | 'rascunho';
-    category_id: string | null;
-    education_level_id: string | null;
-  }) => {
-    if (!store) return;
-    setActionError(null);
-
-    if (editingProduct) {
-      const updated = await updateProduct(editingProduct.id, {
-        titulo: data.titulo,
-        descricao: data.descricao,
-        tipo: data.tipo,
-        preco: data.preco,
-        capa_url: data.capa_url,
-        arquivo_url: data.arquivo_url,
-        status: data.status,
-        category_id: data.category_id,
-        education_level_id: data.education_level_id
-      });
-      setProducts(prev => prev.map(p => (p.id === editingProduct.id ? updated : p)));
-    } else {
-      const created = await createProduct({
-        store_id: store.id,
-        titulo: data.titulo,
-        descricao: data.descricao,
-        tipo: data.tipo,
-        preco: data.preco,
-        capa_url: data.capa_url,
-        arquivo_url: data.arquivo_url,
-        status: data.status,
-        category_id: data.category_id,
-        education_level_id: data.education_level_id
-      });
-      setProducts(prev => [created, ...prev]);
-    }
-    router.refresh();
   };
 
   const filteredProducts = products.filter(p => {
@@ -490,17 +434,6 @@ export default function ProductsManagementPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
-
-      {/* Guided 4-Step Product Wizard Modal */}
-      <ProductWizardModal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        storeId={store?.id}
-        editingProduct={editingProduct}
-        onSave={handleWizardSave}
-      />
-
       {/* Custom Category Manager Modal */}
       <CategoryManagerModal
         isOpen={isCategoryManagerOpen}

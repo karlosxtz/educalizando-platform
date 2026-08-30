@@ -17,6 +17,7 @@ import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
+import { toast } from 'sonner';
 
 function ProductWizardContent() {
   const router = useRouter();
@@ -129,6 +130,44 @@ function ProductWizardContent() {
     }
     initData();
   }, [editId]);
+
+  const handleOptimizeField = async (field: 'titulo' | 'descricao') => {
+    if (!store?.id) {
+      toast.error('Loja não configurada.');
+      return;
+    }
+    if (field === 'titulo' && (!titulo || titulo.length < 3)) {
+      toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
+      return;
+    }
+    if (field === 'descricao' && (!descricao || descricao.length < 10)) {
+      toast.error('Digite pelo menos 10 caracteres na descrição para que a IA possa otimizá-la.');
+      return;
+    }
+
+    const loadingToast = toast.loading(`A IA está otimizando seu ${field}...`);
+    try {
+      const res = await fetch('/api/ai/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: field === 'titulo' ? titulo : (titulo || 'Produto'),
+          descricao: field === 'descricao' ? descricao : (descricao || ''),
+          storeId: store.id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao otimizar com IA.');
+
+      if (field === 'titulo') setTitulo(data.titulo || titulo);
+      if (field === 'descricao') setDescricao(data.descricao || descricao);
+      
+      toast.success(`${field === 'titulo' ? 'Título' : 'Descrição'} otimizado com sucesso!`, { id: loadingToast });
+    } catch (err: any) {
+      toast.error(err.message, { id: loadingToast });
+    }
+  };
 
   const handleNextStep = () => {
     setErrorMsg(null);
@@ -341,9 +380,14 @@ function ProductWizardContent() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                    Título do Material Didático *
-                  </label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Título do Material Didático *
+                    </label>
+                    <button type="button" onClick={() => handleOptimizeField('titulo')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={titulo}
@@ -354,9 +398,14 @@ function ProductWizardContent() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                    Descrição Detalhada & O que o aluno vai receber
-                  </label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Descrição Detalhada & O que o aluno vai receber
+                    </label>
+                    <button type="button" onClick={() => handleOptimizeField('descricao')} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                      <Sparkles className="w-4 h-4"/> Otimizar com IA
+                    </button>
+                  </div>
                   <textarea
                     rows={4}
                     value={descricao}

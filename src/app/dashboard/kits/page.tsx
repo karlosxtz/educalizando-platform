@@ -12,7 +12,6 @@ import {
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { getKitsByStoreId, createKit, updateKit, deleteKit } from '@/lib/kit-service';
 import { Kit, Store, Product } from '@/lib/types';
-import KitWizardModal from '@/components/dashboard/KitWizardModal';
 
 export default function KitsManagementPage() {
   const router = useRouter();
@@ -21,8 +20,6 @@ export default function KitsManagementPage() {
   const [kits, setKits] = useState<Kit[]>([]);
 
   // Modals State
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [editingKit, setEditingKit] = useState<Kit | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Styled AlertDialog Delete Confirmation State
@@ -47,15 +44,7 @@ export default function KitsManagementPage() {
   }, []);
 
   const handleOpenCreateWizard = () => {
-    setEditingKit(null);
-    setActionError(null);
-    setIsWizardOpen(true);
-  };
-
-  const handleOpenEditWizard = (kit: Kit) => {
-    setEditingKit(kit);
-    setActionError(null);
-    setIsWizardOpen(true);
+    router.push('/dashboard/kits/novo');
   };
 
   const confirmDeleteKit = async () => {
@@ -85,46 +74,6 @@ export default function KitsManagementPage() {
     }
   };
 
-  const handleWizardSave = async (data: {
-    titulo: string;
-    descricao: string | null;
-    capa_url: string | null;
-    preco_kit: number;
-    status: 'publicado' | 'rascunho';
-    product_ids: string[];
-  }) => {
-    if (!store) return;
-    setActionError(null);
-
-    if (editingKit) {
-      const updated = await updateKit(
-        editingKit.id,
-        {
-          titulo: data.titulo,
-          descricao: data.descricao,
-          capa_url: data.capa_url,
-          preco_kit: data.preco_kit,
-          status: data.status
-        },
-        data.product_ids
-      );
-      setKits(prev => prev.map(k => (k.id === editingKit.id ? updated : k)));
-    } else {
-      const created = await createKit(
-        {
-          store_id: store.id,
-          titulo: data.titulo,
-          descricao: data.descricao,
-          capa_url: data.capa_url,
-          preco_kit: data.preco_kit,
-          status: data.status
-        },
-        data.product_ids
-      );
-      setKits(prev => [created, ...prev]);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -147,20 +96,12 @@ export default function KitsManagementPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleOpenCreateWizard}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4 text-blue-600" />
-            <span>Criar Kit (Modal Guiado)</span>
-          </button>
-
           <Link
             href="/dashboard/kits/novo"
             className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Criar Novo Kit (Tela Cheia)</span>
+            <span>+ Criar Novo Kit</span>
           </Link>
         </div>
       </div>
@@ -182,12 +123,12 @@ export default function KitsManagementPage() {
           <p className="text-sm text-slate-500">
             Combos de produtos vendem até 3x mais! Agrupe seus e-books e apostilas e ofereça um desconto atrativo.
           </p>
-          <button
-            onClick={handleOpenCreateWizard}
+          <Link
+            href="/dashboard/kits/novo"
             className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md hover:bg-blue-700 transition-all"
           >
             <Plus className="w-4 h-4" /> Criar Meu Primeiro Kit
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -381,15 +322,6 @@ export default function KitsManagementPage() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Guided 4-Step Kit Wizard Modal */}
-      <KitWizardModal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        storeId={store?.id}
-        editingKit={editingKit}
-        onSave={handleWizardSave}
-      />
     </div>
   );
 }
