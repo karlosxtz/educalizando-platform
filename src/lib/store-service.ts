@@ -100,7 +100,7 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
       // Use supabase to respect RLS
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('id, creator_id, nome_loja, slug, descricao, logo_url, banner_url, cor_primaria, asaas_subaccount_id, whatsapp, instagram, layout_theme, author_image_url, author_bio, youtube, tiktok, facebook, website, button_style, welcome_message, affiliate_program_enabled, affiliate_commission_type, affiliate_commission_rate, created_at, updated_at')
         .eq('slug', slug)
         .maybeSingle();
 
@@ -138,7 +138,7 @@ export async function getStoreById(storeId: string): Promise<Store | null> {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('id, creator_id, nome_loja, slug, descricao, logo_url, banner_url, cor_primaria, asaas_subaccount_id, whatsapp, instagram, layout_theme, author_image_url, author_bio, youtube, tiktok, facebook, website, button_style, welcome_message, affiliate_program_enabled, affiliate_commission_type, affiliate_commission_rate, created_at, updated_at')
         .eq('id', cleanId)
         .maybeSingle();
 
@@ -1117,7 +1117,7 @@ export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[
     try {
       let query = supabase
         .from('stores')
-        .select('*')
+        .select('id, nome_loja, slug, descricao, logo_url, banner_url, cor_primaria, created_at, updated_at')
         .neq('slug', 'eduardoadmin')
         .order('created_at', { ascending: false })
         .limit(limit);

@@ -44,6 +44,7 @@ export interface Store {
   affiliate_program_enabled?: boolean;
   affiliate_commission_type?: 'percentual' | 'fixo';
   affiliate_commission_rate?: number; // e.g. 30.0 for 30% or 10.0 for 10 BRL
+  google_ai_key?: string | null;
   created_at: string;
   updated_at?: string;
 }
