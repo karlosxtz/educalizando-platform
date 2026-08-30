@@ -13,13 +13,13 @@ import {
 import { creatorSignupSchema, type CreatorSignupFormValues } from '@/lib/zod-schemas';
 import { registerCreatorInSupabase } from '@/lib/supabase';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { toast } from 'sonner';
 
 export default function SignupForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [successData, setSuccessData] = useState<{ storeSlug: string } | null>(null);
 
   const {
     register,
@@ -72,66 +72,18 @@ export default function SignupForm() {
         origin: { y: 0.6 }
       });
 
-      setSuccessData({ storeSlug: result.storeSlug });
-
-      setTimeout(() => {
-        window.location.href = '/dashboard/loja';
-      }, 3000);
+      router.push('/dashboard/loja');
+      router.refresh();
 
     } catch (err: any) {
-      setServerError(err.message || 'Erro ao realizar o cadastro. Verifique suas informações.');
+      let errorMessage = err.message || 'Erro ao realizar o cadastro. Verifique suas informações.';
+      if (errorMessage.toLowerCase().includes('already registered')) {
+        errorMessage = 'Este e-mail já está em uso.';
+      }
+      setServerError(errorMessage);
+      toast.error(errorMessage);
     }
   };
-
-  if (successData) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xl max-w-lg mx-auto text-center space-y-6"
-      >
-        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto border border-emerald-200 shadow-xs">
-          <CheckCircle2 className="w-10 h-10" />
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
-            Parabéns! Sua Loja Foi Criada com Sucesso 🎉
-          </h2>
-          <p className="text-sm text-slate-600 font-medium">
-            Seu cadastro foi realizado no Educalizando e sua vitrine digital já está pronta no ar!
-          </p>
-        </div>
-
-        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left space-y-2">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Link Exclusivo da Sua Loja:</span>
-          <a 
-            href={`/loja/${successData.storeSlug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-brand-navy font-mono text-sm font-extrabold break-all hover:underline block"
-          >
-            educalizando.com.br/loja/{successData.storeSlug}
-          </a>
-        </div>
-
-        <div className="pt-2 space-y-3">
-          <button
-            onClick={() => window.location.href = '/dashboard/loja'}
-            className="w-full py-3.5 px-6 rounded-2xl bg-brand-navy hover:bg-slate-900 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2"
-          >
-            <span>Acessar Meu Painel de Criador Agora</span>
-            <ArrowRight className="w-4 h-4 text-brand-teal" />
-          </button>
-
-          <div className="text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 text-brand-teal animate-spin" />
-            <span>Redirecionando automaticamente...</span>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
 
   return (
     <section id="cadastro" className="py-12 px-4 scroll-mt-24">
