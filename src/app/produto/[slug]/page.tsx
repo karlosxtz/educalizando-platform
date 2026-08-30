@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
@@ -48,6 +48,11 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
   let product = await getProductById(slug);
   if (!product) {
     notFound();
+  }
+
+  // Redirecionamento SEO (301) se a URL atual não for o slug oficial (acesso via UUID)
+  if (product.slug && slug !== product.slug) {
+    redirect(`/produto/${product.slug}`);
   }
 
   const store = await getStoreById(product.store_id);

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getStoreBySlug, getProductById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import ProductDetailClientView from './ProductDetailClientView';
@@ -67,6 +67,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   if (!product) {
     notFound();
+  }
+
+  // Redirecionamento SEO (301) se a URL atual não for o slug oficial
+  if (product.slug && produtoSlug !== product.slug) {
+    redirect(`/loja/${store.slug || store.id}/produto/${product.slug}`);
   }
 
   if (product.order_bump_id) {
