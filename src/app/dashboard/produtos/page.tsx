@@ -434,6 +434,8 @@ export default function ProductsManagementPage() {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
       {/* Custom Category Manager Modal */}
       <CategoryManagerModal
         isOpen={isCategoryManagerOpen}
