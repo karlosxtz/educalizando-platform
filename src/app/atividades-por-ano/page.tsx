@@ -13,10 +13,10 @@ export default function AtividadesPorAnoPage() {
       bgBase: 'bg-pink-50',
       borderColor: 'border-pink-100',
       links: [
-        { label: 'Berçário (0 a 1 ano)', href: '/buscar?ano_escolar=bercario' },
-        { label: 'Maternal (2 a 3 anos)', href: '/buscar?ano_escolar=maternal' },
-        { label: 'Pré-escola (4 a 5 anos)', href: '/buscar?ano_escolar=pre-escola' },
-        { label: 'Ver todos de Ed. Infantil', href: '/buscar?ano_escolar=educacao-infantil' },
+        { label: 'Berçário (0 a 1 ano)', href: '/buscar?q=berçário' },
+        { label: 'Maternal (2 a 3 anos)', href: '/buscar?q=maternal' },
+        { label: 'Pré-escola (4 a 5 anos)', href: '/buscar?q=pré-escola' },
+        { label: 'Ver todos de Ed. Infantil', href: '/atividades-por-ano/educacao-infantil' },
       ]
     },
     {
@@ -27,11 +27,11 @@ export default function AtividadesPorAnoPage() {
       bgBase: 'bg-blue-50',
       borderColor: 'border-blue-100',
       links: [
-        { label: '1º Ano (Alfabetização)', href: '/buscar?ano_escolar=1-ano' },
-        { label: '2º Ano', href: '/buscar?ano_escolar=2-ano' },
-        { label: '3º Ano', href: '/buscar?ano_escolar=3-ano' },
-        { label: '4º e 5º Ano', href: '/buscar?ano_escolar=4-ano' },
-        { label: 'Ver todos do Fund. I', href: '/buscar?ano_escolar=ensino-fundamental-1' },
+        { label: '1º Ano (Alfabetização)', href: '/buscar?q=1º ano' },
+        { label: '2º Ano', href: '/buscar?q=2º ano' },
+        { label: '3º Ano', href: '/buscar?q=3º ano' },
+        { label: '4º e 5º Ano', href: '/buscar?q=4º ano e 5º ano' },
+        { label: 'Ver todos do Fund. I', href: '/atividades-por-ano/ensino-fundamental-1' },
       ]
     },
     {
@@ -42,11 +42,11 @@ export default function AtividadesPorAnoPage() {
       bgBase: 'bg-emerald-50',
       borderColor: 'border-emerald-100',
       links: [
-        { label: '6º Ano', href: '/buscar?ano_escolar=6-ano' },
-        { label: '7º Ano', href: '/buscar?ano_escolar=7-ano' },
-        { label: '8º Ano', href: '/buscar?ano_escolar=8-ano' },
-        { label: '9º Ano', href: '/buscar?ano_escolar=9-ano' },
-        { label: 'Ver todos do Fund. II', href: '/buscar?ano_escolar=ensino-fundamental-2' },
+        { label: '6º Ano', href: '/buscar?q=6º ano' },
+        { label: '7º Ano', href: '/buscar?q=7º ano' },
+        { label: '8º Ano', href: '/buscar?q=8º ano' },
+        { label: '9º Ano', href: '/buscar?q=9º ano' },
+        { label: 'Ver todos do Fund. II', href: '/atividades-por-ano/ensino-fundamental-2' },
       ]
     },
     {
@@ -57,10 +57,10 @@ export default function AtividadesPorAnoPage() {
       bgBase: 'bg-purple-50',
       borderColor: 'border-purple-100',
       links: [
-        { label: '1º Ano (Ensino Médio)', href: '/buscar?ano_escolar=1-ano-medio' },
-        { label: '2º Ano (Ensino Médio)', href: '/buscar?ano_escolar=2-ano-medio' },
-        { label: '3º Ano (Enem/Vestibular)', href: '/buscar?ano_escolar=3-ano-medio' },
-        { label: 'Ver todos do Ensino Médio', href: '/buscar?ano_escolar=ensino-medio' },
+        { label: '1º Ano (Ensino Médio)', href: '/buscar?q=1º ano ensino médio' },
+        { label: '2º Ano (Ensino Médio)', href: '/buscar?q=2º ano ensino médio' },
+        { label: '3º Ano (Enem/Vestibular)', href: '/buscar?q=enem' },
+        { label: 'Ver todos do Ensino Médio', href: '/atividades-por-ano/ensino-medio' },
       ]
     }
   ];
