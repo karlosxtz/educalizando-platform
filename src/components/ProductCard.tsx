@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap } from 'lucide-react';
+import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap, Star, Sparkles, GraduationCap, FileText, Video, Layers, HelpCircle } from 'lucide-react';
 import { Product, Store } from '@/lib/types';
 import { useCart } from '@/components/store/CartContext';
 
@@ -22,6 +22,17 @@ export default function ProductCard({ product }: { product: Product & { store?: 
   if (!isFree && product.preco) {
     priceDisplay = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco);
   }
+
+  const getTipoIcon = (tipo: string) => {
+    switch (tipo) {
+      case 'pdf': return <FileText className="w-3 h-3" />;
+      case 'ebook': return <BookOpen className="w-3 h-3" />;
+      case 'video': return <Video className="w-3 h-3" />;
+      case 'curso': return <Layers className="w-3 h-3" />;
+      case 'simulado': return <HelpCircle className="w-3 h-3" />;
+      default: return <FileText className="w-3 h-3" />;
+    }
+  };
 
   const storeSlug = product.store?.slug || product.store_id;
   // Target link
@@ -90,9 +101,31 @@ export default function ProductCard({ product }: { product: Product & { store?: 
       {/* Corpo do Card */}
       <div className="p-5 flex flex-col flex-1">
         <Link href={productLink} className="block flex-1">
-          <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors mb-1">
+          <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors mb-2">
             {itemTitle}
           </h3>
+          
+          {/* Quick Decision Badges */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide">
+              {getTipoIcon(product.tipo)} {product.tipo}
+            </span>
+            {product.education_level?.nome && (
+              <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide truncate max-w-[100px]">
+                <GraduationCap className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{product.education_level.nome}</span>
+              </span>
+            )}
+            {product.average_rating ? (
+              <span className="bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-500" /> {product.average_rating}
+              </span>
+            ) : (
+              <span className="bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide">
+                <Sparkles className="w-3 h-3" /> Novo
+              </span>
+            )}
+          </div>
+
           <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center gap-1.5 mb-4">
             <StoreIcon className="w-3.5 h-3.5" />
             <span className="truncate">{storeName}</span>

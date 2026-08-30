@@ -514,6 +514,22 @@ export default function ThemeDefault(props: StoreThemeProps) {
                 </button>
               </div>
             )}
+
+            {(searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all') && products.length > 0 && (
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    setSearchFilter('');
+                    setSelectedCategory('all');
+                    setSelectedEducation('all');
+                  }}
+                  className={`inline-flex items-center gap-2 px-5 py-3 ${btnRadius} text-xs font-black text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all shadow-sm`}
+                >
+                  <X className="w-4 h-4" />
+                  <span>Limpar Filtros e Ver Todos</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
