@@ -10,6 +10,7 @@ import FileUpload from './FileUpload';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { Product, ProductType, Category, EducationLevel } from '@/lib/types';
 import { getCategories, getEducationLevels, createCustomCategory } from '@/lib/category-service';
+import { toast } from 'sonner';
 
 interface ProductWizardModalProps {
   isOpen: boolean;
@@ -113,6 +114,35 @@ export default function ProductWizardModal({
       setStepError(err.message || 'Erro ao criar categoria.');
     } finally {
       setIsCategoryLoading(false);
+    }
+  };
+
+  const handleOptimizeSEO = async () => {
+    if (!titulo || titulo.length < 3) {
+      toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
+      return;
+    }
+
+    const loadingToast = toast.loading('A IA está otimizando seu SEO...');
+    try {
+      const res = await fetch('/api/ai/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo,
+          descricao,
+          storeId
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao otimizar com IA.');
+
+      setTitulo(data.titulo || titulo);
+      setDescricao(data.descricao || descricao);
+      toast.success('SEO otimizado com sucesso!', { id: loadingToast });
+    } catch (err: any) {
+      toast.error(err.message, { id: loadingToast });
     }
   };
 
@@ -281,9 +311,18 @@ export default function ProductWizardModal({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
               
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                  Título do Material Didático *
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    Título do Material Didático *
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={handleOptimizeSEO} 
+                    className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-800 transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4"/> Otimizar com IA
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={titulo}

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
   FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter 
+  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X
 } from 'lucide-react';
 
 import { 
@@ -44,6 +44,11 @@ export default function ProductsManagementPage() {
   // Styled AlertDialog Delete Confirmation State
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isDeletingLoading, setIsDeletingLoading] = useState(false);
+
+  // Marketing AI State
+  const [marketingProduct, setMarketingProduct] = useState<Product | null>(null);
+  const [campaignData, setCampaignData] = useState<string>('');
+  const [isGeneratingCampaign, setIsGeneratingCampaign] = useState(false);
 
   const loadData = async () => {
     try {
@@ -95,6 +100,27 @@ export default function ProductsManagementPage() {
       setActionError(err.message || 'Erro ao excluir produto.');
     } finally {
       setIsDeletingLoading(false);
+    }
+  };
+
+  const handleGenerateCampaign = async () => {
+    if (!marketingProduct || !store) return;
+    setIsGeneratingCampaign(true);
+    setCampaignData('');
+    setActionError(null);
+    try {
+      const res = await fetch('/api/ai/campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: marketingProduct.titulo, storeId: store.id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao gerar campanha.');
+      setCampaignData(data.campaign);
+    } catch (err: any) {
+      setActionError(err.message);
+    } finally {
+      setIsGeneratingCampaign(false);
     }
   };
 
@@ -380,6 +406,13 @@ export default function ProductsManagementPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setMarketingProduct(prod)}
+                      className="px-2.5 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 transition-colors flex items-center gap-1 text-xs font-bold"
+                      title="Gerar Campanha com IA"
+                    >
+                      <Sparkles className="w-4 h-4" /> <span className="hidden lg:inline">Campanha</span>
+                    </button>
                     <Link
                       href={`/dashboard/produtos/novo?edit=${prod.id}`}
                       className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
@@ -475,6 +508,77 @@ export default function ProductsManagementPage() {
         storeId={store?.id || ''}
         onCategoriesUpdated={loadData}
       />
+      {/* Marketing AI Modal */}
+      <AnimatePresence>
+        {marketingProduct && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl border border-slate-200 w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+            >
+              <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-purple-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 leading-tight">
+                      Campanha de Vendas (IA)
+                    </h2>
+                    <p className="text-xs text-slate-600 font-medium line-clamp-1">
+                      {marketingProduct.titulo}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setMarketingProduct(null); setCampaignData(''); setActionError(null); }}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 flex-1 overflow-y-auto space-y-4">
+                {actionError && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 font-medium mb-4">
+                    <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <span>{actionError}</span>
+                  </div>
+                )}
+
+                {!campaignData && !isGeneratingCampaign ? (
+                  <div className="text-center py-10 space-y-4">
+                    <Sparkles className="w-12 h-12 text-purple-200 mx-auto" />
+                    <p className="text-sm text-slate-600">
+                      Clique no botão abaixo para gerar roteiros persuasivos de WhatsApp e Instagram baseados no título deste produto.
+                    </p>
+                    <button
+                      onClick={handleGenerateCampaign}
+                      className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-md inline-flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" /> Gerar Campanha Agora
+                    </button>
+                  </div>
+                ) : isGeneratingCampaign ? (
+                  <div className="text-center py-12 flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+                    <p className="text-sm text-slate-600 font-medium">A Inteligência Artificial está escrevendo sua campanha...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="whitespace-pre-wrap text-sm text-slate-700 bg-slate-50 p-5 rounded-2xl border border-slate-200 font-medium leading-relaxed">
+                      {campaignData}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
