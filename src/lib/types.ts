@@ -268,3 +268,13 @@ export interface StoreThemeProps {
   searchFilter: string;
   setSearchFilter: (term: string) => void;
 }
+
+export interface BnccSkill {
+  id: string;
+  code: string;
+  slug: string;
+  description: string;
+  grade_level?: string | null;
+  subject?: string | null;
+  created_at: string;
+}
