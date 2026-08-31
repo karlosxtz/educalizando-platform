@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { ProductType, Category, EducationLevel, Store, Product } from '@/lib/types';
+import { getCategories, getEducationLevels, getBnccSkills } from '@/lib/category-service';
+import { ProductType, Category, EducationLevel, Store, Product, BnccSkill } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
@@ -29,6 +29,7 @@ function ProductWizardContent() {
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
+  const [bnccSkillsMaster, setBnccSkillsMaster] = useState<BnccSkill[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Wizard Step Control (1, 2, 3, 4)
@@ -45,6 +46,7 @@ function ProductWizardContent() {
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
+  const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
   const [isFree, setIsFree] = useState<boolean>(false);
   const [isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
@@ -73,14 +75,16 @@ function ProductWizardContent() {
           );
         }
 
-        const [cats, edLevels, storeProducts] = await Promise.all([
+        const [cats, edLevels, storeProducts, bnccList] = await Promise.all([
           getCategories(currentStore.id),
           getEducationLevels(),
-          getPublicProductsByStoreId(currentStore.id)
+          getPublicProductsByStoreId(currentStore.id),
+          getBnccSkills()
         ]);
         setCategories(cats);
         setEducationLevels(edLevels);
         setAvailableProducts(storeProducts);
+        setBnccSkillsMaster(bnccList);
 
         if (editId) {
           const existing = await getProductById(editId);
@@ -119,6 +123,10 @@ function ProductWizardContent() {
             setAllowAffiliates(existing.allow_affiliates || false);
             setAffiliateCommissionRate(existing.affiliate_commission_rate ? existing.affiliate_commission_rate.toString() : '50');
             setOrderBumpId(existing.order_bump_id || '');
+            
+            if (existing.bncc_skill_ids && Array.isArray(existing.bncc_skill_ids)) {
+              setSelectedBnccSkills(existing.bncc_skill_ids);
+            }
           }
         }
       } catch (err: any) {
@@ -263,6 +271,7 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
+          bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
           is_plr: isPlr,
@@ -284,6 +293,7 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
+          bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
           is_plr: isPlr,
@@ -531,6 +541,56 @@ function ProductWizardContent() {
                       onChange={(val) => setEducationLevelId(val)}
                       icon={<GraduationCap className="w-4 h-4" />}
                     />
+                  </div>
+                </div>
+
+                {/* Habilidades da BNCC */}
+                <div className="pt-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
+                    Habilidades da BNCC (Opcional)
+                  </label>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Selecione as habilidades da Base Nacional Comum Curricular que este material desenvolve. 
+                    Isso ajuda os professores a encontrarem seu conteúdo mais rápido.
+                  </p>
+                  
+                  <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl bg-white p-2 space-y-1">
+                    {bnccSkillsMaster.length > 0 ? (
+                      bnccSkillsMaster.map(skill => {
+                        const isSelected = selectedBnccSkills.includes(skill.id);
+                        return (
+                          <div 
+                            key={skill.id}
+                            onClick={() => {
+                              setSelectedBnccSkills(prev => 
+                                isSelected 
+                                  ? prev.filter(id => id !== skill.id)
+                                  : [...prev, skill.id]
+                              );
+                            }}
+                            className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border-2 ${
+                              isSelected 
+                                ? 'bg-blue-50 border-blue-500' 
+                                : 'bg-transparent border-transparent hover:bg-slate-50 hover:border-slate-200'
+                            }`}
+                          >
+                            <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors ${
+                              isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'
+                            }`}>
+                              {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-slate-800">{skill.code}</div>
+                              <div className="text-xs text-slate-600 leading-snug line-clamp-2">{skill.description}</div>
+                            </div>
+                          </div>
+                        )
+                      })
+                    ) : (
+                      <div className="p-4 text-center text-sm font-medium text-slate-500">
+                        Carregando habilidades...
+                      </div>
+                    )}
                   </div>
                 </div>
 

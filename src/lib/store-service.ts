@@ -967,7 +967,7 @@ export async function getProductById(productIdOrSlug: string): Promise<Product |
     try {
       let query = supabase
         .from('products')
-        .select('*, images:product_images(*)')
+        .select('*, images:product_images(*), bncc_skills:product_bncc_skills(bncc_skill_id)')
         .is('excluido_em', null);
 
       if (isUUID) {
@@ -983,6 +983,10 @@ export async function getProductById(productIdOrSlug: string): Promise<Product |
         if (data.excluido_em || data.status === 'excluido') return null;
         if (data.images && Array.isArray(data.images)) {
           data.images.sort((a: any, b: any) => a.ordem - b.ordem);
+        }
+        if (data.bncc_skills && Array.isArray(data.bncc_skills)) {
+          data.bncc_skill_ids = data.bncc_skills.map((item: any) => item.bncc_skill_id);
+          delete data.bncc_skills;
         }
         return data as Product;
       }

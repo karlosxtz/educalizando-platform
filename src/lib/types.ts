@@ -97,6 +97,7 @@ export interface Product {
   education_level?: EducationLevel | null;
   images?: ProductImage[];
   gallery_urls?: string[]; // Transient field for creating/updating
+  bncc_skill_ids?: string[]; // Transient field for creating/updating
   order_bump_product?: Product | null; // Transient field for UI
   excluido_em?: string | null;
   average_rating?: number;

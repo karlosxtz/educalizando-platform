@@ -61,7 +61,8 @@ export async function POST(request: Request) {
       preco_plr = 0,
       allow_affiliates = false,
       affiliate_commission_rate = 0,
-      order_bump_id = null
+      order_bump_id = null,
+      bncc_skill_ids
     } = body;
 
     if (!titulo || !titulo.trim()) {
@@ -205,6 +206,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Inserir habilidades da BNCC
+    if (insertedProduct && insertedProduct.id && Array.isArray(bncc_skill_ids) && bncc_skill_ids.length > 0) {
+      try {
+        const bnccToInsert = bncc_skill_ids.map((skill_id: string) => ({
+          product_id: insertedProduct.id,
+          bncc_skill_id: sanitizeUUID(skill_id)
+        })).filter(item => item.bncc_skill_id !== null);
+        
+        if (bnccToInsert.length > 0) {
+          await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
+        }
+      } catch (e) {
+        console.error('[API /api/produtos POST] Erro ao inserir product_bncc_skills:', e);
+      }
+    }
+
     return NextResponse.json({ success: true, product: insertedProduct });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
@@ -265,7 +282,7 @@ export async function PUT(request: Request) {
       }
     }
 
-    const { gallery_urls, ...otherUpdates } = cleanedUpdates;
+    const { gallery_urls, bncc_skill_ids, ...otherUpdates } = cleanedUpdates;
 
     cleanedUpdates.updated_at = new Date().toISOString();
 
@@ -308,6 +325,28 @@ export async function PUT(request: Request) {
         }
       } catch (e) {
         console.error('[API /api/produtos PUT] Erro ao atualizar product_images:', e);
+      }
+    }
+
+    // Processar bncc_skill_ids
+    if (data && data.id && bncc_skill_ids !== undefined) {
+      try {
+        // Excluir antigas
+        await supabaseAdmin.from('product_bncc_skills').delete().eq('product_id', data.id);
+        
+        // Inserir novas
+        if (Array.isArray(bncc_skill_ids) && bncc_skill_ids.length > 0) {
+          const bnccToInsert = bncc_skill_ids.map((skill_id: string) => ({
+            product_id: data.id,
+            bncc_skill_id: sanitizeUUID(skill_id)
+          })).filter(item => item.bncc_skill_id !== null);
+          
+          if (bnccToInsert.length > 0) {
+            await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
+          }
+        }
+      } catch (e) {
+        console.error('[API /api/produtos PUT] Erro ao atualizar product_bncc_skills:', e);
       }
     }
 

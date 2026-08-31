@@ -219,3 +219,28 @@ export async function deleteCustomCategory(categoryId: string): Promise<void> {
   const filtered = custom.filter(c => c.id !== categoryId);
   saveLocalCustomCategories(filtered);
 }
+
+// 6. Obter Habilidades da BNCC
+export async function getBnccSkills() {
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('bncc_skills')
+        .select('*')
+        .order('code', { ascending: true });
+
+      if (!error && data) {
+        return data;
+      }
+    } catch (err) {
+      console.error('[getBnccSkills] Erro:', err);
+    }
+  }
+
+  return [];
+}
