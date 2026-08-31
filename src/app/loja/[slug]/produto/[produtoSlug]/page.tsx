@@ -3,6 +3,9 @@ import { notFound, redirect } from 'next/navigation';
 import { getStoreBySlug, getProductById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import ProductDetailClientView from './ProductDetailClientView';
+import Link from 'next/link';
+import { ChevronRight, Home, Store } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -94,7 +97,21 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     .filter(p => p.id !== product.id)
     .slice(0, 4);
 
-  const jsonLd = {
+  // Breadcrumb structure
+  const breadcrumbItems: { label: string; href: string; icon?: ReactNode }[] = [
+    { label: 'Início', href: '/', icon: <Home className="w-4 h-4" /> },
+    { label: store.nome_loja, href: `/loja/${store.slug}`, icon: <Store className="w-4 h-4" /> }
+  ];
+  
+  if (category) {
+    breadcrumbItems.push({ label: category.nome, href: `/loja/${store.slug}?category=${category.id}` });
+  } else if (educationLevel) {
+    breadcrumbItems.push({ label: educationLevel.nome, href: `/loja/${store.slug}?level=${educationLevel.id}` });
+  }
+  
+  breadcrumbItems.push({ label: product.titulo, href: `/loja/${store.slug}/produto/${product.slug || product.id}` });
+
+  const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.titulo,
@@ -106,7 +123,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       price: product.preco,
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
-      url: `https://educalizando.com.br/loja/${store.slug}/produto/${product.id}`,
+      url: `https://educalizando.com.br/loja/${store.slug}/produto/${product.slug || product.id}`,
     },
     ...(product.average_rating && product.review_count ? {
       aggregateRating: {
@@ -117,12 +134,55 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     } : {})
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label,
+      item: `https://educalizando.com.br${item.href}`
+    }))
+  };
+
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      
+      {/* Visual Breadcrumb */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav className="flex items-center text-sm text-slate-500 overflow-x-auto whitespace-nowrap hide-scrollbar">
+            {breadcrumbItems.map((item, index) => (
+              <div key={index} className="flex items-center">
+                {index > 0 && <ChevronRight className="w-4 h-4 mx-2 text-slate-400 flex-shrink-0" />}
+                {item.icon ? (
+                  <Link href={item.href} className="hover:text-blue-600 transition-colors flex items-center gap-1">
+                    {item.icon}
+                    <span className={index === 0 ? "sr-only" : ""}>{item.label}</span>
+                  </Link>
+                ) : index === breadcrumbItems.length - 1 ? (
+                  <span className="font-medium text-slate-900 truncate max-w-[200px] sm:max-w-[400px]">
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link href={item.href} className="hover:text-blue-600 transition-colors">
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+      </div>
+
       <ProductDetailClientView 
         store={store} 
         product={product} 
@@ -131,6 +191,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         context="store"
         relatedProducts={relatedProducts}
       />
-    </>
+    </div>
   );
 }

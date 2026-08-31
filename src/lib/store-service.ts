@@ -951,27 +951,33 @@ export async function deleteProduct(productId: string, storeId: string): Promise
   }
 }
 
-// 10. Obter Produto por ID (Supabase + Fallback Local)
-export async function getProductById(productId: string): Promise<Product | null> {
-  if (!productId) return null;
+// 10. Obter Produto por ID ou Slug (Supabase + Fallback Local)
+export async function getProductById(productIdOrSlug: string): Promise<Product | null> {
+  if (!productIdOrSlug) return null;
 
-  const cleanId = productId.replace(/^prod_/i, '');
+  const cleanId = productIdOrSlug.replace(/^prod_/i, '');
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
-  const isUUID = isValidUUID(productId) || isValidUUID(cleanId);
+  const isUUID = isValidUUID(productIdOrSlug) || isValidUUID(cleanId);
 
-  if (isRealSupabase && isUUID) {
+  if (isRealSupabase) {
     try {
-      const targetId = isValidUUID(productId) ? productId : cleanId;
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select('*, images:product_images(*)')
-        .eq('id', targetId)
-        .is('excluido_em', null)
-        .maybeSingle();
+        .is('excluido_em', null);
+
+      if (isUUID) {
+        const targetId = isValidUUID(productIdOrSlug) ? productIdOrSlug : cleanId;
+        query = query.eq('id', targetId);
+      } else {
+        query = query.eq('slug', productIdOrSlug);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (!error && data) {
         if (data.excluido_em || data.status === 'excluido') return null;
@@ -987,7 +993,7 @@ export async function getProductById(productId: string): Promise<Product | null>
 
   // Fallback Local
   const products = getLocalProducts();
-  const found = products.find(p => p.id === productId || p.id === cleanId || p.id === `prod_${productId}`) || null;
+  const found = products.find(p => p.id === productIdOrSlug || p.id === cleanId || p.id === `prod_${productIdOrSlug}` || p.slug === productIdOrSlug) || null;
   if (found && (found.excluido_em || found.status === 'excluido')) return null;
   return found;
 }

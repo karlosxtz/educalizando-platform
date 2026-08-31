@@ -9,6 +9,8 @@ interface GlobalProductDetailPageProps {
     slug: string;
   }>;
 }
+import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 
@@ -80,7 +82,22 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
     .filter(p => p.id !== product.id)
     .slice(0, 4);
 
-  const jsonLd = {
+  // Breadcrumb structure
+  const breadcrumbItems = [
+    { label: 'Início', href: '/' }
+  ];
+  
+  if (category) {
+    breadcrumbItems.push({ label: category.nome, href: `/categorias/${category.slug || category.id}` });
+  } else if (educationLevel) {
+    breadcrumbItems.push({ label: educationLevel.nome, href: `/atividades-por-ano/${educationLevel.slug || educationLevel.id}` });
+  } else {
+    breadcrumbItems.push({ label: 'Produtos', href: '/buscar' });
+  }
+  
+  breadcrumbItems.push({ label: product.titulo, href: `/produto/${product.slug || product.id}` });
+
+  const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.titulo,
@@ -92,7 +109,7 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
       price: product.preco,
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
-      url: `https://educalizando.com.br/produto/${product.id}`,
+      url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
     },
     ...(product.average_rating && product.review_count ? {
       aggregateRating: {
@@ -103,13 +120,56 @@ export default async function GlobalProductDetailPage({ params }: GlobalProductD
     } : {})
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label,
+      item: `https://educalizando.com.br${item.href}`
+    }))
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <MarketplaceHeader />
+      
+      {/* Visual Breadcrumb */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav className="flex items-center text-sm text-slate-500 overflow-x-auto whitespace-nowrap hide-scrollbar">
+            {breadcrumbItems.map((item, index) => (
+              <div key={index} className="flex items-center">
+                {index > 0 && <ChevronRight className="w-4 h-4 mx-2 text-slate-400 flex-shrink-0" />}
+                {index === 0 ? (
+                  <Link href={item.href} className="hover:text-blue-600 transition-colors flex items-center gap-1">
+                    <Home className="w-4 h-4" />
+                    <span className="sr-only">{item.label}</span>
+                  </Link>
+                ) : index === breadcrumbItems.length - 1 ? (
+                  <span className="font-medium text-slate-900 truncate max-w-[200px] sm:max-w-[400px]">
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link href={item.href} className="hover:text-blue-600 transition-colors">
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+      </div>
+
       <div className="flex-1">
         <ProductDetailClientView
           store={store}
