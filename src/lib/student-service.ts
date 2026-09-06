@@ -123,17 +123,21 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
   return { isAuthenticated: false, role: null };
 }
 
+import { sendWelcomeWhatsApp } from './evolution-api';
+
 // 2. Cadastrar Novo Aluno no Supabase Auth
 export async function registerStudentInSupabase({
   email,
   password,
   fullName,
-  cpf
+  cpf,
+  whatsapp
 }: {
   email: string;
   password: string;
   fullName: string;
   cpf?: string;
+  whatsapp?: string;
 }) {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -171,6 +175,10 @@ export async function registerStudentInSupabase({
       } catch (e) {
         console.error('Erro ao sincronizar cookie seguro no registro de aluno:', e);
       }
+    }
+
+    if (whatsapp) {
+      sendWelcomeWhatsApp(whatsapp, fullName, 'student').catch(console.error);
     }
 
     return { user: authData.user, session: authData.session };

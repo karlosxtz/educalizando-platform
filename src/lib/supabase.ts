@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { sendWelcomeWhatsApp } from './evolution-api';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykeyforlocaltesting';
@@ -171,6 +172,10 @@ export async function registerCreatorInSupabase({
       }
     }
 
+    if (whatsapp) {
+      sendWelcomeWhatsApp(whatsapp, fullName, 'creator').catch(console.error);
+    }
+
     return { user: authData.user, storeSlug: storeData.slug };
   } else {
     // Fallback de Simulação Local
@@ -299,11 +304,13 @@ export async function registerAffiliateInSupabase({
   password,
   fullName,
   cpf,
+  whatsapp
 }: {
   email: string;
   password: string;
   fullName: string;
   cpf: string;
+  whatsapp?: string;
 }) {
   const cleanCpf = cpf.replace(/\D/g, '');
 
@@ -344,6 +351,10 @@ export async function registerAffiliateInSupabase({
       } catch (e) {
         console.error('Erro ao sincronizar cookie seguro no registro de afiliado:', e);
       }
+    }
+
+    if (whatsapp) {
+      sendWelcomeWhatsApp(whatsapp, fullName, 'affiliate').catch(console.error);
     }
 
     return { user: authData.user };
