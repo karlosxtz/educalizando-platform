@@ -5,6 +5,7 @@ import { Product, Store } from '@/lib/types';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
+import RecentlyViewed from '@/components/RecentlyViewed';
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
@@ -125,6 +126,9 @@ export default async function Home() {
         </section>
 
         {/* 4. Prateleiras de Produtos (Grids) */}
+        
+        {/* Vistos Recentemente (Histórico Local) */}
+        <RecentlyViewed />
 
         {/* Seção 1: Em Alta */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

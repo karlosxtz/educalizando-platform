@@ -15,6 +15,7 @@ import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
+import { addRecentView } from '@/lib/recent-views';
 
 import ProductCard from '@/components/ProductCard';
 
@@ -67,12 +68,15 @@ export default function ProductDetailClientView({
   }
 
   useEffect(() => {
+    // Registra a visualização no histórico local
+    addRecentView({ ...product, store });
+
     async function fetchReviews() {
       const list = await getProductReviewsWithNames(product.id);
       setReviews(list);
     }
     fetchReviews();
-  }, [product.id]);
+  }, [product.id, product, store]);
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
