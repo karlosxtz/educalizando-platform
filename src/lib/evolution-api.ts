@@ -10,7 +10,7 @@ export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'cr
 
     const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
     const baseUrl = 'https://evolutionapi.vps11334.panel.icontainer.net';
-    const apikey = '8RJwswdx6aHGinSCXypt5E85Atmrp6XY';
+    const apikey = process.env.EVOLUTION_API_KEY || '8RJwswdx6aHGinSCXypt5E85Atmrp6XY';
     const url = `${baseUrl}/message/sendText/${instanceName}`;
 
     const firstName = name.split(' ')[0] || 'Educador(a)';
@@ -29,6 +29,8 @@ export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'cr
       text: message
     };
 
+    console.log(`[Evolution API] Iniciando disparo para ${cleanPhone} (${role}) na url: ${url}`);
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -38,11 +40,14 @@ export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'cr
       body: JSON.stringify(payload)
     });
 
+    console.log(`[Evolution API] Status da Resposta: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
       const errData = await response.text();
-      console.error('[Evolution API] Falha ao enviar WhatsApp de boas-vindas:', errData);
+      console.error('[Evolution API] Falha ao enviar WhatsApp de boas-vindas. Body retornado:', errData);
     } else {
-      console.log(`[Evolution API] Mensagem de boas-vindas enviada para ${cleanPhone} (${role})`);
+      const successData = await response.json().catch(() => ({}));
+      console.log(`[Evolution API] Mensagem de boas-vindas enviada com sucesso! Resposta:`, JSON.stringify(successData));
     }
 
   } catch (error) {
