@@ -196,56 +196,46 @@ export default async function Home() {
         </section>
 
         {/* Seção 2: Gratuitos */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white border-y border-slate-200/60 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Gift className="w-8 h-8 text-emerald-500" />
-              Materiais Gratuitos
-            </h2>
-            <Link href="/buscar?filter=free" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
-              Ver Todos <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          
-          {produtosGratuitos.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-slate-200">
-              <Gift className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Nenhum material gratuito no momento.</p>
+        {produtosGratuitos.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white border-y border-slate-200/60 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Gift className="w-8 h-8 text-emerald-500" />
+                Materiais Gratuitos
+              </h2>
+              <Link href="/buscar?filter=free" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
+                Ver Todos <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-          ) : (
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {produtosGratuitos.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Seção 3: Direitos de Revenda (PLR) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Rocket className="w-8 h-8 text-purple-600" />
-              Licenças PLR (Direitos de Revenda)
-            </h2>
-            <Link href="/buscar?filter=plr" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
-              Ver Todos <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          
-          {produtosPLR.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-3xl border border-slate-200">
-              <Rocket className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Nenhum material PLR publicado ainda.</p>
+        {produtosPLR.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Rocket className="w-8 h-8 text-purple-600" />
+                Licenças PLR (Direitos de Revenda)
+              </h2>
+              <Link href="/buscar?filter=plr" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
+                Ver Todos <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-          ) : (
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {produtosPLR.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* 5. Seção de Confiança & Recrutamento de Vendedores */}
         <section className="bg-white border-t border-slate-200/60 pt-12">
