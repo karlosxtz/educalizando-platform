@@ -16,6 +16,7 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 import { addRecentView } from '@/lib/recent-views';
+import { incrementProductViews } from '@/lib/store-service';
 
 import ProductCard from '@/components/ProductCard';
 
@@ -70,6 +71,9 @@ export default function ProductDetailClientView({
   useEffect(() => {
     // Registra a visualização no histórico local
     addRecentView({ ...product, store });
+    
+    // Incrementa contagem de visualizações no Supabase (silencioso e assíncrono)
+    incrementProductViews(product.id);
 
     async function fetchReviews() {
       const list = await getProductReviewsWithNames(product.id);

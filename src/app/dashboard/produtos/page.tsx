@@ -333,10 +333,14 @@ export default function ProductsManagementPage() {
                       {prod.titulo}
                     </h3>
                     {prod.descricao && (
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                      <p className="text-xs text-slate-500 line-clamp-2 mt-1 mb-2">
                         {prod.descricao}
                       </p>
                     )}
+                    <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-slate-500">
+                      <Eye className="w-4 h-4 text-slate-400" />
+                      <span>{prod.views_count || 0} visualizações</span>
+                    </div>
                   </div>
                 </div>
 

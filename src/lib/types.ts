@@ -102,6 +102,7 @@ export interface Product {
   excluido_em?: string | null;
   average_rating?: number;
   review_count?: number;
+  views_count?: number;
   created_at: string;
   updated_at?: string;
 }

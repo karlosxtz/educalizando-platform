@@ -1182,3 +1182,12 @@ export async function getAllPublicStores(): Promise<Store[]> {
   // Fallback Local
   return getLocalStores();
 }
+
+export async function incrementProductViews(productId: string): Promise<void> {
+  if (!productId || typeof window === 'undefined') return;
+  try {
+    await supabase.rpc('increment_product_views', { p_product_id: productId });
+  } catch (err) {
+    console.error('[incrementProductViews] Falha ao incrementar views:', err);
+  }
+}
