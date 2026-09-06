@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, CheckCircle2, Phone } from 'lucide-react';
 import { registerStudentInSupabase } from '@/lib/student-service';
 
 function StudentSignupForm() {
@@ -18,6 +18,7 @@ function StudentSignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cpf, setCpf] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -45,7 +46,7 @@ function StudentSignupForm() {
 
     setLoading(true);
     try {
-      const { session } = await registerStudentInSupabase({ fullName, email, password, cpf });
+      const { session } = await registerStudentInSupabase({ fullName, email, password, cpf, whatsapp });
       if (session) {
         router.push(getSafeReturnUrl());
       } else {
@@ -139,6 +140,22 @@ function StudentSignupForm() {
               placeholder="000.000.000-00"
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-mono focus:outline-none"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+              WhatsApp (Opcional)
+            </label>
+            <div className="relative">
+              <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="(21) 99999-9999"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+              />
+            </div>
           </div>
 
           <div>

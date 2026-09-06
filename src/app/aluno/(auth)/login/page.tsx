@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { GraduationCap, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, ShieldCheck, UserCheck, UserPlus } from 'lucide-react';
+import { GraduationCap, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, ShieldCheck, UserCheck, UserPlus, Phone } from 'lucide-react';
 import { signInStudent, registerStudentInSupabase } from '@/lib/student-service';
 
 function StudentLoginForm() {
@@ -21,6 +21,7 @@ function StudentLoginForm() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [cpf, setCpf] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -69,7 +70,8 @@ function StudentLoginForm() {
         email,
         password,
         fullName,
-        cpf
+        cpf,
+        whatsapp
       });
       // Após cadastro, confirma autenticação e redireciona automaticamente para a compra via hard navigation
       window.location.href = getSafeReturnUrl();
@@ -231,6 +233,22 @@ function StudentLoginForm() {
                 placeholder="000.000.000-00"
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-mono focus:outline-none"
               />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                WhatsApp (Opcional)
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="(21) 99999-9999"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                />
+              </div>
             </div>
 
             <div>

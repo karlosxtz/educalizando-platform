@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, BadgePercent } from 'lucide-react';
+import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, BadgePercent, Phone } from 'lucide-react';
 import { registerAffiliateInSupabase } from '@/lib/supabase';
 
 const formatCPF = (value: string) => {
@@ -23,6 +23,7 @@ export default function AffiliateSignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cpf, setCpf] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -47,7 +48,8 @@ export default function AffiliateSignupPage() {
         email, 
         password, 
         fullName, 
-        cpf
+        cpf,
+        whatsapp
       });
       // Redirect to affiliate dashboard directly
       window.location.href = '/dashboard/afiliacoes';
@@ -144,6 +146,22 @@ export default function AffiliateSignupPage() {
                   placeholder="000.000.000-00"
                   maxLength={14}
                   required
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                WhatsApp (Opcional)
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="(21) 99999-9999"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                 />
               </div>
