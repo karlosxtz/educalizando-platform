@@ -77,7 +77,7 @@ export interface FinancialCalculationResult {
  * =============================================================================
  * Fórmula:
  * subtotal = soma (unit_price * quantity)
- * platform_fixed_fee = productCount * 0.99
+ * platform_fixed_fee = 0.99 (por transação)
  * platform_percentage_fee = subtotal * 0.05
  * platform_fee = platform_fixed_fee + platform_percentage_fee
  * creator_net_amount = subtotal - platform_fee - asaas_fee
@@ -110,7 +110,7 @@ export function calculateOrderFinancials(
   const fixedFee = platformSettings ? Number(platformSettings.platform_fixed_fee) : 0.99;
   const percentageFee = platformSettings ? Number(platformSettings.platform_fee_percentage) : 0;
 
-  const platformFixedFee = Number((productCount * fixedFee).toFixed(2));
+  const platformFixedFee = Number(fixedFee.toFixed(2));
   const platformPercentageFee = Number(((subtotal * percentageFee) / 100).toFixed(2));
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
