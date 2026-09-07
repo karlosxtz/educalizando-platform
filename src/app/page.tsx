@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
+import { getActiveBanners } from '@/lib/banners-service';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import RecentlyViewed from '@/components/RecentlyViewed';
+import MainBannersCarousel from '@/components/MainBannersCarousel';
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
@@ -22,6 +24,7 @@ const QUICK_CATEGORIES = [
 export default async function Home() {
   // Buscar dados no lado do servidor
   const allProducts = await getAllPublicMarketplaceProducts(100);
+  const activeBanners = await getActiveBanners();
   
   // 2. Busca aumentada de parceiros (Para preencher o carrossel de bolinhas)
   const topStores = await getTopMarketplaceStores(12);
@@ -61,28 +64,8 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         
-        {/* HERO BANNER FULL-WIDTH */}
-        <section className="w-full bg-gradient-to-r from-blue-900 to-blue-700 pt-20 pb-24 overflow-hidden relative">
-          <div className="absolute inset-0 bg-black/5"></div>
-          
-          {/* Decorações premium no fundo */}
-          <div className="absolute top-10 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
-          
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6 py-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight tracking-tight max-w-4xl mx-auto drop-shadow-sm">
-              O Maior Acervo de Atividades para <span className="text-cyan-300">Transformar sua Aula</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-blue-50 font-medium max-w-2xl mx-auto drop-shadow-sm">
-              Materiais didáticos criados por professores especialistas, prontos para imprimir e aplicar.
-            </p>
-            <div className="pt-6">
-              <Link href="/buscar" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-900 hover:bg-slate-50 font-black rounded-full shadow-xl shadow-blue-900/20 transition-transform hover:-translate-y-1 text-lg">
-                <Search className="w-5 h-5" /> Explorar Materiais
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* HERO BANNER CAROUSEL */}
+        <MainBannersCarousel banners={activeBanners} />
 
         {/* CARROSSEL DE LOJAS EM MOVIMENTO (BOLINHAS) */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-b border-slate-200">
