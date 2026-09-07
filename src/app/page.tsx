@@ -1,3 +1,5 @@
+export const revalidate = 60; // Atualiza a página estática a cada 60 segundos
+
 import Link from 'next/link';
 import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
