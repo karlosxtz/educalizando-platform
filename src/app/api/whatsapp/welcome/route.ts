@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -29,13 +30,28 @@ export async function POST(request: Request) {
 
     const firstName = name.split(' ')[0] || 'Educador(a)';
 
+    // Buscar Configurações Globais (com tratamento de erro silencioso caso a coluna/tabela falhe)
+    let settings: any = null;
+    try {
+      const { data } = await supabaseAdmin.from('platform_settings').select('*').limit(1).single();
+      settings = data;
+    } catch (err) {
+      console.warn('[Evolution API Backend] Aviso: Não foi possível buscar as configurações do banco. Utilizando templates padrão.', err);
+    }
+
     let message = '';
+    
+    // Fallback constants
+    const defaultCreator = `Olá {{nome}}! 👋\n\nQue alegria ter você na Educalizando! Sua loja acaba de nascer e estamos super empolgados para ver seus materiais didáticos transformando salas de aula em todo o Brasil. 🚀\n\nAcesse seu painel agora mesmo para começar a publicar: https://educalizando.com/dashboard/loja\n\nSe precisar de ajuda, conte com a gente! 💙`;
+    const defaultStudent = `Oie {{nome}}! 👋\n\nBem-vindo(a) à comunidade Educalizando! 🎉\nEstamos muito felizes em te receber.\n\nAqui você vai encontrar os melhores materiais, atividades e jogos para enriquecer suas aulas e facilitar o seu dia a dia. Tudo pronto para usar!\n\nExplore agora o nosso acervo: https://educalizando.com/buscar\n\nQualquer dúvida, é só chamar! 📚✨`;
+    const defaultAffiliate = `Olá {{nome}}! 👋\n\nSeja muito bem-vindo(a) ao time de Afiliados Educalizando! 💰\n\nSua conta está pronta. A partir de agora, você já pode acessar nossa vitrine, gerar seus links exclusivos e começar a indicar os melhores materiais didáticos do mercado para garantir sua comissão.\n\nBora lucrar? Acesse seu painel: https://educalizando.com/dashboard/afiliacoes\n\nSucesso nas indicações! 🚀🤝`;
+
     if (role === 'creator') {
-      message = `Olá ${firstName}! 👋\n\nQue alegria ter você na Educalizando! Sua loja acaba de nascer e estamos super empolgados para ver seus materiais didáticos transformando salas de aula em todo o Brasil. 🚀\n\nAcesse seu painel agora mesmo para começar a publicar: https://educalizando.com/dashboard/loja\n\nSe precisar de ajuda, conte com a gente! 💙`;
+      message = (settings?.whatsapp_template_creator || defaultCreator).replace(/\{\{nome\}\}/g, firstName);
     } else if (role === 'student') {
-      message = `Oie ${firstName}! 👋\n\nBem-vindo(a) à comunidade Educalizando! 🎉\nEstamos muito felizes em te receber.\n\nAqui você vai encontrar os melhores materiais, atividades e jogos para enriquecer suas aulas e facilitar o seu dia a dia. Tudo pronto para usar!\n\nExplore agora o nosso acervo: https://educalizando.com/buscar\n\nQualquer dúvida, é só chamar! 📚✨`;
+      message = (settings?.whatsapp_template_student || defaultStudent).replace(/\{\{nome\}\}/g, firstName);
     } else if (role === 'affiliate') {
-      message = `Olá ${firstName}! 👋\n\nSeja muito bem-vindo(a) ao time de Afiliados Educalizando! 💰\n\nSua conta está pronta. A partir de agora, você já pode acessar nossa vitrine, gerar seus links exclusivos e começar a indicar os melhores materiais didáticos do mercado para garantir sua comissão.\n\nBora lucrar? Acesse seu painel: https://educalizando.com/dashboard/afiliacoes\n\nSucesso nas indicações! 🚀🤝`;
+      message = (settings?.whatsapp_template_affiliate || defaultAffiliate).replace(/\{\{nome\}\}/g, firstName);
     }
 
     const payload = {

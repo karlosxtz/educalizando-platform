@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { platform_fee_percentage, platform_fixed_fee, minimum_withdrawal_amount, withdrawal_fee } = body;
+    const { platform_fee_percentage, platform_fixed_fee, minimum_withdrawal_amount, withdrawal_fee, whatsapp_template_creator, whatsapp_template_student, whatsapp_template_affiliate } = body;
 
     const { data: existing } = await supabaseAdmin.from('platform_settings').select('id').limit(1).single();
 
@@ -55,6 +55,9 @@ export async function POST(request: Request) {
           platform_fixed_fee,
           minimum_withdrawal_amount,
           withdrawal_fee,
+          whatsapp_template_creator,
+          whatsapp_template_student,
+          whatsapp_template_affiliate,
           updated_at: new Date().toISOString(),
           updated_by: 'SuperAdmin'
         })
@@ -67,6 +70,9 @@ export async function POST(request: Request) {
           platform_fixed_fee,
           minimum_withdrawal_amount,
           withdrawal_fee,
+          whatsapp_template_creator,
+          whatsapp_template_student,
+          whatsapp_template_affiliate,
           updated_by: 'SuperAdmin'
         }]);
     }
