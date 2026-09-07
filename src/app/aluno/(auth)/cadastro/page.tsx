@@ -210,7 +210,7 @@ function StudentSignupForm() {
 
 export default function StudentSignupPage() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-8">
@@ -223,21 +223,21 @@ export default function StudentSignupPage() {
           />
         </Link>
 
-        <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/15 text-brand-teal text-xs font-bold">
-          <GraduationCap className="w-4 h-4 text-brand-teal" />
+        <div className="bg-brand-navy/5 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-brand-navy/10 text-brand-navy text-xs font-bold">
+          <GraduationCap className="w-4 h-4 text-brand-navy" />
           <span>Cadastro de Aluno Educalizando</span>
         </div>
 
-        <h2 className="text-2xl font-black text-white tracking-tight">
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
           Crie sua conta para acessar materiais
         </h2>
-        <p className="text-xs text-slate-400 font-medium max-w-xs mx-auto">
+        <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
           Informe seu nome e e-mail para vincular suas compras e ter acesso aos materiais didáticos.
         </p>
       </div>
 
       <Suspense fallback={
-        <div className="text-center text-white text-xs">Carregando formulário...</div>
+        <div className="text-center text-slate-600 text-xs">Carregando formulário...</div>
       }>
         <StudentSignupForm />
       </Suspense>

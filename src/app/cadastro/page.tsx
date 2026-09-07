@@ -9,9 +9,11 @@ export default function RegisterTriagePage() {
         {/* Header */}
         <div className="text-center mb-10 space-y-3">
           <div className="flex justify-center mb-4">
-            <div className="bg-emerald-600 text-white p-3 rounded-2xl shadow-md">
-              <span className="font-black text-3xl leading-none block">E</span>
-            </div>
+            <img 
+              src="/branding/logo-educalizando-icon.png?v=3" 
+              alt="Educalizando" 
+              className="w-16 h-16 mx-auto object-contain" 
+            />
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Crie sua conta no Educalizando
