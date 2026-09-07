@@ -305,7 +305,7 @@ export default async function Home() {
               O maior ecossistema de recursos educacionais do Brasil. Conectamos criadores de conteúdos incríveis a educadores que buscam praticidade e qualidade.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col items-center text-center">
                 <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
                   <BookOpen className="w-7 h-7" />
@@ -336,6 +336,22 @@ export default async function Home() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">Compra Segura e Rápida</h3>
                 <p className="text-slate-600 font-medium">Pagamento via Pix processado na hora com liberação imediata do seu conteúdo.</p>
+              </div>
+
+              <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                  <HeartHandshake className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Comunidade Ativa</h3>
+                <p className="text-slate-600 font-medium">Foco na troca de experiências e crescimento contínuo entre milhares de educadores de todo o Brasil.</p>
+              </div>
+
+              <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6">
+                  <Headset className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Suporte Dedicado</h3>
+                <p className="text-slate-600 font-medium">Atendimento humanizado e rápido para apoiar totalmente criadores e compradores na plataforma.</p>
               </div>
             </div>
           </div>
