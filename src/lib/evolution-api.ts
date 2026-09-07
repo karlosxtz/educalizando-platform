@@ -1,12 +1,14 @@
 export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'creator' | 'student' | 'affiliate') {
   try {
     // A API Evolution espera números no formato internacional sem o "+"
-    // Exemplo do Brasil: 5511999999999
-    // Se o telefone não começar com 55 e tiver 10 ou 11 dígitos, vamos colocar o 55 como padrão.
+    // Remove caracteres não numéricos
     let cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length >= 10 && cleanPhone.length <= 11 && !cleanPhone.startsWith('55')) {
+    
+    // Regra de ouro automática: embute prefixo 55 se vier com DDD (10 ou 11) e sem 55.
+    if ((cleanPhone.length === 10 || cleanPhone.length === 11) && !cleanPhone.startsWith('55')) {
       cleanPhone = `55${cleanPhone}`;
     }
+    // Se já tiver 12 ou 13 (com 55), ou tamanho diferente, mantemos para a VPS tentar processar ou falhar.
 
     const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
     const baseUrl = 'https://evolutionapi.vps11334.panel.icontainer.net';
@@ -29,7 +31,7 @@ export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'cr
       text: message
     };
 
-    console.log(`[Evolution API] Iniciando disparo para ${cleanPhone} (${role}) na url: ${url}`);
+    console.log(`[Evolution API] Iniciando disparo:\n- URL: ${url}\n- Telefone Limpo: ${cleanPhone}\n- Perfil: ${role}`);
     
     const response = await fetch(url, {
       method: 'POST',
@@ -40,14 +42,14 @@ export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'cr
       body: JSON.stringify(payload)
     });
 
-    console.log(`[Evolution API] Status da Resposta: ${response.status} ${response.statusText}`);
+    console.log(`[Evolution API] Status retornado pela VPS: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
       const errData = await response.text();
-      console.error('[Evolution API] Falha ao enviar WhatsApp de boas-vindas. Body retornado:', errData);
+      console.error(`[Evolution API] Falha no disparo. Erro recebido da VPS: ${errData}`);
     } else {
       const successData = await response.json().catch(() => ({}));
-      console.log(`[Evolution API] Mensagem de boas-vindas enviada com sucesso! Resposta:`, JSON.stringify(successData));
+      console.log(`[Evolution API] Mensagem enviada com sucesso! Resposta da VPS:`, JSON.stringify(successData));
     }
 
   } catch (error) {
