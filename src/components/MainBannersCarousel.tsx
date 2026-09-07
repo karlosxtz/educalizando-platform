@@ -50,12 +50,6 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
 
   const activeBanner = banners[currentIndex];
 
-  const variants = {
-    enter: { opacity: 0, scale: 1.05 },
-    center: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: 'easeOut' } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.8, ease: 'easeIn' } }
-  };
-
   return (
     <section 
       className="w-full relative bg-slate-900 overflow-hidden" 
@@ -66,10 +60,10 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
       <AnimatePresence mode="wait">
         <motion.div
           key={activeBanner.id}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
           className="absolute inset-0 w-full h-full"
         >
           {activeBanner.link_url ? (
