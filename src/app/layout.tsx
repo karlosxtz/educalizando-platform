@@ -32,13 +32,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/branding/favicon.ico' },
-      { url: '/branding/favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/branding/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/branding/favicon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/branding/favicon.ico?v=3' },
+      { url: '/branding/favicon-16.png?v=3', sizes: '16x16', type: 'image/png' },
+      { url: '/branding/favicon-32.png?v=3', sizes: '32x32', type: 'image/png' },
+      { url: '/branding/favicon-48.png?v=3', sizes: '48x48', type: 'image/png' },
     ],
-    shortcut: '/branding/favicon.ico',
-    apple: '/branding/apple-touch-icon.png',
+    shortcut: '/branding/favicon.ico?v=3',
+    apple: '/branding/apple-touch-icon.png?v=3',
   },
   keywords: [
     'venda de infoprodutos e e-books',
