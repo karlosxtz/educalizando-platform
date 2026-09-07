@@ -77,7 +77,7 @@ export default function ProductCard({ product }: { product: Product & { store?: 
           <img 
             src={itemCover} 
             alt={itemTitle} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" 
             onError={() => setImageError(true)}
           />
         ) : (
