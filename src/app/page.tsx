@@ -270,7 +270,7 @@ export default async function Home() {
                   Crie sua loja, publique seus materiais didáticos e venda para milhares de educadores todos os dias. Nós cuidamos da tecnologia.
                 </p>
                 <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <Link href="/vender" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
+                  <Link href="/cadastro/produtor" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
                     Criar Conta Grátis
                   </Link>
                 </div>
