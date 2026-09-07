@@ -38,7 +38,7 @@ function MarketplaceHeaderInner() {
           <div className="flex items-center justify-between w-full md:w-auto">
             <Link href="/" className="flex items-center cursor-pointer group shrink-0">
               <img
-                src="/branding/logo-educalizando.png?v=2"
+                src="/branding/logo-educalizando.png?v=3"
                 alt="Educalizando"
                 className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02]"
                 style={{ width: 'auto', height: '42px' }}

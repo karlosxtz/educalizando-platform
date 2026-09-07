@@ -17,7 +17,7 @@ export default function ProductNotFound() {
       <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
         <Link href="/" className="flex items-center">
           <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-10 w-auto object-contain"
             style={{ width: 'auto', height: '40px' }}

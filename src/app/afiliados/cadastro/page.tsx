@@ -72,7 +72,7 @@ export default function AffiliateSignupPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="text-center mb-8">
            <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-14 w-auto mx-auto object-contain"
           />

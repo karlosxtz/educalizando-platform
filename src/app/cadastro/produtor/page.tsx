@@ -11,7 +11,7 @@ export default function ProducerSignupPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-6">
         <Link href="/" className="inline-flex items-center justify-center group mb-2">
           <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-12 sm:h-14 w-auto object-contain mx-auto"
             style={{ width: 'auto', height: '56px' }}

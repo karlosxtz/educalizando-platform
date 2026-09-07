@@ -86,7 +86,7 @@ export default function AffiliateLoginPage() {
       <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
         <Link href="/" className="flex items-center group">
           <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-10 w-auto object-contain"
             style={{ width: 'auto', height: '40px' }}
@@ -115,7 +115,7 @@ export default function AffiliateLoginPage() {
             <div className="space-y-6">
               <div className="text-center space-y-3">
                 <img
-                  src="/branding/logo-educalizando.png"
+                  src="/branding/logo-educalizando.png?v=3"
                   alt="Educalizando"
                   className="h-12 sm:h-14 w-auto object-contain mx-auto"
                   style={{ width: 'auto', height: '56px' }}

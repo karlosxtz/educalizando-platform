@@ -9,7 +9,7 @@ const rootDir = path.join(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
 const brandingDir = path.join(publicDir, 'branding');
 
-const sourceFile = path.join(brandingDir, 'source.png.png');
+const sourceFile = path.join(brandingDir, 'logo-educalizando.png');
 
 async function main() {
   try {
@@ -26,6 +26,7 @@ async function main() {
       { path: path.join(publicDir, 'icon-192.png'), size: 192 },
       { path: path.join(publicDir, 'icon-512.png'), size: 512 },
       { path: path.join(publicDir, 'maskable-icon-512.png'), size: 512, background: { r: 255, g: 255, b: 255, alpha: 1 } },
+      { path: path.join(publicDir, 'logo-icon.png'), size: 512 },
       
       { path: path.join(brandingDir, 'apple-touch-icon.png'), size: 180 },
       { path: path.join(brandingDir, 'avatar-128.png'), size: 128 },
@@ -39,9 +40,13 @@ async function main() {
       { path: path.join(brandingDir, 'logo-educalizando-icon.png'), size: 512 },
     ];
 
-    // For icons, we fit them into a square box with transparent background (or specified background).
+    // The original image is 2172x724 (3:1 horizontal).
+    // We will extract the left 724x724 square for the square icons (assuming the symbol is on the left).
+    const iconBase = sharp(sourceFile).extract({ left: 0, top: 0, width: 724, height: 724 });
+
+    // For icons, we use the extracted square part.
     for (const icon of squareIcons) {
-      await sharp(sourceFile)
+      await iconBase.clone()
         .resize(icon.size, icon.size, {
           fit: 'contain',
           background: icon.background || { r: 0, g: 0, b: 0, alpha: 0 }
@@ -56,7 +61,6 @@ async function main() {
     const mainLogos = [
       path.join(publicDir, 'logo-horizontal.png'),
       path.join(publicDir, 'logo.png'),
-      path.join(publicDir, 'logo-icon.png'), // Keeping original proportions but maybe they want it square? We'll just copy it as the old one was 490x321.
       path.join(brandingDir, 'logo-educalizando-dark.png'),
       path.join(brandingDir, 'logo-educalizando-horizontal.png'),
       path.join(brandingDir, 'logo-educalizando-light.png'),
@@ -86,7 +90,7 @@ async function main() {
 
     // Create favicon.ico using favicon-32.png as a simple fallback
     const faviconIcoPath = path.join(publicDir, 'favicon.ico');
-    await sharp(sourceFile).resize(32, 32, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).toFile(faviconIcoPath);
+    await iconBase.clone().resize(32, 32, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).toFile(faviconIcoPath);
     console.log(`Generated favicon.ico at: ${faviconIcoPath}`);
     
     const brandingFaviconIcoPath = path.join(brandingDir, 'favicon.ico');

@@ -10,7 +10,7 @@ export default function OfflinePage() {
       <header className="w-full max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-9 w-auto object-contain"
             style={{ width: 'auto', height: '36px' }}

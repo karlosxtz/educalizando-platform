@@ -31,7 +31,7 @@ export default function StudentHeader({
         {/* Brand & Badge */}
         <Link href="/aluno/dashboard" className="flex items-center gap-3 group">
           <img
-            src="/branding/logo-educalizando.png?v=2"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-9 sm:h-10 w-auto object-contain"
             style={{ width: 'auto', height: '38px' }}

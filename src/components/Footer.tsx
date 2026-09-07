@@ -15,7 +15,7 @@ export default function Footer() {
           <div className="space-y-6">
             <Link href="/" className="inline-block">
               <img
-                src="/branding/logo-educalizando.png"
+                src="/branding/logo-educalizando.png?v=3"
                 alt="Educalizando"
                 className="h-9 w-auto object-contain"
                 style={{ width: 'auto', height: '36px' }}

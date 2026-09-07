@@ -604,7 +604,7 @@ export default function ProductDetailClientView({
           <div className="flex items-center justify-center gap-2 text-slate-500">
             <span>Tecnologia e Entrega por</span>
             <Link href="/">
-              <img src="/branding/logo-educalizando.png" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+              <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
             </Link>
           </div>
         </footer>

@@ -75,7 +75,7 @@ export default function AffiliateSidebar({
       <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-xs">
         <Link href="/" className="flex items-center gap-2.5">
           <img
-            src="/branding/logo-educalizando.png"
+            src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
             className="h-9 w-auto object-contain"
             style={{ width: 'auto', height: '36px' }}
@@ -102,7 +102,7 @@ export default function AffiliateSidebar({
           <div className="flex items-center justify-between gap-3 pt-1">
             <Link href="/" className="flex items-center group shrink-0">
               <img
-                src="/branding/logo-educalizando.png"
+                src="/branding/logo-educalizando.png?v=3"
                 alt="Educalizando"
                 className="h-[48px] sm:h-[50px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
                 style={{ width: 'auto', height: '50px' }}

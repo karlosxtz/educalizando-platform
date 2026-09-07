@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     siteName: 'Educalizando',
     images: [
       {
-        url: '/branding/logo-og.png',
+        url: '/branding/logo-og.png?v=3',
         width: 1200,
         height: 630,
         alt: 'Educalizando',
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     title: 'Educalizando — Plataforma Digital Educacional',
     description:
       'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais.',
-    images: ['/branding/logo-og.png'],
+    images: ['/branding/logo-og.png?v=3'],
   },
   robots: {
     index: true,
