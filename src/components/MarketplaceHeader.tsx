@@ -36,13 +36,13 @@ function MarketplaceHeaderInner() {
           
           {/* Esquerda: Logo */}
           <div className="flex items-center justify-between w-full md:w-auto">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
-                <span className="font-black text-lg sm:text-xl leading-none block">E</span>
-              </div>
-              <span className="font-black text-xl sm:text-2xl tracking-tight text-slate-900">
-                Educalizando
-              </span>
+            <Link href="/" className="flex items-center cursor-pointer group shrink-0">
+              <img
+                src="/branding/logo-educalizando.png?v=2"
+                alt="Educalizando"
+                className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                style={{ width: 'auto', height: '42px' }}
+              />
             </Link>
             
             <div className="flex md:hidden items-center">
