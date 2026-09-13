@@ -172,8 +172,10 @@ export async function registerCreatorPixKey(data: {
 
   // REGRA 4 & 5: Validação REAL de Titularidade na API do Asaas (Servidor)
   const lookupRes = await lookupAsaasPixKey(cleanInputCpf);
+  
+  // LOG de falha de validação, mas não bloqueia mais o cadastro
   if (!lookupRes.valid) {
-    throw new Error(lookupRes.errorMessage || 'Não foi possível confirmar a titularidade da chave PIX no Asaas. Verifique os dados e tente novamente.');
+    console.warn('[Withdrawal Service] Falha ao validar titularidade PIX no Asaas, cadastrando chave como pendente.', lookupRes.errorMessage);
   }
 
   const now = new Date().toISOString();
@@ -187,9 +189,9 @@ export async function registerCreatorPixKey(data: {
     pixKeyType: 'CPF',
     pixKey: cleanInputCpf,
     pixKeyMasked: maskedCpf,
-    holderName: lookupRes.accountHolderName || data.holderName || 'Titular Validado',
+    holderName: lookupRes.accountHolderName || data.holderName || 'Titular Pendente',
     holderCpf: cleanInputCpf,
-    validationStatus: 'VALID',
+    validationStatus: lookupRes.valid ? 'VALID' : 'PENDING',
     validatedAt: now,
     isActive: true,
     createdAt: now,
