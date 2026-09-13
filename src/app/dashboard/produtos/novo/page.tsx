@@ -51,6 +51,7 @@ function ProductWizardContent() {
   const [isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
+  const [plrDeliveryMethod, setPlrDeliveryMethod] = useState<'upload' | 'link'>('upload');
 
   const [allowAffiliates, setAllowAffiliates] = useState<boolean>(false);
   const [affiliateCommissionRate, setAffiliateCommissionRate] = useState<string>('50');
@@ -119,7 +120,14 @@ function ProductWizardContent() {
             setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
+            
             setPlrLicenseUrl(existing.plr_license_url || null);
+            if (existing.plr_license_url && (existing.plr_license_url.startsWith('http://') || existing.plr_license_url.startsWith('https://'))) {
+              if (!existing.plr_license_url.includes('supabase.co')) {
+                setPlrDeliveryMethod('link');
+              }
+            }
+
             setAllowAffiliates(existing.allow_affiliates || false);
             setAffiliateCommissionRate(existing.affiliate_commission_rate ? existing.affiliate_commission_rate.toString() : '50');
             setOrderBumpId(existing.order_bump_id || '');
@@ -648,15 +656,63 @@ function ProductWizardContent() {
                             Para garantir a segurança dos compradores, faça o upload do certificado que autoriza a revenda deste produto. Os compradores farão o download automático dele após a compra.
                           </p>
                         </div>
-                        <FileUpload
-                          bucket="product-files"
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          maxSizeMB={5}
-                          value={plrLicenseUrl}
-                          onChange={(url: string | null) => setPlrLicenseUrl(url)}
-                          label="Licença de Revenda do Produto"
-                          helperText="Formatos suportados: PDF ou Imagem. Tamanho máximo: 5MB."
-                        />
+                        <div className="flex bg-slate-100 p-1 rounded-xl w-full mb-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPlrDeliveryMethod('upload');
+                              if (plrLicenseUrl && !plrLicenseUrl.includes('supabase.co')) setPlrLicenseUrl(null);
+                            }}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                              plrDeliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            <span className="flex items-center justify-center gap-2">
+                              <UploadCloud className="w-4 h-4" /> Upload Seguro
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPlrDeliveryMethod('link')}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                              plrDeliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            <span className="flex items-center justify-center gap-2">
+                              <LinkIcon className="w-4 h-4" /> Link Externo
+                            </span>
+                          </button>
+                        </div>
+
+                        {plrDeliveryMethod === 'upload' ? (
+                          <FileUpload
+                            bucket="product-files"
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            maxSizeMB={5}
+                            value={plrLicenseUrl}
+                            onChange={(url: string | null) => setPlrLicenseUrl(url)}
+                            label="Licença de Revenda do Produto"
+                            helperText="Formatos suportados: PDF ou Imagem. Tamanho máximo: 5MB."
+                          />
+                        ) : (
+                          <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-3">
+                            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                              <LinkIcon className="w-4 h-4 text-blue-600" />
+                              Link do Arquivo Externo (PLR)
+                            </h4>
+                            <p className="text-xs text-slate-500">
+                              Insira o link para a pasta no Google Drive, OneDrive, Dropbox, Mega, etc. 
+                              Certifique-se de que o link esteja com as permissões de acesso "Público" ou "Qualquer pessoa com o link".
+                            </p>
+                            <input
+                              type="url"
+                              value={plrLicenseUrl || ''}
+                              onChange={(e) => setPlrLicenseUrl(e.target.value)}
+                              placeholder="https://drive.google.com/..."
+                              className="w-full px-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                            />
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
