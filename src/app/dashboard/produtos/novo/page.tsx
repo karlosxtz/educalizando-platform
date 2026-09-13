@@ -233,6 +233,12 @@ function ProductWizardContent() {
         }
       }
     }
+    if (currentStep === 3) {
+      if (!arquivoUrl) {
+        setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
+        return;
+      }
+    }
     if (currentStep < 4) {
       setCurrentStep(prev => prev + 1);
     }
