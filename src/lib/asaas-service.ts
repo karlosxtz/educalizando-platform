@@ -399,8 +399,9 @@ export async function lookupAsaasPixKey(cleanCpf: string): Promise<AsaasPixKeyLo
   }
 
   try {
+    const formattedCpf = cleanCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     const res = await fetchWithRetry(
-      `${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${cleanCpf}`,
+      `${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${formattedCpf}`,
       { method: 'GET', headers: getHeaders() }
     );
 
