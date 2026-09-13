@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, CheckCircle2, ChevronRight, FileText, Video, BookOpen, 
   Layers, HelpCircle, UploadCloud, Eye, Tags, GraduationCap, DollarSign, 
-  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon
+  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon, User
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
@@ -225,6 +225,8 @@ function ProductWizardContent() {
         setErrorMsg('Por favor, informe o título do produto didático.');
         return;
       }
+    }
+    if (currentStep === 3) {
       if (!isFree) {
         const numPrice = parseFloat(preco.replace(',', '.'));
         if (isNaN(numPrice) || numPrice <= 0) {
@@ -232,8 +234,6 @@ function ProductWizardContent() {
           return;
         }
       }
-    }
-    if (currentStep === 3) {
       if (!arquivoUrl) {
         setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
         return;
@@ -470,66 +470,20 @@ function ProductWizardContent() {
                 </div>
 
                 <div className="pt-2">
-                  <div 
-                    onClick={() => {
-                      setIsFree(!isFree);
-                      if (!isFree) setPreco('0,00');
-                      else setPreco('29,90');
-                    }}
-                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isFree ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                    Tipo de Conteúdo
+                  </label>
+                  <select
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value as ProductType)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none"
                   >
-                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isFree ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-300'}`}>
-                      {isFree && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold ${isFree ? 'text-emerald-900' : 'text-slate-700'}`}>🎁 Material Gratuito (Brinde para os Alunos)</span>
-                      </div>
-                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isFree ? 'text-emerald-700' : 'text-slate-500'}`}>
-                        Se marcado, o aluno poderá baixar este material na área de brindes sem precisar passar pelo checkout.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                      Preço de Venda (R$) {isFree ? '' : '*'}
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
-                      <input
-                        type="text"
-                        value={isFree ? '0,00' : preco}
-                        disabled={isFree}
-                        onChange={(e) => setPreco(e.target.value)}
-                        placeholder="29,90"
-                        className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-black focus:outline-none transition-colors ${
-                          isFree 
-                            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
-                            : 'bg-slate-50 border-slate-200 focus:border-blue-600 text-slate-900'
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                      Tipo de Conteúdo
-                    </label>
-                    <select
-                      value={tipo}
-                      onChange={(e) => setTipo(e.target.value as ProductType)}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none"
-                    >
-                      <option value="pdf">Apostila / Documento PDF</option>
-                      <option value="ebook">E-book Esquematizado</option>
-                      <option value="video">Videoaula Interativa</option>
-                      <option value="curso">Curso / Pacote de Módulos</option>
-                      <option value="simulado">Simulado & Gabarito Comentado</option>
-                    </select>
-                  </div>
+                    <option value="pdf">Apostila / Documento PDF</option>
+                    <option value="ebook">E-book Esquematizado</option>
+                    <option value="video">Videoaula Interativa</option>
+                    <option value="curso">Curso / Pacote de Módulos</option>
+                    <option value="simulado">Simulado & Gabarito Comentado</option>
+                  </select>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-2">
@@ -608,121 +562,7 @@ function ProductWizardContent() {
                   </div>
                 </div>
 
-                {/* PLR Toggle */}
-                <div className="pt-2">
-                  <div 
-                    onClick={() => setIsPlr(!isPlr)}
-                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isPlr ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
-                  >
-                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isPlr ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'}`}>
-                      {isPlr && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold ${isPlr ? 'text-blue-900' : 'text-slate-700'}`}>Ativar Licença PLR para Revenda</span>
-                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Novo</span>
-                      </div>
-                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isPlr ? 'text-blue-700' : 'text-slate-500'}`}>
-                        Ao marcar esta opção, o seu produto aparecerá no **Mercado de PLRs** interno da Educalizando. 
-                        Outros criadores poderão comprar este produto para revender nas próprias lojas deles, garantindo uma nova fonte de renda extra para você.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {isPlr && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col gap-6"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-800">Preço da Licença de Revenda (PLR)</h4>
-                          <p className="text-xs text-slate-500 mt-1">Este é o valor que outros criadores pagarão para poder revender seu produto.</p>
-                        </div>
-                        <div className="relative w-full sm:w-48 flex-shrink-0">
-                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
-                          <input
-                            type="text"
-                            value={precoPlr}
-                            onChange={(e) => setPrecoPlr(e.target.value)}
-                            placeholder="99,90"
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none shadow-sm"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="pt-4 border-t border-blue-100/50">
-                        <div className="mb-3">
-                          <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <ShieldCheck className="w-4 h-4 text-blue-600" />
-                            Arquivo da Licença de Revenda (PDF)
-                          </h4>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Para garantir a segurança dos compradores, faça o upload do certificado que autoriza a revenda deste produto. Os compradores farão o download automático dele após a compra.
-                          </p>
-                        </div>
-                        <div className="flex bg-slate-100 p-1 rounded-xl w-full mb-4">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPlrDeliveryMethod('upload');
-                              if (plrLicenseUrl && !plrLicenseUrl.includes('supabase.co')) setPlrLicenseUrl(null);
-                            }}
-                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                              plrDeliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                          >
-                            <span className="flex items-center justify-center gap-2">
-                              <UploadCloud className="w-4 h-4" /> Upload Seguro
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPlrDeliveryMethod('link')}
-                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                              plrDeliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                          >
-                            <span className="flex items-center justify-center gap-2">
-                              <LinkIcon className="w-4 h-4" /> Link Externo
-                            </span>
-                          </button>
-                        </div>
-
-                        {plrDeliveryMethod === 'upload' ? (
-                          <FileUpload
-                            bucket="product-files"
-                            accept=".pdf,.png,.jpg,.jpeg"
-                            maxSizeMB={5}
-                            value={plrLicenseUrl}
-                            onChange={(url: string | null) => setPlrLicenseUrl(url)}
-                            label="Licença de Revenda do Produto"
-                            helperText="Formatos suportados: PDF ou Imagem. Tamanho máximo: 5MB."
-                          />
-                        ) : (
-                          <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-3">
-                            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                              <LinkIcon className="w-4 h-4 text-blue-600" />
-                              Link do Arquivo Externo (PLR)
-                            </h4>
-                            <p className="text-xs text-slate-500">
-                              Insira o link para a pasta no Google Drive, OneDrive, Dropbox, Mega, etc. 
-                              Certifique-se de que o link esteja com as permissões de acesso "Público" ou "Qualquer pessoa com o link".
-                            </p>
-                            <input
-                              type="url"
-                              value={plrLicenseUrl || ''}
-                              onChange={(e) => setPlrLicenseUrl(e.target.value)}
-                              placeholder="https://drive.google.com/..."
-                              className="w-full px-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
                 
                 {/* PROGRAMA DE AFILIADOS */}
                 <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm">
@@ -803,7 +643,7 @@ function ProductWizardContent() {
             </motion.div>
           )}
 
-          {/* STEP 3: Digital File Upload */}
+          {/* STEP 3: Preços e Entregáveis */}
           {currentStep === 3 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -813,70 +653,233 @@ function ProductWizardContent() {
               <div>
                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-600" />
-                  3. Arquivo Didático Digital
+                  3. Preços e Entregáveis
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Como você deseja entregar o material para o aluno após a compra?
+                  Configure o preço de venda e como os materiais serão entregues.
                 </p>
               </div>
 
-              <div className="flex bg-slate-100 p-1 rounded-xl w-full">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDeliveryMethod('upload');
-                    if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
-                  }}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                    deliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <UploadCloud className="w-4 h-4" /> Upload Seguro
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('link')}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                    deliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <LinkIcon className="w-4 h-4" /> Link Externo
-                  </span>
-                </button>
+              {/* BLOCO 1: PRODUTO FINAL */}
+              <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm space-y-5">
+                <div>
+                  <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    Bloco 1: Produto Final (Consumo do Aluno)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    O material padrão e o preço que os alunos pagarão para consumir o seu conteúdo.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <div 
+                    onClick={() => {
+                      setIsFree(!isFree);
+                      if (!isFree) setPreco('0,00');
+                      else setPreco('29,90');
+                    }}
+                    className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isFree ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className={`mt-0.5 w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border transition-colors ${isFree ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-300'}`}>
+                      {isFree && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${isFree ? 'text-emerald-900' : 'text-slate-700'}`}>🎁 Material Gratuito (Brinde)</span>
+                      </div>
+                      <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isFree ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        Se marcado, o aluno poderá baixar este material gratuitamente.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                    Preço de Venda (R$) {isFree ? '' : '*'}
+                  </label>
+                  <div className="relative max-w-xs">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
+                    <input
+                      type="text"
+                      value={isFree ? '0,00' : preco}
+                      disabled={isFree}
+                      onChange={(e) => setPreco(e.target.value)}
+                      placeholder="29,90"
+                      className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-black focus:outline-none transition-colors ${
+                        isFree 
+                          ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
+                          : 'bg-slate-50 border-slate-200 focus:border-blue-600 text-slate-900'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
+                    Arquivo do Produto Final
+                  </label>
+                  <div className="flex bg-slate-100 p-1 rounded-xl w-full mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeliveryMethod('upload');
+                        if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
+                      }}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                        deliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <UploadCloud className="w-4 h-4" /> Upload Seguro
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMethod('link')}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                        deliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <LinkIcon className="w-4 h-4" /> Link Externo
+                      </span>
+                    </button>
+                  </div>
+
+                  {deliveryMethod === 'upload' ? (
+                    <FileUpload
+                      bucket="product-files"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
+                      maxSizeMB={15}
+                      value={arquivoUrl}
+                      onChange={(url: string | null) => setArquivoUrl(url)}
+                      label="Upload do Arquivo Final"
+                      helperText="Formatos suportados: PDF, DOCX, ZIP, etc. (máx. 15MB)."
+                    />
+                  ) : (
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4 text-blue-600" />
+                        Link do Arquivo Externo
+                      </h4>
+                      <input
+                        type="url"
+                        value={arquivoUrl || ''}
+                        onChange={(e) => setArquivoUrl(e.target.value)}
+                        placeholder="https://drive.google.com/..."
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {deliveryMethod === 'upload' ? (
-                <FileUpload
-                  bucket="product-files"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
-                  maxSizeMB={15}
-                  value={arquivoUrl}
-                  onChange={(url: string | null) => setArquivoUrl(url)}
-                  label="Upload do Arquivo Didático Digital"
-                  helperText="Formatos suportados: PDF, DOCX, XLSX, ZIP, etc. (máx. 15MB). Vídeos não são permitidos via upload."
-                />
-              ) : (
-                <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-3">
-                  <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4 text-blue-600" />
-                    Link do Arquivo Externo
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    Insira o link para a pasta no Google Drive, OneDrive, Dropbox, Mega, etc. 
-                    Certifique-se de que o link esteja com as permissões de acesso "Público" ou "Qualquer pessoa com o link".
-                  </p>
-                  <input
-                    type="url"
-                    value={arquivoUrl || ''}
-                    onChange={(e) => setArquivoUrl(e.target.value)}
-                    placeholder="https://drive.google.com/..."
-                    className="w-full px-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
-                  />
+              {/* BLOCO 2: LICENÇA PLR */}
+              <div className="bg-blue-50 border border-blue-200 p-5 rounded-xl shadow-sm space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-blue-900 flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-blue-700" />
+                      Bloco 2: Licença PLR (Mercado de Revenda)
+                    </h3>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Opcional. Venda os direitos de revenda deste produto. Quem compra recebe o pacote completo (Produto Final + Licença).
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <div className="w-12 h-6 bg-blue-200/50 rounded-full cursor-pointer relative overflow-hidden" onClick={() => setIsPlr(!isPlr)}>
+                      <div className={`absolute inset-0 bg-blue-600 transition-transform duration-300 ${isPlr ? 'translate-x-0' : '-translate-x-full'}`} />
+                      <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${isPlr ? 'translate-x-6' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {isPlr && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="pt-4 border-t border-blue-200 space-y-5"
+                  >
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block mb-1.5">
+                        Preço da Licença de Revenda (R$)
+                      </label>
+                      <div className="relative max-w-xs">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
+                        <input
+                          type="text"
+                          value={precoPlr}
+                          onChange={(e) => setPrecoPlr(e.target.value)}
+                          placeholder="99,90"
+                          className="w-full pl-10 pr-4 py-3 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-black focus:outline-none shadow-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block mb-2">
+                        Arquivo da Licença (PDF/Imagem)
+                      </label>
+                      <div className="flex bg-blue-100/50 p-1 rounded-xl w-full mb-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlrDeliveryMethod('upload');
+                            if (plrLicenseUrl && !plrLicenseUrl.includes('supabase.co')) setPlrLicenseUrl(null);
+                          }}
+                          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            plrDeliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-blue-700/70 hover:text-blue-900'
+                          }`}
+                        >
+                          <span className="flex items-center justify-center gap-2">
+                            <UploadCloud className="w-4 h-4" /> Upload Seguro
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlrDeliveryMethod('link')}
+                          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            plrDeliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-blue-700/70 hover:text-blue-900'
+                          }`}
+                        >
+                          <span className="flex items-center justify-center gap-2">
+                            <LinkIcon className="w-4 h-4" /> Link Externo
+                          </span>
+                        </button>
+                      </div>
+
+                      {plrDeliveryMethod === 'upload' ? (
+                        <FileUpload
+                          bucket="product-files"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          maxSizeMB={5}
+                          value={plrLicenseUrl}
+                          onChange={(url: string | null) => setPlrLicenseUrl(url)}
+                          label="Licença de Revenda"
+                          helperText="PDF ou Imagem (máx. 5MB)."
+                        />
+                      ) : (
+                        <div className="bg-white/50 border border-blue-200 p-4 rounded-xl space-y-3">
+                          <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                            <LinkIcon className="w-4 h-4 text-blue-600" />
+                            Link do Certificado/Licença
+                          </h4>
+                          <input
+                            type="url"
+                            value={plrLicenseUrl || ''}
+                            onChange={(e) => setPlrLicenseUrl(e.target.value)}
+                            placeholder="https://drive.google.com/..."
+                            className="w-full px-4 py-2.5 bg-white border border-blue-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
             </motion.div>
           )}
 
