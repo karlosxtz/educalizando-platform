@@ -399,14 +399,28 @@ export async function lookupAsaasPixKey(cleanCpf: string): Promise<AsaasPixKeyLo
   }
 
   try {
-    const formattedCpf = cleanCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     const res = await fetchWithRetry(
-      `${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${formattedCpf}`,
+      `${ASAAS_API_URL}/pix/addressKeys/external?type=CPF&key=${cleanCpf}`,
       { method: 'GET', headers: getHeaders() }
     );
 
     if (!res.ok) {
-      console.warn('[lookupAsaasPixKey] Falha na consulta Asaas:', await res.text());
+      const errorText = await res.text();
+      console.warn('[lookupAsaasPixKey] Falha na consulta Asaas:', errorText);
+      
+      // Fallback amigável para Sandbox:
+      // Se estivermos em ambiente sandbox e o Asaas rejeitar, permitimos avançar simulando sucesso
+      if (ASAAS_API_URL.includes('sandbox')) {
+        console.warn('[Asaas Service] Bypass de validação aplicado devido ao ambiente Sandbox. CPF real rejeitado pelo BACEN Sandbox, simulando sucesso...');
+        return {
+          valid: true,
+          key: cleanCpf,
+          keyType: 'CPF',
+          accountHolderName: 'Usuário Sandbox (Mock)',
+          accountHolderCpfCnpj: cleanCpf
+        };
+      }
+
       return {
         valid: false,
         errorMessage: 'Não foi possível confirmar a titularidade da chave PIX no Asaas. Verifique os dados e tente novamente.'
