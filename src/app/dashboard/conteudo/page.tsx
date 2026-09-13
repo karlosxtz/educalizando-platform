@@ -118,7 +118,10 @@ export default function ContentDeliveryDashboardPage() {
             <span className="p-2 rounded-xl bg-brand-navy/10 text-brand-navy">
               <FolderCheck className="w-5 h-5 text-brand-navy" />
             </span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Conteúdo & Entregas</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              Conteúdo & Entregas
+              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider">Beta</span>
+            </h1>
           </div>
           <p className="text-xs text-slate-600 font-medium">
             Gerencie os materiais digitais (PDFs ≤ 15MB) e links de videoaulas entregues automaticamente aos compradores.
