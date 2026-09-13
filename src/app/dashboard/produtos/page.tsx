@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
   FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X
+  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X, ShieldCheck
 } from 'lucide-react';
 
 import { 
@@ -345,12 +345,25 @@ export default function ProductsManagementPage() {
                 </div>
 
                 {/* Price & Actions Footer */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Preço de Venda</span>
-                    <span className="text-lg font-black text-slate-900">
-                      R$ {prod.preco.toFixed(2).replace('.', ',')}
-                    </span>
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-2">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Material</span>
+                      <span className="text-lg font-black text-slate-900">
+                        R$ {prod.preco.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+
+                    {prod.is_plr && prod.preco_plr !== undefined && prod.preco_plr !== null && (
+                      <div>
+                        <span className="text-[10px] text-blue-500 uppercase tracking-wider block font-bold flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3" /> Licença PLR
+                        </span>
+                        <span className="text-lg font-black text-blue-700">
+                          R$ {prod.preco_plr.toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1.5">
