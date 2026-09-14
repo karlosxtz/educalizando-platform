@@ -21,20 +21,22 @@ interface TransactionData {
 export default function SuperAdminTransacoes() {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchTransactions();
   }, []);
 
   async function fetchTransactions() {
+    setLoading(true); setError('');
     try {
       const res = await fetch('/api/admin/transactions');
       const data = await res.json();
-      if (data.success) {
-        setTransactions(data.transactions);
-      }
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar as transações.');
+      setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : 'Erro ao carregar transações.');
     } finally {
       setLoading(false);
     }
@@ -91,6 +93,8 @@ export default function SuperAdminTransacoes() {
                     Carregando transações...
                   </td>
                 </tr>
+              ) : error ? (
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-rose-400">{error}<button onClick={fetchTransactions} className="ml-3 underline">Tentar novamente</button></td></tr>
               ) : transactions.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
