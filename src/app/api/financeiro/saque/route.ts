@@ -6,6 +6,9 @@ import { getRequestUser } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Acesso negado.' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId');
 
@@ -13,8 +16,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
     }
 
-    const user = await getRequestUser(request);
-    if (!user) return NextResponse.json({ success: false, error: 'Acesso negado.' }, { status: 401 });
     const { data: ownedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
     if (!ownedStore || ownedStore.creator_id !== user.id) {
       return NextResponse.json({ success: false, error: 'Esta loja não pertence ao usuário autenticado.' }, { status: 403 });
@@ -32,8 +33,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Acesso negado. Autenticação inválida para esta operação financeira.' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { storeId, creatorId = 'user-creator', amount, creatorProfileCpf, nonce, expiresAt, serverSignature, clientSignature } = body;
+    const { storeId, amount, nonce, expiresAt, serverSignature, clientSignature } = body;
+    const creatorProfileCpf = String(user.user_metadata?.cpf || '').replace(/\D/g, '');
 
     if (!storeId) {
       return NextResponse.json(
@@ -65,40 +75,16 @@ export async function POST(request: Request) {
        return NextResponse.json({ success: false, error: 'Sessão de saque expirada ou inválida (Replay Attack block).' }, { status: 403 });
     }
 
-    // Validação de Segurança Mandatória: Garantir que o usuário requisitante é o dono (creatorId)
-    let isAuthenticatedAndAuthorized = false;
-    let validJwt = '';
-    
-    // 1. Tentar primeiro o Header Authorization explícito (O cliente assina o payload com este JWT exato)
+    // O cliente assina o payload com o mesmo token autenticado conferido pelo servidor.
     const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      validJwt = authHeader.substring(7);
-      try {
-        const { data: userData } = await supabaseAdmin.auth.getUser(validJwt);
-        if (userData?.user && userData.user.id === creatorId) {
-          isAuthenticatedAndAuthorized = true;
-        }
-      } catch (e) {}
-    }
-
-    // 2. Fallback para a sessão SSR atual do Supabase
-    if (!isAuthenticatedAndAuthorized) {
-      const user = await getRequestUser(request);
-      if (user && user.id === creatorId) {
-        isAuthenticatedAndAuthorized = true;
-      }
+    const validJwt = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1] || '';
+    if (!validJwt) {
+      return NextResponse.json({ success: false, error: 'Token de autorização obrigatório para solicitar saque.' }, { status: 401 });
     }
 
     const { data: ownedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
-    if (!ownedStore || ownedStore.creator_id !== creatorId) {
+    if (!ownedStore || ownedStore.creator_id !== user.id) {
       return NextResponse.json({ success: false, error: 'A loja informada não pertence ao criador autenticado.' }, { status: 403 });
-    }
-
-    if (!isAuthenticatedAndAuthorized) {
-      return NextResponse.json(
-        { success: false, error: 'Acesso negado. Autenticação inválida para esta operação financeira.' },
-        { status: 401 }
-      );
     }
 
     // Anti-Tampering do Payload (Verifica se ninguém interceptou o proxy e mudou o valor)
@@ -108,7 +94,7 @@ export async function POST(request: Request) {
     // Executa solicitação no servidor e reserva o saldo para análise manual.
     const withdrawal = await requestCreatorWithdrawal({
       storeId,
-      creatorId,
+      creatorId: user.id,
       amount: Number(amount),
       creatorProfileCpf
     });

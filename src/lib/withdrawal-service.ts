@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
 import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
 import { isValidCPF } from './infinitepay-service';
 
@@ -95,7 +95,8 @@ function saveLocalWithdrawals(withdrawals: WithdrawalRecord[]) {
 export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: string): Promise<CreatorPixKey | null> {
   if (isRealSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      const db = typeof window === 'undefined' ? supabaseAdmin : supabase;
+      const { data, error } = await db
         .from('creator_pix_keys')
         .select('*')
         .eq('store_id', storeId)
@@ -197,29 +198,18 @@ export async function registerCreatorPixKey(data: {
 
   // Desativar chaves antigas se existirem (Item 8 da Especificação)
   if (isRealSupabaseConfigured()) {
-    try {
-      const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('creator_pix_keys')
-        .update({ is_active: false })
-        .eq('store_id', data.storeId);
-
-      await supabaseAdmin.from('creator_pix_keys').insert([{
-        id: newKey.id,
-        creator_id: newKey.creatorId,
-        store_id: newKey.storeId,
-        pix_key_type: newKey.pixKeyType,
-        pix_key: newKey.pixKey,
-        pix_key_masked: newKey.pixKeyMasked,
-        holder_name: newKey.holderName,
-        holder_cpf: newKey.holderCpf,
-        validation_status: newKey.validationStatus,
-        validated_at: newKey.validatedAt,
-        is_active: true,
-        created_at: newKey.createdAt,
-        updated_at: newKey.updatedAt
-      }]);
-    } catch (e) {
-      console.error('[registerCreatorPixKey] Erro Supabase:', e);
+    const { data: saved, error } = await supabaseAdmin.rpc('register_creator_pix_key_safe', {
+      p_id: newKey.id,
+      p_creator_id: newKey.creatorId,
+      p_store_id: newKey.storeId,
+      p_pix_key: newKey.pixKey,
+      p_pix_key_masked: newKey.pixKeyMasked,
+      p_holder_name: newKey.holderName || null,
+      p_holder_cpf: newKey.holderCpf || null,
+      p_validated_at: newKey.validatedAt
+    });
+    if (error || saved !== true) {
+      throw new Error(`Não foi possível cadastrar a chave PIX: ${error?.message || 'operação não confirmada'}`);
     }
   }
 
@@ -330,7 +320,8 @@ export async function requestCreatorWithdrawal(data: {
 export async function getWithdrawalsHistory(storeId: string): Promise<WithdrawalRecord[]> {
   if (isRealSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      const db = typeof window === 'undefined' ? supabaseAdmin : supabase;
+      const { data, error } = await db
         .from('withdrawals')
         .select('*')
         .eq('store_id', storeId)
@@ -365,185 +356,4 @@ export async function getWithdrawalsHistory(storeId: string): Promise<Withdrawal
 
   const local = getLocalWithdrawals();
   return local.filter(w => w.storeId === storeId).sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
-}
-
-// 5. Validação de Saque do Asaas (Mecanismo de Segurança)
-export async function validateAsaasTransferWebhook(payload: { transfer: any }): Promise<boolean> {
-  const { transfer } = payload;
-  if (!transfer || !transfer.id) return false;
-
-  console.log(`[Transfer Validation] Validando Saque: TransferId: ${transfer.id}`);
-
-  // Busca o saque nativamente no DB
-  if (isRealSupabaseConfigured()) {
-    try {
-      const { supabaseAdmin } = await import('./supabase');
-      let query = supabaseAdmin.from('withdrawals').select('*');
-      if (transfer.externalReference) {
-        const wId = transfer.externalReference.replace('withdrawal-', '');
-        query = query.or(`asaas_transfer_id.eq.${transfer.id},id.eq.${wId}`);
-      } else {
-        query = query.eq('asaas_transfer_id', transfer.id);
-      }
-
-      const { data, error } = await query.single();
-      
-      // Se encontrarmos o saque no nosso DB, e o valor do Asaas bater com o que autorizamos (ou se apenas validarmos que existe)
-      if (!error && data) {
-        console.log(`[Transfer Validation] Saque encontrado e aprovado no DB para TransferId: ${transfer.id}`);
-        return true;
-      } else {
-        console.warn(`[Transfer Validation] Saque NÃO encontrado no DB para TransferId: ${transfer.id}`);
-      }
-    } catch (e) {
-      console.error('[Transfer Validation] Erro na validação via DB:', e);
-    }
-  }
-
-  // Se chegou aqui e não encontramos no DB, podemos tentar checar o LocalStorage (só para fallback de dev)
-  const local = getLocalWithdrawals();
-  const found = local.find(w => w.asaasTransferId === transfer.id || (transfer.externalReference && w.id === transfer.externalReference.replace('withdrawal-', '')));
-  if (found) {
-    console.log(`[Transfer Validation] Saque encontrado e aprovado no cache local para TransferId: ${transfer.id}`);
-    return true;
-  }
-
-  console.error(`[Transfer Validation] RECUSADO. Saque desconhecido: TransferId ${transfer.id}`);
-  return false;
-}
-
-// 6. Processamento dos Eventos de Webhook de Transferência do Asaas (Item 20-25)
-export async function handleAsaasTransferWebhook(payload: { event: string; transfer: any; id?: string }): Promise<WithdrawalRecord | null> {
-  const { event, transfer } = payload;
-  if (!transfer) return null;
-
-  const eventId = payload.id || `evt_${event}_${transfer.id}_${Date.now()}`;
-  const transferId = transfer.id;
-  const externalRef = transfer.externalReference;
-
-  // A. Remover cache local incompatível com backend Node.js
-  console.log(`[Transfer Webhook] Evento: ${event} | TransferId: ${transferId} | ExternalRef: ${externalRef}`);
-
-  let wId = externalRef ? externalRef.replace('withdrawal-', '') : null;
-  let item: WithdrawalRecord | undefined = undefined;
-
-  // B. Buscar saque NATIVAMENTE no banco de dados (Resolução do Bug Crítico de Busca)
-  if (isRealSupabaseConfigured()) {
-    try {
-      const { supabaseAdmin } = await import('./supabase');
-      let query = supabaseAdmin.from('withdrawals').select('*');
-      if (transferId && wId) {
-        query = query.or(`asaas_transfer_id.eq.${transferId},id.eq.${wId}`);
-      } else if (transferId) {
-        query = query.eq('asaas_transfer_id', transferId);
-      } else if (wId) {
-        query = query.eq('id', wId);
-      }
-
-      const { data, error } = await query.single();
-      if (!error && data) {
-        item = {
-          id: data.id,
-          creatorId: data.creator_id,
-          storeId: data.store_id,
-          amount: Number(data.amount),
-          pixKeyId: data.pix_key_id,
-          pixKeyType: data.pix_key_type || 'CPF',
-          pixKeyMasked: data.pix_key_masked,
-          status: data.status as WithdrawalStatus,
-          asaasTransferId: data.asaas_transfer_id,
-          asaasExternalReference: data.asaas_external_reference,
-          failureReason: data.failure_reason,
-          requestedAt: data.requested_at,
-          processingAt: data.processing_at,
-          completedAt: data.completed_at,
-          failedAt: data.failed_at,
-          cancelledAt: data.cancelled_at,
-          createdAt: data.created_at
-        };
-      }
-    } catch (e) {
-      console.error('[Transfer Webhook] Erro ao buscar saque no DB:', e);
-    }
-  }
-
-  // Fallback para simulação local se DB não existir
-  if (!item) {
-    let withdrawals = getLocalWithdrawals();
-    item = withdrawals.find(w => w.asaasTransferId === transferId || (wId && w.id === wId));
-  }
-
-  if (!item) {
-    console.warn(`[Transfer Webhook] Saque não encontrado para TransferId ${transferId}`);
-    return null;
-  }
-
-  // C. TRANSFER_DONE -> Saque Concluído (Item 21)
-  if (event === 'TRANSFER_DONE') {
-    // TRAVA DE ESTADO / IDEMPOTÊNCIA: Evitar reprocessamento
-    if (item.status === 'COMPLETED') {
-      console.log(`[Transfer Webhook] Saque ${item.id} já estava COMPLETED. Ignorando evento repetido.`);
-      return null;
-    }
-
-    item.status = 'COMPLETED';
-    item.completedAt = new Date().toISOString();
-
-    if (isRealSupabaseConfigured()) {
-      const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('withdrawals').update({
-        status: 'COMPLETED',
-        completed_at: item.completedAt
-      }).eq('id', item.id);
-    }
-  }
-
-  // D. TRANSFER_FAILED / TRANSFER_CANCELLED -> Falha e Devolução do Saldo (Item 22 & 23)
-  else if (event === 'TRANSFER_FAILED' || event === 'TRANSFER_CANCELLED') {
-    // TRAVA DE ESTADO / IDEMPOTÊNCIA: Prevenção CRÍTICA de duplo estorno
-    if (item.status === 'FAILED' || item.status === 'CANCELLED') {
-      console.warn(`[Transfer Webhook] ALERTA: Saque ${item.id} já estava ${item.status}. Evitando estorno em duplicidade (dinheiro infinito).`);
-      return null;
-    }
-
-    const isCancel = event === 'TRANSFER_CANCELLED';
-    item.status = isCancel ? 'CANCELLED' : 'FAILED';
-    item.failureReason = transfer.failReason || (isCancel ? 'Transferência cancelada' : 'Falha no processamento bancário');
-    item.failedAt = new Date().toISOString();
-
-    // Estornar a reserva devolvendo o valor ao saldo do criador
-    await recordWalletTransaction({
-      storeId: item.storeId,
-      orderId: item.id,
-      type: 'ADJUSTMENT',
-      grossAmount: item.amount,
-      platformFixedFeeAmount: 0,
-      platformPercentageFeeAmount: 0,
-      platformFeeAmount: 0,
-      asaasFeeAmount: 0,
-      netAmount: item.amount,
-      description: `Estorno de saque ${isCancel ? 'cancelado' : 'falhado'} (${item.failureReason})`
-    });
-
-    if (isRealSupabaseConfigured()) {
-      const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('withdrawals').update({
-        status: item.status,
-        failure_reason: item.failureReason,
-        failed_at: item.failedAt
-      }).eq('id', item.id);
-    }
-  }
-
-  // Atualização em cache/fallback caso esteja rodando simulação visual
-  if (typeof window !== 'undefined') {
-    let withdrawals = getLocalWithdrawals();
-    const idx = withdrawals.findIndex(w => w.id === item!.id);
-    if (idx !== -1) {
-      withdrawals[idx] = item;
-      saveLocalWithdrawals(withdrawals);
-    }
-  }
-
-  return item;
 }

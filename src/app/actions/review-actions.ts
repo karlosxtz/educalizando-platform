@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase';
 import { Review } from '@/lib/types';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function submitProductReview(params: {
   productId: string;
@@ -11,6 +12,11 @@ export async function submitProductReview(params: {
   comentario?: string;
 }): Promise<{ success: boolean; error?: string; data?: Review }> {
   try {
+    const currentUser = await getRequestUser(new Request('http://localhost'));
+    if (!currentUser) {
+      return { success: false, error: 'Faça login para avaliar este material.' };
+    }
+
     const isRealSupabase = Boolean(
       process.env.NEXT_PUBLIC_SUPABASE_URL && 
       !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -24,12 +30,20 @@ export async function submitProductReview(params: {
       return { success: false, error: 'A nota deve ser entre 1 e 5.' };
     }
 
-    // 2. Validar se o aluno realmente COMPROU o produto verificando orders e order_items
+    const { data: product } = await supabaseAdmin
+      .from('products')
+      .select('id, store_id')
+      .eq('id', params.productId)
+      .maybeSingle();
+    if (!product || product.store_id !== params.storeId) {
+      return { success: false, error: 'Produto ou loja inválidos.' };
+    }
+
+    // 2. Validar se o usuário autenticado realmente comprou o produto.
     // Como a tabela 'purchases' antiga está obsoleta, buscamos a origem real da compra (checkout).
     
     // Obter o email do aluno usando o ID (já que orders usa buyer_email)
-    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(params.studentId);
-    const studentEmail = userData?.user?.email?.toLowerCase().trim();
+    const studentEmail = currentUser.email?.toLowerCase().trim();
 
     if (!studentEmail) {
       return { success: false, error: 'Aluno não encontrado ou sem email cadastrado.' };
@@ -39,7 +53,7 @@ export async function submitProductReview(params: {
     const { data: paidOrders } = await supabaseAdmin
       .from('orders')
       .select('id')
-      .eq('buyer_email', studentEmail)
+      .eq('student_id', currentUser.id)
       .eq('status', 'paid');
 
     let hasBought = false;
@@ -68,7 +82,7 @@ export async function submitProductReview(params: {
         .select('id')
         .eq('product_id', params.productId)
         .eq('status', 'ACTIVE')
-        .or(`student_id.eq.${params.studentId},student_id.eq.${studentEmail}`)
+        .eq('student_id', currentUser.id)
         .limit(1);
         
       if (manualAccess && manualAccess.length > 0) {
@@ -82,8 +96,8 @@ export async function submitProductReview(params: {
 
     const payload = {
       product_id: params.productId,
-      student_id: params.studentId,
-      store_id: params.storeId,
+      student_id: currentUser.id,
+      store_id: product.store_id,
       nota: params.nota,
       comentario: params.comentario || null
     };
