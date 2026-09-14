@@ -12,6 +12,8 @@ interface WithdrawalData {
   pix_key_masked: string;
   pix_key_full?: string | null;
   pix_key_type?: string;
+  holder_name?: string | null;
+  bank_name?: string | null;
   store: {
     nome_loja: string;
     slug: string;
@@ -160,6 +162,7 @@ export default function SuperAdminSaques() {
                     <td className="px-6 py-4 font-mono text-xs">
                       <span className="text-white">{item.pix_key_full || item.pix_key_masked}</span>
                       <span className="block text-[10px] text-slate-500">{item.pix_key_type || 'PIX'} · chave para pagamento manual</span>
+                      <span className="block text-[10px] text-slate-400">Titular: {item.holder_name || 'Não informado'} · Banco: {item.bank_name || 'Não informado'}</span>
                     </td>
                     <td className="px-6 py-4">
                       {new Date(item.requested_at).toLocaleString('pt-BR')}
