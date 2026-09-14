@@ -104,6 +104,11 @@ DROP POLICY IF EXISTS "Usuários logados podem subir banners" ON storage.objects
 DROP POLICY IF EXISTS "Usuários logados podem modificar seus uploads de banners" ON storage.objects;
 DROP POLICY IF EXISTS "Usuários logados podem deletar imagens de banners" ON storage.objects;
 
+-- Configurações globais e segredos de IA são consultados somente no backend.
+DROP POLICY IF EXISTS "Leitura publica de configuracoes da plataforma" ON public.platform_settings;
+DROP POLICY IF EXISTS "Public config read" ON public.platform_settings;
+ALTER TABLE public.stores DROP COLUMN IF EXISTS google_ai_key;
+
 -- Troca de chave PIX atômica: se a nova chave falhar, a anterior permanece ativa.
 CREATE OR REPLACE FUNCTION public.register_creator_pix_key_safe(
   p_id VARCHAR,

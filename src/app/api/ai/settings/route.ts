@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
 
   const { data } = await supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle();
-  return NextResponse.json({ apiKey: data?.google_ai_key || '' });
+  return NextResponse.json({ configured: Boolean(data?.google_ai_key) });
 }
 
 export async function PUT(request: Request) {
@@ -37,4 +37,3 @@ export async function PUT(request: Request) {
   if (error) return NextResponse.json({ error: 'Não foi possível salvar a chave.' }, { status: 500 });
   return NextResponse.json({ success: true });
 }
-

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 export default function IAConfigPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [apiKey, setApiKey] = useState('');
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,8 +29,8 @@ export default function IAConfigPage() {
         const settingsResponse = await fetch(`/api/ai/settings?storeId=${encodeURIComponent(creatorStore.id)}`);
         if (settingsResponse.ok) {
           const settings = await settingsResponse.json();
-          setApiKey(settings.apiKey || '');
-          if (settings.apiKey) setShowConfig(false);
+          setHasApiKey(Boolean(settings.configured));
+          if (settings.configured) setShowConfig(false);
         }
 
         if (creatorStore.id) {
@@ -66,6 +67,8 @@ export default function IAConfigPage() {
         throw new Error(data.error || 'Erro ao salvar a chave.');
       }
       toast.success('Chave de IA atualizada com sucesso!');
+      setHasApiKey(true);
+      setApiKey('');
       setShowConfig(false);
     } catch (error) {
       console.error(error);
@@ -172,7 +175,7 @@ export default function IAConfigPage() {
                 <Bot className="w-5 h-5 text-purple-600" />
                 <h2 className="text-lg font-bold text-slate-900">Conectar Google Gemini</h2>
               </div>
-              {store?.google_ai_key && (
+              {hasApiKey && (
                 <button onClick={() => setShowConfig(false)} className="text-xs font-bold text-purple-600 hover:underline">
                   Voltar para o Gerador
                 </button>
