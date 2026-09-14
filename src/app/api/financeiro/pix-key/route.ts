@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ success: false, error: 'Não autorizado.' }, { status: 401 });
 
     const body = await request.json();
-    const { storeId, inputPixKey } = body;
+    const { storeId, inputPixKey, holderName: requestedHolderName, bankName } = body;
 
     if (!storeId) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     const creatorProfileCpf = String(user.user_metadata?.cpf || '').replace(/\D/g, '');
-    const holderName = user.user_metadata?.full_name || user.user_metadata?.name || undefined;
+    const holderName = String(requestedHolderName || user.user_metadata?.full_name || user.user_metadata?.name || '').trim() || undefined;
 
     if (!inputPixKey || !creatorProfileCpf) {
       return NextResponse.json(
@@ -86,6 +86,10 @@ export async function POST(request: Request) {
       holderName
     });
 
+    if (bankName?.trim()) {
+      await supabaseAdmin.from('creator_pix_keys').update({ bank_name: String(bankName).trim() }).eq('id', registeredKey.id);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Chave PIX CPF validada e cadastrada com sucesso!',
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
         id: registeredKey.id,
         pixKeyMasked: registeredKey.pixKeyMasked,
         holderName: registeredKey.holderName,
+        bankName: bankName?.trim() || null,
         validationStatus: registeredKey.validationStatus,
         validatedAt: registeredKey.validatedAt
       }

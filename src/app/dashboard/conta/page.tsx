@@ -25,6 +25,7 @@ export default function AccountSettingsPage() {
   const [hasPixKey, setHasPixKey] = useState(false);
   const [pixKeyMasked, setPixKeyMasked] = useState('');
   const [pixHolderName, setPixHolderName] = useState('');
+  const [pixBankName, setPixBankName] = useState('');
   const [pixInputKey, setPixInputKey] = useState('');
   const [pixLoading, setPixLoading] = useState(false);
   const [pixError, setPixError] = useState<string | null>(null);
@@ -117,6 +118,7 @@ export default function AccountSettingsPage() {
         setHasPixKey(true);
         setPixKeyMasked(data.pixKey.pixKeyMasked);
         setPixHolderName(data.pixKey.holderName);
+        setPixBankName(data.pixKey.bankName || '');
       }
     } catch (e) {
       console.error('Erro ao buscar chave PIX:', e);
@@ -158,6 +160,8 @@ export default function AccountSettingsPage() {
           creatorId: 'user-demo',
           creatorProfileCpf: cleanProfile,
           inputPixKey: cleanInput
+          ,holderName: pixHolderName
+          ,bankName: pixBankName
         })
       });
 
@@ -317,6 +321,14 @@ export default function AccountSettingsPage() {
                   placeholder="Digite seu CPF (11 dígitos)"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-mono focus:outline-none"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Nome do titular *</label>
+                <input type="text" value={pixHolderName} onChange={(e) => setPixHolderName(e.target.value)} placeholder="Nome completo do titular" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-navy" required />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Banco *</label>
+                <input type="text" value={pixBankName} onChange={(e) => setPixBankName(e.target.value)} placeholder="Nome do banco" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-navy" required />
               </div>
             </div>
 

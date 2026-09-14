@@ -159,6 +159,7 @@ export async function registerCreatorPixKey(data: {
   creatorProfileCpf: string;
   inputPixKey: string;
   holderName?: string;
+  bankName?: string;
 }): Promise<CreatorPixKey> {
   const cleanInputCpf = data.inputPixKey.replace(/\D/g, '');
   const cleanProfileCpf = data.creatorProfileCpf.replace(/\D/g, '');
