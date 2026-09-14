@@ -28,3 +28,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_wallet_transactions_order_type_owner
   ON public.wallet_transactions(order_id, type, COALESCE(creator_id, ''))
   WHERE order_id IS NOT NULL;
 
+-- Códigos promocionais não devem ser enumeráveis publicamente. Criadores continuam
+-- gerenciando os cupons das próprias lojas; o checkout valida um código pelo servidor.
+DROP POLICY IF EXISTS "Leitura pública de cupons ativos" ON public.coupons;
+DROP POLICY IF EXISTS "Leitura pública de escopo dos cupons" ON public.coupon_products;

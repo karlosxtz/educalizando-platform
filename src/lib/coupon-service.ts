@@ -312,9 +312,29 @@ export async function validateCouponCode(
     return { valid: false, message: 'Informe o código do cupom.' };
   }
 
-  // Buscar cupons da loja
-  const storeCoupons = await getCouponsByStoreId(storeId);
-  const coupon = storeCoupons.find(c => c.codigo.toUpperCase() === cleanCode);
+  // No navegador, nunca listamos os cupons ativos. A validação ocorre no servidor
+  // e revela somente o resultado do código que o comprador informou.
+  if (typeof window !== 'undefined') {
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId, code: cleanCode, targetType, targetId, currentPrice })
+      });
+      return await response.json();
+    } catch {
+      return { valid: false, message: 'Não foi possível validar o cupom agora.' };
+    }
+  }
+
+  const { supabaseAdmin } = await import('./supabase');
+  const { data: couponData } = await supabaseAdmin
+    .from('coupons')
+    .select('*, coupon_products(id, coupon_id, product_id, kit_id)')
+    .eq('store_id', storeId)
+    .eq('codigo', cleanCode)
+    .maybeSingle();
+  const coupon = couponData as Coupon | null;
 
   if (!coupon) {
     return { valid: false, message: 'Cupom de desconto inválido para esta loja.' };

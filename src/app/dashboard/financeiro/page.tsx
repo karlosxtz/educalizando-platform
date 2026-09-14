@@ -338,10 +338,10 @@ export default function FinancialWalletDashboardPage() {
             <Sparkles className="w-3.5 h-3.5" /> Transparência Total
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            A Menor Taxa do Mercado Digital <span className="text-emerald-600">(Sem Porcentagens!)</span>
+            Taxas claras em cada venda <span className="text-emerald-600">(sem surpresas)</span>
           </h2>
           <p className="text-slate-600 font-medium leading-relaxed max-w-3xl">
-            Enquanto plataformas tradicionais levam 15% de todo o seu faturamento, nós trabalhamos com uma taxa fixa em Reais para processar suas vendas. O seu produto pode custar R$ 50 ou R$ 5.000, e o nosso custo de processamento continuará sendo exatamente o mesmo. Transparência total.
+            A taxa da Educalizando é definida nas configurações da plataforma e registrada separadamente dos custos do meio de pagamento. O extrato mostra o valor bruto, cada desconto e o líquido do criador.
           </p>
         </div>
 
@@ -351,9 +351,9 @@ export default function FinancialWalletDashboardPage() {
             <DollarSign className="w-6 h-6 text-emerald-600" />
           </div>
           <div className="space-y-1 text-center sm:text-left">
-            <h3 className="font-extrabold text-slate-900">Custo de transação (via Pix): <span className="text-emerald-600">R$ 1,99 fixo da transação + R$ 1,00 por produto no carrinho.</span></h3>
+            <h3 className="font-extrabold text-slate-900">Checkout InfinitePay: <span className="text-emerald-600">custos do pagamento identificados separadamente.</span></h3>
             <p className="text-sm text-slate-500 font-medium">
-              Isso significa que para vender um produto pago via Pix, o seu custo total na nossa plataforma é de apenas R$ 2,99. Simples assim. Sem taxas surpresas, sem porcentagens abusivas mordendo o seu lucro.
+              Quando a InfinitePay repassa a taxa ao comprador, o lançamento do criador fica sem desconto do gateway. A taxa da plataforma continua detalhada no pedido e no extrato.
             </p>
           </div>
         </div>
@@ -368,15 +368,15 @@ export default function FinancialWalletDashboardPage() {
             </div>
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">Outras Plataformas (15%)</span>
-                <span className="text-sm font-bold text-rose-600 line-through">Eles cobram R$ 7,50</span>
+                <span className="text-sm font-medium text-slate-500">Valor bruto da venda</span>
+                <span className="text-sm font-bold text-slate-700">R$ 50,00</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Nossa Plataforma (Fixo)</span>
-                <span className="text-sm font-black text-emerald-600">Nós cobramos R$ 2,99</span>
+                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Taxas aplicadas</span>
+                <span className="text-sm font-black text-emerald-600">Detalhadas no extrato</span>
               </div>
               <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Você economiza R$ 4,51 por venda!
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Nenhum desconto fica oculto.
               </div>
             </div>
           </div>
@@ -388,15 +388,15 @@ export default function FinancialWalletDashboardPage() {
             </div>
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">Outras Plataformas (15%)</span>
-                <span className="text-sm font-bold text-rose-600 line-through">Eles cobram R$ 15,00</span>
+                <span className="text-sm font-medium text-slate-500">Valor bruto da venda</span>
+                <span className="text-sm font-bold text-slate-700">R$ 100,00</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Nossa Plataforma (Fixo)</span>
-                <span className="text-sm font-black text-emerald-600">Nós cobramos R$ 2,99</span>
+                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Taxas aplicadas</span>
+                <span className="text-sm font-black text-emerald-600">Detalhadas no extrato</span>
               </div>
               <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Você economiza R$ 12,01 por venda!
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> O líquido é calculado pelo servidor.
               </div>
             </div>
           </div>
@@ -406,7 +406,7 @@ export default function FinancialWalletDashboardPage() {
         {/* Conclusão */}
         <div className="relative z-10 text-center space-y-4 max-w-2xl mx-auto pt-4">
           <p className="text-sm sm:text-base text-slate-700 font-bold">
-            Onde você prefere deixar o seu dinheiro? A partir de vendas de R$ 20,00, nosso sistema já é mais vantajoso que qualquer plataforma que cobra 15%.
+            Consulte cada lançamento para conferir a composição exata do valor líquido disponível para saque.
           </p>
           <div className="inline-flex px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black tracking-wide uppercase shadow-md">
             Escale suas vendas e fique com o lucro de verdade!
@@ -464,7 +464,7 @@ export default function FinancialWalletDashboardPage() {
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">Apenas R$ 0,99 por produto (0% de comissão de vendas)</span>
+            <span className="text-[10px] text-slate-500 font-medium block">Parcela por unidade e percentual vigentes, discriminados por venda</span>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
@@ -896,7 +896,7 @@ export default function FinancialWalletDashboardPage() {
                   <span className="font-mono">- {formatCurrency(selectedTx.platformFixedFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa 5% Educalizando (Subtotal):</span>
+                  <span>Taxa percentual Educalizando (Subtotal):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformPercentageFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">

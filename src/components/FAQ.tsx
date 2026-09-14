@@ -10,11 +10,11 @@ export default function FAQ() {
   const FAQS = [
     {
       q: 'Quanto custa para criar minha loja no Educalizando?',
-      a: 'Criar sua conta e sua loja na Educalizando é 100% gratuito. Não há taxa de adesão nem mensalidade fixa. Você só paga R$ 1,99 da taxa de processamento do PIX + R$ 0,99 fixo por produto vendido (0% de comissão).'
+      a: 'Criar sua conta e sua loja na Educalizando é gratuito e não há mensalidade. As taxas vigentes são apresentadas com transparência e aparecem separadas em cada venda no painel financeiro.'
     },
     {
       q: 'Como recebo o dinheiro das minhas vendas?',
-      a: 'Os pagamentos são processados via PIX instantâneo. O valor da venda fica disponível e pode ser transferido diretamente para a sua conta bancária via chave PIX.'
+      a: 'Os pagamentos são processados pela InfinitePay. Depois da confirmação, o valor líquido aparece no painel e o saque pode ser solicitado para análise e pagamento manual via chave PIX.'
     },
     {
       q: 'Quais tipos de materiais posso vender?',

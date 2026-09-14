@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
-import { calculateOrderFinancials, estimateAsaasFee } from '@/lib/order-service';
+import { updateOrderStatus } from '@/lib/order-service';
 import { isSuperAdmin } from '@/lib/api-auth';
 
 /**
@@ -53,90 +53,17 @@ export async function POST(request: Request) {
 
     const existingOrderIds = new Set((existingTxs || []).map((t: any) => t.order_id));
 
-    // 3. Para cada order paga SEM wallet_transaction, criar o lançamento
+    // 3. Reprocessar todas as vendas pagas pelo mesmo motor idempotente do webhook.
+    // Isso repara tanto ledger quanto acessos sem duplicar lançamentos ou e-mails.
     let reconciledCount = 0;
     const errors: string[] = [];
 
     for (const order of paidOrders) {
-      if (existingOrderIds.has(order.id)) {
-        continue; // Já tem transação, pula
-      }
-
-      // Buscar os itens do pedido
-      const { data: itemsData } = await supabaseAdmin
-        .from('order_items')
-        .select('*')
-        .eq('order_id', order.id);
-
-      const productCount = itemsData && itemsData.length > 0 ? itemsData.length : 1;
-      const grossAmount = Number(order.total_amount || order.subtotal_amount || 0);
-      
-      // Recalcular taxas
-      const platformFixedFee = Number(order.platform_fixed_fee_amount ?? (productCount * 0.99).toFixed(2));
-      const platformPercentageFee = Number(order.platform_percentage_fee_amount ?? (grossAmount * 0.05).toFixed(2));
-      const platformFee = Number(order.platform_fee_amount ?? (platformFixedFee + platformPercentageFee).toFixed(2));
-      
-      let asaasFee = Number(order.asaas_fee_amount || 0);
-      const provider = order.payment_provider || (order.asaas_payment_id ? 'asaas' : 'infinitepay');
-      if (asaasFee <= 0 && provider === 'asaas') {
-        const method = (order.payment_method || 'pix').toString().toLowerCase();
-        asaasFee = estimateAsaasFee(method, grossAmount);
-      }
-
-      const netAmount = Number(Math.max(0, grossAmount - platformFee - asaasFee).toFixed(2));
-
-      const txId = `tx_reconcile_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const productTitle = itemsData && itemsData[0] ? (itemsData[0].product_title || 'Infoproduto') : 'Infoproduto Digital';
-
-      const { error: insertErr } = await supabaseAdmin.from('wallet_transactions').insert([{
-        id: txId,
-        store_id: order.store_id,
-        order_id: order.id,
-        type: 'SALE',
-        status: 'COMPLETED',
-        gross_amount: grossAmount,
-        platform_fixed_fee_amount: platformFixedFee,
-        platform_percentage_fee_amount: platformPercentageFee,
-        platform_fee_amount: platformFee,
-        asaas_fee_amount: asaasFee,
-        net_amount: netAmount,
-        description: `Venda reconciliada — Pedido #${order.id.substring(4, 10).toUpperCase()} (${productTitle})`,
-        created_at: order.paid_at || order.created_at || new Date().toISOString()
-      }]);
-
-      if (insertErr) {
-        console.error(`[Reconcile] Erro ao inserir tx para order ${order.id}:`, insertErr);
-        errors.push(`Order ${order.id}: ${insertErr.message}`);
-      } else {
-        reconciledCount++;
-        console.log(`[Reconcile] ✅ Transação SALE criada para order ${order.id} | Líquido: R$ ${netAmount}`);
-      }
-
-      // Também conceder acesso ao produto para o aluno
-      if (order.buyer_email && itemsData && itemsData.length > 0) {
-        for (const item of itemsData) {
-          const accId = `acc_reconcile_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
-          
-          // Verificar se já tem acesso
-          const { data: existingAccess } = await supabaseAdmin
-            .from('student_product_access')
-            .select('id')
-            .eq('student_id', order.buyer_email.toLowerCase().trim())
-            .eq('product_id', item.product_id)
-            .maybeSingle();
-
-          if (!existingAccess) {
-            await supabaseAdmin.from('student_product_access').insert([{
-              id: accId,
-              student_id: order.buyer_email.toLowerCase().trim(),
-              product_id: item.product_id,
-              order_id: order.id,
-              store_id: order.store_id,
-              status: 'ACTIVE',
-              granted_at: order.paid_at || order.created_at || new Date().toISOString()
-            }]);
-          }
-        }
+      try {
+        await updateOrderStatus(order.id, 'paid', order.asaas_payment_id || undefined, Number(order.asaas_fee_amount || 0));
+        if (!existingOrderIds.has(order.id)) reconciledCount++;
+      } catch (error: any) {
+        errors.push(`Pedido ${order.id}: ${error?.message || 'falha desconhecida'}`);
       }
     }
 
@@ -169,41 +96,13 @@ export async function POST(request: Request) {
               const paymentData = await res.json();
               
               if (paymentData.status === 'RECEIVED' || paymentData.status === 'CONFIRMED') {
-                // Atualizar para paid no nosso banco
                 let realFee = 0;
                 if (paymentData.value && paymentData.netValue) {
                   realFee = Math.max(0, Number(paymentData.value) - Number(paymentData.netValue));
                 }
 
-                const productCount = 1; // Simplificação
-                const platformFee = Number((productCount * 0.99).toFixed(2));
                 const asaasFee = realFee > 0 ? realFee : Number(pendingOrder.asaas_fee_amount || 1.99);
-                const netAmount = Number(Math.max(0, Number(pendingOrder.total_amount) - platformFee - asaasFee).toFixed(2));
-
-                await supabaseAdmin.from('orders').update({
-                  status: 'paid',
-                  paid_at: new Date().toISOString(),
-                  asaas_fee_amount: asaasFee,
-                  creator_net_amount: netAmount
-                }).eq('id', pendingOrder.id);
-
-                // Criar wallet_transaction
-                const txId = `tx_reconcile_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-                await supabaseAdmin.from('wallet_transactions').insert([{
-                  id: txId,
-                  store_id: pendingOrder.store_id,
-                  order_id: pendingOrder.id,
-                  type: 'SALE',
-                  status: 'COMPLETED',
-                  gross_amount: Number(pendingOrder.total_amount),
-                  platform_fixed_fee_amount: platformFee,
-                  platform_percentage_fee_amount: 0,
-                  platform_fee_amount: platformFee,
-                  asaas_fee_amount: asaasFee,
-                  net_amount: netAmount,
-                  description: `Venda reconciliada (Asaas Confirmed) — Pedido #${pendingOrder.id.substring(4, 10).toUpperCase()}`,
-                  created_at: new Date().toISOString()
-                }]);
+                await updateOrderStatus(pendingOrder.id, 'paid', pendingOrder.asaas_payment_id, asaasFee);
 
                 updatedPendingCount++;
                 console.log(`[Reconcile] ✅ Order ${pendingOrder.id} atualizada de PENDING → PAID via Asaas check`);
