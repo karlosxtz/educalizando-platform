@@ -1,6 +1,6 @@
 import { supabase, isRealSupabaseConfigured } from './supabase';
 import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
-import { lookupAsaasPixKey, createAsaasTransfer } from './asaas-service';
+import { isValidCPF } from './infinitepay-service';
 
 // CONFIGURAÇÃO CENTRALIZADA (Item 11 & 43 da Especificação)
 export const MIN_WITHDRAWAL_AMOUNT = 1.00;
@@ -36,6 +36,7 @@ export interface WithdrawalRecord {
   status: WithdrawalStatus;
   asaasTransferId?: string | null;
   asaasExternalReference?: string | null;
+  paymentReference?: string | null;
   failureReason?: string | null;
   requestedAt: string;
   processingAt?: string | null;
@@ -150,7 +151,7 @@ export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: strin
   return null;
 }
 
-// 2. Cadastrar e Validar Chave PIX CPF (Com consulta de titularidade Asaas no Servidor)
+// 2. Cadastrar chave PIX CPF. A titularidade é conferida manualmente no pagamento do saque.
 export async function registerCreatorPixKey(data: {
   storeId: string;
   creatorId: string;
@@ -170,12 +171,8 @@ export async function registerCreatorPixKey(data: {
     throw new Error('A chave PIX CPF precisa pertencer ao mesmo CPF cadastrado na sua conta.');
   }
 
-  // REGRA 4 & 5: Validação REAL de Titularidade na API do Asaas (Servidor)
-  const lookupRes = await lookupAsaasPixKey(cleanInputCpf);
-  
-  // LOG de falha de validação, mas não bloqueia mais o cadastro
-  if (!lookupRes.valid) {
-    console.warn('[Withdrawal Service] Falha ao validar titularidade PIX no Asaas, cadastrando chave como pendente.', lookupRes.errorMessage);
+  if (!isValidCPF(cleanInputCpf)) {
+    throw new Error('O CPF informado como chave PIX é inválido.');
   }
 
   const now = new Date().toISOString();
@@ -189,9 +186,9 @@ export async function registerCreatorPixKey(data: {
     pixKeyType: 'CPF',
     pixKey: cleanInputCpf,
     pixKeyMasked: maskedCpf,
-    holderName: lookupRes.accountHolderName || data.holderName || 'Titular Pendente',
+    holderName: data.holderName || 'Titular da conta',
     holderCpf: cleanInputCpf,
-    validationStatus: lookupRes.valid ? 'VALID' : 'PENDING',
+    validationStatus: 'VALID',
     validatedAt: now,
     isActive: true,
     createdAt: now,
@@ -233,7 +230,7 @@ export async function registerCreatorPixKey(data: {
   return newKey;
 }
 
-// 3. Solicitar Saque Automático com Reserva de Saldo & Transferência PIX Asaas
+// 3. Solicitar saque manual com reserva atômica do saldo
 export async function requestCreatorWithdrawal(data: {
   storeId: string;
   creatorId: string;
@@ -325,77 +322,8 @@ export async function requestCreatorWithdrawal(data: {
     saveLocalWithdrawals(local);
   }
 
-  // G. CRIAR TRANSFERÊNCIA PIX NA API DO ASAAS (Item 17)
-  try {
-    const asaasTransfer = await createAsaasTransfer({
-      value: data.amount,
-      pixAddressKey: activeKey.pixKey,
-      pixAddressKeyType: 'CPF',
-      description: `Saque Educalizando — Ref ${withdrawalId.substring(4, 10).toUpperCase()}`,
-      externalReference: externalRef
-    });
-
-    // Atualizar status para PROCESSING com o ID retornado pelo Asaas
-    withdrawalRecord.status = 'PROCESSING';
-    withdrawalRecord.asaasTransferId = asaasTransfer.id;
-    withdrawalRecord.processingAt = new Date().toISOString();
-
-    if (isRealSupabaseConfigured()) {
-      await supabase.from('withdrawals').update({
-        status: 'PROCESSING',
-        asaas_transfer_id: asaasTransfer.id,
-        processing_at: withdrawalRecord.processingAt
-      }).eq('id', withdrawalRecord.id);
-    }
-
-    const updatedLocal = getLocalWithdrawals();
-    const idx = updatedLocal.findIndex(w => w.id === withdrawalRecord.id);
-    if (idx !== -1) {
-      updatedLocal[idx] = withdrawalRecord;
-      saveLocalWithdrawals(updatedLocal);
-    }
-
-    return withdrawalRecord;
-
-  } catch (err: any) {
-    console.error('[requestCreatorWithdrawal] Erro ao criar transferência no Asaas:', err);
-
-    // H. TRATAMENTO DE FALHA ANTES DA TRANSFERÊNCIA (Item 36)
-    // Marca saque como FAILED e estorna a reserva no ledger de saldo
-    withdrawalRecord.status = 'FAILED';
-    withdrawalRecord.failureReason = err.message || 'Falha na API de transferência Asaas.';
-    withdrawalRecord.failedAt = new Date().toISOString();
-
-    await recordWalletTransaction({
-      storeId: data.storeId,
-      orderId: withdrawalId,
-      type: 'ADJUSTMENT',
-      grossAmount: data.amount,
-      platformFixedFeeAmount: 0,
-      platformPercentageFeeAmount: 0,
-      platformFeeAmount: 0,
-      asaasFeeAmount: 0,
-      netAmount: data.amount,
-      description: `Devolução de saldo por falha no saque (${withdrawalRecord.failureReason})`
-    });
-
-    if (isRealSupabaseConfigured()) {
-      await supabase.from('withdrawals').update({
-        status: 'FAILED',
-        failure_reason: withdrawalRecord.failureReason,
-        failed_at: withdrawalRecord.failedAt
-      }).eq('id', withdrawalRecord.id);
-    }
-
-    const updatedLocal = getLocalWithdrawals();
-    const idx = updatedLocal.findIndex(w => w.id === withdrawalRecord.id);
-    if (idx !== -1) {
-      updatedLocal[idx] = withdrawalRecord;
-      saveLocalWithdrawals(updatedLocal);
-    }
-
-    throw new Error(`Não foi possível concluir seu saque: ${withdrawalRecord.failureReason}. O valor permaneceu no seu saldo disponível.`);
-  }
+  // A transferência é feita manualmente pela administração na conta InfinitePay.
+  return withdrawalRecord;
 }
 
 // 4. Obter Histórico de Saques do Criador
@@ -420,6 +348,7 @@ export async function getWithdrawalsHistory(storeId: string): Promise<Withdrawal
           status: d.status as WithdrawalStatus,
           asaasTransferId: d.asaas_transfer_id,
           asaasExternalReference: d.asaas_external_reference,
+          paymentReference: d.payment_reference,
           failureReason: d.failure_reason,
           requestedAt: d.requested_at,
           processingAt: d.processing_at,

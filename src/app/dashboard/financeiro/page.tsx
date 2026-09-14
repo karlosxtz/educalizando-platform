@@ -207,7 +207,7 @@ export default function FinancialWalletDashboardPage() {
         throw new Error(data.error || 'Erro ao solicitar saque PIX.');
       }
 
-      setWithdrawSuccess(`Saque de ${formatCurrency(val)} solicitado com sucesso! A transferência PIX foi enviada para o Asaas.`);
+      setWithdrawSuccess(`Saque de ${formatCurrency(val)} solicitado com sucesso! O saldo foi reservado e aguarda pagamento pela administração.`);
       setTimeout(() => {
         setShowWithdrawModal(false);
         loadData();
@@ -470,7 +470,7 @@ export default function FinancialWalletDashboardPage() {
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa do Meio de Pagamento</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasAsaas)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">R$ 1,99 por transação PIX / Boleto no Asaas</span>
+            <span className="text-[10px] text-slate-500 font-medium block">Taxas do meio de pagamento registradas nas vendas</span>
           </div>
 
           <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-2xl space-y-1">
@@ -489,7 +489,7 @@ export default function FinancialWalletDashboardPage() {
               Histórico de Saques PIX
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              Acompanhe as solicitações e o processamento em tempo real via Asaas.
+              Acompanhe suas solicitações e a confirmação manual do pagamento.
             </p>
           </div>
         </div>
@@ -506,7 +506,7 @@ export default function FinancialWalletDashboardPage() {
                   <th className="py-3 px-4">Solicitado em</th>
                   <th className="py-3 px-4">Valor</th>
                   <th className="py-3 px-4">Chave PIX</th>
-                  <th className="py-3 px-4">ID Transferência Asaas</th>
+                  <th className="py-3 px-4">Referência</th>
                   <th className="py-3 px-4 text-center">Status</th>
                 </tr>
               </thead>
@@ -527,7 +527,7 @@ export default function FinancialWalletDashboardPage() {
                       {wtd.pixKeyMasked}
                     </td>
                     <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
-                      {wtd.asaasTransferId || '—'}
+                      {wtd.paymentReference || wtd.asaasTransferId || 'Aguardando'}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {wtd.status === 'COMPLETED' ? (
@@ -638,7 +638,7 @@ export default function FinancialWalletDashboardPage() {
                   <th className="py-3.5 px-4">Pedido / Ref</th>
                   <th className="py-3.5 px-4 text-right">Valor Bruto</th>
                   <th className="py-3.5 px-4 text-right">Taxa Educalizando</th>
-                  <th className="py-3.5 px-4 text-right">Taxa Asaas</th>
+                  <th className="py-3.5 px-4 text-right">Taxa do gateway</th>
                   <th className="py-3.5 px-4 text-right">Valor Líquido</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
                 </tr>
@@ -750,7 +750,7 @@ export default function FinancialWalletDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
-                  Saque Automático PIX
+                  Solicitação de Saque PIX
                 </span>
                 <h3 className="text-lg font-black text-slate-900">Solicitar Saque</h3>
               </div>
@@ -833,12 +833,12 @@ export default function FinancialWalletDashboardPage() {
                       {withdrawSubmitting ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Processando Transferência Asaas...</span>
+                          <span>Enviando solicitação...</span>
                         </>
                       ) : (
                         <>
                           <ArrowUpRight className="w-4 h-4" />
-                          <span>Confirmar Saque PIX Implícito</span>
+                          <span>Solicitar Saque PIX</span>
                         </>
                       )}
                     </button>
@@ -904,7 +904,7 @@ export default function FinancialWalletDashboardPage() {
                   <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.platformFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
-                  <span>Taxa Real Asaas:</span>
+                  <span>Taxa do meio de pagamento:</span>
                   <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.asaasFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between font-black text-slate-900 text-base pt-3 border-t border-slate-200">
@@ -962,10 +962,10 @@ export default function FinancialWalletDashboardPage() {
                   <span>Status:</span>
                   <strong className="text-emerald-700">{selectedWithdrawal.status}</strong>
                 </div>
-                {selectedWithdrawal.asaasTransferId && (
+                {(selectedWithdrawal.paymentReference || selectedWithdrawal.asaasTransferId) && (
                   <div className="flex justify-between text-slate-600">
-                    <span>ID Transferência Asaas:</span>
-                    <strong className="text-slate-900 font-mono">{selectedWithdrawal.asaasTransferId}</strong>
+                    <span>Referência da transferência:</span>
+                    <strong className="text-slate-900 font-mono">{selectedWithdrawal.paymentReference || selectedWithdrawal.asaasTransferId}</strong>
                   </div>
                 )}
                 {selectedWithdrawal.failureReason && (

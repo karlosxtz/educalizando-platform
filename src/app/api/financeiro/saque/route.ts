@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requestCreatorWithdrawal, getWithdrawalsHistory } from '@/lib/withdrawal-service';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyClientPayloadSignature, verifySignedNonce } from '@/lib/crypto-service';
-
-async function getAuthUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return null;
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-  return user;
-}
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
@@ -21,7 +13,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
     }
 
-    const user = await getAuthUser();
+    const user = await getRequestUser(request);
     if (!user) return NextResponse.json({ success: false, error: 'Acesso negado.' }, { status: 401 });
     const { data: ownedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
     if (!ownedStore || ownedStore.creator_id !== user.id) {
@@ -89,18 +81,11 @@ export async function POST(request: Request) {
       } catch (e) {}
     }
 
-    // 2. Fallback para cookies se o header falhar
+    // 2. Fallback para a sessão SSR atual do Supabase
     if (!isAuthenticatedAndAuthorized) {
-      const cookieStore = await cookies();
-      const token = cookieStore.get('sb-access-token')?.value;
-      if (token) {
-        validJwt = token;
-        try {
-          const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-          if (user && user.id === creatorId) {
-            isAuthenticatedAndAuthorized = true;
-          }
-        } catch (e) {}
+      const user = await getRequestUser(request);
+      if (user && user.id === creatorId) {
+        isAuthenticatedAndAuthorized = true;
       }
     }
 
@@ -120,7 +105,7 @@ export async function POST(request: Request) {
     if (!verifyClientPayloadSignature(Number(amount), storeId, nonce, validJwt, clientSignature)) {
        return NextResponse.json({ success: false, error: 'Assinatura do payload inválida. Possível adulteração na requisição detectada.' }, { status: 403 });
     }
-    // Executa solicitação de saque no SERVIDOR (Reserva de saldo + Transferência Asaas)
+    // Executa solicitação no servidor e reserva o saldo para análise manual.
     const withdrawal = await requestCreatorWithdrawal({
       storeId,
       creatorId,
@@ -136,7 +121,6 @@ export async function POST(request: Request) {
         amount: withdrawal.amount,
         pixKeyMasked: withdrawal.pixKeyMasked,
         status: withdrawal.status,
-        asaasTransferId: withdrawal.asaasTransferId,
         requestedAt: withdrawal.requestedAt
       }
     });

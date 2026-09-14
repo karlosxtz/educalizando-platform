@@ -83,7 +83,7 @@ export default function SuperAdminDashboard() {
           trend="Sua parte das vendas (Líquido)"
         />
         <StatCard 
-          title="Taxas Asaas" 
+          title="Taxas do gateway"
           value={loading ? '...' : formatCurrency(stats?.totalAsaasFees || 0)} 
           icon={<CreditCard className="w-5 h-5 text-red-400" />} 
           trend="Custo do gateway"

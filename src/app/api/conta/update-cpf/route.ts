@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
-import { isValidCPF } from '@/lib/asaas-service';
+import { isValidCPF } from '@/lib/infinitepay-service';
 
 export async function POST(request: Request) {
   try {

@@ -81,7 +81,7 @@ function OrderDetailsModal({ order, onClose }: { order: DashboardOrder; onClose:
                 </div>
                 {order.asaas_payment_id && (
                   <div>
-                    <span className="block text-[10px] font-bold text-slate-500 uppercase">Asaas ID</span>
+                    <span className="block text-[10px] font-bold text-slate-500 uppercase">ID legado do pagamento</span>
                     <span className="text-xs font-mono text-slate-500 truncate block" title={order.asaas_payment_id}>
                       {order.asaas_payment_id}
                     </span>
@@ -136,7 +136,7 @@ function OrderDetailsModal({ order, onClose }: { order: DashboardOrder; onClose:
                 <span className="font-bold text-rose-600">-{formatCurrency(order.platform_fee_amount)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-600">Taxa do Processador (Asaas)</span>
+                <span className="text-slate-600">Taxa do meio de pagamento</span>
                 <span className="font-bold text-rose-600">-{formatCurrency(order.asaas_fee_amount)}</span>
               </div>
               <div className="pt-3 border-t border-slate-100 flex justify-between items-center">

@@ -72,12 +72,13 @@ export async function POST(request: Request) {
       const grossAmount = Number(order.total_amount || order.subtotal_amount || 0);
       
       // Recalcular taxas
-      const platformFixedFee = Number((productCount * 0.99).toFixed(2));
-      const platformPercentageFee = 0; // 0% conforme configuração atual
-      const platformFee = platformFixedFee + platformPercentageFee;
+      const platformFixedFee = Number(order.platform_fixed_fee_amount ?? (productCount * 0.99).toFixed(2));
+      const platformPercentageFee = Number(order.platform_percentage_fee_amount ?? (grossAmount * 0.05).toFixed(2));
+      const platformFee = Number(order.platform_fee_amount ?? (platformFixedFee + platformPercentageFee).toFixed(2));
       
       let asaasFee = Number(order.asaas_fee_amount || 0);
-      if (asaasFee <= 0) {
+      const provider = order.payment_provider || (order.asaas_payment_id ? 'asaas' : 'infinitepay');
+      if (asaasFee <= 0 && provider === 'asaas') {
         const method = (order.payment_method || 'pix').toString().toLowerCase();
         asaasFee = estimateAsaasFee(method, grossAmount);
       }

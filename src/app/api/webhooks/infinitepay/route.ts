@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 
 export async function POST(request: Request) {
   try {
@@ -42,7 +43,10 @@ export async function POST(request: Request) {
     }).eq('id', orderNsu);
     if (metadataError) throw metadataError;
 
-    await updateOrderStatus(orderNsu, 'paid', undefined, 0);
+    const wasPending = order.status !== 'paid';
+    const paidOrder = await updateOrderStatus(orderNsu, 'paid', undefined, 0);
+
+    if (wasPending && paidOrder) await notifyConfirmedSale(paidOrder);
 
     return NextResponse.json({ success: true, message: null });
   } catch (error) {

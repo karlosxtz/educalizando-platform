@@ -537,54 +537,6 @@ export async function requestAffiliateWithdrawal(data: {
     throw new Error(rpcResult.error || 'Não foi possível processar o saque de forma segura.');
   }
 
-  // 4. Criação da Transferência no Asaas
-  const { createAsaasTransfer } = await import('./asaas-service');
-  const { recordWalletTransaction } = await import('./wallet-service');
-
-  try {
-    const asaasTransfer = await createAsaasTransfer({
-      value: data.amount,
-      pixAddressKey: activeKey.pixKey,
-      pixAddressKeyType: 'CPF',
-      description: `Saque Afiliado Educalizando — Ref ${withdrawalId.substring(8, 14).toUpperCase()}`,
-      externalReference: externalRef
-    });
-
-    await supabaseAdmin.from('withdrawals').update({
-      status: 'PROCESSING',
-      asaas_transfer_id: asaasTransfer.id,
-      processing_at: new Date().toISOString()
-    }).eq('id', withdrawalId);
-
-    return { success: true, withdrawalId };
-
-  } catch (err: any) {
-    console.error('[requestAffiliateWithdrawal] Erro ao criar transferência Asaas:', err);
-
-    const failureReason = err.message || 'Falha na API de transferência Asaas.';
-    
-    // Atualiza status do saque
-    await supabaseAdmin.from('withdrawals').update({
-      status: 'FAILED',
-      failure_reason: failureReason,
-      failed_at: new Date().toISOString()
-    }).eq('id', withdrawalId);
-
-    // Estorna a reserva de saldo
-    await recordWalletTransaction({
-      storeId: affiliateStoreId,
-      creatorId: data.userId,
-      orderId: withdrawalId,
-      type: 'ADJUSTMENT',
-      grossAmount: data.amount,
-      platformFixedFeeAmount: 0,
-      platformPercentageFeeAmount: 0,
-      platformFeeAmount: 0,
-      asaasFeeAmount: 0,
-      netAmount: data.amount,
-      description: `Devolução de saldo por falha no saque (${failureReason})`
-    });
-
-    throw new Error(`Não foi possível concluir seu saque: ${failureReason}. O valor permaneceu no seu saldo.`);
-  }
+  // A administração fará o PIX manualmente e concluirá a solicitação no painel.
+  return { success: true, withdrawalId, status: 'PENDING' };
 }

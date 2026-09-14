@@ -251,7 +251,7 @@ export default function AccountSettingsPage() {
           /* Formulário de Cadastro / Atualização da Chave PIX */
           <form onSubmit={handleRegisterPixKey} className="space-y-4">
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Por motivos de segurança, aceitamos exclusivamente <strong>Chave PIX de tipo CPF</strong> pertencente ao mesmo CPF cadastrado na sua conta. A titularidade é validada diretamente na rede bancária via Asaas.
+              Por motivos de segurança, aceitamos exclusivamente <strong>Chave PIX de tipo CPF</strong> igual ao CPF cadastrado na conta. A administração confere a titularidade antes do pagamento.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -329,7 +329,7 @@ export default function AccountSettingsPage() {
                 {pixLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Validando Titularidade no Asaas...</span>
+                    <span>Validando dados da chave PIX...</span>
                   </>
                 ) : (
                   <>

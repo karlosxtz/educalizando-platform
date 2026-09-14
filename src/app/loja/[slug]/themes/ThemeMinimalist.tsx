@@ -576,7 +576,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
                   </div>
                   <h3 className="text-xl font-bold text-slate-900">Simulação de PIX Gerada!</h3>
                   <p className="text-xs text-slate-600 max-w-xs mx-auto font-medium">
-                    Ambiente de testes do Educalizando. O split de pagamentos oficial via Asaas estará ativado nas vendas reais.
+                    Pagamentos processados com segurança pela InfinitePay. O acesso é liberado após a confirmação da compra.
                   </p>
                 </div>
               ) : (

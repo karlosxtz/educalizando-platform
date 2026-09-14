@@ -167,7 +167,7 @@ export default function SignupForm() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all font-mono"
               />
               <p className="text-[11px] text-slate-500 font-medium">
-                O CPF é utilizado obrigatoriamente para registrar sua chave PIX de transferência no Asaas.
+                O CPF é utilizado para validar sua conta e cadastrar a chave PIX usada nos saques.
               </p>
               {errors.cpf && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.cpf.message}</p>

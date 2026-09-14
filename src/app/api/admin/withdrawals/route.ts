@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { isSuperAdmin } from '@/lib/api-auth';
+import { getRequestUser, isSuperAdmin } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
@@ -28,31 +28,34 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { id, action } = body;
+    const { id, action, paymentReference, reviewNote } = body;
 
     if (!id || !action) {
       return NextResponse.json({ error: 'ID e ação obrigatórios' }, { status: 400 });
     }
 
-    let status = '';
-    let updateData: any = {};
-
-    if (action === 'approve') {
-      status = 'COMPLETED';
-      updateData = { status, completed_at: new Date().toISOString() };
-    } else if (action === 'reject') {
-      status = 'FAILED';
-      updateData = { status, failed_at: new Date().toISOString(), failure_reason: 'Rejeitado pelo Super Admin' };
-    } else {
+    if (action !== 'complete' && action !== 'reject') {
       return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });
     }
+    if (action === 'complete' && !paymentReference?.trim()) {
+      return NextResponse.json({ error: 'Informe a referência ou comprovante da transferência.' }, { status: 400 });
+    }
 
-    const { error } = await supabaseAdmin
-      .from('withdrawals')
-      .update(updateData)
-      .eq('id', id);
+    const reviewer = await getRequestUser(request);
+    if (!reviewer) return NextResponse.json({ error: 'Sessão inválida.' }, { status: 401 });
+
+    const { data: result, error } = await supabaseAdmin.rpc('review_manual_withdrawal', {
+      p_withdrawal_id: id,
+      p_action: action,
+      p_reviewed_by: reviewer.id,
+      p_payment_reference: paymentReference?.trim() || null,
+      p_review_note: reviewNote?.trim() || null
+    });
 
     if (error) throw error;
+    if (!result?.success) {
+      return NextResponse.json({ error: result?.error || 'Não foi possível analisar o saque.' }, { status: 400 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

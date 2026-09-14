@@ -38,18 +38,26 @@ export default function SuperAdminSaques() {
     }
   }
 
-  async function handleAction(id: string, action: 'approve' | 'reject') {
-    if (!confirm(`Tem certeza que deseja ${action === 'approve' ? 'APROVAR' : 'REJEITAR'} este saque?`)) return;
+  async function handleAction(id: string, action: 'complete' | 'reject') {
+    const paymentReference = action === 'complete'
+      ? prompt('Após realizar o PIX, informe a referência da transferência ou do comprovante:')
+      : null;
+    if (action === 'complete' && !paymentReference?.trim()) return;
+    const reviewNote = action === 'reject'
+      ? prompt('Informe o motivo da rejeição (o saldo será devolvido ao produtor):')
+      : null;
+    if (action === 'reject' && !reviewNote?.trim()) return;
+    if (!confirm(`Confirma ${action === 'complete' ? 'que o PIX já foi pago' : 'a rejeição e devolução do saldo'}?`)) return;
     
     try {
       const res = await fetch(`/api/admin/withdrawals`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action })
+        body: JSON.stringify({ id, action, paymentReference, reviewNote })
       });
       const data = await res.json();
       if (data.success) {
-        alert(`Saque ${action === 'approve' ? 'aprovado' : 'rejeitado'} com sucesso.`);
+        alert(`Saque ${action === 'complete' ? 'marcado como pago' : 'rejeitado e devolvido ao saldo'} com sucesso.`);
         fetchWithdrawals();
       } else {
         alert('Erro: ' + data.error);
@@ -149,10 +157,10 @@ export default function SuperAdminSaques() {
                       {item.status === 'PENDING' && (
                         <>
                           <button 
-                            onClick={() => handleAction(item.id, 'approve')}
+                            onClick={() => handleAction(item.id, 'complete')}
                             className="text-emerald-500 hover:text-emerald-400 font-medium"
                           >
-                            Aprovar
+                            Marcar como pago
                           </button>
                           <button 
                             onClick={() => handleAction(item.id, 'reject')}

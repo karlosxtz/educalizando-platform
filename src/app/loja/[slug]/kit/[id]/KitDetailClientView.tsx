@@ -543,7 +543,7 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-slate-900">Simulação de PIX do Combo!</h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Você está testando a vitrine pública do Educalizando. Nas vendas reais, o split automático via Asaas enviará o pagamento instantâneo para a conta do criador e liberará o download dos {includedProducts.length} materiais inclusos no combo.
+                  O pagamento é processado com segurança pela InfinitePay e libera automaticamente os {includedProducts.length} materiais do combo após a confirmação.
                 </p>
               </div>
 

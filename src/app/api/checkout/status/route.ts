@@ -4,6 +4,7 @@ import { getAsaasPaymentStatus } from '@/lib/asaas-service';
 import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
           }).eq('id', order.id);
           const updated = await updateOrderStatus(order.id, 'paid', undefined, 0);
           status = updated?.status || 'paid';
+          if (updated) await notifyConfirmedSale(updated);
         }
       }
     }

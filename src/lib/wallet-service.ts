@@ -171,12 +171,12 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     
-    // Taxa Educalizando: APENAS R$ 0,99 fixo por produto (0% de comissão de vendas)
-    const platformFee = Number((productCount * 0.99).toFixed(2));
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (productCount * 0.99 + gross * 0.05).toFixed(2));
 
-    // Taxa do Meio de Pagamento (Gateway Asaas - PIX = R$ 1,99)
+    // Pedidos InfinitePay usam a taxa gravada (zero quando repassada ao comprador).
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
-    if (paymentFee <= 0) {
+    const provider = o.payment_provider || o.paymentProvider || (o.asaas_payment_id || o.asaasPaymentId ? 'asaas' : 'infinitepay');
+    if (paymentFee <= 0 && provider === 'asaas') {
       const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
       if (method === 'credit_card' || method === 'cartao') {
         paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
@@ -198,10 +198,11 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
-    const platformFee = Number((productCount * 0.99).toFixed(2));
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (productCount * 0.99 + gross * 0.05).toFixed(2));
     
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
-    if (paymentFee <= 0) {
+    const provider = o.payment_provider || o.paymentProvider || (o.asaas_payment_id || o.asaasPaymentId ? 'asaas' : 'infinitepay');
+    if (paymentFee <= 0 && provider === 'asaas') {
       const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
       if (method === 'credit_card' || method === 'cartao') paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
       else if (method === 'boleto') paymentFee = 1.99;
@@ -217,9 +218,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const ledgerNet = transactions
       .filter(t => t.status === 'COMPLETED')
       .reduce((sum, t) => sum + t.netAmount, 0);
-    if (ledgerNet > 0) {
-      calculatedSaldoDisponivel = ledgerNet;
-    }
+    calculatedSaldoDisponivel = ledgerNet;
   }
 
   const totalTaxas = Number((calculatedTaxasEducalizando + calculatedTaxasPagamento).toFixed(2));

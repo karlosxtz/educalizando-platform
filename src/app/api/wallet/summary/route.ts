@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
+import { getRequestUser } from '@/lib/api-auth';
 
 // Constantes centralizadas de cálculo financeiro (devem espelhar order-service.ts)
 const PLATFORM_FIXED_FEE_PER_PRODUCT = 0.99;
@@ -34,14 +34,8 @@ export async function GET(request: Request) {
     }
 
     // Autenticação: verificar se o usuário logado é dono dessa loja
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Token de autenticação ausente.' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const { data: userData } = await supabase.auth.getUser(token);
-    if (!userData?.user) {
+    const user = await getRequestUser(request);
+    if (!user) {
       return NextResponse.json({ error: 'Token inválido ou expirado.' }, { status: 401 });
     }
 
@@ -52,7 +46,7 @@ export async function GET(request: Request) {
       .eq('id', storeId)
       .maybeSingle();
 
-    if (storeData && storeData.creator_id !== userData.user.id) {
+    if (!storeData || storeData.creator_id !== user.id) {
       return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
     }
 
@@ -97,10 +91,11 @@ export async function GET(request: Request) {
     paidOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
       const productCount = Number(o.product_count || 1);
-      const platformFee = Number((productCount * PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const platformFee = Number(o.platform_fee_amount ?? (productCount * PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
 
       let paymentFee = Number(o.asaas_fee_amount || 0);
-      if (paymentFee <= 0) {
+      const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
+      if (paymentFee <= 0 && provider === 'asaas') {
         const method = (o.payment_method || 'pix').toString().toLowerCase();
         paymentFee = method === 'credit_card'
           ? Number((ASAAS_CC_FIXED_FEE + gross * ASAAS_CC_PERCENTAGE_FEE).toFixed(2))
@@ -115,9 +110,10 @@ export async function GET(request: Request) {
 
     pendingOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
-      const platformFee = Number((PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const platformFee = Number(o.platform_fee_amount ?? (PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
       let paymentFee = Number(o.asaas_fee_amount || 0);
-      if (paymentFee <= 0) paymentFee = ASAAS_PIX_FEE;
+      const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
+      if (paymentFee <= 0 && provider === 'asaas') paymentFee = ASAAS_PIX_FEE;
       const net = Number(Math.max(0, gross - platformFee - paymentFee).toFixed(2));
       saldoPendente += net;
     });
@@ -127,7 +123,7 @@ export async function GET(request: Request) {
       const ledgerNet = allTx
         .filter((t: any) => t.status === 'COMPLETED')
         .reduce((sum: number, t: any) => sum + Number(t.net_amount || 0), 0);
-      if (ledgerNet > 0) saldoDisponivel = ledgerNet;
+      saldoDisponivel = ledgerNet;
     }
 
     const totalTaxas = Number((taxasEducalizando + taxasAsaas).toFixed(2));
@@ -139,6 +135,7 @@ export async function GET(request: Request) {
       totalRecebido: 0,
       taxasEducalizando: Number(taxasEducalizando.toFixed(2)),
       taxasAsaas: Number(taxasAsaas.toFixed(2)),
+      taxasGateway: Number(taxasAsaas.toFixed(2)),
       totalTaxas
     };
 
@@ -157,4 +154,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

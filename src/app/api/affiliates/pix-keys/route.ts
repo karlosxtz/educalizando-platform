@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Erro de integridade do afiliado (loja não encontrada)' }, { status: 400 });
     }
 
-    // A função registerCreatorPixKey valida se o CPF confere e bate no Asaas
+    // A função valida o CPF e exige que a chave pertença ao titular da conta.
     const newKey = await registerCreatorPixKey({
       storeId: storeData.id,
       creatorId: user.id,
