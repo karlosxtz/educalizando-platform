@@ -92,7 +92,7 @@ export default function ProductDetailClientView({
       couponInput,
       'product',
       product.id,
-      product.preco
+      basePrice
     );
     setValidatingCoupon(false);
     setCouponResult(result);

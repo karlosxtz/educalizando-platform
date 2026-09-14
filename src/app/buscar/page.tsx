@@ -14,22 +14,26 @@ export const revalidate = 0;
 export default async function BuscarPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, page?: string }> 
+  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, filter?: string, page?: string }>
 }) {
   const resolvedParams = await searchParams;
-  const { q, categoria, preco, ano_escolar, formato, sort } = resolvedParams;
+  const { q, categoria, preco, ano_escolar, formato, sort, filter } = resolvedParams;
+  const isPlrMarketplace = filter === 'plr';
   const page = resolvedParams.page ? parseInt(resolvedParams.page, 10) : 1;
 
   // Realiza a busca no service
   const { data: products, count, totalPages } = await searchProducts({
-    q, categoria, preco, ano_escolar, formato, sort, page
+    q, categoria, preco, ano_escolar, formato, sort, filter, page
   });
 
   // Resolve título dinâmico da página
   let pageTitle = "Todos os Materiais";
   let pageSubtitle = "Explore o maior catálogo de materiais didáticos do Brasil.";
 
-  if (q) {
+  if (isPlrMarketplace) {
+    pageTitle = 'Licenças PLR (Direitos de Revenda)';
+    pageSubtitle = 'Compare o valor do produto final e o valor da licença para revenda.';
+  } else if (q) {
     pageTitle = `Resultados para: "${q}"`;
     pageSubtitle = `Encontramos ${count} material(is) relacionado(s) à sua busca.`;
   } else if (categoria) {
@@ -94,7 +98,7 @@ export default async function BuscarPage({
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {products.map(product => (
-                      <ProductCard key={product.id} product={product} />
+                      <ProductCard key={product.id} product={product} purchaseMode={isPlrMarketplace ? 'plr' : 'standard'} />
                     ))}
                   </div>
 

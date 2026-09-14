@@ -90,7 +90,7 @@ export default function PlrMarketplacePage() {
             const storeUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}` : '#';
             const productUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}/produto/${product.id.replace('prod_', '')}?licenca=plr` : '#';
             
-            const displayPrice = product.preco_plr !== undefined && product.preco_plr > 0 ? product.preco_plr : product.preco;
+            const displayPrice = Number(product.preco_plr || 0);
 
             return (
               <motion.div 

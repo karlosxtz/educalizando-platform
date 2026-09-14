@@ -10,6 +10,7 @@ export interface SearchFilters {
   ano_escolar?: string;
   formato?: string;
   sort?: string;
+  filter?: string;
   page?: number;
 }
 
@@ -62,6 +63,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       }
 
       // 3. Preço
+      if (filters.filter === 'plr') {
+        query = query.eq('is_plr', true).gt('preco_plr', 0);
+      }
+
       if (filters.preco) {
         if (filters.preco === 'gratis') {
           query = query.or('preco.eq.0,is_free.eq.true');
@@ -88,9 +93,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       // 6. Ordenação
       if (filters.sort) {
         if (filters.sort === 'menor-preco') {
-          query = query.order('preco', { ascending: true });
+          query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: true });
         } else if (filters.sort === 'maior-preco') {
-          query = query.order('preco', { ascending: false });
+          query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: false });
         } else {
           query = query.order('created_at', { ascending: false });
         }
@@ -120,6 +125,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   if (filters.q) {
     const qLower = filters.q.toLowerCase();
     allProducts = allProducts.filter(p => p.titulo.toLowerCase().includes(qLower) || (p.descricao && p.descricao.toLowerCase().includes(qLower)));
+  }
+
+  if (filters.filter === 'plr') {
+    allProducts = allProducts.filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0);
   }
 
   if (filters.categoria) {
@@ -152,9 +161,13 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
   if (filters.sort) {
     if (filters.sort === 'menor-preco') {
-      allProducts.sort((a, b) => a.preco - b.preco);
+      allProducts.sort((a, b) => filters.filter === 'plr'
+        ? Number(a.preco_plr || 0) - Number(b.preco_plr || 0)
+        : a.preco - b.preco);
     } else if (filters.sort === 'maior-preco') {
-      allProducts.sort((a, b) => b.preco - a.preco);
+      allProducts.sort((a, b) => filters.filter === 'plr'
+        ? Number(b.preco_plr || 0) - Number(a.preco_plr || 0)
+        : b.preco - a.preco);
     } else {
       allProducts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }

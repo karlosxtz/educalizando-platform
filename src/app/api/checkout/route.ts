@@ -152,12 +152,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Este produto não possui licença PLR habilitada.' }, { status: 400 });
       }
 
+      if (isPlrPurchase && !(Number(realProd.preco_plr) > 0)) {
+        return NextResponse.json({ success: false, error: 'A Licença PLR deste produto está sem um preço válido.' }, { status: 400 });
+      }
+
       const rawQuantity = Number(item.quantity);
       const validQuantity = (isNaN(rawQuantity) || rawQuantity < 1 || !Number.isInteger(rawQuantity)) ? 1 : rawQuantity;
       const safeQuantity = Math.min(validQuantity, 10);
 
       // Preço Base 
-      let finalPrice = Number(isPlrPurchase ? (realProd.preco_plr || realProd.preco) : realProd.preco);
+      let finalPrice = Number(isPlrPurchase ? realProd.preco_plr : realProd.preco);
 
       // Validação Estrita do Cupom no Servidor
       if (couponCode) {

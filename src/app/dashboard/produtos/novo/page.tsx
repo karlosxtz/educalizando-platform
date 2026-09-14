@@ -238,6 +238,17 @@ function ProductWizardContent() {
         setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
         return;
       }
+      if (isPlr) {
+        const numPlrPrice = parseFloat(precoPlr.replace(',', '.'));
+        if (isNaN(numPlrPrice) || numPlrPrice <= 0) {
+          setErrorMsg('Informe um preço maior que zero para a Licença PLR.');
+          return;
+        }
+        if (!plrLicenseUrl) {
+          setErrorMsg('Envie o arquivo ou informe o link de entrega da Licença PLR.');
+          return;
+        }
+      }
     }
     if (currentStep < 4) {
       setCurrentStep(prev => prev + 1);

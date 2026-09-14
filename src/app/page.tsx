@@ -34,7 +34,7 @@ export default async function Home() {
   // Filtrar as prateleiras
   const produtosEmAlta = allProducts.slice(0, 8);
   const produtosGratuitos = allProducts.filter(p => p.is_free === true || p.preco === 0).slice(0, 4);
-  const produtosPLR = allProducts.filter(p => p.is_plr === true).slice(0, 4);
+  const produtosPLR = allProducts.filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
@@ -216,7 +216,7 @@ export default async function Home() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {produtosPLR.map(produto => (
-                <ProductCard key={produto.id} product={produto} />
+                <ProductCard key={produto.id} product={produto} purchaseMode="plr" />
               ))}
             </div>
           </section>

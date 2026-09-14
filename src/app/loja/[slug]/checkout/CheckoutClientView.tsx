@@ -49,7 +49,12 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string; storeName?: string } | null>(null);
 
   const searchParams = useSearchParams();
-  const isPlrPurchase = searchParams.get('licenca') === 'plr' && product?.is_plr;
+  const cartHasPlrItems = !product && cartItems.some(item => item.isPlr);
+  const cartHasStandardItems = !product && cartItems.some(item => !item.isPlr);
+  const hasMixedLicenseTypes = cartHasPlrItems && cartHasStandardItems;
+  const isPlrPurchase = product
+    ? searchParams.get('licenca') === 'plr' && product.is_plr === true
+    : cartHasPlrItems && !cartHasStandardItems;
 
   // Computed Price State
   const [basePrice, setBasePrice] = useState<number>(() => {
@@ -143,7 +148,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       }
     }
     checkStudentAuth();
-  }, []);
+  }, [isPlrPurchase]);
 
   // Apply Coupon Code
   const handleApplyCoupon = async () => {
@@ -206,6 +211,11 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const handleSubmitCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (hasMixedLicenseTypes) {
+      setErrorMessage('Finalize materiais comuns e licenças PLR em compras separadas. Remova um dos tipos do carrinho para continuar.');
+      return;
+    }
 
     if (!buyerName.trim()) {
       setErrorMessage('Por favor, informe seu nome completo.');

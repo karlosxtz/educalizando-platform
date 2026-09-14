@@ -7,7 +7,12 @@ import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap, Star, Spa
 import { Product, Store } from '@/lib/types';
 import { useCart } from '@/components/store/CartContext';
 
-export default function ProductCard({ product }: { product: Product & { store?: Store } }) {
+interface ProductCardProps {
+  product: Product & { store?: Store };
+  purchaseMode?: 'standard' | 'plr';
+}
+
+export default function ProductCard({ product, purchaseMode = 'standard' }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const [imageError, setImageError] = useState(false);
@@ -15,12 +20,16 @@ export default function ProductCard({ product }: { product: Product & { store?: 
   const itemTitle = product.titulo || 'Material Didático';
   const itemCover = product.capa_url || null;
   const storeName = product.store?.nome_loja || 'Loja Parceira';
-  const isFree = product.is_free || product.preco === 0;
+  const isPlrMode = purchaseMode === 'plr' && product.is_plr === true;
+  const standardPrice = Number(product.preco || 0);
+  const plrPrice = Number(product.preco_plr || 0);
+  const purchasePrice = isPlrMode ? plrPrice : standardPrice;
+  const isFree = !isPlrMode && (product.is_free || standardPrice === 0);
   
   // Format price
   let priceDisplay = 'Grátis';
-  if (!isFree && product.preco) {
-    priceDisplay = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco);
+  if (!isFree) {
+    priceDisplay = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(purchasePrice);
   }
 
   const getTipoIcon = (tipo: string) => {
@@ -36,7 +45,7 @@ export default function ProductCard({ product }: { product: Product & { store?: 
 
   const storeSlug = product.store?.slug || product.store_id;
   // Target link
-  const productLink = `/produto/${product.slug || product.id}`;
+  const productLink = `/produto/${product.slug || product.id}${isPlrMode ? '?licenca=plr' : ''}`;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,8 +53,8 @@ export default function ProductCard({ product }: { product: Product & { store?: 
     addToCart({
       productId: product.id,
       title: product.titulo,
-      price: product.preco,
-      isPlr: !!product.is_plr,
+      price: purchasePrice,
+      isPlr: isPlrMode,
       storeId: product.store_id,
       type: product.tipo,
       imageUrl: product.capa_url || undefined,
@@ -59,14 +68,14 @@ export default function ProductCard({ product }: { product: Product & { store?: 
     addToCart({
       productId: product.id,
       title: product.titulo,
-      price: product.preco,
-      isPlr: !!product.is_plr,
+      price: purchasePrice,
+      isPlr: isPlrMode,
       storeId: product.store_id,
       type: product.tipo,
       imageUrl: product.capa_url || undefined,
       quantity: 1
     });
-    router.push(`/loja/${storeSlug}/checkout`);
+    router.push(`/loja/${storeSlug}/checkout${isPlrMode ? '?licenca=plr' : ''}`);
   };
 
   return (
@@ -86,7 +95,7 @@ export default function ProductCard({ product }: { product: Product & { store?: 
           </div>
         )}
         {/* Badge PLR ou Grátis */}
-        {product.is_plr && (
+        {isPlrMode && (
           <div className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
             <Rocket className="w-3 h-3" /> Revenda
           </div>
@@ -134,11 +143,26 @@ export default function ProductCard({ product }: { product: Product & { store?: 
 
         {/* Preço e Botão */}
         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className={`text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
-              {priceDisplay}
-            </span>
-          </div>
+          {isPlrMode ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">Produto final</span>
+                <span className="text-sm font-black text-slate-700">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(standardPrice)}
+                </span>
+              </div>
+              <div className="border-l border-purple-100 pl-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-purple-600">Licença PLR</span>
+                <span className="text-lg font-black text-purple-700">{priceDisplay}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <span className={`text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
+                {priceDisplay}
+              </span>
+            </div>
+          )}
           <div className="flex gap-2">
             <button 
               onClick={handleAdd}

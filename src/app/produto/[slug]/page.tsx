@@ -8,6 +8,9 @@ interface GlobalProductDetailPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<{
+    licenca?: string;
+  }>;
 }
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
@@ -44,17 +47,18 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
   };
 }
 
-export default async function GlobalProductDetailPage({ params }: GlobalProductDetailPageProps) {
+export default async function GlobalProductDetailPage({ params, searchParams }: GlobalProductDetailPageProps) {
   const { slug } = await params;
+  const { licenca } = await searchParams;
 
-  let product = await getProductById(slug);
+  const product = await getProductById(slug);
   if (!product) {
     notFound();
   }
 
   // Redirecionamento SEO (301) se a URL atual não for o slug oficial (acesso via UUID)
   if (product.slug && slug !== product.slug) {
-    redirect(`/produto/${product.slug}`);
+    redirect(`/produto/${product.slug}${licenca === 'plr' ? '?licenca=plr' : ''}`);
   }
 
   const store = await getStoreById(product.store_id);

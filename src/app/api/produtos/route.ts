@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       is_free = false,
       is_plr = false,
       preco_plr = 0,
+      plr_license_url = null,
       allow_affiliates = false,
       affiliate_commission_rate = 0,
       order_bump_id = null,
@@ -67,6 +68,13 @@ export async function POST(request: Request) {
 
     if (!titulo || !titulo.trim()) {
       return NextResponse.json({ error: 'O título do produto é obrigatório.' }, { status: 400 });
+    }
+
+    if (Boolean(is_plr) && (!(Number(preco_plr) > 0) || !plr_license_url)) {
+      return NextResponse.json(
+        { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
+        { status: 400 }
+      );
     }
 
     const cleanStoreId = (store_id || '').toString().replace(/^store_/i, '');
@@ -123,6 +131,7 @@ export async function POST(request: Request) {
       is_free: Boolean(is_free),
       is_plr: Boolean(is_plr),
       preco_plr: Number(preco_plr) || 0,
+      plr_license_url: plr_license_url || null,
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       order_bump_id: isValidUUID(order_bump_id) ? order_bump_id : null,
@@ -161,6 +170,7 @@ export async function POST(request: Request) {
         is_free: Boolean(is_free),
         is_plr: Boolean(is_plr),
         preco_plr: Number(preco_plr) || 0,
+        plr_license_url: plr_license_url || null,
         allow_affiliates: Boolean(allow_affiliates),
         affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
         created_at: new Date().toISOString()
@@ -244,7 +254,11 @@ export async function PUT(request: Request) {
     }
 
     // Validar propriedade do produto
-    const { data: product } = await supabaseAdmin.from('products').select('store_id').eq('id', id).maybeSingle();
+    const { data: product } = await supabaseAdmin
+      .from('products')
+      .select('store_id, is_plr, preco_plr, plr_license_url')
+      .eq('id', id)
+      .maybeSingle();
     if (product) {
       const { data: store } = await supabaseAdmin.from('stores').select('creator_id').eq('id', product.store_id).maybeSingle();
       if (store?.creator_id !== user.id) {
@@ -253,6 +267,15 @@ export async function PUT(request: Request) {
     }
 
     const cleanedUpdates: Record<string, any> = { ...updates };
+    const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
+    const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);
+    const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : product?.plr_license_url;
+    if (nextIsPlr && (!(nextPlrPrice > 0) || !nextPlrDelivery)) {
+      return NextResponse.json(
+        { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
+        { status: 400 }
+      );
+    }
     if ('category_id' in cleanedUpdates) {
       cleanedUpdates.category_id = sanitizeUUID(cleanedUpdates.category_id);
     }
