@@ -62,7 +62,9 @@ export default function FinancialWalletDashboardPage() {
 
   // Withdrawal Form State
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
+  const [minimumWithdrawalAmount, setMinimumWithdrawalAmount] = useState(MIN_WITHDRAWAL_AMOUNT);
   const [withdrawSubmitting, setWithdrawSubmitting] = useState(false);
+  useEffect(() => { fetch('/api/financeiro/withdrawal-settings').then((r) => r.ok ? r.json() : null).then((d) => { if (d) setMinimumWithdrawalAmount(Number(d.minimumWithdrawalAmount || 0)); }).catch(() => {}); }, []);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
@@ -151,8 +153,8 @@ export default function FinancialWalletDashboardPage() {
       return;
     }
 
-    if (val < MIN_WITHDRAWAL_AMOUNT) {
-      setWithdrawError(`O valor mínimo para saque é de ${formatCurrency(MIN_WITHDRAWAL_AMOUNT)}.`);
+    if (val < minimumWithdrawalAmount) {
+      setWithdrawError(`O valor mínimo para saque é de ${formatCurrency(minimumWithdrawalAmount)}.`);
       return;
     }
 
@@ -795,14 +797,14 @@ export default function FinancialWalletDashboardPage() {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none"
                     />
                     <span className="text-[10px] text-slate-500 block font-medium">
-                      Valor mínimo: {formatCurrency(MIN_WITHDRAWAL_AMOUNT)}. Sem taxas adicionais de saque.
+                      Valor mínimo: {formatCurrency(minimumWithdrawalAmount)}. Sem taxas adicionais de saque.
                     </span>
                   </div>
 
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={withdrawSubmitting || summary.saldoDisponivel < MIN_WITHDRAWAL_AMOUNT}
+                      disabled={withdrawSubmitting || summary.saldoDisponivel < minimumWithdrawalAmount}
                       className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {withdrawSubmitting ? (

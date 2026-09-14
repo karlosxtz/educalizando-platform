@@ -3,7 +3,7 @@ import { calculateCreatorWallet, recordWalletTransaction } from './wallet-servic
 import { isValidCPF } from './infinitepay-service';
 
 // CONFIGURAÇÃO CENTRALIZADA (Item 11 & 43 da Especificação)
-export const MIN_WITHDRAWAL_AMOUNT = 1.00;
+export const MIN_WITHDRAWAL_AMOUNT = 0;
 export const WITHDRAWAL_ENABLED = true;
 
 export type PixKeyValidationStatus = 'PENDING' | 'VALID' | 'INVALID' | 'BLOCKED';
@@ -235,8 +235,13 @@ export async function requestCreatorWithdrawal(data: {
   }
 
   // B. Verificar Valor Mínimo de Saque (Item 11)
-  if (data.amount < MIN_WITHDRAWAL_AMOUNT) {
-    throw new Error(`O valor mínimo para saque é de R$ ${MIN_WITHDRAWAL_AMOUNT.toFixed(2).replace('.', ',')}.`);
+  let minimumWithdrawal = MIN_WITHDRAWAL_AMOUNT;
+  if (isRealSupabaseConfigured()) {
+    const { data: settings } = await supabaseAdmin.from('platform_settings').select('minimum_withdrawal_amount').limit(1).maybeSingle();
+    minimumWithdrawal = Number(settings?.minimum_withdrawal_amount ?? MIN_WITHDRAWAL_AMOUNT);
+  }
+  if (data.amount < minimumWithdrawal) {
+    throw new Error(`O valor mínimo para saque é de R$ ${minimumWithdrawal.toFixed(2).replace('.', ',')}.`);
   }
 
   // C. Verificar se existe Chave PIX Ativa e Validada (Item 10)
