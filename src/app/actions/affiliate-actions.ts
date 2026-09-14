@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase';
 import { Affiliate } from '@/lib/types';
-import { createClient } from '@supabase/supabase-js';
+import { getRequestUser } from '@/lib/api-auth';
 export async function getMarketplaceStoresAction() {
   const { data, error } = await supabaseAdmin
     .from('stores')
@@ -33,32 +33,14 @@ export async function getMarketplaceProductsAction() {
   return data || [];
 }
 
-import { cookies } from 'next/headers';
-
 export async function getStoreAffiliatesAction(storeId: string): Promise<Affiliate[]> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return [];
-
-  const supabaseUserScoped = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabaseUserScoped.auth.getUser();
+  const user = await getRequestUser(new Request('http://localhost'));
   if (!user) {
-    console.error('getStoreAffiliatesAction: falha de autenticação via token no server action:', authError);
     return [];
   }
 
   // Verify ownership to prevent unauthorized access
-  // Using supabaseUserScoped here because stores is readable by all, but we only verify creator_id
-  const { data: store } = await supabaseUserScoped
+  const { data: store } = await supabaseAdmin
     .from('stores')
     .select('id, creator_id')
     .eq('id', storeId)
@@ -69,7 +51,7 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
     return [];
   }
 
-  const { data, error } = await supabaseUserScoped
+  const { data, error } = await supabaseAdmin
     .from('affiliates')
     .select(`
       *,
@@ -88,11 +70,6 @@ export async function getStoreAffiliatesAction(storeId: string): Promise<Affilia
   const affiliatesWithUsers = await Promise.all(data.map(async (item: any) => {
     let userData = null;
     try {
-      // Use UserScoped to fetch the profiles if available, or just use the data
-      // Wait, we used admin to fetch the email, but since we don't have a working admin, we can query profiles or return the ID
-      // Currently the system relies on auth.users directly. 
-      // In this app, many places just fetch without auth, let's keep supabaseAdmin just for the public user lookup
-      // Since it's admin, it uses the service key if available, or anon if not.
       const { data: userResp } = await supabaseAdmin.auth.admin.getUserById(item.user_id);
       if (userResp?.user) {
         userData = {
