@@ -29,6 +29,9 @@ interface ProductWizardModalProps {
     category_id: string | null;
     education_level_id: string | null;
     is_free?: boolean;
+    faixa_etaria?: string;
+    bncc_references?: string;
+    paginas?: number;
   }) => Promise<void>;
 }
 
@@ -53,6 +56,9 @@ export default function ProductWizardModal({
   const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status === 'rascunho' ? 'rascunho' : 'publicado');
   const [categoryId, setCategoryId] = useState<string | null>(editingProduct?.category_id || null);
   const [educationLevelId, setEducationLevelId] = useState<string | null>(editingProduct?.education_level_id || null);
+  const [faixaEtaria, setFaixaEtaria] = useState('');
+  const [bnccReferences, setBnccReferences] = useState('');
+  const [paginas, setPaginas] = useState('');
 
   // Category & Education Level Database Options
   const [categories, setCategories] = useState<Category[]>([]);
@@ -203,6 +209,9 @@ export default function ProductWizardModal({
         category_id: categoryId,
         education_level_id: educationLevelId,
         is_free: isBrindeMode || false
+        , faixa_etaria: faixaEtaria || undefined
+        , bncc_references: bnccReferences || undefined
+        , paginas: paginas ? Number(paginas) : undefined
       });
       onClose();
     } catch (err: any) {
@@ -392,6 +401,12 @@ export default function ProductWizardModal({
                   </p>
                 </div>
 
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4 mt-4">
+                <input value={faixaEtaria} onChange={(e) => setFaixaEtaria(e.target.value)} placeholder="Faixa etária (ex.: 6 a 8 anos)" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
+                <input value={paginas} onChange={(e) => setPaginas(e.target.value)} type="number" min="1" placeholder="Nº de páginas" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
+                <input value={bnccReferences} onChange={(e) => setBnccReferences(e.target.value)} placeholder="Habilidades BNCC (opcional)" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
