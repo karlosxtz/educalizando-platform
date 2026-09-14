@@ -1,19 +1,25 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
 import { PLATFORM_CONFIG } from '@/lib/config';
 
 export default function Pricing() {
+  const [productPrice, setProductPrice] = useState('50');
+  const calculations = useMemo(() => {
+    const gross = Math.max(0, Number(productPrice.replace(',', '.')) || 0);
+    const fee = gross * (PLATFORM_CONFIG.feePercent / 100);
+    return { gross, fee, net: gross - fee };
+  }, [productPrice]);
+
+  const formatBRL = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const scrollToCadastro = () => {
     const element = document.getElementById('cadastro');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  const formattedFeePercent = PLATFORM_CONFIG.feePercent.toString().replace('.', ',');
-  const formattedFeeFixed = PLATFORM_CONFIG.feeFixed.toFixed(2).replace('.', ',');
 
   return (
     <section id="precos" className="py-20 relative z-10 bg-slate-50">
@@ -55,6 +61,37 @@ export default function Pricing() {
             <p className="text-xs text-brand-navy font-bold pt-1">
               Taxa Educalizando: 13% por venda, sem taxa fixa
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-brand-green/30 bg-emerald-50/60 p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-extrabold text-brand-navy">Simule seu valor líquido</h3>
+              <p className="text-xs text-slate-600 font-medium mt-1">Digite o preço do produto e veja o desconto de 13%.</p>
+            </div>
+            <label className="block text-xs font-bold text-slate-700">
+              Preço do produto
+              <div className="relative mt-1.5">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">R$</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={productPrice}
+                  onChange={(event) => setProductPrice(event.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-base font-bold text-slate-900 outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
+                  aria-label="Preço do produto"
+                />
+              </div>
+            </label>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl bg-white border border-slate-200 p-3">
+                <span className="block text-slate-500 font-semibold">Taxa (13%)</span>
+                <strong className="text-red-600 text-base">-{formatBRL(calculations.fee)}</strong>
+              </div>
+              <div className="rounded-xl bg-white border border-brand-green/40 p-3">
+                <span className="block text-slate-500 font-semibold">Você recebe</span>
+                <strong className="text-brand-green text-base">{formatBRL(calculations.net)}</strong>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4 pt-6 border-t border-slate-200 text-xs font-bold text-slate-700">
