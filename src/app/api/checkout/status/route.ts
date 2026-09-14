@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { getAsaasPaymentStatus } from '@/lib/asaas-service';
+import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -36,8 +37,25 @@ export async function GET(request: Request) {
 
     let status = order.status;
 
-    // Se o pedido no banco ainda estiver pendente, consultar o Asaas em tempo real
-    if (status === 'pending' && order.asaasPaymentId) {
+    if (status === 'pending' && order.paymentProvider === 'infinitepay') {
+      const transactionNsu = searchParams.get('transaction_nsu');
+      const slug = searchParams.get('slug');
+
+      if (transactionNsu && slug) {
+        const payment = await checkInfinitePayPayment({ orderNsu: order.id, transactionNsu, slug });
+        if (payment.paid && payment.amountInCents === Math.round(order.totalAmount * 100)) {
+          await supabaseAdmin.from('orders').update({
+            infinitepay_transaction_nsu: transactionNsu,
+            infinitepay_invoice_slug: slug,
+            payment_method: payment.captureMethod === 'credit_card' ? 'credit_card' : 'pix'
+          }).eq('id', order.id);
+          const updated = await updateOrderStatus(order.id, 'paid', undefined, 0);
+          status = updated?.status || 'paid';
+        }
+      }
+    }
+    // Pedidos antigos continuam consultáveis durante a transição.
+    else if (status === 'pending' && order.asaasPaymentId) {
       const asaasCheck = await getAsaasPaymentStatus(order.asaasPaymentId);
       if (asaasCheck.status === 'RECEIVED' || asaasCheck.status === 'CONFIRMED' || asaasCheck.status === 'DUNNING_RECEIVED') {
         const updated = await updateOrderStatus(order.id, 'paid', order.asaasPaymentId);

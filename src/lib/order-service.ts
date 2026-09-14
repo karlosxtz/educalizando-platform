@@ -32,6 +32,11 @@ export interface OrderRecord {
   asaasFeeAmount: number; // Taxa real cobrada pelo Asaas (repassada ao criador)
   creatorNetAmount: number; // Valor líquido que vai para o saldo do criador
   status: OrderStatusType;
+  paymentProvider?: 'asaas' | 'infinitepay';
+  checkoutUrl?: string | null;
+  infinitePayTransactionNsu?: string | null;
+  infinitePayInvoiceSlug?: string | null;
+  receiptUrl?: string | null;
   asaasPaymentId?: string | null;
   asaasCustomerId?: string | null;
   paymentMethod: PaymentMethodType;
@@ -100,7 +105,7 @@ export function estimateAsaasFee(paymentMethod: PaymentMethodType | string, amou
 
 export function calculateOrderFinancials(
   items: OrderItemInput[],
-  asaasFee: number = 0,
+  asaasFee?: number,
   platformSettings?: { platform_fee_percentage: number, platform_fixed_fee: number },
   affiliateCommissionAmount: number = 0
 ): FinancialCalculationResult {
@@ -116,7 +121,7 @@ export function calculateOrderFinancials(
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
   // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento (PIX = R$ 1,99)
-  const realFee = asaasFee > 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
+  const realFee = asaasFee !== undefined && asaasFee >= 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
   const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee - affiliateCommissionAmount).toFixed(2));
 
   return {
@@ -141,7 +146,7 @@ export function calculateOrderFinancials(
 
 // Legacy alias helper for backwards compatibility
 export function calculateOrderFees(items: OrderItemInput[]) {
-  const fin = calculateOrderFinancials(items, 0);
+  const fin = calculateOrderFinancials(items);
   return {
     totalAmount: fin.totalAmount,
     platformFeeAmount: fin.platformFeeAmount,
@@ -192,9 +197,12 @@ export async function createOrderRecord(data: {
   asaasFeeAmount?: number;
   pixCopyPaste?: string;
   pixQrCodeBase64?: string;
+  paymentProvider?: 'asaas' | 'infinitepay';
+  checkoutUrl?: string;
   isPlrPurchase?: boolean;
   affiliateId?: string;
   affiliateCommissionAmount?: number;
+  platformSettings?: { platform_fee_percentage: number; platform_fixed_fee: number };
 }): Promise<OrderRecord> {
 
   // REGRA FUNDAMENTAL: Todos os produtos devem pertencer à mesma loja
@@ -204,11 +212,11 @@ export async function createOrderRecord(data: {
   }
 
   const subtotal = data.items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
-  const feeToUse = data.asaasFeeAmount !== undefined && data.asaasFeeAmount > 0
+  const feeToUse = data.asaasFeeAmount !== undefined && data.asaasFeeAmount >= 0
     ? data.asaasFeeAmount
     : estimateAsaasFee(data.paymentMethod, subtotal);
 
-  const financials = calculateOrderFinancials(data.items, feeToUse, undefined, data.affiliateCommissionAmount || 0);
+  const financials = calculateOrderFinancials(data.items, feeToUse, data.platformSettings, data.affiliateCommissionAmount || 0);
   const orderId = data.id || `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
@@ -239,6 +247,8 @@ export async function createOrderRecord(data: {
     asaasFeeAmount: financials.asaasFeeAmount,
     creatorNetAmount: financials.creatorNetAmount,
     status: 'pending',
+    paymentProvider: data.paymentProvider || 'asaas',
+    checkoutUrl: data.checkoutUrl || null,
     asaasPaymentId: data.asaasPaymentId || null,
     asaasCustomerId: data.asaasCustomerId || null,
     paymentMethod: data.paymentMethod,
@@ -272,6 +282,8 @@ export async function createOrderRecord(data: {
         asaas_fee_amount: newOrder.asaasFeeAmount,
         creator_net_amount: newOrder.creatorNetAmount,
         status: 'pending',
+        payment_provider: newOrder.paymentProvider,
+        checkout_url: newOrder.checkoutUrl,
         asaas_payment_id: newOrder.asaasPaymentId,
         asaas_customer_id: newOrder.asaasCustomerId,
         payment_method: newOrder.paymentMethod,
@@ -373,6 +385,11 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           asaasFeeAmount: Number(data.asaas_fee_amount || 0),
           creatorNetAmount: Number(data.creator_net_amount || 0),
           status: data.status as OrderStatusType,
+          paymentProvider: data.payment_provider || (data.asaas_payment_id ? 'asaas' : 'infinitepay'),
+          checkoutUrl: data.checkout_url || null,
+          infinitePayTransactionNsu: data.infinitepay_transaction_nsu || null,
+          infinitePayInvoiceSlug: data.infinitepay_invoice_slug || null,
+          receiptUrl: data.receipt_url || null,
           asaasPaymentId: data.asaas_payment_id || null,
           asaasCustomerId: data.asaas_customer_id || null,
           paymentMethod: (data.payment_method || 'pix') as PaymentMethodType,

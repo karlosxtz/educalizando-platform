@@ -6,7 +6,7 @@ const ContentSecurityPolicy = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https:;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sandbox.asaas.com https://api.asaas.com;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.checkout.infinitepay.io https://api.asaas.com;
   frame-src 'self' https://www.youtube.com;
 `.replace(/\s{2,}/g, ' ').trim();
 

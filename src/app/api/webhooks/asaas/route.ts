@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus } from '@/lib/order-service';
 import { validateAsaasTransferWebhook, handleAsaasTransferWebhook } from '@/lib/withdrawal-service';
 import { createNotification } from '@/lib/notification-service';
-import { sendSaleNotificationToCreator } from '@/lib/mail-service';
 
 export async function POST(request: Request) {
   try {
@@ -69,82 +67,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, type: 'transfer', event, transferId: transfer?.id });
     }
 
-    // 3. PROCESSAMENTO DE WEBHOOKS DE COBRANÇAS / VENDAS
-    if (!payment) {
-      return NextResponse.json({ received: true, message: 'Payload sem dados de pagamento ou transferência.' }, { status: 200 });
-    }
-
-    const orderId       = payment.externalReference;
-    const asaasPaymentId = payment.id;
-
-    // Tentar obter a taxa REAL efetivamente cobrada pelo Asaas
-    let realAsaasFee: number | undefined = undefined;
-    if (payment.value !== undefined && payment.netValue !== undefined) {
-      realAsaasFee = Math.max(0, Number(payment.value) - Number(payment.netValue));
-    }
-
-    if (
-      event === 'PAYMENT_CONFIRMED' ||
-      event === 'PAYMENT_RECEIVED' ||
-      event === 'PAYMENT_DUNNING_RECEIVED'
-    ) {
-      if (orderId) {
-        const order = await updateOrderStatus(orderId, 'paid', asaasPaymentId, realAsaasFee);
-
-        // 🔔 Disparar notificação de venda em tempo real para o criador
-        if (order?.storeId && order?.creatorId) {
-          const productTitle    = order.items?.[0]?.productTitle || 'Produto Digital';
-          const amount          = order.totalAmount;
-          const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-
-          await createNotification({
-            storeId:   order.storeId,
-            creatorId: order.creatorId,
-            type:      'SALE_CONFIRMED',
-            title:     `Nova venda: ${formattedAmount}!`,
-            body:      `${order.buyerName || 'Um aluno'} comprou "${productTitle}". Venda confirmada e acesso liberado.`,
-            metadata:  {
-              orderId:      order.id,
-              amount,
-              productTitle,
-              buyerName: order.buyerName
-            }
-          }).catch(e => console.error('[Webhook] Erro ao criar notificação de venda:', e));
-
-          // 📧 Disparar e-mail via Resend para o Produtor
-          try {
-            const { supabaseAdmin } = await import('@/lib/supabase');
-            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(order.creatorId);
-            const creatorEmail = userData?.user?.email;
-            const creatorName = userData?.user?.user_metadata?.full_name || 'Produtor';
-
-            if (creatorEmail) {
-              await sendSaleNotificationToCreator({
-                producerEmail: creatorEmail,
-                producerName: creatorName,
-                amount: order.creatorNetAmount, // O e-mail exibe o valor líquido
-                productTitle: productTitle,
-                orderId: order.id
-              });
-            }
-          } catch (mailErr) {
-            console.error('[Webhook] Erro ao disparar e-mail de venda pro produtor:', mailErr);
-          }
-        }
-      }
-    }
-    else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') {
-      if (orderId) {
-        await updateOrderStatus(orderId, 'failed', asaasPaymentId, realAsaasFee);
-      }
-    }
-    else if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_CHARGEBACK_REQUESTED') {
-      if (orderId) {
-        await updateOrderStatus(orderId, 'refunded', asaasPaymentId, realAsaasFee);
-      }
-    }
-
-    return NextResponse.json({ received: true, type: 'payment', event, paymentId: asaasPaymentId });
+    // Cobranças foram migradas para a InfinitePay. Eventos antigos de pagamento
+    // são reconhecidos, mas não alteram pedidos, acessos ou saldos automaticamente.
+    return NextResponse.json({ received: true, ignored: true, type: payment ? 'legacy-payment' : 'unknown', event });
 
   } catch (err: any) {
     console.error('[Asaas Webhook Handler Error]:', err);

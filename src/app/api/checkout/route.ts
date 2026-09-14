@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createOrGetAsaasCustomer, createAsaasPayment, isValidCPF } from '@/lib/asaas-service';
-import { createOrderRecord, calculateOrderFinancials, PaymentMethodType } from '@/lib/order-service';
+import { createInfinitePayCheckout, isValidCPF } from '@/lib/infinitepay-service';
+import { createOrderRecord, PaymentMethodType } from '@/lib/order-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -15,10 +15,7 @@ export async function POST(request: Request) {
       buyerEmail: rawBuyerEmail,
       buyerCpf: rawBuyerCpf,
       buyerPhone,
-      paymentMethod = 'pix',
       items = [],
-      creditCard,
-      creditCardHolderInfo,
       isPlrPurchase = false,
       couponCode
     } = body;
@@ -136,6 +133,14 @@ export async function POST(request: Request) {
     if (!effectiveStoreId) {
       return NextResponse.json({ success: false, error: 'Não foi possível determinar a loja do produto.' }, { status: 400 });
     }
+    const { data: effectiveStore } = await supabaseAdmin
+      .from('stores')
+      .select('slug')
+      .eq('id', effectiveStoreId)
+      .maybeSingle();
+    if (!effectiveStore?.slug) {
+      return NextResponse.json({ success: false, error: 'A loja responsável pelo produto não foi encontrada.' }, { status: 400 });
+    }
 
     // 4. Reconstruir array de items com PREÇO REAL e QUANTIDADE validada
     const realItems: any[] = [];
@@ -192,14 +197,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Um ou mais itens possuem preço inválido.' }, { status: 400 });
     }
 
-    // 4b. Método de Pagamento Normalizado
-    const normalizedMethod: PaymentMethodType = 
-      paymentMethod.toLowerCase() === 'credit_card' ? 'credit_card' : 
-      paymentMethod.toLowerCase() === 'boleto' ? 'boleto' : 'pix';
-
-    const asaasBillingType = 
-      normalizedMethod === 'credit_card' ? 'CREDIT_CARD' :
-      normalizedMethod === 'boleto' ? 'BOLETO' : 'PIX';
+    // A forma de pagamento será escolhida no checkout hospedado da InfinitePay.
+    const normalizedMethod: PaymentMethodType = 'pix';
 
     // 5. Fonte Única da Verdade Financeira (Cálculo no Servidor com realItems e Taxas Dinâmicas)
     const { data: platformSettings } = await supabaseAdmin.from('platform_settings').select('*').limit(1).single();
@@ -227,9 +226,10 @@ export async function POST(request: Request) {
     const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
     // Calcular as taxas para fornecer a base líquida correta ao motor de afiliados
-    const { estimateAsaasFee, calculateOrderFinancials } = await import('@/lib/order-service');
-    const estimatedGatewayFee = estimateAsaasFee(normalizedMethod, baseSubtotal);
-    const tempFinancials = calculateOrderFinancials(realItems, estimatedGatewayFee, platformSettings || undefined, 0);
+    const { calculateOrderFinancials } = await import('@/lib/order-service');
+    // Na conta InfinitePay, as taxas do cartão devem ser configuradas como repassadas ao comprador.
+    const gatewayFeeAmount = 0;
+    const tempFinancials = calculateOrderFinancials(realItems, gatewayFeeAmount, platformSettings || undefined, 0);
     
     if (rawAffiliateId) {
       const { calculateAffiliateCommission } = await import('@/lib/affiliate-service');
@@ -247,30 +247,27 @@ export async function POST(request: Request) {
       affiliateCommissionAmount = commissionResult.affiliateCommissionAmount;
     }
 
-    const financials = calculateOrderFinancials(realItems, tempFinancials.asaasFeeAmount, platformSettings || undefined, affiliateCommissionAmount);
-
-    // 6. Criar ou Obter Cliente no Asaas (executado exclusivamente no servidor)
-    const asaasCustomerId = await createOrGetAsaasCustomer({
-      name: buyerName,
-      email: buyerEmail,
-      cpfCnpj: buyerCpf,
-      phone: body.buyerPhone
-    });
-
     const tempOrderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    
-    // 7. Criar Cobrança Centralizada no Asaas (POST /payments)
-    const asaasPayment = await createAsaasPayment({
-      customerId: asaasCustomerId,
-      billingType: asaasBillingType,
-      value: financials.totalAmount,
-      externalReference: tempOrderId,
-      description: `Educalizando — Pedido #${tempOrderId.substring(4, 10).toUpperCase()} (${realItems[0]?.productTitle || 'Infoproduto'})`,
-      creditCard,
-      creditCardHolderInfo
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, '');
+
+    // 6. Criar o checkout hospedado da InfinitePay na conta central da Educalizando.
+    const infinitePayCheckout = await createInfinitePayCheckout({
+      orderNsu: tempOrderId,
+      redirectUrl: `${appUrl}/loja/${encodeURIComponent(effectiveStore.slug)}/checkout/sucesso/${tempOrderId}`,
+      webhookUrl: `${appUrl}/api/webhooks/infinitepay`,
+      customer: {
+        name: buyerName,
+        email: buyerEmail,
+        phoneNumber: buyerPhone ? `+55${buyerPhone.replace(/\D/g, '')}` : undefined
+      },
+      items: realItems.map(item => ({
+        quantity: item.quantity,
+        price: Math.round(item.unitPrice * 100),
+        description: item.productTitle
+      }))
     });
 
-    // 8. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
+    // 7. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
     const orderRecord = await createOrderRecord({
       id: tempOrderId,
       studentId,
@@ -281,13 +278,13 @@ export async function POST(request: Request) {
       buyerPhone: body.buyerPhone,
       paymentMethod: normalizedMethod,
       items: realItems,
-      asaasPaymentId: asaasPayment.id,
-      asaasCustomerId,
-      pixCopyPaste: asaasPayment.pixCopyPastePayload,
-      pixQrCodeBase64: asaasPayment.pixQrCodeBase64,
+      asaasFeeAmount: gatewayFeeAmount,
+      paymentProvider: 'infinitepay',
+      checkoutUrl: infinitePayCheckout.checkoutUrl,
       isPlrPurchase,
       affiliateId: affiliateId || undefined,
-      affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined
+      affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined,
+      platformSettings: platformSettings || undefined
     });
 
     return NextResponse.json({
@@ -295,15 +292,13 @@ export async function POST(request: Request) {
       orderId: orderRecord.id,
       studentId,
       status: orderRecord.status,
-      asaasPaymentId: asaasPayment.id,
+      paymentProvider: 'infinitepay',
       paymentMethod: normalizedMethod,
       subtotalAmount: orderRecord.subtotalAmount,
       totalAmount: orderRecord.totalAmount,
       platformFeeAmount: orderRecord.platformFeeAmount,
       creatorNetAmount: orderRecord.creatorNetAmount,
-      pixQrCodeBase64: asaasPayment.pixQrCodeBase64,
-      pixCopyPastePayload: asaasPayment.pixCopyPastePayload,
-      bankSlipUrl: asaasPayment.bankSlipUrl
+      checkoutUrl: infinitePayCheckout.checkoutUrl
     });
 
   } catch (error: any) {

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
-  CheckCircle2, QrCode, Copy, Check, ShieldCheck, 
-  ArrowRight, Loader2, RefreshCw, AlertCircle, Sparkles, BookOpen 
+  CheckCircle2, ShieldCheck, ArrowRight, Loader2, AlertCircle, BookOpen
 } from 'lucide-react';
 import { Store } from '@/lib/types';
 import { OrderRecord } from '@/lib/order-service';
@@ -16,12 +16,8 @@ interface OrderSuccessClientViewProps {
 }
 
 export default function OrderSuccessClientView({ store, orderId, initialOrder }: OrderSuccessClientViewProps) {
-  const [order, setOrder] = useState<OrderRecord | null>(initialOrder);
   const [status, setStatus] = useState<string>(initialOrder?.status || 'pending');
-  const [pixCopyPaste, setPixCopyPaste] = useState<string | null>(initialOrder?.pixCopyPaste || null);
-  const [pixQrCode, setPixQrCode] = useState<string | null>(initialOrder?.pixQrCodeBase64 || null);
-  const [copied, setCopied] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const searchParams = useSearchParams();
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -30,16 +26,17 @@ export default function OrderSuccessClientView({ store, orderId, initialOrder }:
     let intervalId: any = null;
 
     async function checkStatus() {
-      setChecking(true);
       try {
-        const res = await fetch(`/api/checkout/status?orderId=${orderId}`);
+        const params = new URLSearchParams({ orderId });
+        const transactionNsu = searchParams.get('transaction_nsu');
+        const slug = searchParams.get('slug');
+        if (transactionNsu) params.set('transaction_nsu', transactionNsu);
+        if (slug) params.set('slug', slug);
+        const res = await fetch(`/api/checkout/status?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
             setStatus(data.status);
-            if (data.pixCopyPaste) setPixCopyPaste(data.pixCopyPaste);
-            if (data.pixQrCodeBase64) setPixQrCode(data.pixQrCodeBase64);
-
             if (data.status === 'paid' && intervalId) {
               clearInterval(intervalId);
             }
@@ -47,8 +44,6 @@ export default function OrderSuccessClientView({ store, orderId, initialOrder }:
         }
       } catch (err) {
         console.error('Erro ao verificar status do pedido:', err);
-      } finally {
-        setChecking(false);
       }
     }
 
@@ -60,14 +55,7 @@ export default function OrderSuccessClientView({ store, orderId, initialOrder }:
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [orderId, status]);
-
-  const handleCopyPix = () => {
-    if (!pixCopyPaste) return;
-    navigator.clipboard.writeText(pixCopyPaste);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
-  };
+  }, [orderId, searchParams, status]);
 
   return (
     <div 
@@ -146,87 +134,20 @@ export default function OrderSuccessClientView({ store, orderId, initialOrder }:
             </Link>
           </div>
         ) : (
-          /* State C: AGUARDANDO PAGAMENTO (PIX QR Code & Copia e Cola) */
+          /* State C: confirmação ainda em processamento */
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xl space-y-6 text-center">
             
             {/* Status Pulse Header */}
             <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-900 border border-amber-200 px-4 py-2 rounded-full text-xs font-bold">
               <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-              <span>Aguardando confirmação do PIX... (Verificando em tempo real)</span>
+              <span>Confirmando seu pagamento na InfinitePay...</span>
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl font-black text-slate-900">Finalize o Pagamento via PIX</h1>
+              <h1 className="text-2xl font-black text-slate-900">Pagamento em processamento</h1>
               <p className="text-xs text-slate-600 max-w-md mx-auto">
-                Abra o aplicativo do seu banco, escolha a opção PIX e escaneie o QR Code abaixo ou copie o código.
+                Aguarde alguns instantes enquanto confirmamos a transação. O acesso será liberado automaticamente após a confirmação.
               </p>
-            </div>
-
-            {/* QR Code Container */}
-            {pixQrCode ? (
-              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 max-w-xs mx-auto space-y-3 shadow-inner">
-                <img
-                  src={pixQrCode}
-                  alt="QR Code PIX Asaas"
-                  className="w-56 h-56 mx-auto object-contain bg-white p-2 rounded-2xl border border-slate-200 shadow-xs"
-                />
-                <span className="text-[11px] text-slate-500 font-medium block">
-                  Escaneie com a câmera do app do banco
-                </span>
-              </div>
-            ) : (
-              <div className="w-56 h-56 bg-slate-100 rounded-2xl mx-auto flex items-center justify-center text-slate-400">
-                <QrCode className="w-12 h-12" />
-              </div>
-            )}
-
-            {/* Copy & Paste Code */}
-            {pixCopyPaste && (
-              <div className="max-w-md mx-auto space-y-2">
-                <label className="text-xs font-bold uppercase text-slate-700 block">
-                  Código PIX (Copia e Cola)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={pixCopyPaste}
-                    className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-600 truncate"
-                  />
-                  <button
-                    onClick={handleCopyPix}
-                    className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
-                      copied 
-                        ? 'bg-emerald-600 text-white' 
-                        : 'bg-brand-navy hover:bg-brand-navy/90 text-white shadow-md'
-                    }`}
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Copiado!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 text-brand-teal" />
-                        <span>Copiar PIX</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Manual Status Check Button */}
-            <div className="pt-4 border-t border-slate-100">
-              <button
-                onClick={() => setStatus('pending')}
-                disabled={checking}
-                className="text-xs font-bold text-slate-600 hover:text-brand-navy inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-all"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${checking ? 'animate-spin' : ''}`} />
-                <span>Já fiz o pagamento (Checar Agora)</span>
-              </button>
             </div>
 
           </div>

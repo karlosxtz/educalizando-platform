@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  ShieldCheck, Lock, ArrowLeft, QrCode, CreditCard, FileText, 
+  ShieldCheck, Lock, ArrowLeft, CreditCard,
   Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
   LogIn, UserPlus, UserCheck, Clock, CheckCircle
 } from 'lucide-react';
@@ -14,7 +14,7 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/components/store/CartContext';
 
-import { isValidCPF } from '@/lib/asaas-service';
+import { isValidCPF } from '@/lib/infinitepay-service';
 
 interface CheckoutClientViewProps {
   store: Store;
@@ -39,7 +39,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const router = useRouter();
   const { items: globalCartItems } = useCart();
   const cartItems = product ? [] : globalCartItems.filter(item => item.storeId === store.id);
   const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -78,15 +77,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerCpf, setBuyerCpf] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-
-  // Payment Method
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card' | 'boleto'>('pix');
-
-  // Credit Card Form State
-  const [cardName, setCardName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
 
   // Coupon State
   const [couponCode, setCouponCode] = useState(initialCouponCode || '');
@@ -195,18 +185,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
     return nums.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
 
-  const formatCardNumber = (val: string) => {
-    return val.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
-  };
-
-  const formatExpiry = (val: string) => {
-    const nums = val.replace(/\D/g, '').slice(0, 4);
-    if (nums.length >= 3) {
-      return `${nums.slice(0, 2)}/${nums.slice(2)}`;
-    }
-    return nums;
-  };
-
   // Submit Checkout Form
   const handleSubmitCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,13 +211,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       return;
     }
 
-    if (paymentMethod === 'credit_card') {
-      if (!cardName || !cardNumber || !cardExpiry || !cardCvv) {
-        setErrorMessage('Por favor, preencha todos os dados do cartão de crédito.');
-        return;
-      }
-    }
-
     if (isStudentLoggedIn === false) {
       setIsAuthError(true);
       setErrorMessage(
@@ -260,7 +231,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         buyerEmail: buyerEmail.trim().toLowerCase(),
         buyerCpf: cleanCpf,
         buyerPhone,
-        paymentMethod,
         isPlrPurchase,
         couponCode: couponResult?.valid ? couponCode : undefined,
         items: product ? [
@@ -278,25 +248,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
           quantity: c.quantity
         }))
       };
-
-      if (paymentMethod === 'credit_card') {
-        const [expMonth, expYear] = cardExpiry.split('/');
-        payload.creditCard = {
-          holderName: cardName,
-          number: cardNumber.replace(/\s/g, ''),
-          expiryMonth: expMonth,
-          expiryYear: expYear ? `20${expYear}` : '2026',
-          ccv: cardCvv
-        };
-        payload.creditCardHolderInfo = {
-          name: buyerName,
-          email: buyerEmail,
-          cpfCnpj: cleanCpf,
-          postalCode: '01000000',
-          addressNumber: '100',
-          phone: buyerPhone || '11999999999'
-        };
-      }
 
       // Obter o token JWT da sessão atual do Supabase
       let token = '';
@@ -327,8 +278,10 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         throw new Error(data.error || 'Não foi possível processar o pagamento.');
       }
 
-      // Redireciona para a tela de confirmação / QR Code do PIX
-      router.push(`/loja/${store.slug}/checkout/sucesso/${data.orderId}`);
+      if (!data.checkoutUrl || !data.checkoutUrl.startsWith('https://')) {
+        throw new Error('A InfinitePay não retornou um link de pagamento válido.');
+      }
+      window.location.assign(data.checkoutUrl);
 
     } catch (err: any) {
       console.error(err);
@@ -524,137 +477,13 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                 </div>
               </div>
 
-              {/* Payment Method Selector Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                
-                {/* Option 1: PIX */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('pix')}
-                  className={`p-4 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
-                    paymentMethod === 'pix' 
-                      ? 'bg-emerald-50/50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20' 
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <QrCode className="w-6 h-6 text-emerald-600" />
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-600 text-white uppercase">
-                      Instantâneo
-                    </span>
-                  </div>
-                  <div>
-                    <strong className="block text-xs font-bold">PIX</strong>
-                    <span className="text-[11px] text-slate-500">Aprovação em segundos</span>
-                  </div>
-                </button>
-
-                {/* Option 2: Cartão de Crédito */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('credit_card')}
-                  className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    paymentMethod === 'credit_card' 
-                      ? 'bg-blue-50/50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20' 
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <CreditCard className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <strong className="block text-xs font-bold">Cartão de Crédito</strong>
-                    <span className="text-[11px] text-slate-500">Até 12x no cartão</span>
-                  </div>
-                </button>
-
-                {/* Option 3: Boleto Bancário */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('boleto')}
-                  className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    paymentMethod === 'boleto' 
-                      ? 'bg-purple-50/50 border-purple-500 text-purple-900 ring-2 ring-purple-500/20' 
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <FileText className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <strong className="block text-xs font-bold">Boleto Bancário</strong>
-                    <span className="text-[11px] text-slate-500">Compensação em 1 a 3 dias</span>
-                  </div>
-                </button>
-
-              </div>
-
-              {/* Conditional Credit Card Details Form */}
-              {paymentMethod === 'credit_card' && (
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-4 pt-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
-                      Nome impresso no Cartão *
-                    </label>
-                    <input
-                      type="text"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                      placeholder="NOME COMO ESTÁ NO CARTÃO"
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
-                      Número do Cartão *
-                    </label>
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      placeholder="0000 0000 0000 0000"
-                      maxLength={19}
-                      inputMode="numeric"
-                      pattern="[0-9 ]*"
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
-                        Validade (MM/AA) *
-                      </label>
-                      <input
-                        type="text"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        placeholder="MM/AA"
-                        maxLength={5}
-                        inputMode="numeric"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
-                        CVV (Código) *
-                      </label>
-                      <input
-                        type="text"
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="123"
-                        maxLength={4}
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
-                      />
-                    </div>
-                  </div>
+              <div className="bg-sky-50 border border-sky-200 p-5 rounded-2xl flex items-start gap-3">
+                <CreditCard className="w-6 h-6 text-sky-700 flex-shrink-0" />
+                <div>
+                  <strong className="block text-sm text-sky-950">Pagamento seguro pela InfinitePay</strong>
+                  <span className="text-xs text-sky-800">Na próxima tela você poderá escolher PIX ou cartão de crédito em até 12x.</span>
                 </div>
-              )}
+              </div>
 
               {/* Error Message Notice */}
               {errorMessage && (
@@ -715,12 +544,12 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                 {submitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin text-brand-teal" />
-                    <span>Gerando Cobrança Segura...</span>
+                    <span>Abrindo checkout seguro...</span>
                   </>
                 ) : (
                   <>
                     <Lock className="w-4 h-4 text-brand-teal" />
-                    <span>Pagar R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} com {paymentMethod.toUpperCase()}</span>
+                    <span>Continuar para pagar R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </>
                 )}
               </button>
