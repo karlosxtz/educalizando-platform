@@ -8,7 +8,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 const supabaseServiceKey = (() => {
   if (typeof process !== 'undefined' && typeof window === 'undefined') {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn('⚠️ AVISO CRÍTICO: SUPABASE_SERVICE_ROLE_KEY não está definida. O supabaseAdmin usará a chave anônima e ficará sujeito a regras de RLS, o que causará retornos silenciosos de array vazio em queries administrativas.');
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY não configurada em produção.');
+      }
       return supabaseAnonKey;
     }
     return process.env.SUPABASE_SERVICE_ROLE_KEY;

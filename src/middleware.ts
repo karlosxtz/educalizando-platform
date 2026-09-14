@@ -39,14 +39,17 @@ export async function middleware(request: NextRequest) {
 
   // 0. Proteger rotas Super Admin
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    if (pathname.includes('debug-wallet')) {
-      // allow debug endpoint
-    } else if (!user) {
+      if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
     } else {
-      const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com'
+      const superAdminEmail = process.env.SUPERADMIN_EMAIL
+      if (!superAdminEmail) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
       if (user.email !== superAdminEmail) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard'
@@ -100,4 +103,3 @@ export const config = {
     '/api/aluno/materiais/:path*',
   ],
 }
-

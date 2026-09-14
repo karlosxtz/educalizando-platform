@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { getAsaasPaymentStatus } from '@/lib/asaas-service';
+import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: Request) {
+  const user = await getRequestUser(request);
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Autenticação obrigatória.' }, { status: 401 });
+  }
   const { searchParams } = new URL(request.url);
   const orderId = searchParams.get('orderId');
 
@@ -14,6 +20,18 @@ export async function GET(request: Request) {
     const order = await getOrderRecordById(orderId);
     if (!order) {
       return NextResponse.json({ success: false, error: 'Pedido não encontrado.' }, { status: 404 });
+    }
+
+    const { data: orderAccess } = await supabaseAdmin
+      .from('orders')
+      .select('student_id, store_id')
+      .eq('id', orderId)
+      .maybeSingle();
+    const { data: storeAccess } = orderAccess
+      ? await supabaseAdmin.from('stores').select('creator_id').eq('id', orderAccess.store_id).maybeSingle()
+      : { data: null };
+    if (!orderAccess || (orderAccess.student_id !== user.id && storeAccess?.creator_id !== user.id)) {
+      return NextResponse.json({ success: false, error: 'Acesso negado.' }, { status: 403 });
     }
 
     let status = order.status;

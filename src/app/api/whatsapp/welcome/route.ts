@@ -25,7 +25,10 @@ export async function POST(request: Request) {
 
     const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
     const baseUrl = 'https://evolutionapi.vps11334.panel.icontainer.net';
-    const apikey = process.env.EVOLUTION_API_KEY || '8RJwswdx6aHGinSCXypt5E85Atmrp6XY';
+    const apikey = process.env.EVOLUTION_API_KEY;
+    if (!apikey) {
+      return NextResponse.json({ error: 'Integração de WhatsApp não configurada.' }, { status: 503 });
+    }
     const url = `${baseUrl}/message/sendText/${instanceName}`;
 
     const firstName = name.split(' ')[0] || 'Educador(a)';

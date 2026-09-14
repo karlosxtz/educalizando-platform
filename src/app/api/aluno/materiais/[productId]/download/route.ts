@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getStudentPurchases } from '@/lib/student-service';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-
-async function getAuthUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return null;
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-  return user;
-}
+import { getRequestUser } from '@/lib/api-auth';
 
 function sanitizeFilename(title: string, extension = 'pdf'): string {
   const clean = title
@@ -29,9 +21,12 @@ export async function GET(
     const { productId } = await params;
 
     // 1. Obter Sessão do Aluno via Cookie Seguro
-    const user = await getAuthUser();
-    const studentId = user?.id || 'student-demo';
-    const isAuthenticated = !!user;
+    const user = await getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticação obrigatória para baixar materiais.' }, { status: 401 });
+    }
+    const studentId = user.id;
+    const isAuthenticated = true;
 
     let isPlrPurchase = false;
 
@@ -148,7 +143,7 @@ export async function GET(
         }
       }
 
-      if (activeUrl.startsWith('http://') || activeUrl.startsWith('https://')) {
+      if (activeUrl.startsWith('https://')) {
         console.log(`[Download API] Redirecionando cliente para URL assinada: ${activeUrl.substring(0, 60)}...`);
         return NextResponse.redirect(activeUrl);
       }
