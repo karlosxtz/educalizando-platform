@@ -1021,6 +1021,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
         `)
         .eq('is_plr', true)
         .gt('preco_plr', 0)
+        .not('plr_license_url', 'is', null)
         .eq('status', 'publicado')
         .is('excluido_em', null)
         .order('created_at', { ascending: false });
@@ -1038,6 +1039,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
   const plrProducts = products.filter(p => 
     p.is_plr === true && 
     Number(p.preco_plr || 0) > 0 &&
+    Boolean(p.plr_license_url) &&
     p.status === 'publicado' && 
     !p.excluido_em
   );

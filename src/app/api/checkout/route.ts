@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
     const { data: realProducts, error: dbError } = await supabase
       .from('products')
-      .select('id, preco, preco_plr, is_plr, store_id, status, titulo')
+      .select('id, preco, preco_plr, is_plr, plr_license_url, store_id, status, titulo')
       .in('id', productIds);
 
     if (dbError || !realProducts || realProducts.length !== productIds.length) {
@@ -154,6 +154,10 @@ export async function POST(request: Request) {
 
       if (isPlrPurchase && !(Number(realProd.preco_plr) > 0)) {
         return NextResponse.json({ success: false, error: 'A Licença PLR deste produto está sem um preço válido.' }, { status: 400 });
+      }
+
+      if (isPlrPurchase && !realProd.plr_license_url) {
+        return NextResponse.json({ success: false, error: 'A entrega da Licença PLR deste produto ainda não foi configurada.' }, { status: 400 });
       }
 
       const rawQuantity = Number(item.quantity);

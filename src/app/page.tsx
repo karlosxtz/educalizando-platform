@@ -34,7 +34,9 @@ export default async function Home() {
   // Filtrar as prateleiras
   const produtosEmAlta = allProducts.slice(0, 8);
   const produtosGratuitos = allProducts.filter(p => p.is_free === true || p.preco === 0).slice(0, 4);
-  const produtosPLR = allProducts.filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0).slice(0, 4);
+  const produtosPLR = allProducts
+    .filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.plr_license_url))
+    .slice(0, 4);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">

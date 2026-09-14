@@ -64,7 +64,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
       // 3. Preço
       if (filters.filter === 'plr') {
-        query = query.eq('is_plr', true).gt('preco_plr', 0);
+        query = query.eq('is_plr', true).gt('preco_plr', 0).not('plr_license_url', 'is', null);
       }
 
       if (filters.preco) {
@@ -128,7 +128,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   }
 
   if (filters.filter === 'plr') {
-    allProducts = allProducts.filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0);
+    allProducts = allProducts.filter(p =>
+      p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.plr_license_url)
+    );
   }
 
   if (filters.categoria) {
