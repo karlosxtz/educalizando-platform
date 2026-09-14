@@ -46,16 +46,16 @@ export default function SuperAdminSaques() {
     }
   }
 
-  async function handleAction(id: string, action: 'complete' | 'reject') {
+  async function handleAction(id: string, action: 'complete' | 'reject' | 'reopen' | 'reverse') {
     const paymentReference = action === 'complete'
       ? prompt('Após realizar o PIX, informe a referência da transferência ou do comprovante:')
       : null;
     if (action === 'complete' && !paymentReference?.trim()) return;
-    const reviewNote = action === 'reject'
-      ? prompt('Informe o motivo da rejeição (o saldo será devolvido ao produtor):')
+    const reviewNote = action !== 'complete'
+      ? prompt(action === 'reverse' ? 'Informe o motivo do estorno (o valor será devolvido ao saldo):' : action === 'reopen' ? 'Informe o motivo para reabrir a solicitação:' : 'Informe o motivo da rejeição (o saldo será devolvido ao produtor):')
       : null;
     if (action === 'reject' && !reviewNote?.trim()) return;
-    if (!confirm(`Confirma ${action === 'complete' ? 'que o PIX já foi pago' : 'a rejeição e devolução do saldo'}?`)) return;
+    if (!confirm(`Confirma ${action === 'complete' ? 'que o PIX já foi pago' : action === 'reopen' ? 'reabrir esta solicitação' : 'a alteração e devolução do saldo'}?`)) return;
     
     try {
       const res = await fetch(`/api/admin/withdrawals`, {
@@ -196,6 +196,8 @@ export default function SuperAdminSaques() {
                           </button>
                         </>
                       )}
+                      {item.status === 'COMPLETED' && <button onClick={() => handleAction(item.id, 'reverse')} className="text-rose-400 hover:text-rose-300 font-medium">Estornar</button>}
+                      {(item.status === 'FAILED' || item.status === 'CANCELLED') && <button onClick={() => handleAction(item.id, 'reopen')} className="text-amber-400 hover:text-amber-300 font-medium">Reabrir</button>}
                     </td>
                   </tr>
                 ))

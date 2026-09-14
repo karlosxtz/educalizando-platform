@@ -54,7 +54,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'ID e ação obrigatórios' }, { status: 400 });
     }
 
-    if (action !== 'complete' && action !== 'reject') {
+    if (!['complete', 'reject', 'reopen', 'reverse'].includes(action)) {
       return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });
     }
     if (action === 'complete' && !paymentReference?.trim()) {
