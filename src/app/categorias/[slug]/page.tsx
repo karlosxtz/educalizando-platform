@@ -64,6 +64,11 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'CollectionPage', name: `Materiais de ${category.nome}`,
+        description: `Atividades e materiais didáticos de ${category.nome} para imprimir.`, url: `https://educalizando.com.br/categorias/${slug}`,
+        isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' }
+      }) }} />
       <MarketplaceHeader />
       
       <main className="flex-1">
