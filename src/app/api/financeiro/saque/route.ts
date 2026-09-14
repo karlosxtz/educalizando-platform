@@ -21,6 +21,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
     }
 
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ success: false, error: 'Acesso negado.' }, { status: 401 });
+    const { data: ownedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
+    if (!ownedStore || ownedStore.creator_id !== user.id) {
+      return NextResponse.json({ success: false, error: 'Esta loja não pertence ao usuário autenticado.' }, { status: 403 });
+    }
+
     const history = await getWithdrawalsHistory(storeId);
     return NextResponse.json({
       success: true,
@@ -95,6 +102,11 @@ export async function POST(request: Request) {
           }
         } catch (e) {}
       }
+    }
+
+    const { data: ownedStore } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
+    if (!ownedStore || ownedStore.creator_id !== creatorId) {
+      return NextResponse.json({ success: false, error: 'A loja informada não pertence ao criador autenticado.' }, { status: 403 });
     }
 
     if (!isAuthenticatedAndAuthorized) {

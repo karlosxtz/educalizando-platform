@@ -36,7 +36,7 @@ export async function POST(request: Request) {
           const meta = userData.user.user_metadata || {};
           authSession = {
             isAuthenticated: true,
-            role: isPlrPurchase ? 'creator' : 'student',
+            role: meta.role === 'creator' || meta.is_creator === true ? 'creator' : 'student',
             userId: userData.user.id,
             email: userData.user.email || rawBuyerEmail || '',
             fullName: meta.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Aluno Educalizando'),
@@ -127,6 +127,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Um ou mais produtos não existem ou estão indisponíveis.' }, { status: 400 });
     }
 
+    if (new Set(productIds).size !== items.length) {
+      return NextResponse.json({ success: false, error: 'O carrinho contém itens duplicados ou inválidos.' }, { status: 400 });
+    }
+
     // 3.5 Definir a Loja Efetiva Baseada no Banco (Não confiar no frontend)
     const effectiveStoreId = realProducts[0]?.store_id;
     if (!effectiveStoreId) {
@@ -182,6 +186,10 @@ export async function POST(request: Request) {
         quantity: safeQuantity,
         storeId: realProd.store_id // Garante storeId correto
       });
+    }
+
+    if (realItems.length !== items.length || realItems.some(item => !(Number(item.unitPrice) > 0))) {
+      return NextResponse.json({ success: false, error: 'Um ou mais itens possuem preço inválido.' }, { status: 400 });
     }
 
     // 4b. Método de Pagamento Normalizado
@@ -265,6 +273,7 @@ export async function POST(request: Request) {
     // 8. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
     const orderRecord = await createOrderRecord({
       id: tempOrderId,
+      studentId,
       storeId: effectiveStoreId,
       buyerName: buyerName,
       buyerEmail,

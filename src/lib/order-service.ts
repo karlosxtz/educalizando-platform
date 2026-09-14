@@ -17,6 +17,7 @@ export interface OrderItemRecord {
 
 export interface OrderRecord {
   id: string;
+  studentId?: string | null;
   storeId: string;
   creatorId?: string | null; // ID do criador (auth.users) para notificações e ledger
   buyerName: string;
@@ -108,7 +109,7 @@ export function calculateOrderFinancials(
 
   // Usa configurações dinâmicas do BD, ou os defaults se não informado
   const fixedFee = platformSettings ? Number(platformSettings.platform_fixed_fee) : 0.99;
-  const percentageFee = platformSettings ? Number(platformSettings.platform_fee_percentage) : 0;
+  const percentageFee = platformSettings ? Number(platformSettings.platform_fee_percentage) : 5;
 
   const platformFixedFee = Number(fixedFee.toFixed(2));
   const platformPercentageFee = Number(((subtotal * percentageFee) / 100).toFixed(2));
@@ -178,6 +179,7 @@ function saveLocalAsaasOrders(orders: OrderRecord[]) {
 // 2. Criar Registro do Pedido (Validação Estrita de Loja Única + Cálculo Servidor)
 export async function createOrderRecord(data: {
   id?: string;
+  studentId: string;
   storeId: string;
   buyerName: string;
   buyerEmail: string;
@@ -223,6 +225,7 @@ export async function createOrderRecord(data: {
 
   const newOrder: OrderRecord = {
     id: orderId,
+    studentId: data.studentId,
     storeId: data.storeId,
     buyerName: data.buyerName,
     buyerEmail: data.buyerEmail.toLowerCase().trim(),
@@ -253,13 +256,14 @@ export async function createOrderRecord(data: {
   if (isRealSupabaseConfigured()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('orders').insert([{
+      const { error: orderInsertError } = await supabaseAdmin.from('orders').insert([{
         id: newOrder.id,
         store_id: newOrder.storeId,
         buyer_name: newOrder.buyerName,
         buyer_email: newOrder.buyerEmail,
         buyer_cpf: newOrder.buyerCpf,
         buyer_phone: newOrder.buyerPhone,
+        student_id: newOrder.studentId,
         subtotal_amount: newOrder.subtotalAmount,
         total_amount: newOrder.totalAmount,
         platform_fixed_fee_amount: newOrder.platformFixedFeeAmount,
@@ -279,8 +283,10 @@ export async function createOrderRecord(data: {
         created_at: newOrder.createdAt
       }]);
 
+      if (orderInsertError) throw orderInsertError;
+
       if (formattedItems.length > 0) {
-        await supabaseAdmin.from('order_items').insert(formattedItems.map(it => ({
+        const { error: itemInsertError } = await supabaseAdmin.from('order_items').insert(formattedItems.map(it => ({
           id: it.id,
           order_id: it.orderId,
           product_id: it.productId,
@@ -290,9 +296,11 @@ export async function createOrderRecord(data: {
           subtotal_amount: it.subtotalAmount,
           created_at: now
         })));
+        if (itemInsertError) throw itemInsertError;
       }
     } catch (err) {
       console.error('[createOrderRecord] Erro Supabase:', err);
+      throw new Error('Não foi possível registrar o pedido com segurança.');
     }
   }
 
@@ -350,6 +358,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
 
         return {
           id: data.id,
+          studentId: data.student_id || null,
           storeId: data.store_id,
           creatorId: data.creator_id || null,
           buyerName: data.buyer_name || 'Comprador',
