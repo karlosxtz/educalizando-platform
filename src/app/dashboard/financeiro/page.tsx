@@ -462,9 +462,9 @@ export default function FinancialWalletDashboardPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando (13%)</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">Parcela por unidade e percentual vigentes, discriminados por venda</span>
+            <span className="text-[10px] text-slate-500 font-medium block">13% sobre cada venda, sem taxa fixa adicional</span>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
@@ -892,11 +892,11 @@ export default function FinancialWalletDashboardPage() {
                   <span className="font-mono text-sm">{formatCurrency(selectedTx.grossAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa Fixa Educalizando (R$ 0,99/unid):</span>
+                  <span>Taxa fixa Educalizando (não aplicada):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformFixedFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa percentual Educalizando (Subtotal):</span>
+                  <span>Taxa Educalizando (13% do subtotal):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformPercentageFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">

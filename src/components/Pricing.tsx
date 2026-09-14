@@ -53,7 +53,7 @@ export default function Pricing() {
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
             <p className="text-xs text-brand-navy font-bold pt-1">
-              Taxas transparentes, detalhadas em cada venda
+              Taxa Educalizando: 13% por venda, sem taxa fixa
             </p>
           </div>
 

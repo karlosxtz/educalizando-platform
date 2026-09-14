@@ -26,8 +26,8 @@ export interface OrderRecord {
   buyerPhone?: string | null;
   subtotalAmount: number;
   totalAmount: number;
-  platformFixedFeeAmount: number; // R$ 0,99 x quantidade de produtos
-  platformPercentageFeeAmount: number; // 5% do subtotal do pedido
+  platformFixedFeeAmount: number; // 0 — sem tarifa fixa
+  platformPercentageFeeAmount: number; // 13% do subtotal do pedido
   platformFeeAmount: number; // Fixa + Percentual
   asaasFeeAmount: number; // Taxa real cobrada pelo Asaas (repassada ao criador)
   creatorNetAmount: number; // Valor líquido que vai para o saldo do criador
@@ -84,9 +84,9 @@ export interface FinancialCalculationResult {
  * =============================================================================
  * Fórmula:
  * subtotal = soma (unit_price * quantity)
- * platform_fixed_fee = valor configurado x quantidade de unidades
- * platform_percentage_fee = subtotal * 0.05
- * platform_fee = platform_fixed_fee + platform_percentage_fee
+ * platform_fixed_fee = 0
+ * platform_percentage_fee = subtotal * 0.13
+ * platform_fee = platform_percentage_fee
  * creator_net_amount = subtotal - platform_fee - asaas_fee
  * =============================================================================
  */
@@ -113,15 +113,18 @@ export function calculateOrderFinancials(
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-  // Usa configurações dinâmicas do BD, ou os defaults se não informado
-  const fixedFee = platformSettings ? Number(platformSettings.platform_fixed_fee) : 0.99;
-  const percentageFee = platformSettings ? Number(platformSettings.platform_fee_percentage) : 5;
+  // Regra comercial vigente: 13% da Educalizando, sem tarifa fixa.
+  // Os campos antigos de configuração são ignorados para impedir divergências
+  // entre pedidos quando uma linha legada do banco ainda estiver desatualizada.
+  const fixedFee = 0;
+  const percentageFee = 13;
 
   const platformFixedFee = Number((fixedFee * productCount).toFixed(2));
   const platformPercentageFee = Number(((subtotal * percentageFee) / 100).toFixed(2));
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
-  // Se a taxa Asaas veio 0, calcular estimativa padrão pela forma de pagamento (PIX = R$ 1,99)
+  // InfinitePay repassa o custo do checkout ao comprador; o gateway não é
+  // descontado do saldo do criador nesta plataforma.
   const realFee = asaasFee !== undefined && asaasFee >= 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
   const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee - affiliateCommissionAmount).toFixed(2));
 

@@ -3,8 +3,7 @@ import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
 // Constantes centralizadas de cálculo financeiro (devem espelhar order-service.ts)
-const PLATFORM_FIXED_FEE_PER_PRODUCT = 0.99;
-const PLATFORM_PERCENTAGE_FEE = 0.05;
+const PLATFORM_PERCENTAGE_FEE = 0.13;
 const ASAAS_PIX_FEE = 1.99;
 const ASAAS_CC_FIXED_FEE = 0.49;
 const ASAAS_CC_PERCENTAGE_FEE = 0.0299;
@@ -91,7 +90,7 @@ export async function GET(request: Request) {
     paidOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
       const productCount = Number(o.product_count || 1);
-      const platformFee = Number(o.platform_fee_amount ?? (productCount * PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const platformFee = Number(o.platform_fee_amount ?? (gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
 
       let paymentFee = Number(o.asaas_fee_amount || 0);
       const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
@@ -110,7 +109,7 @@ export async function GET(request: Request) {
 
     pendingOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
-      const platformFee = Number(o.platform_fee_amount ?? (PLATFORM_FIXED_FEE_PER_PRODUCT + gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const platformFee = Number(o.platform_fee_amount ?? (gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
       let paymentFee = Number(o.asaas_fee_amount || 0);
       const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
       if (paymentFee <= 0 && provider === 'asaas') paymentFee = ASAAS_PIX_FEE;

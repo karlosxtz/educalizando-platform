@@ -29,7 +29,7 @@ export interface CreatorWalletSummary {
   saldoPendente: number; // Líquido de pedidos aguardando pagamento
   saldoDisponivel: number; // Líquido já liberado (pronto para futuro saque na Fase C)
   totalRecebido: number; // Histórico retirado via saques (R$ 0,00 nesta Fase B)
-  taxasEducalizando: number; // R$ 0,99/produto + 5% sobre subtotal
+  taxasEducalizando: number; // 13% sobre subtotal, sem tarifa fixa
   taxasAsaas: number; // Taxa real cobrada pelo Asaas
   totalTaxas: number; // Soma das duas taxas
 }
@@ -161,7 +161,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   const totalVendido = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0), 0);
 
   // 2. Cálculo Estrito de Taxas e Saldo Líquido do Criador (Regra Mandatória)
-  // Fórmula: R$ 0,99 fixo por produto + 5% sobre subtotal + taxa de processamento do meio de pagamento
+  // Fórmula vigente: 13% da Educalizando sobre o subtotal, sem tarifa fixa.
   let calculatedTaxasEducalizando = 0;
   let calculatedTaxasPagamento = 0;
   let calculatedSaldoDisponivel = 0;
@@ -171,7 +171,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (productCount * 0.99 + gross * 0.05).toFixed(2));
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (gross * 0.13).toFixed(2));
 
     // Pedidos InfinitePay usam a taxa gravada (zero quando repassada ao comprador).
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
@@ -198,7 +198,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (productCount * 0.99 + gross * 0.05).toFixed(2));
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (gross * 0.13).toFixed(2));
     
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
     const provider = o.payment_provider || o.paymentProvider || (o.asaas_payment_id || o.asaasPaymentId ? 'asaas' : 'infinitepay');

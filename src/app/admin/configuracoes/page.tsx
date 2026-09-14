@@ -7,7 +7,7 @@ export default function SuperAdminConfiguracoes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    platform_fee_percentage: 10,
+    platform_fee_percentage: 13,
     platform_fixed_fee: 0,
     minimum_withdrawal_amount: 50,
     withdrawal_fee: 0,
@@ -93,10 +93,10 @@ export default function SuperAdminConfiguracoes() {
                   min="0"
                   max="100"
                   value={formData.platform_fee_percentage}
-                  onChange={(e) => setFormData({...formData, platform_fee_percentage: Number(e.target.value)})}
+                  onChange={() => setFormData({...formData, platform_fee_percentage: 13})}
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-                <p className="text-xs text-slate-500">Porcentagem retida de cada venda.</p>
+                <p className="text-xs text-slate-500">Taxa fixa vigente da Educalizando: 13% por venda.</p>
               </div>
 
               <div className="space-y-2">
@@ -109,10 +109,11 @@ export default function SuperAdminConfiguracoes() {
                   step="0.01"
                   min="0"
                   value={formData.platform_fixed_fee}
-                  onChange={(e) => setFormData({...formData, platform_fixed_fee: Number(e.target.value)})}
+                  onChange={() => setFormData({...formData, platform_fixed_fee: 0})}
+                  disabled
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-                <p className="text-xs text-slate-500">Valor fixo cobrado adicionalmente em cada venda.</p>
+                <p className="text-xs text-slate-500">Não há cobrança fixa adicional.</p>
               </div>
             </div>
 
