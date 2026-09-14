@@ -8,7 +8,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 const supabaseServiceKey = (() => {
   if (typeof process !== 'undefined' && typeof window === 'undefined') {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      if (process.env.NODE_ENV === 'production') {
+      // Durante `next build`, as rotas são apenas analisadas; a exigência vale
+      // quando o servidor realmente sobe em produção.
+      if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
         throw new Error('SUPABASE_SERVICE_ROLE_KEY não configurada em produção.');
       }
       return supabaseAnonKey;
