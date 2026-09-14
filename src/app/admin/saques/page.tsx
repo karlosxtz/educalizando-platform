@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { DollarSign, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { DollarSign, CheckCircle2, XCircle, Clock, Search, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 interface WithdrawalData {
@@ -19,6 +19,8 @@ interface WithdrawalData {
 export default function SuperAdminSaques() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
     fetchWithdrawals();
@@ -81,6 +83,13 @@ export default function SuperAdminSaques() {
     });
   }
 
+  const filteredWithdrawals = withdrawals.filter((item) => {
+    const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+    const haystack = `${item.store?.nome_loja || ''} ${item.pix_key_masked || ''} ${item.id}`.toLowerCase();
+    return matchesStatus && haystack.includes(query.toLowerCase());
+  });
+  const pendingTotal = withdrawals.filter((w) => w.status === 'PENDING').reduce((sum, w) => sum + Number(w.amount || 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -88,14 +97,21 @@ export default function SuperAdminSaques() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Gestão de Saques</h1>
           <p className="text-slate-400 mt-1">Aprove ou rejeite solicitações de saque dos criadores.</p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          disabled={loading || withdrawals.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          Exportar CSV
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => fetchWithdrawals()} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium"><RefreshCw className="w-4 h-4" /> Atualizar</button>
+          <button onClick={handleExportCSV} disabled={loading || withdrawals.length === 0} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium disabled:opacity-50">Exportar CSV</button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4"><p className="text-xs text-slate-500 uppercase font-bold">Solicitações</p><p className="text-2xl text-white font-black mt-1">{withdrawals.length}</p></div>
+        <div className="bg-slate-950 border border-amber-500/30 rounded-xl p-4"><p className="text-xs text-amber-400 uppercase font-bold">Pendentes</p><p className="text-2xl text-white font-black mt-1">{withdrawals.filter((w) => w.status === 'PENDING').length}</p></div>
+        <div className="bg-slate-950 border border-emerald-500/30 rounded-xl p-4"><p className="text-xs text-emerald-400 uppercase font-bold">A pagar</p><p className="text-2xl text-white font-black mt-1">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingTotal)}</p></div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por loja, chave ou ID" className="w-full bg-slate-950 border border-slate-800 rounded-lg py-2.5 pl-10 pr-3 text-white placeholder:text-slate-600" /></div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-lg px-3 text-white"><option value="ALL">Todos os status</option><option value="PENDING">Pendentes</option><option value="COMPLETED">Pagos</option><option value="FAILED">Rejeitados</option></select>
       </div>
 
       <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
@@ -118,14 +134,14 @@ export default function SuperAdminSaques() {
                     Carregando saques...
                   </td>
                 </tr>
-              ) : withdrawals.length === 0 ? (
+              ) : filteredWithdrawals.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     Nenhum saque solicitado.
                   </td>
                 </tr>
               ) : (
-                withdrawals.map((item) => (
+                filteredWithdrawals.map((item) => (
                   <tr key={item.id} className="border-b border-slate-800/50 hover:bg-slate-900/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-200">
                       <Link href={`/loja/${item.store?.slug}`} className="hover:text-blue-400 transition-colors">
