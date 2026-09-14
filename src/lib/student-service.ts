@@ -340,7 +340,7 @@ export async function grantStudentProductAccess(data: {
   if (isRealSupabase) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      await supabaseAdmin.from('student_product_access').insert([{
+      const { error } = await supabaseAdmin.from('student_product_access').insert([{
         id: newRecord.id,
         student_id: newRecord.studentId,
         product_id: newRecord.productId,
@@ -349,6 +349,7 @@ export async function grantStudentProductAccess(data: {
         status: newRecord.status,
         granted_at: newRecord.grantedAt
       }]);
+      if (error && error.code !== '23505') throw error;
     } catch (e) {
       console.error('[grantStudentProductAccess] Erro Supabase:', e);
     }

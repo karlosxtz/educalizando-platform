@@ -554,11 +554,12 @@ export async function updateOrderStatus(
       // 2. Conceder Acesso Real ao Material (student_product_access) no Supabase e LocalStorage
       const { grantStudentProductAccess } = await import('./student-service');
       const studentEmail = (order.buyerEmail || '').toLowerCase().trim();
+      const accessStudentId = order.studentId || studentEmail;
 
       if (order.items && order.items.length > 0) {
         for (const item of order.items) {
           await grantStudentProductAccess({
-            studentId: studentEmail,
+            studentId: accessStudentId,
             productId: item.productId,
             orderId: order.id,
             storeId: order.storeId
@@ -567,7 +568,7 @@ export async function updateOrderStatus(
       } else {
         // Fallback caso seja pedido sem item específico na lista
         await grantStudentProductAccess({
-          studentId: studentEmail,
+          studentId: accessStudentId,
           productId: 'prod-combo-1',
           orderId: order.id,
           storeId: order.storeId
