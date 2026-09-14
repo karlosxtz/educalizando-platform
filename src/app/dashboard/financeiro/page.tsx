@@ -27,6 +27,7 @@ import Link from 'next/link';
 export default function FinancialWalletDashboardPage() {
   const [storeId, setStoreId] = useState<string>('');
   const [creatorProfileCpf, setCreatorProfileCpf] = useState<string>('');
+  const [calculatorPrice, setCalculatorPrice] = useState('50');
 
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<CreatorWalletSummary>({
@@ -358,49 +359,23 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Cards de Comparação */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Exemplo A */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="bg-slate-50 border-b border-slate-200 px-5 py-3">
-              <h4 className="font-bold text-slate-700">Exemplo A: Venda de 1 produto de R$ 50,00</h4>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">Valor bruto da venda</span>
-                <span className="text-sm font-bold text-slate-700">R$ 50,00</span>
+        {/* Calculadora de taxa */}
+        <div className="relative z-10 bg-white border border-emerald-200 rounded-2xl shadow-sm p-5 sm:p-6">
+          <h3 className="font-extrabold text-slate-900">Simule sua venda</h3>
+          <p className="text-sm text-slate-500 font-medium mt-1">Informe o preço do produto para calcular automaticamente a taxa de 13%.</p>
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <label className="text-xs font-bold text-slate-700">
+              Valor do produto
+              <div className="relative mt-1.5">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">R$</span>
+                <input value={calculatorPrice} onChange={(e) => setCalculatorPrice(e.target.value)} inputMode="decimal" className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 font-bold outline-none focus:border-emerald-500" />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Taxas aplicadas</span>
-                <span className="text-sm font-black text-emerald-600">Detalhadas no extrato</span>
-              </div>
-              <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Nenhum desconto fica oculto.
-              </div>
-            </div>
+            </label>
+            {(() => { const gross = Math.max(0, Number(calculatorPrice.replace(',', '.')) || 0); const fee = gross * 0.13; return <>
+              <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Taxa Educalizando (13%)</span><strong className="text-lg text-rose-800">-{formatCurrency(fee)}</strong></div>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Você recebe</span><strong className="text-lg text-emerald-800">{formatCurrency(gross - fee)}</strong></div>
+            </>; })()}
           </div>
-
-          {/* Exemplo B */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="bg-slate-50 border-b border-slate-200 px-5 py-3">
-              <h4 className="font-bold text-slate-700">Exemplo B: Venda de 1 produto de R$ 100,00</h4>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">Valor bruto da venda</span>
-                <span className="text-sm font-bold text-slate-700">R$ 100,00</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" />Taxas aplicadas</span>
-                <span className="text-sm font-black text-emerald-600">Detalhadas no extrato</span>
-              </div>
-              <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-extrabold px-4 py-3 rounded-xl flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> O líquido é calculado pelo servidor.
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Conclusão */}
