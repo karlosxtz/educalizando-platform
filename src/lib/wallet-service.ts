@@ -329,14 +329,14 @@ export async function recordWalletTransaction(data: {
         if (error.code === '23505') {
           console.log(`[recordWalletTransaction] Trava de integridade do banco acionada: transação duplicada impedida para o pedido ${newTx.orderId}.`);
         } else {
-          console.error('[recordWalletTransaction] Erro Supabase:', error);
+          throw error;
         }
       }
     } catch (err: any) {
       if (err.code === '23505') {
         console.log(`[recordWalletTransaction] Trava de integridade do banco acionada (catch): transação duplicada impedida.`);
       } else {
-        console.error('[recordWalletTransaction] Erro de Exceção Supabase:', err);
+        throw err;
       }
     }
   }

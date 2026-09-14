@@ -426,11 +426,9 @@ export async function updateOrderStatus(
 
   if (!order) return null;
 
-  // IDEMPOTÊNCIA: Se já estava pago e veio novamente como paid sem nova taxa Asaas, ignora
-  if (order.status === 'paid' && newStatus === 'paid' && (realAsaasFee === undefined || realAsaasFee === order.asaasFeeAmount)) {
-    console.log(`[updateOrderStatus] Pedido ${order.id} já está confirmado como PAGO (Evento Idempotente).`);
-    return order;
-  }
+  // Uma repetição válida deve conferir novamente os efeitos idempotentes (ledger e acesso).
+  // Isso permite reparar automaticamente uma confirmação anterior parcialmente processada.
+  let statusTransitioned = order.status !== newStatus;
 
   const nowPaidAt = newStatus === 'paid' ? new Date().toISOString() : order.paidAt;
 
@@ -463,17 +461,19 @@ export async function updateOrderStatus(
       .select()
       .maybeSingle();
 
-      // Se maybeSingle retornar null sem erro, ou der erro de 0 rows, a thread concorrente já processou.
-      if (!updatedOrder) {
-        console.log(`[Webhook Seguro] Pedido ${order.id} já estava em ${newStatus}. Processamento concorrente abortado.`);
-        return order; // Aborta para evitar repasse duplo
+      if (error) {
+        throw new Error(`Falha ao atualizar o pedido: ${error.message}`);
       }
 
-      if (error) {
-        console.error('[updateOrderStatus] Erro Supabase na atualização atômica:', error);
+      // Sem linha alterada, outra confirmação venceu a corrida. Ainda conferimos os efeitos
+      // idempotentes abaixo, mas não repetimos os e-mails transacionais.
+      if (!updatedOrder) {
+        statusTransitioned = false;
+        console.log(`[Webhook Seguro] Pedido ${order.id} já estava em ${newStatus}. Conferindo efeitos idempotentes.`);
       }
     } catch (err) {
       console.error('[updateOrderStatus] Erro Exceção Supabase:', err);
+      throw err;
     }
   }
 
@@ -545,8 +545,8 @@ export async function updateOrderStatus(
           description: `Comissão de Afiliado - Pedido #${order.id.substring(4, 10).toUpperCase()}`
         });
 
-        // 📧 Disparar e-mail via Resend para o Afiliado
-        try {
+        // E-mails são disparados somente por quem efetivamente mudou o status.
+        if (statusTransitioned) try {
           if (affiliateUserId && isRealSupabaseConfigured()) {
             const { supabaseAdmin } = await import('./supabase');
             const { data: affUser } = await supabaseAdmin.auth.admin.getUserById(affiliateUserId);
@@ -593,7 +593,7 @@ export async function updateOrderStatus(
       }
 
       // 📧 Disparar e-mail via Resend para o Aluno
-      try {
+      if (statusTransitioned) try {
         let creatorWhatsapp: string | null = null;
         if (isRealSupabaseConfigured()) {
           const { supabaseAdmin } = await import('./supabase');

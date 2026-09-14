@@ -353,6 +353,7 @@ export async function grantStudentProductAccess(data: {
       if (error && error.code !== '23505') throw error;
     } catch (e) {
       console.error('[grantStudentProductAccess] Erro Supabase:', e);
+      throw e;
     }
   }
 
