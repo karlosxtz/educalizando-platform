@@ -11,12 +11,22 @@ export async function GET(request: Request) {
 
     const { data: withdrawals, error } = await supabaseAdmin
       .from('withdrawals')
-      .select('*, store:stores(nome_loja, slug)')
+      .select('*')
       .order('requested_at', { ascending: false });
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, withdrawals });
+    const storeIds = [...new Set((withdrawals || []).map((item: any) => item.store_id).filter(Boolean))];
+    const { data: stores } = storeIds.length
+      ? await supabaseAdmin.from('stores').select('id, nome_loja, slug').in('id', storeIds)
+      : { data: [] };
+    const storesById = new Map((stores || []).map((store: any) => [store.id, { nome_loja: store.nome_loja, slug: store.slug }]));
+    const enrichedWithdrawals = (withdrawals || []).map((item: any) => ({
+      ...item,
+      store: storesById.get(item.store_id) || { nome_loja: 'Loja não encontrada', slug: '' }
+    }));
+
+    return NextResponse.json({ success: true, withdrawals: enrichedWithdrawals });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

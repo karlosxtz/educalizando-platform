@@ -19,6 +19,7 @@ interface WithdrawalData {
 export default function SuperAdminSaques() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -27,14 +28,15 @@ export default function SuperAdminSaques() {
   }, []);
 
   async function fetchWithdrawals() {
+    setLoading(true); setError('');
     try {
       const res = await fetch('/api/admin/withdrawals');
       const data = await res.json();
-      if (data.success) {
-        setWithdrawals(data.withdrawals);
-      }
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar os saques.');
+      setWithdrawals(Array.isArray(data.withdrawals) ? data.withdrawals : []);
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : 'Erro ao carregar saques.');
     } finally {
       setLoading(false);
     }
@@ -134,6 +136,8 @@ export default function SuperAdminSaques() {
                     Carregando saques...
                   </td>
                 </tr>
+              ) : error ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-rose-400">{error}<button onClick={fetchWithdrawals} className="ml-3 underline">Tentar novamente</button></td></tr>
               ) : filteredWithdrawals.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
