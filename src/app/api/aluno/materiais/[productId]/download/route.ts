@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStudentPurchases } from '@/lib/student-service';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
 function sanitizeFilename(title: string, extension = 'pdf'): string {
@@ -54,11 +54,12 @@ export async function GET(
 
     try {
       if (contentId) {
-        const { data: itemData } = await supabase
+        const { data: itemData } = await supabaseAdmin
           .from('digital_contents')
           .select('titulo, url, file_name')
           .eq('id', contentId)
-          .single();
+          .eq('product_id', productId)
+          .maybeSingle();
 
         if (itemData) {
           if (itemData.titulo) productTitle = itemData.titulo;
@@ -67,7 +68,7 @@ export async function GET(
       }
 
       if (!fileUrl) {
-        const { data: productData } = await supabase
+        const { data: productData } = await supabaseAdmin
           .from('products')
           .select('titulo, arquivo_url, plr_license_url')
           .eq('id', productId)

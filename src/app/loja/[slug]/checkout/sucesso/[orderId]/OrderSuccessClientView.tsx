@@ -7,16 +7,14 @@ import {
   CheckCircle2, ShieldCheck, ArrowRight, Loader2, AlertCircle, BookOpen
 } from 'lucide-react';
 import { Store } from '@/lib/types';
-import { OrderRecord } from '@/lib/order-service';
 
 interface OrderSuccessClientViewProps {
   store: Store;
   orderId: string;
-  initialOrder: OrderRecord | null;
 }
 
-export default function OrderSuccessClientView({ store, orderId, initialOrder }: OrderSuccessClientViewProps) {
-  const [status, setStatus] = useState<string>(initialOrder?.status || 'pending');
+export default function OrderSuccessClientView({ store, orderId }: OrderSuccessClientViewProps) {
+  const [status, setStatus] = useState<string>('pending');
   const searchParams = useSearchParams();
 
   const primaryColor = store.cor_primaria || '#093b6c';
