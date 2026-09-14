@@ -140,3 +140,17 @@ $$;
 
 REVOKE ALL ON FUNCTION public.register_creator_pix_key_safe(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, TEXT, VARCHAR, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.register_creator_pix_key_safe(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, TEXT, VARCHAR, TIMESTAMPTZ) TO service_role;
+
+-- Webhook e página de sucesso podem confirmar o mesmo pagamento ao mesmo tempo.
+-- Mantemos uma única notificação de venda por criador/pedido no próprio banco.
+DELETE FROM public.notifications AS duplicate
+USING public.notifications AS keeper
+WHERE duplicate.type = 'SALE_CONFIRMED'
+  AND keeper.type = 'SALE_CONFIRMED'
+  AND duplicate.creator_id = keeper.creator_id
+  AND duplicate.metadata->>'orderId' = keeper.metadata->>'orderId'
+  AND duplicate.id > keeper.id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_sale_notification_creator_order
+  ON public.notifications (creator_id, type, (metadata->>'orderId'))
+  WHERE type = 'SALE_CONFIRMED' AND metadata->>'orderId' IS NOT NULL;

@@ -27,7 +27,7 @@ export async function notifyConfirmedSale(order: OrderRecord) {
     style: 'currency', currency: 'BRL'
   }).format(order.totalAmount);
 
-  await createNotification({
+  const notificationId = await createNotification({
     storeId: order.storeId,
     creatorId,
     type: 'SALE_CONFIRMED',
@@ -40,6 +40,10 @@ export async function notifyConfirmedSale(order: OrderRecord) {
       buyerName: order.buyerName
     }
   });
+
+  // Outra confirmação concorrente venceu a inserção protegida pelo índice
+  // único. Somente quem criou a notificação envia o e-mail ao vendedor.
+  if (!notificationId) return;
 
   try {
     const { data: creator } = await supabaseAdmin.auth.admin.getUserById(creatorId);
