@@ -85,6 +85,8 @@ export interface Product {
   is_plr?: boolean;
   preco_plr?: number;
   plr_license_url?: string | null;
+  has_original_delivery?: boolean;
+  has_plr_delivery?: boolean;
   allow_affiliates?: boolean;
   affiliate_commission_rate?: number;
   order_bump_id?: string | null;

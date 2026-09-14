@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentCreatorStore, updateStore, getProductsByStoreId } from '@/lib/store-service';
+import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { Store, Product } from '@/lib/types';
 import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,10 +25,11 @@ export default function IAConfigPage() {
       try {
         const creatorStore = await getCurrentCreatorStore();
         setStore(creatorStore);
-        setApiKey(creatorStore.google_ai_key || '');
-        
-        if (creatorStore.google_ai_key) {
-          setShowConfig(false);
+        const settingsResponse = await fetch(`/api/ai/settings?storeId=${encodeURIComponent(creatorStore.id)}`);
+        if (settingsResponse.ok) {
+          const settings = await settingsResponse.json();
+          setApiKey(settings.apiKey || '');
+          if (settings.apiKey) setShowConfig(false);
         }
 
         if (creatorStore.id) {
@@ -55,7 +56,15 @@ export default function IAConfigPage() {
     
     setSaving(true);
     try {
-      await updateStore(store.id, { google_ai_key: apiKey });
+      const response = await fetch('/api/ai/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: store.id, apiKey })
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Erro ao salvar a chave.');
+      }
       toast.success('Chave de IA atualizada com sucesso!');
       setShowConfig(false);
     } catch (error) {

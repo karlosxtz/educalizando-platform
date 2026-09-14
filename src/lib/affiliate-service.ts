@@ -1,6 +1,5 @@
 import { supabase, supabaseAdmin } from './supabase';
 import { Affiliate, AffiliateStatus, AffiliateProfile } from './types';
-import { createNotification } from './notification-service';
 
 // getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
 // Use getStoreAffiliatesAction from src/app/actions/affiliate-actions.ts instead.
@@ -127,113 +126,27 @@ export async function getAvailableMarketplaceStores(): Promise<any[]> {
 
 
 export async function applyForProductAffiliation(productId: string, storeId: string): Promise<{ success: boolean; message: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Usuário não autenticado' };
-
-  // Check if already applied for THIS product specifically
-  const { data: existing } = await supabase
-    .from('affiliates')
-    .select('id, status')
-    .eq('store_id', storeId)
-    .eq('user_id', user.id)
-    .eq('product_id', productId)
-    .maybeSingle();
-
-  if (existing) {
-    if (existing.status === 'cancelado' || existing.status === 'rejeitado') {
-      // Re-activate as pendente
-      const { error: updateErr } = await supabase
-        .from('affiliates')
-        .update({ status: 'pendente' })
-        .eq('id', existing.id);
-      
-      if (updateErr) {
-        console.error('Error re-applying for product affiliation:', updateErr);
-        return { success: false, message: 'Erro ao reenviar solicitação.' };
-      }
-
-      // Buscar info da loja para saber o criador
-      const { data: storeInfo } = await supabaseAdmin.from('stores').select('creator_id, nome_loja').eq('id', storeId).maybeSingle();
-      if (storeInfo?.creator_id) {
-        const { data: productInfo } = productId ? await supabaseAdmin.from('products').select('nome_produto').eq('id', productId).maybeSingle() : { data: null };
-        const metadataDesc = productInfo ? `Produto: ${productInfo.nome_produto}` : 'Afiliação geral da loja';
-        
-        await createNotification({
-          storeId,
-          creatorId: storeInfo.creator_id,
-          type: 'AFFILIATE_PENDING',
-          title: 'Nova Solicitação de Afiliação',
-          body: `Você recebeu uma nova solicitação de afiliação. ${metadataDesc}`,
-          metadata: {
-            affiliateId: existing.id,
-            productId: productId || undefined
-          }
-        });
-      }
-
-      return { success: true, message: 'Solicitação de afiliação reenviada com sucesso! Aguarde a aprovação.' };
-    }
-    
-    return { success: false, message: 'Você já possui uma afiliação ou solicitação pendente para este produto.' };
-  }
-
-  const { error } = await supabase
-    .from('affiliates')
-    .insert([
-      {
-        store_id: storeId,
-        user_id: user.id,
-        product_id: productId,
-        status: 'pendente' // Forced pending status
-      }
-    ]);
-
-  if (error) {
-    console.error('Error applying for product affiliation:', error);
-    return { success: false, message: 'Erro ao enviar solicitação.' };
-  }
-
-  // Buscar info da loja para saber o criador e notificar
-  const { data: storeInfo } = await supabaseAdmin.from('stores').select('creator_id').eq('id', storeId).maybeSingle();
-  if (storeInfo?.creator_id) {
-    const { data: productInfo } = productId ? await supabaseAdmin.from('products').select('nome_produto').eq('id', productId).maybeSingle() : { data: null };
-    const metadataDesc = productInfo ? `Produto: ${productInfo.nome_produto}` : 'Afiliação geral da loja';
-    
-    // Obter ID recém-criado (opcional, como inserimos, error é null mas a row não vem por padrão sem .select(). Se não vier, deixamos sem ID).
-    // Para simplificar, vou passar affiliateId vazio se não soubermos, mas createNotification não exige.
-    
-    await createNotification({
-      storeId,
-      creatorId: storeInfo.creator_id,
-      type: 'AFFILIATE_PENDING',
-      title: 'Nova Solicitação de Afiliação',
-      body: `Você recebeu uma nova solicitação de afiliação pendente de aprovação. ${metadataDesc}`,
-      metadata: {
-        productId: productId || undefined
-      }
-    });
-  }
-
-  return { success: true, message: 'Solicitação de afiliação enviada com sucesso! Aguarde a aprovação do dono da loja.' };
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { success: false, message: 'Usuário não autenticado' };
+  const response = await fetch('/api/affiliates/applications', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ productId, storeId })
+  });
+  const result = await response.json().catch(() => null);
+  return { success: response.ok && result?.success === true, message: result?.message || 'Erro ao enviar solicitação.' };
 }
 
 export async function cancelAffiliation(affiliateId: string): Promise<{ success: boolean; message: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Usuário não autenticado' };
-
-  // Update matching affiliate.id and user_id to status 'cancelado' to preserve historical ledger
-  const { error } = await supabase
-    .from('affiliates')
-    .update({ status: 'cancelado' })
-    .eq('id', affiliateId)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.error('Error canceling affiliation:', error);
-    return { success: false, message: 'Erro ao cancelar afiliação.' };
-  }
-
-  return { success: true, message: 'Afiliação cancelada com sucesso.' };
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { success: false, message: 'Usuário não autenticado' };
+  const response = await fetch('/api/affiliates/applications', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ affiliateId })
+  });
+  const result = await response.json().catch(() => null);
+  return { success: response.ok && result?.success === true, message: result?.message || 'Erro ao cancelar afiliação.' };
 }
 
 export async function getAffiliateProfile(userId: string) {

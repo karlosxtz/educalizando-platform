@@ -15,7 +15,8 @@ import {
   getProductsByStoreId, 
   createProduct, 
   updateProduct, 
-  deleteProduct 
+  deleteProduct,
+  getProductById
 } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { Product, Store, ProductType, Category, EducationLevel } from '@/lib/types';
@@ -74,8 +75,9 @@ export default function ProductsManagementPage() {
     setIsWizardOpen(true);
   };
 
-  const handleOpenEditWizard = (prod: Product) => {
-    setEditingProduct(prod);
+  const handleOpenEditWizard = async (prod: Product) => {
+    const productWithDelivery = await getProductById(prod.id);
+    setEditingProduct(productWithDelivery || prod);
     setActionError(null);
     setIsWizardOpen(true);
   };

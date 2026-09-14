@@ -18,16 +18,20 @@ export async function POST(req: Request) {
     // Buscar a chave da loja
     const { data: storeData, error: storeError } = await supabaseAdmin
       .from('stores')
-      .select('google_ai_key')
+      .select('id')
       .eq('id', storeId)
       .eq('creator_id', user.id)
       .single();
 
-    if (storeError || !storeData?.google_ai_key) {
+    if (storeError || !storeData) {
+      return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
+    }
+    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle();
+    if (!secret?.google_ai_key) {
       return NextResponse.json({ error: 'Chave da API Gemini não configurada nesta loja.' }, { status: 401 });
     }
 
-    const apiKey = storeData.google_ai_key;
+    const apiKey = secret.google_ai_key;
     const cleanApiKey = apiKey.trim().replace(/['"]/g, '');
 
     const prompt = `Você é um especialista em copywriting educacional, SEO para plataformas de ensino e marketing de conversão para criadores de conteúdos pedagógicos.

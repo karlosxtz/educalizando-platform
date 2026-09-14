@@ -46,6 +46,7 @@ export interface OrderRecord {
   is_plr_purchase?: boolean;
   affiliateId?: string | null;
   affiliateCommissionAmount?: number | null;
+  couponId?: string | null;
   createdAt: string;
   paidAt?: string | null;
 }
@@ -202,6 +203,7 @@ export async function createOrderRecord(data: {
   isPlrPurchase?: boolean;
   affiliateId?: string;
   affiliateCommissionAmount?: number;
+  couponId?: string;
   platformSettings?: { platform_fee_percentage: number; platform_fixed_fee: number };
 }): Promise<OrderRecord> {
 
@@ -258,6 +260,7 @@ export async function createOrderRecord(data: {
     is_plr_purchase: data.isPlrPurchase || false,
     affiliateId: data.affiliateId || null,
     affiliateCommissionAmount: data.affiliateCommissionAmount || null,
+    couponId: data.couponId || null,
     createdAt: now,
     paidAt: null
   };
@@ -292,6 +295,7 @@ export async function createOrderRecord(data: {
         is_plr_purchase: newOrder.is_plr_purchase,
         affiliate_id: newOrder.affiliateId,
         affiliate_commission_amount: newOrder.affiliateCommissionAmount,
+        coupon_id: newOrder.couponId,
         created_at: newOrder.createdAt
       }]);
 
@@ -398,6 +402,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           items: mappedItems,
           affiliateId: data.affiliate_id || null,
           affiliateCommissionAmount: Number(data.affiliate_commission_amount || 0),
+          couponId: data.coupon_id || null,
           createdAt: data.created_at,
           paidAt: data.paid_at || null
         };
@@ -499,6 +504,12 @@ export async function updateOrderStatus(
   // Se confirmado como PAGO, liberar matrícula do aluno e registrar lançamento de venda no ledger da carteira
   if (newStatus === 'paid') {
     try {
+      if (order.couponId) {
+        const { supabaseAdmin } = await import('./supabase');
+        const { error: couponError } = await supabaseAdmin.rpc('consume_order_coupon', { p_order_id: order.id });
+        if (couponError) throw couponError;
+      }
+
       // 1. Registrar transação SALE no ledger imutável da carteira
       const { recordWalletTransaction } = await import('./wallet-service');
       await recordWalletTransaction({

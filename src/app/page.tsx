@@ -35,7 +35,7 @@ export default async function Home() {
   const produtosEmAlta = allProducts.slice(0, 8);
   const produtosGratuitos = allProducts.filter(p => p.is_free === true || p.preco === 0).slice(0, 4);
   const produtosPLR = allProducts
-    .filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.plr_license_url))
+    .filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.has_plr_delivery))
     .slice(0, 4);
 
   return (

@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { supabase } from '@/lib/supabase';
 import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Info } from 'lucide-react';
 import Link from 'next/link';
 import Sidebar from '@/components/dashboard/Sidebar';
@@ -15,11 +13,10 @@ interface PLRItem {
   productId: string;
   paidAt: string;
   amount: number;
-  product: {
-    capa_url: string;
-    arquivo_url: string;
-    nome_loja?: string;
-  };
+  coverUrl: string | null;
+  storeName: string;
+  hasOriginalFile: boolean;
+  hasPlrFile: boolean;
 }
 
 export default function PLRsCompradosPage() {
@@ -31,69 +28,14 @@ export default function PLRsCompradosPage() {
   useEffect(() => {
     async function fetchPLRs() {
       try {
-        const session = await getAuthenticatedUserRole();
-        if (!session.isAuthenticated || session.role !== 'creator') {
-          router.push('/dashboard/login');
+        const response = await fetch('/api/plr/purchases');
+        if (response.status === 401 || response.status === 403) {
+          router.push('/login');
           return;
         }
-
-        // Search orders for this creator where is_plr_purchase is true and status is paid
-        const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-          .select('id, paid_at, total_amount')
-          .eq('buyer_email', session.email)
-          .eq('is_plr_purchase', true)
-          .eq('status', 'paid');
-
-        if (ordersError) throw ordersError;
-
-        if (!orders || orders.length === 0) {
-          setItems([]);
-          setLoading(false);
-          return;
-        }
-
-        const orderIds = orders.map(o => o.id);
-
-        const { data: orderItems, error: itemsError } = await supabase
-          .from('order_items')
-          .select('id, order_id, product_id, productTitle:product_id(titulo), unit_price')
-          .in('order_id', orderIds);
-
-        if (itemsError) throw itemsError;
-
-        const productIds = orderItems?.map(i => i.product_id) || [];
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('id, titulo, capa_url, arquivo_url, stores(nome_loja)')
-          .in('id', productIds);
-
-        if (productsError) throw productsError;
-
-        const formattedItems: PLRItem[] = [];
-
-        orderItems?.forEach(item => {
-          const order = orders.find(o => o.id === item.order_id);
-          const product = productsData?.find(p => p.id === item.product_id);
-
-          if (order && product) {
-            formattedItems.push({
-              id: item.id,
-              orderId: order.id,
-              productTitle: product.titulo || 'Produto',
-              productId: product.id,
-              paidAt: order.paid_at || '',
-              amount: item.unit_price || 0,
-              product: {
-                capa_url: product.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80',
-                arquivo_url: product.arquivo_url || '',
-                nome_loja: (Array.isArray(product.stores) ? product.stores[0]?.nome_loja : (product.stores as any)?.nome_loja) || 'Loja Educalizando'
-              }
-            });
-          }
-        });
-
-        setItems(formattedItems);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        setItems(data.items || []);
       } catch (err: any) {
         console.error(err);
         setError('Não foi possível carregar suas licenças PLR.');
@@ -165,7 +107,7 @@ export default function PLRsCompradosPage() {
               <div key={item.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col group hover:shadow-md transition-all">
                 <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
                   <img 
-                    src={item.product.capa_url} 
+                    src={item.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
                     alt={item.productTitle}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -178,7 +120,7 @@ export default function PLRsCompradosPage() {
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Vendido por {item.product.nome_loja}
+                      Vendido por {item.storeName}
                     </span>
                     <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                       Pago
@@ -195,19 +137,33 @@ export default function PLRsCompradosPage() {
                         Baixar Original
                       </div>
                       
-                      {item.product.arquivo_url ? (
+                      {item.hasOriginalFile ? (
                         <a 
-                          href={item.product.arquivo_url}
+                          href={`/api/aluno/materiais/${item.productId}/download`}
                           target="_blank"
                           rel="noreferrer"
                           className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-sm"
                         >
                           <Download className="w-4 h-4" />
-                          Baixar Arquivo
+                          Baixar Produto Final
                         </a>
                       ) : (
                         <button disabled className="w-full flex items-center justify-center gap-2 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-xs font-bold cursor-not-allowed">
                           Arquivo Indisponível
+                        </button>
+                      )}
+
+                      {item.hasPlrFile ? (
+                        <a
+                          href={`/api/aluno/materiais/${item.productId}/download?type=plr`}
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                        >
+                          <Download className="w-4 h-4" />
+                          Baixar Licença / Arquivos PLR
+                        </a>
+                      ) : (
+                        <button disabled className="w-full py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-xs font-bold cursor-not-allowed">
+                          Arquivo PLR indisponível
                         </button>
                       )}
 

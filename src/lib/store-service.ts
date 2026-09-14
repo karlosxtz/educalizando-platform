@@ -963,6 +963,25 @@ export async function getProductById(productIdOrSlug: string): Promise<Product |
 
   const isUUID = isValidUUID(productIdOrSlug) || isValidUUID(cleanId);
 
+  // Para o painel do proprietário, a API autenticada devolve também os caminhos
+  // privados de entrega. Visitantes seguem recebendo apenas metadados públicos.
+  if (typeof window !== 'undefined' && isUUID) {
+    try {
+      const targetId = isValidUUID(productIdOrSlug) ? productIdOrSlug : cleanId;
+      const response = await fetch(`/api/produtos?id=${encodeURIComponent(targetId)}`);
+      if (response.ok) {
+        const result = await response.json();
+        const product = result.product;
+        if (product?.images && Array.isArray(product.images)) product.images.sort((a: any, b: any) => a.ordem - b.ordem);
+        if (product?.bncc_skills && Array.isArray(product.bncc_skills)) {
+          product.bncc_skill_ids = product.bncc_skills.map((item: any) => item.bncc_skill_id);
+          delete product.bncc_skills;
+        }
+        return product as Product;
+      }
+    } catch {}
+  }
+
   if (isRealSupabase) {
     try {
       let query = supabase
@@ -1021,7 +1040,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
         `)
         .eq('is_plr', true)
         .gt('preco_plr', 0)
-        .not('plr_license_url', 'is', null)
+        .eq('has_plr_delivery', true)
         .eq('status', 'publicado')
         .is('excluido_em', null)
         .order('created_at', { ascending: false });
@@ -1039,7 +1058,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
   const plrProducts = products.filter(p => 
     p.is_plr === true && 
     Number(p.preco_plr || 0) > 0 &&
-    Boolean(p.plr_license_url) &&
+    Boolean(p.has_plr_delivery || p.plr_license_url) &&
     p.status === 'publicado' && 
     !p.excluido_em
   );

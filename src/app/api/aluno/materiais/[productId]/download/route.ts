@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getStudentPurchases } from '@/lib/student-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
@@ -26,21 +25,39 @@ export async function GET(
       return NextResponse.json({ error: 'Autenticação obrigatória para baixar materiais.' }, { status: 401 });
     }
     const studentId = user.id;
-    const isAuthenticated = true;
-
     let isPlrPurchase = false;
 
-    // 2. Validação do Vínculo de Compra (se autenticado)
-    if (isAuthenticated) {
-      const purchases = await getStudentPurchases(studentId);
-      const purchase = purchases.find(p => p.product_id === productId || p.product?.id === productId);
-
-      if (!purchase) {
+    // 2. Validação do vínculo pelo servidor, sem depender das permissões do navegador.
+    const { data: access } = await supabaseAdmin
+      .from('student_product_access')
+      .select('order_id')
+      .eq('student_id', studentId)
+      .eq('product_id', productId)
+      .eq('status', 'ACTIVE')
+      .limit(1)
+      .maybeSingle();
+    if (!access) {
+      const { data: freeProduct } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .eq('id', productId)
+        .eq('is_free', true)
+        .eq('status', 'publicado')
+        .is('excluido_em', null)
+        .maybeSingle();
+      if (!freeProduct) {
         console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
         return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
       }
-      
-      isPlrPurchase = purchase.is_plr_purchase === true;
+    }
+    if (access?.order_id) {
+      const { data: accessOrder } = await supabaseAdmin
+        .from('orders')
+        .select('is_plr_purchase, status')
+        .eq('id', access.order_id)
+        .eq('student_id', studentId)
+        .maybeSingle();
+      isPlrPurchase = accessOrder?.status === 'paid' && accessOrder?.is_plr_purchase === true;
     }
 
     // 3. Buscar Dados do Produto ou Conteúdo no Banco Supabase
@@ -70,20 +87,25 @@ export async function GET(
       if (!fileUrl) {
         const { data: productData } = await supabaseAdmin
           .from('products')
-          .select('titulo, arquivo_url, plr_license_url')
+          .select('titulo')
           .eq('id', productId)
           .is('excluido_em', null)
           .maybeSingle();
 
         if (productData) {
           if (productData.titulo) productTitle = downloadType === 'plr' ? `${productData.titulo} - Licenca PLR` : productData.titulo;
-          if (downloadType === 'plr' && productData.plr_license_url) {
-            if (isAuthenticated && !isPlrPurchase) {
+          const { data: delivery } = await supabaseAdmin
+            .from('product_deliveries')
+            .select('arquivo_url, plr_license_url')
+            .eq('product_id', productId)
+            .maybeSingle();
+          if (downloadType === 'plr') {
+            if (!isPlrPurchase) {
               return NextResponse.json({ error: 'Você não adquiriu a licença PLR deste material.' }, { status: 403 });
             }
-            fileUrl = productData.plr_license_url;
-          } else if (productData.arquivo_url) {
-            fileUrl = productData.arquivo_url;
+            fileUrl = delivery?.plr_license_url || null;
+          } else if (delivery?.arquivo_url) {
+            fileUrl = delivery.arquivo_url;
           }
         }
       }

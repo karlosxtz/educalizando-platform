@@ -60,58 +60,10 @@ export async function POST(request: Request) {
 
     for (const order of paidOrders) {
       try {
-        await updateOrderStatus(order.id, 'paid', order.asaas_payment_id || undefined, Number(order.asaas_fee_amount || 0));
+        await updateOrderStatus(order.id, 'paid', undefined, Number(order.asaas_fee_amount || 0));
         if (!existingOrderIds.has(order.id)) reconciledCount++;
       } catch (error: any) {
         errors.push(`Pedido ${order.id}: ${error?.message || 'falha desconhecida'}`);
-      }
-    }
-
-    // 4. Também verificar orders que o Asaas confirmou como pago mas nosso BD ainda marca como pending
-    // Buscar orders pending que tenham asaas_payment_id (foram enviadas ao Asaas)
-    const { data: pendingOrders } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .eq('status', 'pending')
-      .not('asaas_payment_id', 'is', null);
-
-    let updatedPendingCount = 0;
-
-    if (pendingOrders && pendingOrders.length > 0) {
-      // Para cada uma, verificar no Asaas se foi paga
-      const ASAAS_API_KEY = process.env.ASAAS_API_KEY || '';
-      const ASAAS_API_URL = process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
-
-      if (ASAAS_API_KEY && !ASAAS_API_KEY.includes('demo')) {
-        for (const pendingOrder of pendingOrders) {
-          try {
-            const res = await fetch(`${ASAAS_API_URL}/payments/${pendingOrder.asaas_payment_id}`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'access_token': ASAAS_API_KEY
-              }
-            });
-
-            if (res.ok) {
-              const paymentData = await res.json();
-              
-              if (paymentData.status === 'RECEIVED' || paymentData.status === 'CONFIRMED') {
-                let realFee = 0;
-                if (paymentData.value && paymentData.netValue) {
-                  realFee = Math.max(0, Number(paymentData.value) - Number(paymentData.netValue));
-                }
-
-                const asaasFee = realFee > 0 ? realFee : Number(pendingOrder.asaas_fee_amount || 1.99);
-                await updateOrderStatus(pendingOrder.id, 'paid', pendingOrder.asaas_payment_id, asaasFee);
-
-                updatedPendingCount++;
-                console.log(`[Reconcile] ✅ Order ${pendingOrder.id} atualizada de PENDING → PAID via Asaas check`);
-              }
-            }
-          } catch (e) {
-            console.error(`[Reconcile] Erro ao verificar payment ${pendingOrder.asaas_payment_id}:`, e);
-          }
-        }
       }
     }
 
@@ -120,9 +72,8 @@ export async function POST(request: Request) {
       totalPaidOrders: paidOrders.length,
       alreadyHadTransaction: paidOrders.length - reconciledCount,
       reconciled: reconciledCount,
-      pendingUpdatedToPaid: updatedPendingCount,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Reconciliação concluída. ${reconciledCount} transações criadas. ${updatedPendingCount} pedidos pendentes atualizados para pago.`
+      message: `Reconciliação concluída. ${reconciledCount} transações criadas.`
     });
 
   } catch (err: any) {

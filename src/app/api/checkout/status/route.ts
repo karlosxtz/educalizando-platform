@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
-import { getAsaasPaymentStatus } from '@/lib/asaas-service';
 import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -56,18 +55,6 @@ export async function GET(request: Request) {
         }
       }
     }
-    // Pedidos antigos continuam consultáveis durante a transição.
-    else if (status === 'pending' && order.asaasPaymentId) {
-      const asaasCheck = await getAsaasPaymentStatus(order.asaasPaymentId);
-      if (asaasCheck.status === 'RECEIVED' || asaasCheck.status === 'CONFIRMED' || asaasCheck.status === 'DUNNING_RECEIVED') {
-        const updated = await updateOrderStatus(order.id, 'paid', order.asaasPaymentId);
-        status = updated?.status || 'paid';
-      } else if (asaasCheck.status === 'OVERDUE' || asaasCheck.status === 'REFUND_REQUESTED') {
-        const updated = await updateOrderStatus(order.id, 'failed', order.asaasPaymentId);
-        status = updated?.status || 'failed';
-      }
-    }
-
     return NextResponse.json({
       success: true,
       orderId: order.id,

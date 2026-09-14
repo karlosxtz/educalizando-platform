@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createInfinitePayCheckout, isValidCPF } from '@/lib/infinitepay-service';
 import { createOrderRecord, PaymentMethodType } from '@/lib/order-service';
-import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { validateCouponCode } from '@/lib/coupon-service';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function POST(request: Request) {
   try {
@@ -20,31 +20,13 @@ export async function POST(request: Request) {
       couponCode
     } = body;
 
-    // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (SUPABASE AUTH)
-    let authSession = await getAuthenticatedUserRole();
-
-    // Se o servidor em si não encontrou a sessão mas o cliente passou Authorization Bearer token:
-    const authHeader = request.headers.get('authorization');
-    if ((!authSession.isAuthenticated || !authSession.userId) && authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      try {
-        const { data: userData } = await supabase.auth.getUser(token);
-        if (userData?.user) {
-          const meta = userData.user.user_metadata || {};
-          authSession = {
-            isAuthenticated: true,
-            role: meta.role === 'creator' || meta.is_creator === true ? 'creator' : 'student',
-            userId: userData.user.id,
-            email: userData.user.email || rawBuyerEmail || '',
-            fullName: meta.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Aluno Educalizando'),
-            cpf: meta.cpf || rawBuyerCpf || ''
-          };
-        }
-      } catch (e) {}
-    }
+    // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (cookies SSR ou Bearer)
+    const user = await getRequestUser(request);
+    const metadata = user?.user_metadata || {};
+    const authenticatedRole = metadata.role === 'creator' || metadata.is_creator === true ? 'creator' : 'student';
 
     // Se o comprador não tem identificação válida:
-    if (!authSession.isAuthenticated || !authSession.userId) {
+    if (!user) {
       return NextResponse.json(
         { 
           success: false, 
@@ -57,23 +39,27 @@ export async function POST(request: Request) {
     }
     
     // Verificação de Role (Papel)
-    if (isPlrPurchase && authSession.role !== 'creator') {
+    if (isPlrPurchase && authenticatedRole !== 'creator') {
       return NextResponse.json(
         { success: false, error: 'Apenas CRIADORES podem comprar Licenças PLR. Por favor, faça login em sua conta de Criador.' },
         { status: 401 }
       );
     }
-    if (!isPlrPurchase && authSession.role === 'creator') {
+    if (!isPlrPurchase && authenticatedRole === 'creator') {
       return NextResponse.json(
         { success: false, error: 'Criadores não podem comprar materiais comuns. Por favor, utilize uma conta de ALUNO.' },
         { status: 401 }
       );
     }
 
-    const studentId = authSession.userId; // Será usado como ID do comprador (seja aluno ou criador)
-    const buyerName = (rawBuyerName || authSession.fullName || (isPlrPurchase ? 'Criador' : 'Aluno')).trim();
-    const buyerEmail = (rawBuyerEmail || authSession.email || '').toLowerCase().trim();
-    const buyerCpf = (rawBuyerCpf || authSession.cpf || '').replace(/\D/g, '');
+    const studentId = user.id; // Será usado como ID do comprador (seja aluno ou criador)
+    const buyerName = (metadata.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Aluno')).trim();
+    const buyerEmail = (user.email || rawBuyerEmail || '').toLowerCase().trim();
+    const buyerCpf = String(metadata.cpf || rawBuyerCpf || '').replace(/\D/g, '');
+    const buyerPhoneDigits = String(buyerPhone || '').replace(/\D/g, '');
+    const infinitePayPhone = buyerPhoneDigits
+      ? `+${buyerPhoneDigits.startsWith('55') ? buyerPhoneDigits : `55${buyerPhoneDigits}`}`
+      : undefined;
 
     // 2. Validação Estrita dos Campos Obrigatórios e Validação do CPF
     if (!storeId || !buyerName || !buyerEmail || !isValidCPF(buyerCpf) || items.length === 0) {
@@ -115,9 +101,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data: realProducts, error: dbError } = await supabase
+    const { data: realProducts, error: dbError } = await supabaseAdmin
       .from('products')
-      .select('id, preco, preco_plr, is_plr, plr_license_url, store_id, status, titulo')
+      .select('id, preco, preco_plr, is_plr, has_plr_delivery, store_id, status, titulo')
       .in('id', productIds);
 
     if (dbError || !realProducts || realProducts.length !== productIds.length) {
@@ -135,15 +121,19 @@ export async function POST(request: Request) {
     }
     const { data: effectiveStore } = await supabaseAdmin
       .from('stores')
-      .select('slug')
+      .select('slug, creator_id')
       .eq('id', effectiveStoreId)
       .maybeSingle();
     if (!effectiveStore?.slug) {
       return NextResponse.json({ success: false, error: 'A loja responsável pelo produto não foi encontrada.' }, { status: 400 });
     }
+    if (effectiveStore.creator_id === user.id) {
+      return NextResponse.json({ success: false, error: 'Não é permitido comprar um produto da própria loja.' }, { status: 400 });
+    }
 
     // 4. Reconstruir array de items com PREÇO REAL e QUANTIDADE validada
     const realItems: any[] = [];
+    let appliedCouponId: string | null = null;
     for (const item of items) {
       const realProd = realProducts.find((p: any) => p.id === item.productId);
       if (!realProd) continue;
@@ -165,7 +155,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'A Licença PLR deste produto está sem um preço válido.' }, { status: 400 });
       }
 
-      if (isPlrPurchase && !realProd.plr_license_url) {
+      if (isPlrPurchase && !realProd.has_plr_delivery) {
         return NextResponse.json({ success: false, error: 'A entrega da Licença PLR deste produto ainda não foi configurada.' }, { status: 400 });
       }
 
@@ -181,6 +171,9 @@ export async function POST(request: Request) {
         const couponRes = await validateCouponCode(effectiveStoreId, couponCode, 'product', realProd.id, finalPrice);
         if (couponRes.valid && couponRes.finalPrice !== undefined) {
           finalPrice = couponRes.finalPrice;
+          appliedCouponId = couponRes.coupon?.id || appliedCouponId;
+        } else {
+          return NextResponse.json({ success: false, error: couponRes.message || 'Cupom inválido para este produto.' }, { status: 400 });
         }
       }
 
@@ -250,24 +243,8 @@ export async function POST(request: Request) {
     const tempOrderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, '');
 
-    // 6. Criar o checkout hospedado da InfinitePay na conta central da Educalizando.
-    const infinitePayCheckout = await createInfinitePayCheckout({
-      orderNsu: tempOrderId,
-      redirectUrl: `${appUrl}/loja/${encodeURIComponent(effectiveStore.slug)}/checkout/sucesso/${tempOrderId}`,
-      webhookUrl: `${appUrl}/api/webhooks/infinitepay`,
-      customer: {
-        name: buyerName,
-        email: buyerEmail,
-        phoneNumber: buyerPhone ? `+55${buyerPhone.replace(/\D/g, '')}` : undefined
-      },
-      items: realItems.map(item => ({
-        quantity: item.quantity,
-        price: Math.round(item.unitPrice * 100),
-        description: item.productTitle
-      }))
-    });
-
-    // 7. Persistir Pedido no Banco / Local com Vínculo Obrigatório ao student_id
+    // 6. Persistir primeiro o pedido. Assim nunca existe cobrança válida sem um
+    // pedido correspondente para o webhook confirmar e liberar os acessos.
     const orderRecord = await createOrderRecord({
       id: tempOrderId,
       studentId,
@@ -280,12 +257,37 @@ export async function POST(request: Request) {
       items: realItems,
       asaasFeeAmount: gatewayFeeAmount,
       paymentProvider: 'infinitepay',
-      checkoutUrl: infinitePayCheckout.checkoutUrl,
       isPlrPurchase,
       affiliateId: affiliateId || undefined,
       affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined,
+      couponId: appliedCouponId || undefined,
       platformSettings: platformSettings || undefined
     });
+
+    // 7. Criar o checkout hospedado da InfinitePay na conta central.
+    const infinitePayCheckout = await createInfinitePayCheckout({
+      orderNsu: tempOrderId,
+      redirectUrl: `${appUrl}/loja/${encodeURIComponent(effectiveStore.slug)}/checkout/sucesso/${tempOrderId}`,
+      webhookUrl: `${appUrl}/api/webhooks/infinitepay`,
+      customer: {
+        name: buyerName,
+        email: buyerEmail,
+        phoneNumber: infinitePayPhone
+      },
+      items: realItems.map(item => ({
+        quantity: item.quantity,
+        price: Math.round(item.unitPrice * 100),
+        description: item.productTitle
+      }))
+    });
+
+    const { error: checkoutUrlError } = await supabaseAdmin
+      .from('orders')
+      .update({ checkout_url: infinitePayCheckout.checkoutUrl })
+      .eq('id', orderRecord.id);
+    if (checkoutUrlError) {
+      console.error('[Checkout] Pedido criado, mas não foi possível salvar a URL hospedada:', checkoutUrlError);
+    }
 
     return NextResponse.json({
       success: true,

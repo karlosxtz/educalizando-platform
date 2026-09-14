@@ -16,16 +16,20 @@ export async function POST(req: Request) {
 
     const { data: storeData, error: storeError } = await supabaseAdmin
       .from('stores')
-      .select('google_ai_key')
+      .select('id')
       .eq('id', storeId)
       .eq('creator_id', user.id)
       .single();
 
-    if (storeError || !storeData?.google_ai_key) {
+    if (storeError || !storeData) {
+      return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
+    }
+    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle();
+    if (!secret?.google_ai_key) {
       return NextResponse.json({ error: 'Chave da API Gemini não configurada nesta loja.' }, { status: 401 });
     }
 
-    const apiKey = storeData.google_ai_key;
+    const apiKey = secret.google_ai_key;
     
     // Regra Restrita de Prompt (Backend)
     const strictConstraint = `RESTRICAO ABSOLUTA DE TEMPO: A IA está estritamente proibida de incluir referências a horários, períodos de ausência ou justificativas de tempo nas mensagens e roteiros gerados. As campanhas devem ser diretas, atemporais e focadas no material pedagógico.`;

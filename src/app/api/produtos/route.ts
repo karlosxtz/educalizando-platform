@@ -15,6 +15,32 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
   return isValidUUID(clean) ? clean : null;
 };
 
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
+  if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  const id = new URL(request.url).searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'ID do produto é obrigatório.' }, { status: 400 });
+
+  const { data: product } = await supabaseAdmin
+    .from('products')
+    .select('*, images:product_images(*), bncc_skills:product_bncc_skills(bncc_skill_id), store:stores!inner(creator_id)')
+    .eq('id', id)
+    .eq('store.creator_id', user.id)
+    .maybeSingle();
+  if (!product) return NextResponse.json({ error: 'Produto não encontrado ou sem permissão.' }, { status: 404 });
+
+  const { data: delivery } = await supabaseAdmin
+    .from('product_deliveries')
+    .select('arquivo_url, plr_license_url')
+    .eq('product_id', id)
+    .maybeSingle();
+  const { store: _store, ...safeProduct } = product;
+  return NextResponse.json({
+    success: true,
+    product: { ...safeProduct, arquivo_url: delivery?.arquivo_url || null, plr_license_url: delivery?.plr_license_url || null }
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getRequestUser(request);
@@ -114,14 +140,14 @@ export async function POST(request: Request) {
       tipo,
       preco: Number(preco) || 0,
       capa_url: capa_url || null,
-      arquivo_url: arquivo_url || null,
+      has_original_delivery: Boolean(arquivo_url),
       status: status || 'publicado',
       category_id: sanitizeUUID(category_id),
       education_level_id: sanitizeUUID(education_level_id),
       is_free: Boolean(is_free),
       is_plr: Boolean(is_plr),
       preco_plr: Number(preco_plr) || 0,
-      plr_license_url: plr_license_url || null,
+      has_plr_delivery: Boolean(plr_license_url),
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       order_bump_id: isValidUUID(order_bump_id) ? order_bump_id : null,
@@ -155,12 +181,12 @@ export async function POST(request: Request) {
         tipo,
         preco: Number(preco) || 0,
         capa_url: capa_url || null,
-        arquivo_url: arquivo_url || null,
+        has_original_delivery: Boolean(arquivo_url),
         status: status || 'publicado',
         is_free: Boolean(is_free),
         is_plr: Boolean(is_plr),
         preco_plr: Number(preco_plr) || 0,
-        plr_license_url: plr_license_url || null,
+        has_plr_delivery: Boolean(plr_license_url),
         allow_affiliates: Boolean(allow_affiliates),
         affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
         created_at: new Date().toISOString()
@@ -181,6 +207,14 @@ export async function POST(request: Request) {
     } else {
       insertedProduct = data;
     }
+
+    const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
+      product_id: insertedProduct.id,
+      arquivo_url: arquivo_url || null,
+      plr_license_url: plr_license_url || null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'product_id' });
+    if (deliveryError) throw deliveryError;
 
     // Purga imediata do cache do Next.js para as páginas afetadas
     try {
@@ -222,7 +256,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, product: insertedProduct });
+    return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: arquivo_url || null, plr_license_url: plr_license_url || null } });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });
@@ -246,7 +280,7 @@ export async function PUT(request: Request) {
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('store_id, is_plr, preco_plr, plr_license_url')
+      .select('store_id, is_plr, preco_plr, has_plr_delivery')
       .eq('id', id)
       .maybeSingle();
     if (product) {
@@ -254,12 +288,20 @@ export async function PUT(request: Request) {
       if (store?.creator_id !== user.id) {
          return NextResponse.json({ error: 'Você não tem permissão para editar este produto.' }, { status: 403 });
       }
+    } else {
+      return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
     }
+
+    const { data: currentDelivery } = await supabaseAdmin
+      .from('product_deliveries')
+      .select('arquivo_url, plr_license_url')
+      .eq('product_id', id)
+      .maybeSingle();
 
     const cleanedUpdates: Record<string, any> = { ...updates };
     const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
     const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);
-    const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : product?.plr_license_url;
+    const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : currentDelivery?.plr_license_url;
     if (nextIsPlr && (!(nextPlrPrice > 0) || !nextPlrDelivery)) {
       return NextResponse.json(
         { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
@@ -295,9 +337,10 @@ export async function PUT(request: Request) {
       }
     }
 
-    const { gallery_urls, bncc_skill_ids, ...otherUpdates } = cleanedUpdates;
-
-    cleanedUpdates.updated_at = new Date().toISOString();
+    const { gallery_urls, bncc_skill_ids, arquivo_url, plr_license_url, ...otherUpdates } = cleanedUpdates;
+    if ('arquivo_url' in cleanedUpdates) otherUpdates.has_original_delivery = Boolean(arquivo_url);
+    if ('plr_license_url' in cleanedUpdates) otherUpdates.has_plr_delivery = Boolean(plr_license_url);
+    otherUpdates.updated_at = new Date().toISOString();
 
     const { data, error } = await supabaseAdmin
       .from('products')
@@ -309,6 +352,16 @@ export async function PUT(request: Request) {
     if (error) {
       console.error('[API /api/produtos PUT] Erro Supabase:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (arquivo_url !== undefined || plr_license_url !== undefined) {
+      const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
+        product_id: id,
+        arquivo_url: arquivo_url !== undefined ? arquivo_url || null : currentDelivery?.arquivo_url || null,
+        plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'product_id' });
+      if (deliveryError) throw deliveryError;
     }
 
     // Purga imediata do cache do Next.js para as páginas afetadas
@@ -363,7 +416,14 @@ export async function PUT(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, product: data });
+    return NextResponse.json({
+      success: true,
+      product: {
+        ...data,
+        arquivo_url: arquivo_url !== undefined ? arquivo_url || null : currentDelivery?.arquivo_url || null,
+        plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null
+      }
+    });
   } catch (err: any) {
     console.error('[API /api/produtos PUT] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao atualizar produto.' }, { status: 500 });

@@ -512,9 +512,9 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
                 tipo: prodData.tipo || 'pdf',
                 status: prodData.status || 'publicado',
                 is_plr: prodData.is_plr,
-                plr_license_url: prodData.plr_license_url,
+                plr_license_url: prodData.has_plr_delivery ? `/api/aluno/materiais/${prodData.id}/download?type=plr` : null,
                 capa_url: prodData.capa_url,
-                arquivo_url: prodData.arquivo_url,
+                arquivo_url: prodData.has_original_delivery ? `/api/aluno/materiais/${prodData.id}/download` : null,
                 created_at: prodData.created_at
               },
               store: storeData ? {

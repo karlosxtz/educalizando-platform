@@ -57,22 +57,11 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
   }, [resolvedParams.id, router]);
 
   const handleDownload = async () => {
-    if (!product?.arquivo_url) return;
+    if (!product?.has_original_delivery) return;
     
     setDownloading(true);
     try {
-      // Direct download since it's free and public or signed if it was private
-      // Usually product.arquivo_url is a full URL or a path
-      let downloadUrl = product.arquivo_url;
-      
-      // If it's just a path, we might need to get public url
-      if (!downloadUrl.startsWith('http')) {
-        const { data } = supabase.storage.from('produtos').getPublicUrl(product.arquivo_url);
-        downloadUrl = data.publicUrl;
-      }
-      
-      // Open in new tab to trigger download
-      window.open(downloadUrl, '_blank');
+      window.open(`/api/aluno/materiais/${product.id}/download`, '_blank');
     } catch (err) {
       console.error('Download error:', err);
       alert('Erro ao fazer download do material grátis.');
@@ -159,7 +148,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
             <div className="mt-10 space-y-4">
               <button
                 onClick={handleDownload}
-                disabled={downloading || !product.arquivo_url}
+                disabled={downloading || !product.has_original_delivery}
                 className="w-full flex items-center justify-center gap-2 bg-brand-teal hover:bg-teal-600 text-white py-4 rounded-xl font-black text-base sm:text-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {downloading ? (
