@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Home, Users, Store, Package, DollarSign, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay } from 'lucide-react';
+import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -37,6 +37,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/transacoes" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <DollarSign className="w-4 h-4" />
               Transações
+            </Link>
+            <Link href="/admin/saques" className="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-amber-500/10 hover:text-amber-400 transition-colors">
+              <span className="flex items-center gap-3"><Wallet className="w-4 h-4" /> Solicitações de Saque</span>
+              <span className="text-[9px] font-black uppercase tracking-wide text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Financeiro</span>
             </Link>
             <Link href="/admin/categorias" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Tags className="w-4 h-4" />
