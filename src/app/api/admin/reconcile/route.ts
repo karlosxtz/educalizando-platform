@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { calculateOrderFinancials, estimateAsaasFee } from '@/lib/order-service';
+import { isSuperAdmin } from '@/lib/api-auth';
 
 /**
  * API de Reconciliação Financeira — Força Bruta
@@ -8,10 +9,14 @@ import { calculateOrderFinancials, estimateAsaasFee } from '@/lib/order-service'
  * tenha uma wallet_transaction SALE correspondente.
  * Se não tiver, cria a transação faltante.
  * 
- * GET /api/admin/reconcile
+ * POST /api/admin/reconcile
  */
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
+    if (!(await isSuperAdmin(request))) {
+      return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
+    }
+
     if (!isRealSupabaseConfigured()) {
       return NextResponse.json({ error: 'Supabase não configurado.' }, { status: 500 });
     }

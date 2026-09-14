@@ -1,25 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { isSuperAdmin } from '@/lib/api-auth';
 
-async function checkSuperAdmin() {
-  // ATENÇÃO: Simplificado para garantir que os dados apareçam no painel de admin.
-  // Como o acesso à rota /admin já pode estar protegido por middleware, o fetch pode passar.
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return true; // Bypass temporário caso o cookie use outro nome (ex: Supabase SSR chunked)
+export async function GET(request: Request) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
-    return payload.email === superAdminEmail || true; // Bypass para testes
-  } catch (e) {
-    return true; // Bypass temporário
-  }
-}
-
-export async function GET() {
-  try {
-    if (!(await checkSuperAdmin())) {
+    if (!(await isSuperAdmin(request))) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
@@ -38,7 +23,7 @@ export async function GET() {
 
 export async function DELETE(request: Request) {
   try {
-    if (!(await checkSuperAdmin())) {
+    if (!(await isSuperAdmin(request))) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 

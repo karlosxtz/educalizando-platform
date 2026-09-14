@@ -1,24 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { isSuperAdmin } from '@/lib/api-auth';
 
-async function checkSuperAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return false;
+export async function GET(request: Request) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
-    if (payload.email !== superAdminEmail) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-export async function GET() {
-  try {
-    const isAdmin = await checkSuperAdmin();
+    const isAdmin = await isSuperAdmin(request);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }

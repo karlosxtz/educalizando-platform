@@ -1,24 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-
-import { cookies } from 'next/headers';
-
-// Helper for auth validation
-async function validateAdminRequest() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
-  if (!token) return false;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const superAdminEmail = process.env.SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
-    return payload.email === superAdminEmail;
-  } catch (e) {
-    return false;
-  }
-}
+import { isSuperAdmin } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
+    if (!(await isSuperAdmin(request))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') === 'true';
     
@@ -55,7 +44,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const isAdmin = await validateAdminRequest();
+    const isAdmin = await isSuperAdmin(request);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -87,7 +76,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const isAdmin = await validateAdminRequest();
+    const isAdmin = await isSuperAdmin(request);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -122,7 +111,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const isAdmin = await validateAdminRequest();
+    const isAdmin = await isSuperAdmin(request);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
