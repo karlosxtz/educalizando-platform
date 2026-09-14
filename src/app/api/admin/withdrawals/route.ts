@@ -17,13 +17,20 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     const storeIds = [...new Set((withdrawals || []).map((item: any) => item.store_id).filter(Boolean))];
+    const pixKeyIds = [...new Set((withdrawals || []).map((item: any) => item.pix_key_id).filter(Boolean))];
     const { data: stores } = storeIds.length
       ? await supabaseAdmin.from('stores').select('id, nome_loja, slug').in('id', storeIds)
       : { data: [] };
     const storesById = new Map((stores || []).map((store: any) => [store.id, { nome_loja: store.nome_loja, slug: store.slug }]));
+    const { data: pixKeys } = pixKeyIds.length
+      ? await supabaseAdmin.from('creator_pix_keys').select('id, pix_key, pix_key_type').in('id', pixKeyIds)
+      : { data: [] };
+    const pixKeysById = new Map((pixKeys || []).map((key: any) => [key.id, key]));
     const enrichedWithdrawals = (withdrawals || []).map((item: any) => ({
       ...item,
-      store: storesById.get(item.store_id) || { nome_loja: 'Loja não encontrada', slug: '' }
+      store: storesById.get(item.store_id) || { nome_loja: 'Loja não encontrada', slug: '' },
+      pix_key_full: pixKeysById.get(item.pix_key_id)?.pix_key || null,
+      pix_key_type: pixKeysById.get(item.pix_key_id)?.pix_key_type || item.pix_key_type || 'CPF'
     }));
 
     return NextResponse.json({ success: true, withdrawals: enrichedWithdrawals });

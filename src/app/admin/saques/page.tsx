@@ -10,6 +10,8 @@ interface WithdrawalData {
   status: string;
   requested_at: string;
   pix_key_masked: string;
+  pix_key_full?: string | null;
+  pix_key_type?: string;
   store: {
     nome_loja: string;
     slug: string;
@@ -156,7 +158,8 @@ export default function SuperAdminSaques() {
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}
                     </td>
                     <td className="px-6 py-4 font-mono text-xs">
-                      {item.pix_key_masked}
+                      <span className="text-white">{item.pix_key_full || item.pix_key_masked}</span>
+                      <span className="block text-[10px] text-slate-500">{item.pix_key_type || 'PIX'} · chave para pagamento manual</span>
                     </td>
                     <td className="px-6 py-4">
                       {new Date(item.requested_at).toLocaleString('pt-BR')}
