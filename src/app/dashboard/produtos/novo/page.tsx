@@ -47,6 +47,7 @@ function ProductWizardContent() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
   const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
+  const [usesBncc, setUsesBncc] = useState(false);
   const [isFree, setIsFree] = useState<boolean>(false);
   const [isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
@@ -525,6 +526,12 @@ function ProductWizardContent() {
 
                 {/* Habilidades da BNCC */}
                 <div className="pt-2">
+                  <label className="flex items-center gap-3 mb-3 cursor-pointer">
+                    <input type="checkbox" checked={usesBncc} onChange={(e) => { setUsesBncc(e.target.checked); if (!e.target.checked) setSelectedBnccSkills([]); }} className="w-4 h-4 accent-blue-600" />
+                    <span className="text-sm font-bold text-slate-800">Este material é alinhado à BNCC</span>
+                  </label>
+                  {!usesBncc ? <p className="text-xs text-slate-500">Marque esta opção para informar as habilidades BNCC trabalhadas.</p> : null}
+                  {usesBncc && <>
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
                     Habilidades da BNCC (Opcional)
                   </label>
@@ -571,6 +578,7 @@ function ProductWizardContent() {
                       </div>
                     )}
                   </div>
+                  </>}
                 </div>
 
 
