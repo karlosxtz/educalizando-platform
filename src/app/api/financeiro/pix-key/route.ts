@@ -1,13 +1,33 @@
 import { NextResponse } from 'next/server';
 import { registerCreatorPixKey, getActiveCreatorPixKey } from '@/lib/withdrawal-service';
+import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
+
+async function userOwnsStore(storeId: string, userId: string) {
+  const { data } = await supabaseAdmin
+    .from('stores')
+    .select('id')
+    .eq('id', storeId)
+    .eq('creator_id', userId)
+    .maybeSingle();
+
+  return Boolean(data);
+}
 
 export async function GET(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Não autorizado.' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId');
 
     if (!storeId) {
       return NextResponse.json({ success: false, error: 'Identificador da loja (storeId) é obrigatório.' }, { status: 400 });
+    }
+
+    if (!(await userOwnsStore(storeId, user.id))) {
+      return NextResponse.json({ success: false, error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
     }
 
     const activeKey = await getActiveCreatorPixKey(storeId);
@@ -29,8 +49,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Não autorizado.' }, { status: 401 });
+
     const body = await request.json();
-    const { storeId, creatorId = 'user-creator', creatorProfileCpf, inputPixKey, holderName } = body;
+    const { storeId, inputPixKey } = body;
 
     if (!storeId) {
       return NextResponse.json(
@@ -39,9 +62,17 @@ export async function POST(request: Request) {
       );
     }
 
+
+    if (!(await userOwnsStore(storeId, user.id))) {
+      return NextResponse.json({ success: false, error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
+    }
+
+    const creatorProfileCpf = String(user.user_metadata?.cpf || '').replace(/\D/g, '');
+    const holderName = user.user_metadata?.full_name || user.user_metadata?.name || undefined;
+
     if (!inputPixKey || !creatorProfileCpf) {
       return NextResponse.json(
-        { success: false, error: 'Por favor, informe a chave PIX CPF e seu CPF cadastrado na conta.' },
+        { success: false, error: 'Cadastre um CPF válido no seu perfil antes de informar a chave PIX.' },
         { status: 400 }
       );
     }
@@ -49,7 +80,7 @@ export async function POST(request: Request) {
     // Executa cadastro e validação de titularidade no SERVIDOR
     const registeredKey = await registerCreatorPixKey({
       storeId,
-      creatorId,
+      creatorId: user.id,
       creatorProfileCpf,
       inputPixKey,
       holderName

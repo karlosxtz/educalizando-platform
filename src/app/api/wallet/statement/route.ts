@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
+import { getRequestUser } from '@/lib/api-auth';
 
 /**
  * API Server-Side para buscar extrato de transações financeiras do criador.
@@ -8,6 +9,9 @@ import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
  */
 export async function GET(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+
     const url = new URL(request.url);
     const storeId = url.searchParams.get('storeId');
     const period = url.searchParams.get('period') || 'all';
@@ -22,6 +26,17 @@ export async function GET(request: Request) {
 
     if (!isRealSupabaseConfigured()) {
       return NextResponse.json({ transactions: [], totalCount: 0, page: 1, totalPages: 1 });
+    }
+
+    const { data: ownedStore } = await supabaseAdmin
+      .from('stores')
+      .select('id')
+      .eq('id', storeId)
+      .eq('creator_id', user.id)
+      .maybeSingle();
+
+    if (!ownedStore) {
+      return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
     }
 
     // Buscar transações do Supabase usando admin (bypassa RLS)

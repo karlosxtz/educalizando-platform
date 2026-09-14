@@ -1,21 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Token de autenticação ausente.' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const { data: userData } = await supabase.auth.getUser(token);
-    
-    if (!userData?.user) {
-      return NextResponse.json({ error: 'Token inválido ou expirado.' }, { status: 401 });
-    }
-
-    const userId = userData.user.id;
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    const userId = user.id;
 
     const url = new URL(request.url);
     const startDate = url.searchParams.get('startDate');

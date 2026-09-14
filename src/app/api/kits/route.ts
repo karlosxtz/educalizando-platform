@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getRequestUser } from '@/lib/api-auth';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -10,6 +11,9 @@ const isValidUUID = (str: string | null | undefined): boolean => {
 
 export async function DELETE(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -24,6 +28,17 @@ export async function DELETE(request: Request) {
 
     // Soft Delete Definitivo no Supabase: preserva integridade relacional
     if (validUUID) {
+      const { data: ownedKit } = await supabaseAdmin
+        .from('kits')
+        .select('id, store:stores!inner(creator_id)')
+        .eq('id', validUUID)
+        .eq('stores.creator_id', user.id)
+        .maybeSingle();
+
+      if (!ownedKit) {
+        return NextResponse.json({ error: 'Kit não encontrado ou sem permissão.' }, { status: 403 });
+      }
+
       const { error: err1 } = await supabaseAdmin
         .from('kits')
         .update({

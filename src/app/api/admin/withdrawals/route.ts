@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser, isSuperAdmin } from '@/lib/api-auth';
+import { createNotification } from '@/lib/notification-service';
 
 export async function GET(request: Request) {
   try {
@@ -44,6 +45,16 @@ export async function PATCH(request: Request) {
     const reviewer = await getRequestUser(request);
     if (!reviewer) return NextResponse.json({ error: 'Sessão inválida.' }, { status: 401 });
 
+    const { data: withdrawal } = await supabaseAdmin
+      .from('withdrawals')
+      .select('id, creator_id, store_id, amount')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!withdrawal) {
+      return NextResponse.json({ error: 'Solicitação de saque não encontrada.' }, { status: 404 });
+    }
+
     const { data: result, error } = await supabaseAdmin.rpc('review_manual_withdrawal', {
       p_withdrawal_id: id,
       p_action: action,
@@ -55,6 +66,20 @@ export async function PATCH(request: Request) {
     if (error) throw error;
     if (!result?.success) {
       return NextResponse.json({ error: result?.error || 'Não foi possível analisar o saque.' }, { status: 400 });
+    }
+
+    if (withdrawal.store_id && withdrawal.creator_id) {
+      const approved = action === 'complete';
+      await createNotification({
+        storeId: withdrawal.store_id,
+        creatorId: withdrawal.creator_id,
+        type: approved ? 'WITHDRAWAL_APPROVED' : 'WITHDRAWAL_FAILED',
+        title: approved ? 'Saque pago' : 'Saque recusado',
+        body: approved
+          ? `Seu saque de R$ ${Number(withdrawal.amount).toFixed(2).replace('.', ',')} foi pago.`
+          : `Seu saque de R$ ${Number(withdrawal.amount).toFixed(2).replace('.', ',')} foi recusado${reviewNote?.trim() ? `: ${reviewNote.trim()}` : '.'}`,
+        metadata: { withdrawalId: withdrawal.id, amount: Number(withdrawal.amount) }
+      });
     }
 
     return NextResponse.json({ success: true });

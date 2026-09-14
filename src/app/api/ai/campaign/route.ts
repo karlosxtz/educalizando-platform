@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { GEMINI_MARKETING_SYSTEM_PROMPT } from '@/lib/ai-service';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function POST(req: Request) {
   try {
+    const user = await getRequestUser(req);
+    if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+
     const { titulo, storeId } = await req.json();
 
     if (!storeId || !titulo) {
@@ -14,6 +18,7 @@ export async function POST(req: Request) {
       .from('stores')
       .select('google_ai_key')
       .eq('id', storeId)
+      .eq('creator_id', user.id)
       .single();
 
     if (storeError || !storeData?.google_ai_key) {

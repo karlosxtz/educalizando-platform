@@ -152,6 +152,7 @@ export async function registerStudentInSupabase({
         data: {
           full_name: fullName,
           cpf: cpf ? cpf.replace(/\D/g, '') : undefined,
+          whatsapp: whatsapp?.replace(/\D/g, '') || undefined,
           role: 'student'
         }
       }

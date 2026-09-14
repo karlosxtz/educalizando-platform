@@ -96,6 +96,7 @@ export async function registerCreatorInSupabase({
           cpf: cleanCpf,
           store_name: realStoreName,
           store_slug: storeSlug,
+          whatsapp: whatsapp.replace(/\D/g, ''),
           role: 'creator',
           is_creator: true
         }
@@ -326,6 +327,7 @@ export async function registerAffiliateInSupabase({
         data: {
           full_name: fullName,
           cpf: cleanCpf,
+          whatsapp: whatsapp?.replace(/\D/g, '') || undefined,
           role: 'affiliate',
           is_affiliate: true
         }

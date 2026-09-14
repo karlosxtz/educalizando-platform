@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { isValidCPF } from '@/lib/infinitepay-service';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function POST(request: Request) {
   try {
-    const { newCpf, creatorId } = await request.json();
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Não autorizado.' }, { status: 401 });
 
-    if (!newCpf || !creatorId) {
+    const { newCpf } = await request.json();
+    const creatorId = user.id;
+
+    if (!newCpf) {
       return NextResponse.json(
-        { success: false, error: 'O novo CPF e o ID do criador são obrigatórios.' },
+        { success: false, error: 'O novo CPF é obrigatório.' },
         { status: 400 }
       );
     }

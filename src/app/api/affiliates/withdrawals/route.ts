@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAffiliateAvailableBalance, requestAffiliateWithdrawal } from '@/lib/affiliate-service';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function GET(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
+    const user = await getRequestUser(req);
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Token inválido ou expirado' }, { status: 401 });
     }
 
@@ -69,15 +63,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
+    const user = await getRequestUser(req);
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Token inválido' }, { status: 401 });
     }
 
@@ -89,7 +76,10 @@ export async function POST(req: Request) {
     }
 
     // Obter CPF do perfil do usuário para garantir validação de titularidade da chave PIX
-    const userProfileCpf = user.user_metadata?.cpf || '00000000000';
+    const userProfileCpf = String(user.user_metadata?.cpf || '').replace(/\D/g, '');
+    if (userProfileCpf.length !== 11) {
+      return NextResponse.json({ success: false, error: 'Cadastre um CPF válido no seu perfil antes de solicitar o saque.' }, { status: 400 });
+    }
     
     // Iniciar o processo seguro de saque
     const result = await requestAffiliateWithdrawal({

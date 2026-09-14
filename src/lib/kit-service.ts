@@ -451,44 +451,10 @@ export async function deleteKit(kitId: string): Promise<void> {
     const res = await fetch(`/api/kits?id=${kitId}`, { method: 'DELETE' });
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
-      if (errData?.error) {
-        console.warn('[deleteKit] Aviso retornado pela API backend:', errData.error);
-      }
+      throw new Error(errData?.error || 'Não foi possível excluir o kit.');
     }
   } catch (e: any) {
-    console.warn('[deleteKit] Aviso na chamada API DELETE:', e);
-  }
-
-  const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(kitId) ? kitId : null);
-
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
-  if (isRealSupabase && targetUUID) {
-    try {
-      const { error: updErr } = await supabase
-        .from('kits')
-        .update({
-          excluido_em: new Date().toISOString(),
-          status: 'excluido',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', targetUUID);
-
-      if (updErr) {
-        await supabase
-          .from('kits')
-          .update({
-            status: 'excluido',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', targetUUID);
-      }
-    } catch (err: any) {
-      console.warn('[deleteKit] Aviso no update direto Supabase:', err);
-    }
+    throw new Error(e?.message || 'Não foi possível excluir o kit.');
   }
 
   // SEMPRE remover de todas as chaves do LocalStorage para impedir itens fantasmas

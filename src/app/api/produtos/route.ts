@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { getRequestUser } from '@/lib/api-auth';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -15,30 +15,9 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
   return isValidUUID(clean) ? clean : null;
 };
 
-// Middleware interno para validar o token nas rotas da API
-async function getAuthUser(request?: Request) {
-  let token = null;
-  if (request) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    }
-  }
-
-  if (!token) {
-    const cookieStore = await cookies();
-    token = cookieStore.get('sb-access-token')?.value;
-  }
-
-  if (!token) return null;
-  
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-  return user;
-}
-
 export async function POST(request: Request) {
   try {
-    const user = await getAuthUser(request);
+    const user = await getRequestUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
@@ -81,6 +60,17 @@ export async function POST(request: Request) {
 
     // Tentar resolver o ID real da loja no Supabase se um slug ou alias foi informado
     let targetStoreId: string | null = isValidUUID(cleanStoreId) ? cleanStoreId : null;
+    if (targetStoreId) {
+      const { data: storeRow } = await supabaseAdmin
+        .from('stores')
+        .select('id')
+        .eq('id', targetStoreId)
+        .eq('creator_id', user.id)
+        .maybeSingle();
+      if (!storeRow) {
+        return NextResponse.json({ error: 'Você não tem permissão para adicionar produtos nesta loja.' }, { status: 403 });
+      }
+    }
     if (!targetStoreId && cleanStoreId) {
       try {
         const { data: storeRow } = await supabaseAdmin
@@ -241,7 +231,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const user = await getAuthUser(request);
+    const user = await getRequestUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
@@ -382,7 +372,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await getAuthUser(request);
+    const user = await getRequestUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }

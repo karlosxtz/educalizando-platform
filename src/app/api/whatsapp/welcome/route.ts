@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function POST(request: Request) {
   try {
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+
     const body = await request.json();
     const { phone, name, role } = body;
 
@@ -11,6 +15,12 @@ export async function POST(request: Request) {
         { error: 'Parâmetros inválidos. Necessário: phone, name, role.' },
         { status: 400 }
       );
+    }
+
+    const registeredPhone = String(user.user_metadata?.whatsapp || user.user_metadata?.phone || '').replace(/\D/g, '');
+    const requestedPhone = String(phone).replace(/\D/g, '');
+    if (!registeredPhone || !requestedPhone.endsWith(registeredPhone.slice(-11))) {
+      return NextResponse.json({ error: 'O telefone informado não pertence à conta autenticada.' }, { status: 403 });
     }
 
     // A API Evolution espera números no formato internacional sem o "+"

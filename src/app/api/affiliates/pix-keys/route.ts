@@ -2,18 +2,12 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAffiliateProfile } from '@/lib/affiliate-service';
 import { getActiveCreatorPixKey, registerCreatorPixKey } from '@/lib/withdrawal-service';
+import { getRequestUser } from '@/lib/api-auth';
 
 export async function GET(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
+    const user = await getRequestUser(req);
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Token inválido ou expirado' }, { status: 401 });
     }
 
@@ -52,15 +46,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
+    const user = await getRequestUser(req);
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Token inválido' }, { status: 401 });
     }
 
@@ -71,7 +58,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Chave PIX não informada.' }, { status: 400 });
     }
 
-    const userProfileCpf = user.user_metadata?.cpf || '00000000000'; // Fallback
+    const userProfileCpf = String(user.user_metadata?.cpf || '').replace(/\D/g, '');
+    if (userProfileCpf.length !== 11) {
+      return NextResponse.json({ success: false, error: 'Cadastre um CPF válido no seu perfil antes de informar a chave PIX.' }, { status: 400 });
+    }
     
     const { data: storeData } = await supabaseAdmin
       .from('stores')
@@ -88,7 +78,8 @@ export async function POST(req: Request) {
       storeId: storeData.id,
       creatorId: user.id,
       creatorProfileCpf: userProfileCpf,
-      inputPixKey: pixKey
+      inputPixKey: pixKey,
+      holderName: user.user_metadata?.full_name || user.user_metadata?.name
     });
 
     return NextResponse.json({
