@@ -25,8 +25,8 @@ export default function PartnerStoresMarquee({ stores }: { stores: Store[] }) {
           const initial = store.nome_loja?.charAt(0).toUpperCase() || 'L';
           return (
             <Link href={`/loja/${store.slug}`} key={`${store.id}-${index}`} className="w-28 shrink-0 text-center sm:w-32" aria-label={`Visitar loja ${store.nome_loja}`}>
-              <div className={`partner-store-halo mx-auto rounded-full bg-gradient-to-br ${halos[index % halos.length]} p-[1.5px] shadow-lg shadow-slate-300/50 transition-transform duration-300 hover:scale-105`}>
-                <div className="overflow-hidden rounded-full">
+              <div className={`partner-store-halo mx-auto rounded-full ${halos[index % halos.length]} p-[2px] shadow-lg shadow-slate-300/50 transition-transform duration-300 hover:scale-105`}>
+                <div className="overflow-hidden rounded-full bg-white">
                   {store.logo_url ? <img src={store.logo_url} alt={store.nome_loja} className="block h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl font-black text-blue-600 sm:h-24 sm:w-24">{initial}</div>}
                 </div>
               </div>
@@ -35,7 +35,7 @@ export default function PartnerStoresMarquee({ stores }: { stores: Store[] }) {
           );
         })}
       </div>
-      <style jsx global>{`@keyframes partner-stores-scroll { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } } @keyframes partner-halo-shift { 0%, 100% { filter: saturate(1) brightness(1); background-position: 0% 50%; box-shadow: 0 0 0 0 rgba(59, 130, 246, .16), 0 8px 18px rgba(15, 23, 42, .12); } 50% { filter: saturate(1.35) brightness(1.06); background-position: 100% 50%; box-shadow: 0 0 0 5px rgba(192, 132, 252, 0), 0 10px 22px rgba(99, 102, 241, .2); } } .partner-stores-track { will-change: transform; animation: partner-stores-scroll 42s linear infinite !important; } .partner-store-halo { background-size: 260% 260%; animation: partner-halo-shift 3.4s ease-in-out infinite !important; } @media (prefers-reduced-motion: reduce) { .partner-stores-track, .partner-store-halo { animation: none !important; } }`}</style>
+      <style jsx global>{`@keyframes partner-stores-scroll { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } } @keyframes partner-halo-pulse { 0%, 100% { filter: brightness(1) saturate(1); box-shadow: 0 0 0 0 rgba(217, 70, 239, .12), 0 7px 16px rgba(15, 23, 42, .1); } 50% { filter: brightness(1.15) saturate(1.35); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0), 0 10px 22px rgba(168, 85, 247, .22); } } .partner-stores-track { will-change: transform; animation: partner-stores-scroll 42s linear infinite !important; } .partner-store-halo { background: conic-gradient(from 45deg, #ec4899, #fb7185, #f59e0b, #60a5fa, #8b5cf6, #ec4899) !important; animation: partner-halo-pulse 1.8s ease-in-out infinite !important; } @media (prefers-reduced-motion: reduce) { .partner-stores-track, .partner-store-halo { animation: none !important; } }`}</style>
     </div>
   );
 }
