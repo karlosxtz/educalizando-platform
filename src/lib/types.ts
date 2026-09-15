@@ -98,6 +98,7 @@ export interface Product {
   status: ProductStatus;
   category_id?: string | null;
   education_level_id?: string | null;
+  seasonal_tags?: string[];
   category?: Category | null;
   education_level?: EducationLevel | null;
   images?: ProductImage[];

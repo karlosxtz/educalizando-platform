@@ -26,6 +26,12 @@ const collectionTitles: Record<StoreCollection, string> = {
   plr: 'Licenças PLR',
 };
 
+const schoolCalendarFilters = [
+  ['Volta às aulas', 'volta às aulas'], ['Carnaval', 'carnaval'], ['Páscoa', 'páscoa'], ['Dia dos Povos Indígenas', 'povos indígenas'],
+  ['Dia das Mães', 'dia das mães'], ['Festa Junina', 'festa junina'], ['Dia dos Pais', 'dia dos pais'], ['Folclore', 'folclore'],
+  ['Independência do Brasil', 'independência'], ['Dia das Crianças', 'dia das crianças'], ['Consciência Negra', 'consciência negra'], ['Natal', 'natal'],
+] as const;
+
 export default function StoreCatalogControls({
   categories,
   educationLevels,
@@ -51,12 +57,12 @@ export default function StoreCatalogControls({
   const isDark = variant === 'netflix';
 
   return (
-    <section className={`rounded-3xl border p-3 sm:p-5 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white/95 border-slate-200'}`} aria-label="Explorar materiais">
-      <div className="flex flex-col gap-5">
+    <section className={`border-y p-4 sm:p-6 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white/95 border-slate-200'}`} aria-label="Explorar materiais">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <span className={`text-[10px] font-black uppercase tracking-[0.16em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Explorar materiais</span>
-            <h2 className={`mt-1 text-xl sm:text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{collectionTitles[selectedCollection]}</h2>
+            <h2 className={`mt-1 text-lg sm:text-xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{collectionTitles[selectedCollection]}</h2>
           </div>
           {hasFilters && (
             <button
@@ -75,6 +81,16 @@ export default function StoreCatalogControls({
         </div>
 
         <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant={variant} />
+
+        <div className="space-y-2">
+          <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Datas e projetos escolares</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            {schoolCalendarFilters.map(([label, term]) => {
+              const selected = searchFilter.toLocaleLowerCase('pt-BR') === term;
+              return <button key={term} type="button" onClick={() => setSearchFilter(selected ? '' : term)} className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : isDark ? 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'}`}>{label}</button>;
+            })}
+          </div>
+        </div>
 
         <div className={`grid gap-2 rounded-2xl p-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(180px,.8fr)_minmax(180px,.8fr)] ${isDark ? 'bg-slate-950/70' : 'bg-slate-50 border border-slate-100'}`}>
           <label className="relative block">

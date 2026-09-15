@@ -70,11 +70,13 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       Number(product.views_count || 0) + (Number(product.review_count || 0) * 10) + (Number(product.average_rating || 0) * 2);
     const byNewest = (a: StoreListingProduct, b: StoreListingProduct) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     const byPopularity = (a: StoreListingProduct, b: StoreListingProduct) => productScore(b) - productScore(a) || byNewest(a, b);
-    const term = searchFilter.trim().toLocaleLowerCase('pt-BR');
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+    const term = normalize(searchFilter.trim());
 
     const matchingFilters = products.filter((product) => {
-      const matchSearch = !term || product.titulo.toLocaleLowerCase('pt-BR').includes(term) ||
-        (product.descricao && product.descricao.toLocaleLowerCase('pt-BR').includes(term));
+      const matchSearch = !term || normalize(product.titulo).includes(term) ||
+        (product.descricao && normalize(product.descricao).includes(term)) ||
+        Boolean(product.seasonal_tags?.some((tag) => normalize(tag).includes(term)));
       const matchCategory = selectedCategory === 'all' || product.category_id === selectedCategory;
       const matchEducation = selectedEducation === 'all' || product.education_level_id === selectedEducation;
       return matchSearch && matchCategory && matchEducation;

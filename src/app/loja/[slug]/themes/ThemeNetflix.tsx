@@ -279,7 +279,7 @@ export default function ThemeNetflix(props: StoreThemeProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 bg-slate-950">
+      <div className="w-full py-4 sm:py-6 bg-slate-950">
         <StoreCatalogControls categories={categories} educationLevels={educationLevels} searchFilter={searchFilter} selectedCategory={selectedCategory} selectedEducation={selectedEducation} selectedCollection={selectedCollection} setSearchFilter={setSearchFilter} setSelectedCategory={setSelectedCategory} setSelectedEducation={setSelectedEducation} setSelectedCollection={setSelectedCollection} variant="netflix" />
       </div>
 

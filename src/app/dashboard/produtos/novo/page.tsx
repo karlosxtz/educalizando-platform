@@ -50,6 +50,7 @@ function ProductWizardContent() {
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
+  const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
   const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
   const [usesBncc, setUsesBncc] = useState(false);
   const [bnccSearch, setBnccSearch] = useState('');
@@ -129,6 +130,7 @@ function ProductWizardContent() {
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
+            setSeasonalTags(existing.seasonal_tags || []);
             setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
@@ -333,6 +335,7 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
+          seasonal_tags: seasonalTags,
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -359,6 +362,7 @@ function ProductWizardContent() {
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
+          seasonal_tags: seasonalTags,
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -567,6 +571,17 @@ function ProductWizardContent() {
                       placeholder="Ex.: 6 a 8 anos"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">Datas e projetos escolares</label>
+                  <p className="mb-3 text-xs text-slate-500">Marque as ocasiões em que este material pode ser usado. Elas aparecerão como filtros na vitrine.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Volta às aulas', 'Carnaval', 'Páscoa', 'Dia das Mães', 'Festa Junina', 'Dia dos Pais', 'Folclore', 'Independência', 'Dia das Crianças', 'Consciência Negra', 'Natal'].map((tag) => {
+                      const selected = seasonalTags.includes(tag);
+                      return <button key={tag} type="button" onClick={() => setSeasonalTags((current) => selected ? current.filter((item) => item !== tag) : [...current, tag])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</button>;
+                    })}
                   </div>
                 </div>
 
