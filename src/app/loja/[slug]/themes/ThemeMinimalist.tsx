@@ -59,7 +59,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
 
   const [selectedProduct, setSelectedProduct] = useState<StoreListingProduct | null>(null);
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart, setIsOpen } = useCart();
 
   const primaryColor = store.cor_primaria || '#2563eb';
 
@@ -96,6 +96,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
         quantity: 1
       });
       setSelectedProduct(null);
+      setIsOpen(true);
     }
   };
 

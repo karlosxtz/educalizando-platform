@@ -333,7 +333,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       </header>
 
       {/* Checkout Main Layout */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
         <form onSubmit={handleSubmitCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Buyer & Payment Info (8 Cols) */}
@@ -712,6 +712,23 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
             </div>
           </div>
 
+          {/* No celular, a ação de pagamento fica sempre visível. Isso evita que
+              o comprador precise voltar ao fim de um formulário longo para pagar. */}
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-[60] border-t border-slate-200 bg-white/95 p-3 shadow-[0_-10px_24px_rgba(15,23,42,0.12)] backdrop-blur safe-padding-bottom">
+            <div className="mx-auto flex max-w-lg items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</span>
+                <span className="block truncate text-lg font-black text-slate-900">R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <button
+                type="submit"
+                disabled={submitting || (!product && cartItems.length === 0)}
+                className="min-h-11 rounded-xl bg-brand-navy px-4 py-3 text-xs font-black text-white shadow-lg shadow-brand-navy/20 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting ? 'Abrindo pagamento...' : 'Ir para pagar'}
+              </button>
+            </div>
+          </div>
         </form>
       </main>
     </div>

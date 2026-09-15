@@ -109,7 +109,7 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
       </header>
 
       {/* Main Page Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32 sm:py-12 lg:pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: Main Content, Cover, Included Products & Description (7 Cols) */}
@@ -492,7 +492,7 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
       </main>
 
       {/* Mobile Sticky Bottom Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3.5 z-40 shadow-2xl flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3.5 z-[60] shadow-2xl safe-padding-bottom flex items-center justify-between gap-3">
         <div className="min-w-0">
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Preço do Combo</span>
           <div className="flex items-baseline gap-1.5">
