@@ -129,22 +129,17 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
       {/* Top Educalizando Trust Bar */}
-      <div className="bg-slate-900 py-2 px-4 text-xs text-slate-300">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center">
-            <ShieldCheck className="w-4 h-4 text-brand-green flex-shrink-0" />
-            <span className="flex items-center gap-1.5">
-              Loja Oficial Habilitada na Plataforma 
-              <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-5 w-auto object-contain inline-block" style={{ width: 'auto', height: '20px' }} />
-              — Checkout PIX & Proteção
-            </span>
+      <div className="bg-slate-900 px-3 py-1.5 text-[10px] text-slate-300">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 whitespace-nowrap">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-green flex-shrink-0" />
+            <span className="truncate">Loja na Educalizando • Compra protegida</span>
           </div>
           <Link
             href={`/aluno/login?from=${store.slug}`}
-            className="text-brand-teal hover:text-white font-extrabold flex items-center gap-1.5 bg-brand-navy/60 hover:bg-brand-navy px-3 py-1 rounded-full border border-brand-teal/30 text-[11px] transition-all"
+            className="shrink-0 text-brand-teal hover:text-white font-extrabold transition-colors"
           >
-            <GraduationCap className="w-3.5 h-3.5 text-brand-teal" />
-            <span>Já comprou nesta loja? Acesse seus materiais</span>
+            Já comprou? Acesse materiais
           </Link>
         </div>
       </div>
@@ -620,6 +615,10 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                       {selectedProduct.descricao}
                     </p>
                   )}
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {selectedProduct.review_count ? `${selectedProduct.average_rating || '5,0'} • ${selectedProduct.review_count} avaliações` : 'Ainda não há avaliações'}</span>
+                    <Link href={`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`} className="shrink-0 text-xs font-black text-blue-600">Ver detalhes</Link>
+                  </div>
 
                   <div className="sticky bottom-0 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 mt-2 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
                     <div className="flex items-center justify-between gap-3 mb-3">
