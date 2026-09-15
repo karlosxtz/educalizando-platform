@@ -10,7 +10,7 @@ import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
-import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
+import { getSchoolCalendarTagsForMonth, getUpcomingSchoolEvents } from '@/lib/school-calendar';
 import PartnerStoresMarquee from '@/components/PartnerStoresMarquee';
 
 // 1. Nova Identidade Visual (Navegação Rápida)
@@ -40,6 +40,7 @@ export default async function Home() {
     .filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.has_plr_delivery))
     .slice(0, 4);
   const monthlyTags = getSchoolCalendarTagsForMonth();
+  const upcomingEvents = getUpcomingSchoolEvents();
   const produtosSazonais = allProducts.filter((product) => product.seasonal_tags?.some((tag) => monthlyTags.includes(tag as typeof monthlyTags[number]))).slice(0, 4);
 
   return (
@@ -88,6 +89,24 @@ export default async function Home() {
           </div>
           
           <PartnerStoresMarquee stores={topStores} />
+        </section>
+
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-5 shadow-sm sm:p-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl"><Calendar className="h-7 w-7 text-emerald-600" /> Prepare-se com antecedência</h2>
+                <p className="mt-2 text-sm font-medium text-slate-600">Planeje suas aulas e encontre materiais para as próximas datas do calendário escolar.</p>
+              </div>
+              <Link href="/buscar" className="text-sm font-bold text-emerald-700 hover:text-emerald-900">Explorar todas as datas →</Link>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {upcomingEvents.map((event) => <Link key={`${event.tag}-${event.date.getFullYear()}`} href={`/buscar?data=${encodeURIComponent(event.tag)}`} className="rounded-2xl border border-white bg-white/85 p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
+                <p className="font-black text-slate-900">{event.tag}</p>
+                <p className="mt-1 text-xs font-semibold text-emerald-700">{event.daysUntil === 0 ? 'É hoje' : `em ${event.daysUntil} dias`} · {event.date.toLocaleDateString('pt-BR', { month: 'long' })}</p>
+              </Link>)}
+            </div>
+          </div>
         </section>
 
         {/* 4. Prateleiras de Produtos (Grids) */}

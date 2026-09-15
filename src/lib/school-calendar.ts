@@ -8,7 +8,7 @@ export const SCHOOL_CALENDAR_TAGS = [
   'Dia do Soldado', 'Dia do Folclore', 'Dia do Estudante', 'Dia dos Pais', 'Dia do Psicólogo',
   'Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito',
   'Dia dos Animais', 'Dia das Crianças', 'Dia dos Professores', 'Dia do Médico', 'Halloween',
-  'Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Natal', 'Ano Novo',
+  'Setembro Amarelo', 'Outubro Rosa', 'Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Natal', 'Ano Novo',
   'Formatura', 'Cabelo Maluco', 'Dia do Brinquedo', 'Dia do Amigo', 'Dia da Polícia',
   'Educação no Trânsito', 'Educação Financeira', 'Alimentação Saudável', 'Saúde Bucal', 'Inclusão e Acessibilidade',
   'Cultura Afro-Brasileira', 'Cultura Indígena', 'Semana da Criança', 'Projeto de Leitura', 'Projeto de Ciências',
@@ -33,4 +33,24 @@ const MONTHLY_TAGS: Record<number, SchoolCalendarTag[]> = {
 
 export function getSchoolCalendarTagsForMonth(month = new Date().getMonth()): SchoolCalendarTag[] {
   return MONTHLY_TAGS[month] || [];
+}
+
+const UPCOMING_EVENTS: Array<{ tag: SchoolCalendarTag; month: number; day: number }> = [
+  { tag: 'Volta às aulas', month: 1, day: 1 }, { tag: 'Carnaval', month: 2, day: 1 }, { tag: 'Dia Internacional da Mulher', month: 3, day: 8 },
+  { tag: 'Dia Mundial da Água', month: 3, day: 22 }, { tag: 'Páscoa', month: 4, day: 1 }, { tag: 'Dia dos Povos Indígenas', month: 4, day: 19 },
+  { tag: 'Dia das Mães', month: 5, day: 10 }, { tag: 'Meio Ambiente', month: 6, day: 5 }, { tag: 'Festa Junina', month: 6, day: 24 },
+  { tag: 'Dia dos Pais', month: 8, day: 9 }, { tag: 'Dia do Folclore', month: 8, day: 22 }, { tag: 'Dia do Soldado', month: 8, day: 25 },
+  { tag: 'Setembro Amarelo', month: 9, day: 1 }, { tag: 'Independência do Brasil', month: 9, day: 7 }, { tag: 'Dia da Árvore', month: 9, day: 21 },
+  { tag: 'Primavera', month: 9, day: 22 }, { tag: 'Dia do Trânsito', month: 9, day: 25 }, { tag: 'Dia das Crianças', month: 10, day: 12 },
+  { tag: 'Dia dos Professores', month: 10, day: 15 }, { tag: 'Outubro Rosa', month: 10, day: 1 }, { tag: 'Dia da Consciência Negra', month: 11, day: 20 },
+  { tag: 'Natal', month: 12, day: 25 },
+];
+
+export function getUpcomingSchoolEvents(now = new Date(), limit = 7) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return UPCOMING_EVENTS.map((event) => {
+    let date = new Date(today.getFullYear(), event.month - 1, event.day);
+    if (date < today) date = new Date(today.getFullYear() + 1, event.month - 1, event.day);
+    return { ...event, date, daysUntil: Math.ceil((date.getTime() - today.getTime()) / 86_400_000) };
+  }).sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, limit);
 }
