@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, CheckCircle2, ChevronRight, FileText, Video, BookOpen, 
   Layers, HelpCircle, UploadCloud, Eye, Tags, GraduationCap, DollarSign, 
-  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon, User, Search
+  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon, User, Search, X
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
@@ -52,6 +52,8 @@ function ProductWizardContent() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
+  const [isSeasonalPickerOpen, setIsSeasonalPickerOpen] = useState(false);
+  const [seasonalTagSearch, setSeasonalTagSearch] = useState('');
   const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
   const [usesBncc, setUsesBncc] = useState(false);
   const [bnccSearch, setBnccSearch] = useState('');
@@ -575,16 +577,34 @@ function ProductWizardContent() {
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">Datas e projetos escolares</label>
-                  <p className="mb-3 text-xs text-slate-500">Marque as ocasiões em que este material pode ser usado. Elas aparecerão como filtros na vitrine.</p>
-                  <div className="flex flex-wrap gap-2">
-                    {SCHOOL_CALENDAR_TAGS.map((tag) => {
-                      const selected = seasonalTags.includes(tag);
-                      return <button key={tag} type="button" onClick={() => setSeasonalTags((current) => selected ? current.filter((item) => item !== tag) : [...current, tag])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</button>;
-                    })}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Datas e projetos escolares</label>
+                      <p className="mt-1 text-xs text-slate-500">Conecte campanhas e temas para facilitar a descoberta na vitrine.</p>
+                    </div>
+                    <button type="button" onClick={() => setIsSeasonalPickerOpen(true)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700">
+                      <Tags className="h-4 w-4" /> Selecionar datas e temas
+                    </button>
                   </div>
+                  {seasonalTags.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">
+                    {seasonalTags.map((tag) => <button key={tag} type="button" onClick={() => setSeasonalTags((current) => current.filter((item) => item !== tag))} className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100">{tag}<X className="h-3 w-3" /></button>)}
+                  </div>}
                 </div>
+
+                {isSeasonalPickerOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+                  <div className="w-full max-w-2xl rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
+                    <div className="flex items-start justify-between gap-4">
+                      <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-600">Catálogo escolar</p><h3 className="mt-1 text-xl font-black text-slate-900">Conectar datas e temas</h3><p className="mt-1 text-xs text-slate-500">Pesquise e selecione todas as ocasiões relacionadas ao material.</p></div>
+                      <button type="button" onClick={() => setIsSeasonalPickerOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Fechar"><X className="h-5 w-5" /></button>
+                    </div>
+                    <label className="relative mt-5 block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input autoFocus value={seasonalTagSearch} onChange={(event) => setSeasonalTagSearch(event.target.value)} placeholder="Pesquisar: mulher, Páscoa, cabelo maluco..." className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none focus:border-blue-500" /></label>
+                    <div className="mt-4 max-h-[45vh] overflow-y-auto rounded-2xl border border-slate-100 p-2">
+                      {SCHOOL_CALENDAR_TAGS.filter((tag) => tag.toLocaleLowerCase('pt-BR').includes(seasonalTagSearch.toLocaleLowerCase('pt-BR'))).map((tag) => { const selected = seasonalTags.includes(tag); return <button key={tag} type="button" onClick={() => setSeasonalTags((current) => selected ? current.filter((item) => item !== tag) : [...current, tag])} className={`m-1 rounded-xl border px-3 py-2 text-left text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50'}`}>{tag}</button>; })}
+                    </div>
+                    <div className="mt-5 flex items-center justify-between"><span className="text-xs font-medium text-slate-500">{seasonalTags.length} tema(s) selecionado(s)</span><button type="button" onClick={() => setIsSeasonalPickerOpen(false)} className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white">Concluir seleção</button></div>
+                  </div>
+                </div>}
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-2">
                   <div>
