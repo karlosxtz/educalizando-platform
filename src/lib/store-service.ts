@@ -521,16 +521,30 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       }
     }
 
-    // --- Step 4: Enrich with review data ---
-    const { data: reviewsData } = await db
-      .from('reviews')
-      .select('product_id, nota')
-      .eq('store_id', validStoreId);
+    // --- Step 4: Enrich with review data and gallery images ---
+    const productIds = allProducts.map((product) => product.id);
+    const [{ data: reviewsData }, { data: imagesData }] = await Promise.all([
+      db
+        .from('reviews')
+        .select('product_id, nota')
+        .eq('store_id', validStoreId),
+      productIds.length > 0
+        ? db.from('product_images').select('id, product_id, url, ordem, created_at').in('product_id', productIds).order('ordem', { ascending: true })
+        : Promise.resolve({ data: [] as { id: string; product_id: string; url: string; ordem: number; created_at: string }[] }),
+    ]);
+
+    const imagesByProductId = new Map<string, NonNullable<Product['images']>>();
+    (imagesData || []).forEach((image) => {
+      const images = imagesByProductId.get(image.product_id) || [];
+      images.push(image);
+      imagesByProductId.set(image.product_id, images);
+    });
 
     console.log('[getPublicProductsByStoreId] total products before filter:', allProducts.length);
     return allProducts
       .filter(p => !deletedIds.has(p.id) && !deletedIds.has(p.id.replace(/^prod_/i, '')))
       .map(p => {
+        p.images = imagesByProductId.get(p.id) || p.images || [];
         if (reviewsData && reviewsData.length > 0) {
           const productReviews = reviewsData.filter(r => r.product_id === p.id);
           if (productReviews.length > 0) {

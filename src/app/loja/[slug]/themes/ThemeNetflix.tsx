@@ -84,6 +84,11 @@ export default function ThemeNetflix(props: StoreThemeProps) {
     return educationLevels.find(e => e.id === edId)?.nome || null;
   };
 
+  const getProductGallery = (product: StoreListingProduct) => Array.from(new Set([
+    product.capa_url,
+    ...(product.images || []).map((image) => image.url),
+  ].filter((url): url is string => Boolean(url))));
+
   const handleStartCheckout = () => {
     if (selectedProduct) {
       addToCart({
@@ -586,6 +591,13 @@ export default function ThemeNetflix(props: StoreThemeProps) {
                 </div>
               ) : (
                 <>
+                  {getProductGallery(selectedProduct).length > 0 && (
+                    <div className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {getProductGallery(selectedProduct).map((imageUrl, index) => (
+                        <img key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-3">
                     <span 
                       className="p-2 rounded-lg text-white text-xs font-bold uppercase flex items-center gap-1"
