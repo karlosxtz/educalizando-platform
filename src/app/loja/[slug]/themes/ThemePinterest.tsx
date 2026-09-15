@@ -234,7 +234,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
             <div>
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" style={{ color: primaryColor }} />
-                Materiais Didáticos Publicados ({filteredProducts.length})
+                {selectedCollection === 'popular' ? 'Materiais em alta' : selectedCollection === 'new' ? 'Novidades da loja' : selectedCollection === 'plr' ? 'Licenças PLR para revenda' : 'Produtos finais publicados'} ({filteredProducts.length})
               </h2>
               <p className="text-xs text-slate-500 font-medium hidden sm:block">
                 Acesso imediato no e-mail e na Área de Membros após a compra.

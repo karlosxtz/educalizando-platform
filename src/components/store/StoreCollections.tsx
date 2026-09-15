@@ -10,10 +10,10 @@ interface StoreCollectionsProps {
 }
 
 const collections = [
-  { id: 'all' as const, label: 'Todos os materiais', description: 'Explore a coleção completa', icon: Layers3 },
-  { id: 'popular' as const, label: 'Em alta', description: 'Os mais procurados', icon: Flame },
-  { id: 'new' as const, label: 'Novidades', description: 'Acabaram de chegar', icon: Sparkles },
-  { id: 'plr' as const, label: 'Licenças PLR', description: 'Prontos para revender', icon: Rocket },
+  { id: 'all' as const, label: 'Produtos finais', description: 'A coleção completa para alunos', icon: Layers3 },
+  { id: 'popular' as const, label: 'Em alta', description: 'Os 8 produtos finais mais procurados', icon: Flame },
+  { id: 'new' as const, label: 'Novidades', description: 'Os 8 lançamentos mais recentes', icon: Sparkles },
+  { id: 'plr' as const, label: 'Licenças PLR', description: 'Ofertas separadas para revenda', icon: Rocket },
 ];
 
 export default function StoreCollections({ active, onChange, variant = 'default' }: StoreCollectionsProps) {
