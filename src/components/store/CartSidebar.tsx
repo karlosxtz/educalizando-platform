@@ -1,7 +1,7 @@
 'use client';
 
 import { useCart } from './CartContext';
-import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
+import { X, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface CartSidebarProps {
@@ -9,7 +9,7 @@ interface CartSidebarProps {
 }
 
 export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
-  const { items, isOpen, setIsOpen, total, removeFromCart, updateQuantity } = useCart();
+  const { items, isOpen, setIsOpen, total, removeFromCart } = useCart();
 
   if (!isOpen) return null;
 
@@ -91,26 +91,14 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}
                       </span>
                       
-                      {/* Quantity Controls */}
-                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg">
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-50"
-                          disabled={item.quantity <= 1 && item.isPlr} // Não deixa excluir PLR pelo menos de 1 por engano (mas pode remover no lixo)
-                        >
-                          {item.quantity === 1 ? <Trash2 className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
-                        </button>
-                        <span className="w-6 text-center text-xs font-semibold text-slate-700">
-                          {item.quantity}
-                        </span>
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-50"
-                          disabled={item.quantity >= 10 || item.isPlr} // Geralmente licença PLR só compra 1
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.id)}
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100"
+                        aria-label={`Remover ${item.title} do carrinho`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Remover
+                      </button>
                     </div>
                   </div>
                 </div>
