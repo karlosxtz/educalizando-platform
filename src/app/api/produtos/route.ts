@@ -68,11 +68,20 @@ export async function POST(request: Request) {
       allow_affiliates = false,
       affiliate_commission_rate = 0,
       order_bump_id = null,
+      page_count = null,
+      age_range = null,
+      format_details = null,
+      preview_url = null,
       bncc_skill_ids
     } = body;
 
     if (!titulo || !titulo.trim()) {
       return NextResponse.json({ error: 'O título do produto é obrigatório.' }, { status: 400 });
+    }
+
+    const normalizedPageCount = page_count === null || page_count === '' ? null : Number(page_count);
+    if (normalizedPageCount !== null && (!Number.isInteger(normalizedPageCount) || normalizedPageCount < 1)) {
+      return NextResponse.json({ error: 'O número de páginas deve ser um número inteiro maior que zero.' }, { status: 400 });
     }
 
     if (Boolean(is_plr) && (!(Number(preco_plr) > 0) || !plr_license_url)) {
@@ -151,6 +160,10 @@ export async function POST(request: Request) {
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       order_bump_id: isValidUUID(order_bump_id) ? order_bump_id : null,
+      page_count: normalizedPageCount,
+      age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
+      format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
+      preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
       created_at: new Date().toISOString()
     };
 
@@ -189,6 +202,10 @@ export async function POST(request: Request) {
         has_plr_delivery: Boolean(plr_license_url),
         allow_affiliates: Boolean(allow_affiliates),
         affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
+        page_count: normalizedPageCount,
+        age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
+        format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
+        preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
         created_at: new Date().toISOString()
       };
 
@@ -316,6 +333,19 @@ export async function PUT(request: Request) {
     }
     if ('order_bump_id' in cleanedUpdates) {
       cleanedUpdates.order_bump_id = sanitizeUUID(cleanedUpdates.order_bump_id);
+    }
+    if ('page_count' in cleanedUpdates) {
+      const pageCount = cleanedUpdates.page_count === null || cleanedUpdates.page_count === '' ? null : Number(cleanedUpdates.page_count);
+      if (pageCount !== null && (!Number.isInteger(pageCount) || pageCount < 1)) {
+        return NextResponse.json({ error: 'O número de páginas deve ser um número inteiro maior que zero.' }, { status: 400 });
+      }
+      cleanedUpdates.page_count = pageCount;
+    }
+    for (const field of ['age_range', 'format_details', 'preview_url']) {
+      if (field in cleanedUpdates) {
+        const value = cleanedUpdates[field];
+        cleanedUpdates[field] = typeof value === 'string' && value.trim() ? value.trim().slice(0, field === 'preview_url' ? 2000 : 180) : null;
+      }
     }
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);

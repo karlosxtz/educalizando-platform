@@ -7,9 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, Star
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, Star, ExternalLink
 } from 'lucide-react';
-import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review } from '@/lib/types';
+import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review, BnccSkill } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
@@ -27,6 +27,7 @@ interface ProductDetailClientViewProps {
   educationLevel?: EducationLevel | null;
   context?: 'store' | 'marketplace';
   relatedProducts?: Product[];
+  bnccSkills?: BnccSkill[];
 }
 
 export default function ProductDetailClientView({ 
@@ -35,7 +36,8 @@ export default function ProductDetailClientView({
   category, 
   educationLevel,
   context = 'store',
-  relatedProducts = []
+  relatedProducts = [],
+  bnccSkills = []
 }: ProductDetailClientViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -288,6 +290,28 @@ export default function ProductDetailClientView({
               </div>
             </div>
 
+            {(bnccSkills.length > 0 || product.age_range || product.page_count || product.format_details) && (
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">Informações pedagógicas</h3>
+                  <p className="text-xs text-slate-500 mt-1">Detalhes informados pelo criador para facilitar sua escolha.</p>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {product.age_range && <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4"><span className="text-[10px] uppercase tracking-wide font-bold text-indigo-600">Faixa etária</span><p className="mt-1 text-sm font-bold text-slate-800">{product.age_range}</p></div>}
+                  {product.page_count && <div className="rounded-xl bg-blue-50 border border-blue-100 p-4"><span className="text-[10px] uppercase tracking-wide font-bold text-blue-600">{product.tipo === 'video' ? 'Aulas / telas' : 'Páginas'}</span><p className="mt-1 text-sm font-bold text-slate-800">{product.page_count} {product.tipo === 'video' ? 'itens' : product.page_count === 1 ? 'página' : 'páginas'}</p></div>}
+                  {product.format_details && <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 sm:col-span-2"><span className="text-[10px] uppercase tracking-wide font-bold text-slate-500">Formato e uso</span><p className="mt-1 text-sm font-bold text-slate-800">{product.format_details}</p></div>}
+                </div>
+                {bnccSkills.length > 0 && (
+                  <div className="border-t border-slate-100 pt-4">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 mb-3">Habilidades da BNCC</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {bnccSkills.map((skill) => <span key={skill.id} title={skill.description} className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-800">{skill.code}</span>)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Creator Bio Box */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
               <h3 className="text-lg font-black text-slate-900 border-b border-slate-100 pb-4">
@@ -401,6 +425,17 @@ export default function ProductDetailClientView({
                 </p>
               </div>
 
+              {product.preview_url && (
+                <a
+                  href={product.preview_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-h-11 w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" /> Ver prévia do material
+                </a>
+              )}
+
               {/* Coupon Box Input (Minimalist Toggle) */}
               <div>
                 {!showCouponInput ? (
@@ -500,6 +535,20 @@ export default function ProductDetailClientView({
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Público</span>
                       <span className="text-sm font-bold text-slate-800">{educationLevel.nome}</span>
                     </div>
+                  </div>
+                )}
+
+                {product.age_range && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 border border-indigo-100 text-indigo-600 shadow-sm"><UserCheck className="w-4 h-4" /></div>
+                    <div className="flex flex-col pt-0.5"><span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Faixa etária</span><span className="text-sm font-bold text-slate-800">{product.age_range}</span></div>
+                  </div>
+                )}
+
+                {product.page_count && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100 text-blue-600 shadow-sm"><FileText className="w-4 h-4" /></div>
+                    <div className="flex flex-col pt-0.5"><span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{product.tipo === 'video' ? 'Aulas / telas' : 'Quantidade'}</span><span className="text-sm font-bold text-slate-800">{product.page_count} {product.tipo === 'video' ? 'itens' : product.page_count === 1 ? 'página' : 'páginas'}</span></div>
                   </div>
                 )}
 

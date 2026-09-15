@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
+import { getCategories, getEducationLevels, getBnccSkillsByIds } from '@/lib/category-service';
 import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
 
 interface GlobalProductDetailPageProps {
@@ -73,9 +73,10 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     }
   }
 
-  const [categories, educationLevels] = await Promise.all([
+  const [categories, educationLevels, bnccSkills] = await Promise.all([
     getCategories(store.id),
-    getEducationLevels()
+    getEducationLevels(),
+    getBnccSkillsByIds(product.bncc_skill_ids || [])
   ]);
 
   const category = categories.find(c => c.id === product?.category_id) || null;
@@ -182,6 +183,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
           educationLevel={educationLevel}
           context="marketplace"
           relatedProducts={relatedProducts}
+          bnccSkills={bnccSkills}
         />
       </div>
       <Footer />

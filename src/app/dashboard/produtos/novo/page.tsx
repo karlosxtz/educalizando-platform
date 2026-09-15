@@ -39,6 +39,10 @@ function ProductWizardContent() {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [tipo, setTipo] = useState<ProductType>('pdf');
+  const [pageCount, setPageCount] = useState('');
+  const [ageRange, setAgeRange] = useState('');
+  const [formatDetails, setFormatDetails] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
   const [preco, setPreco] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('upload');
@@ -97,6 +101,10 @@ function ProductWizardContent() {
             setTitulo(existing.titulo);
             setDescricao(existing.descricao || '');
             setTipo(existing.tipo);
+            setPageCount(existing.page_count ? String(existing.page_count) : '');
+            setAgeRange(existing.age_range || '');
+            setFormatDetails(existing.format_details || '');
+            setPreviewUrl(existing.preview_url || '');
             setPreco(existing.preco.toString().replace('.', ','));
             
             // Reconstruir galeria de imagens
@@ -306,6 +314,7 @@ function ProductWizardContent() {
     const numericPrice = isFree ? 0 : (parseFloat(preco.replace(',', '.')) || 0);
     const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
     const numericCommissionRate = parseFloat(affiliateCommissionRate.replace(',', '.')) || 0;
+    const numericPageCount = pageCount.trim() ? Number(pageCount) : null;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
 
     try {
@@ -314,6 +323,10 @@ function ProductWizardContent() {
           titulo,
           descricao: descricao || null,
           tipo,
+          page_count: numericPageCount,
+          age_range: ageRange.trim() || null,
+          format_details: formatDetails.trim() || null,
+          preview_url: previewUrl.trim() || null,
           preco: numericPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
@@ -336,6 +349,10 @@ function ProductWizardContent() {
           titulo,
           descricao: descricao || null,
           tipo,
+          page_count: numericPageCount,
+          age_range: ageRange.trim() || null,
+          format_details: formatDetails.trim() || null,
+          preview_url: previewUrl.trim() || null,
           preco: numericPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
@@ -519,6 +536,67 @@ function ProductWizardContent() {
                     <option value="curso">Curso / Pacote de Módulos</option>
                     <option value="simulado">Simulado & Gabarito Comentado</option>
                   </select>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                      Número de páginas / telas
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      inputMode="numeric"
+                      value={pageCount}
+                      onChange={(event) => setPageCount(event.target.value)}
+                      placeholder={tipo === 'video' ? 'Ex.: 12 aulas' : 'Ex.: 45'}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">Opcional. Para vídeos, informe a quantidade de aulas/telas.</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                      Faixa etária recomendada
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={120}
+                      value={ageRange}
+                      onChange={(event) => setAgeRange(event.target.value)}
+                      placeholder="Ex.: 6 a 8 anos"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                      Detalhes do formato
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={180}
+                      value={formatDetails}
+                      onChange={(event) => setFormatDetails(event.target.value)}
+                      placeholder="Ex.: PDF colorido, pronto para imprimir"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                      Link público de prévia
+                    </label>
+                    <input
+                      type="url"
+                      value={previewUrl}
+                      onChange={(event) => setPreviewUrl(event.target.value)}
+                      placeholder="https://..."
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">Use uma prévia sem acesso ao arquivo completo vendido.</p>
+                  </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-2">

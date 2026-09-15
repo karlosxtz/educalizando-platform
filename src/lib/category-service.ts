@@ -244,3 +244,28 @@ export async function getBnccSkills() {
 
   return [];
 }
+
+export async function getBnccSkillsByIds(skillIds: string[]) {
+  if (skillIds.length === 0) return [];
+
+  const isRealSupabase = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
+  );
+
+  if (isRealSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('bncc_skills')
+        .select('*')
+        .in('id', skillIds)
+        .order('code', { ascending: true });
+
+      if (!error && data) return data;
+    } catch (err) {
+      console.error('[getBnccSkillsByIds] Erro:', err);
+    }
+  }
+
+  return [];
+}

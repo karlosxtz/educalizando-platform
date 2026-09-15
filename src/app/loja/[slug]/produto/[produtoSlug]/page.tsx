@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getStoreBySlug, getProductById, getPublicProductsByStoreId } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
+import { getCategories, getEducationLevels, getBnccSkillsByIds } from '@/lib/category-service';
 import ProductDetailClientView from './ProductDetailClientView';
 import Link from 'next/link';
 import { ChevronRight, Home, Store } from 'lucide-react';
@@ -84,9 +84,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     }
   }
 
-  const [categories, educationLevels] = await Promise.all([
+  const [categories, educationLevels, bnccSkills] = await Promise.all([
     getCategories(store.id),
-    getEducationLevels()
+    getEducationLevels(),
+    getBnccSkillsByIds(product.bncc_skill_ids || [])
   ]);
 
   const category = categories.find(c => c.id === product?.category_id) || null;
@@ -190,6 +191,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         educationLevel={educationLevel}
         context="store"
         relatedProducts={relatedProducts}
+        bnccSkills={bnccSkills}
       />
     </div>
   );

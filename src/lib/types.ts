@@ -91,6 +91,10 @@ export interface Product {
   order_bump_id?: string | null;
   capa_url: string | null;
   arquivo_url: string | null;
+  page_count?: number | null;
+  age_range?: string | null;
+  format_details?: string | null;
+  preview_url?: string | null;
   status: ProductStatus;
   category_id?: string | null;
   education_level_id?: string | null;
