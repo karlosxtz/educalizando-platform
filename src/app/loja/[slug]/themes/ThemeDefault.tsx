@@ -53,6 +53,7 @@ import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import StoreCollections from '@/components/store/StoreCollections';
+import StoreCatalogControls from '@/components/store/StoreCatalogControls';
 
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 
@@ -283,7 +284,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
       </header>
 
       {/* Sticky Filter & Search Bar */}
-      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md py-4 border-b border-slate-200 shadow-xs">
+      <div className="hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
@@ -333,8 +334,20 @@ export default function ThemeDefault(props: StoreThemeProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant="default" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+        <StoreCatalogControls
+          categories={categories}
+          educationLevels={educationLevels}
+          searchFilter={searchFilter}
+          selectedCategory={selectedCategory}
+          selectedEducation={selectedEducation}
+          selectedCollection={selectedCollection}
+          setSearchFilter={setSearchFilter}
+          setSelectedCategory={setSelectedCategory}
+          setSelectedEducation={setSelectedEducation}
+          setSelectedCollection={setSelectedCollection}
+          variant="default"
+        />
       </div>
 
       {/* Main Store Products Catalog */}
