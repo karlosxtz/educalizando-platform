@@ -15,3 +15,22 @@ export const SCHOOL_CALENDAR_TAGS = [
 ] as const;
 
 export type SchoolCalendarTag = typeof SCHOOL_CALENDAR_TAGS[number];
+
+const MONTHLY_TAGS: Record<number, SchoolCalendarTag[]> = {
+  0: ['Volta às aulas', 'Adaptação escolar'],
+  1: ['Carnaval', 'Dia Internacional da Mulher'],
+  2: ['Dia da Escola', 'Dia Mundial da Água', 'Dia do Circo'],
+  3: ['Páscoa', 'Dia do Livro Infantil', 'Dia dos Povos Indígenas', 'Tiradentes'],
+  4: ['Dia do Trabalho', 'Dia das Mães', 'Dia da Família'],
+  5: ['Meio Ambiente', 'Festa Junina', 'Dia do Orgulho Autista'],
+  6: ['Festa Junina', 'Educação Financeira'],
+  7: ['Dia dos Pais', 'Dia do Estudante', 'Dia do Folclore', 'Dia do Soldado'],
+  8: ['Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito'],
+  9: ['Dia das Crianças', 'Dia dos Professores', 'Cabelo Maluco', 'Halloween'],
+  10: ['Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira'],
+  11: ['Natal', 'Ano Novo', 'Formatura'],
+};
+
+export function getSchoolCalendarTagsForMonth(month = new Date().getMonth()): SchoolCalendarTag[] {
+  return MONTHLY_TAGS[month] || [];
+}

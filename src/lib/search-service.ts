@@ -11,6 +11,7 @@ export interface SearchFilters {
   formato?: string;
   sort?: string;
   filter?: string;
+  data?: string;
   page?: number;
 }
 
@@ -66,6 +67,8 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       if (filters.filter === 'plr') {
         query = query.eq('is_plr', true).gt('preco_plr', 0).eq('has_plr_delivery', true);
       }
+
+      if (filters.data) query = query.contains('seasonal_tags', [filters.data]);
 
       if (filters.preco) {
         if (filters.preco === 'gratis') {
@@ -132,6 +135,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.has_plr_delivery || p.plr_license_url)
     );
   }
+  if (filters.data) allProducts = allProducts.filter((product) => product.seasonal_tags?.includes(filters.data as string));
 
   if (filters.categoria) {
     const categoryObj = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === filters.categoria);

@@ -8,22 +8,23 @@ import { getTopMarketplaceStores } from '@/lib/store-service';
 import { INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
 import { Store as StoreIcon, Frown, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
 export const revalidate = 0;
 
 export default async function BuscarPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, filter?: string, page?: string }>
+  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, filter?: string, data?: string, page?: string }>
 }) {
   const resolvedParams = await searchParams;
-  const { q, categoria, preco, ano_escolar, formato, sort, filter } = resolvedParams;
+  const { q, categoria, preco, ano_escolar, formato, sort, filter, data } = resolvedParams;
   const isPlrMarketplace = filter === 'plr';
   const page = resolvedParams.page ? parseInt(resolvedParams.page, 10) : 1;
 
   // Realiza a busca no service
   const { data: products, count, totalPages } = await searchProducts({
-    q, categoria, preco, ano_escolar, formato, sort, filter, page
+    q, categoria, preco, ano_escolar, formato, sort, filter, data, page
   });
 
   // Resolve título dinâmico da página
@@ -40,6 +41,10 @@ export default async function BuscarPage({
     const catName = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === categoria)?.nome || categoria;
     pageTitle = `Explorando: ${catName}`;
     pageSubtitle = `Encontramos ${count} material(is) nesta categoria.`;
+  }
+  if (data && SCHOOL_CALENDAR_TAGS.includes(data as typeof SCHOOL_CALENDAR_TAGS[number])) {
+    pageTitle = `Materiais para: ${data}`;
+    pageSubtitle = `Encontre materiais preparados para esta data ou projeto escolar.`;
   }
 
   // Se não encontrou produtos, busca top stores para recuperação de UX
@@ -64,6 +69,9 @@ export default async function BuscarPage({
 
         {/* Layout com Sidebar e Grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            {SCHOOL_CALENDAR_TAGS.map((tag) => <Link key={tag} href={`/buscar?data=${encodeURIComponent(tag)}`} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold ${data === tag ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</Link>)}
+          </div>
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             
             {/* Sidebar Esquerda (Filtros) */}

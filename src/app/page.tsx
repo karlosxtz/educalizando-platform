@@ -10,6 +10,7 @@ import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
+import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
@@ -37,6 +38,8 @@ export default async function Home() {
   const produtosPLR = allProducts
     .filter(p => p.is_plr === true && Number(p.preco_plr || 0) > 0 && Boolean(p.has_plr_delivery))
     .slice(0, 4);
+  const monthlyTags = getSchoolCalendarTagsForMonth();
+  const produtosSazonais = allProducts.filter((product) => product.seasonal_tags?.some((tag) => monthlyTags.includes(tag as typeof monthlyTags[number]))).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
@@ -157,25 +160,25 @@ export default async function Home() {
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
-              {['Independência', 'Primavera', 'Trânsito'].map(tag => (
-                <Link key={tag} href={`/buscar?q=${tag.toLowerCase()}`} className="px-4 py-1.5 bg-white border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white rounded-full text-xs font-bold transition-colors">
+              {monthlyTags.map(tag => (
+                <Link key={tag} href={`/buscar?data=${encodeURIComponent(tag)}`} className="px-4 py-1.5 bg-white border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white rounded-full text-xs font-bold transition-colors">
                   {tag}
                 </Link>
               ))}
-              <Link href="/buscar?filter=sazonal" className="ml-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
+              <Link href={`/buscar?data=${encodeURIComponent(monthlyTags[0] || 'Volta às aulas')}`} className="ml-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
                 Ver Todos <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
           
-          {produtosEmAlta.length === 0 ? (
+          {produtosSazonais.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-slate-200">
               <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 font-medium">Nenhum material sazonal no momento.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {produtosEmAlta.slice(0, 4).map(produto => (
+              {produtosSazonais.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
             </div>
