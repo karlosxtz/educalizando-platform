@@ -101,6 +101,12 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
     }
   };
 
+  const handleBuyNow = () => {
+    if (!selectedProduct) return;
+    addToCart({ productId: selectedProduct.id, title: selectedProduct.titulo, price: selectedProduct.preco, isPlr: selectedProduct.listing_mode === 'plr', storeId: store.id, type: selectedProduct.tipo, imageUrl: selectedProduct.capa_url || undefined, quantity: 1 });
+    window.location.assign(`/loja/${store.slug}/checkout`);
+  };
+
   // Build Options for CustomSelect Component
   const categoryFilterOptions: CustomSelectOption[] = [
     { value: 'all', label: 'Todas as Categorias' },
@@ -544,12 +550,12 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
       {/* Product Detail Modal */}
       <AnimatePresence>
         {selectedProduct && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 space-y-5 relative overflow-hidden shadow-2xl"
+              className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto p-5 sm:p-6 space-y-5 relative shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
                 <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
@@ -603,19 +609,28 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                     </p>
                   )}
 
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div className="sticky bottom-0 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 mt-2 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
+                    <div className="flex items-center justify-between gap-3 mb-3">
                     <div>
                       <span className="text-xs text-slate-500 block">Preço Final:</span>
                       <span className="text-2xl font-black text-slate-900">R$ {selectedProduct.preco.toFixed(2).replace('.', ',')}</span>
                     </div>
-
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={handleStartCheckout}
-                      className="px-6 py-3 rounded-xl font-extrabold text-sm text-white shadow-md flex items-center gap-2 active:scale-95 transition-transform"
+                      className="min-h-12 px-3 py-3 rounded-xl font-extrabold text-xs sm:text-sm text-slate-700 bg-slate-100 shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    >
+                      <ShoppingBag className="w-4 h-4" /> Carrinho
+                    </button>
+                    <button
+                      onClick={handleBuyNow}
+                      className="min-h-12 px-3 py-3 rounded-xl font-extrabold text-xs sm:text-sm text-white shadow-md flex items-center justify-center gap-2 active:scale-95 transition-transform"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      <ShoppingBag className="w-4 h-4 fill-transparent" /> Adicionar ao Carrinho
+                      <Zap className="w-4 h-4 fill-white" /> Comprar agora
                     </button>
+                    </div>
                   </div>
                 </>
               )}
