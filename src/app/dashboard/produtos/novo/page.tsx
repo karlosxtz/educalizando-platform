@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, CheckCircle2, ChevronRight, FileText, Video, BookOpen, 
   Layers, HelpCircle, UploadCloud, Eye, Tags, GraduationCap, DollarSign, 
-  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon, User
+  Sparkles, ShieldCheck, Loader2, AlertCircle, Save, Link as LinkIcon, User, Search
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
@@ -48,6 +48,9 @@ function ProductWizardContent() {
   const [educationLevelId, setEducationLevelId] = useState<string>('');
   const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
   const [usesBncc, setUsesBncc] = useState(false);
+  const [bnccSearch, setBnccSearch] = useState('');
+  const [bnccStage, setBnccStage] = useState<'all' | 'EI' | 'EF' | 'EM'>('all');
+  const [bnccSubject, setBnccSubject] = useState('all');
   const [isFree, setIsFree] = useState<boolean>(false);
   const [isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
@@ -135,6 +138,7 @@ function ProductWizardContent() {
             
             if (existing.bncc_skill_ids && Array.isArray(existing.bncc_skill_ids)) {
               setSelectedBnccSkills(existing.bncc_skill_ids);
+              setUsesBncc(existing.bncc_skill_ids.length > 0);
             }
           }
         }
@@ -147,6 +151,25 @@ function ProductWizardContent() {
     }
     initData();
   }, [editId]);
+
+  const bnccSubjects = useMemo(() => Array.from(new Set(
+    bnccSkillsMaster.map(skill => skill.subject).filter((subject): subject is string => Boolean(subject))
+  )).sort((a, b) => a.localeCompare(b, 'pt-BR')), [bnccSkillsMaster]);
+
+  const filteredBnccSkills = useMemo(() => {
+    const term = bnccSearch.trim().toLocaleLowerCase('pt-BR');
+    const matches = bnccSkillsMaster.filter(skill => {
+      const code = skill.code.toUpperCase();
+      const stageMatches = bnccStage === 'all' || code.startsWith(bnccStage);
+      const subjectMatches = bnccSubject === 'all' || skill.subject === bnccSubject;
+      const searchMatches = !term || `${skill.code} ${skill.description} ${skill.grade_level || ''} ${skill.subject || ''}`
+        .toLocaleLowerCase('pt-BR').includes(term);
+      return stageMatches && subjectMatches && searchMatches;
+    });
+
+    const selected = bnccSkillsMaster.filter(skill => selectedBnccSkills.includes(skill.id));
+    return Array.from(new Map([...selected, ...matches.slice(0, 150)].map(skill => [skill.id, skill])).values());
+  }, [bnccSearch, bnccSkillsMaster, bnccStage, bnccSubject, selectedBnccSkills]);
 
   const handleOptimizeAll = async () => {
     if (!store?.id) {
@@ -539,10 +562,48 @@ function ProductWizardContent() {
                     Selecione as habilidades da Base Nacional Comum Curricular que este material desenvolve. 
                     Isso ajuda os professores a encontrarem seu conteúdo mais rápido.
                   </p>
+
+                  <div className="grid gap-2 sm:grid-cols-[1fr_160px_220px] mb-3">
+                    <label className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="search"
+                        value={bnccSearch}
+                        onChange={(event) => setBnccSearch(event.target.value)}
+                        placeholder="Buscar código, tema ou palavra..."
+                        className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-500"
+                      />
+                    </label>
+                    <select
+                      value={bnccStage}
+                      onChange={(event) => setBnccStage(event.target.value as 'all' | 'EI' | 'EF' | 'EM')}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      aria-label="Filtrar por etapa da BNCC"
+                    >
+                      <option value="all">Todas as etapas</option>
+                      <option value="EI">Educação Infantil</option>
+                      <option value="EF">Ensino Fundamental</option>
+                      <option value="EM">Ensino Médio</option>
+                    </select>
+                    <select
+                      value={bnccSubject}
+                      onChange={(event) => setBnccSubject(event.target.value)}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      aria-label="Filtrar por componente da BNCC"
+                    >
+                      <option value="all">Todos os componentes</option>
+                      {bnccSubjects.map(subject => <option key={subject} value={subject}>{subject}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-2 text-xs text-slate-500">
+                    <span>{bnccSkillsMaster.length.toLocaleString('pt-BR')} habilidades disponíveis</span>
+                    <span className="font-semibold text-blue-700">{selectedBnccSkills.length} selecionada(s)</span>
+                  </div>
                   
                   <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl bg-white p-2 space-y-1">
                     {bnccSkillsMaster.length > 0 ? (
-                      bnccSkillsMaster.map(skill => {
+                      filteredBnccSkills.length > 0 ? filteredBnccSkills.map(skill => {
                         const isSelected = selectedBnccSkills.includes(skill.id);
                         return (
                           <div 
@@ -567,17 +628,21 @@ function ProductWizardContent() {
                             </div>
                             <div>
                               <div className="text-sm font-bold text-slate-800">{skill.code}</div>
+                              <div className="text-[11px] font-medium text-blue-700">{[skill.grade_level, skill.subject].filter(Boolean).join(' · ')}</div>
                               <div className="text-xs text-slate-600 leading-snug line-clamp-2">{skill.description}</div>
                             </div>
                           </div>
                         )
-                      })
+                      }) : <div className="p-4 text-center text-sm font-medium text-slate-500">Nenhuma habilidade encontrada com esses filtros.</div>
                     ) : (
                       <div className="p-4 text-center text-sm font-medium text-slate-500">
                         Carregando habilidades...
                       </div>
                     )}
                   </div>
+                  {filteredBnccSkills.length >= 150 && (
+                    <p className="mt-2 text-xs text-slate-500">Exibindo os primeiros 150 resultados. Refine a busca para encontrar uma habilidade específica.</p>
+                  )}
                   </>}
                 </div>
 
