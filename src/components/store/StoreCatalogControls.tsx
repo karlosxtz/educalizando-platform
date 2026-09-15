@@ -1,6 +1,6 @@
 'use client';
 
-import { GraduationCap, Search, SlidersHorizontal, Tags, X } from 'lucide-react';
+import { CalendarDays, GraduationCap, Search, SlidersHorizontal, Tags, X } from 'lucide-react';
 import { Category, EducationLevel, StoreCollection } from '@/lib/types';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import StoreCollections from '@/components/store/StoreCollections';
@@ -48,15 +48,20 @@ export default function StoreCatalogControls({
     { value: 'all', label: 'Todos os níveis' },
     ...educationLevels.map((level) => ({ value: level.id, label: level.nome })),
   ];
+  const dateOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todas as datas e temas' },
+    ...SCHOOL_CALENDAR_TAGS.map((tag) => ({ value: tag, label: tag })),
+  ];
   const hasFilters = searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' || selectedCollection !== 'all';
   const isDark = variant === 'netflix';
   const hasCategoryFilter = categories.length > 1;
   const hasEducationFilter = educationLevels.length > 1;
+  const dateFilterValue = SCHOOL_CALENDAR_TAGS.includes(searchFilter as typeof SCHOOL_CALENDAR_TAGS[number]) ? searchFilter : 'all';
   const controlColumns = hasCategoryFilter && hasEducationFilter
-    ? 'lg:grid-cols-[minmax(0,1.35fr)_minmax(180px,.8fr)_minmax(180px,.8fr)]'
+    ? 'sm:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(170px,.75fr)_minmax(170px,.75fr)_minmax(190px,.85fr)]'
     : hasCategoryFilter || hasEducationFilter
-      ? 'sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(220px,.8fr)]'
-      : 'grid-cols-1';
+      ? 'sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(200px,.8fr)_minmax(210px,.85fr)]'
+      : 'sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(220px,.8fr)]';
 
   return (
     <section className={`border-y p-4 sm:p-6 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white/95 border-slate-200'}`} aria-label="Explorar materiais">
@@ -84,16 +89,6 @@ export default function StoreCatalogControls({
 
         <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant={variant} />
 
-        <div className="space-y-2">
-          <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Datas e projetos escolares</p>
-          <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-            {SCHOOL_CALENDAR_TAGS.map((label) => {
-              const selected = searchFilter.toLocaleLowerCase('pt-BR') === label.toLocaleLowerCase('pt-BR');
-              return <button key={label} type="button" onClick={() => setSearchFilter(selected ? '' : label)} className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : isDark ? 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'}`}>{label}</button>;
-            })}
-          </div>
-        </div>
-
         <div className={`grid gap-2 rounded-2xl p-2 ${controlColumns} ${isDark ? 'bg-slate-950/70' : 'bg-slate-50 border border-slate-100'}`}>
           <label className="relative block">
             <span className="sr-only">Buscar material</span>
@@ -108,6 +103,7 @@ export default function StoreCatalogControls({
           </label>
           {hasCategoryFilter && <div className="min-w-0"><CustomSelect options={categoryOptions} value={selectedCategory} onChange={setSelectedCategory} icon={<Tags className="h-3.5 w-3.5" />} /></div>}
           {hasEducationFilter && <div className="min-w-0"><CustomSelect options={educationOptions} value={selectedEducation} onChange={setSelectedEducation} icon={<GraduationCap className="h-3.5 w-3.5" />} /></div>}
+          <div className="min-w-0"><CustomSelect options={dateOptions} value={dateFilterValue} onChange={(value) => setSearchFilter(value === 'all' ? '' : value)} icon={<CalendarDays className="h-3.5 w-3.5" />} /></div>
         </div>
 
         <p className={`flex items-center gap-1.5 text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
