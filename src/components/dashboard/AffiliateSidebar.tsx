@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -25,6 +25,22 @@ export default function AffiliateSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileOpen]);
 
   const handleLogout = async () => {
     await signOutUser();
@@ -84,7 +100,10 @@ export default function AffiliateSidebar({
 
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+          className="min-h-11 min-w-11 p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+          aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={mobileOpen}
+          aria-controls="affiliate-mobile-navigation"
         >
           {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -94,7 +113,9 @@ export default function AffiliateSidebar({
       <aside
         className={`fixed lg:sticky top-0 left-0 bottom-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } h-screen`}
+        } h-[100dvh] w-[min(86vw,22rem)] lg:w-64 shadow-2xl lg:shadow-none`}
+        id="affiliate-mobile-navigation"
+        aria-label="Menu principal do afiliado"
       >
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
           
@@ -118,7 +139,7 @@ export default function AffiliateSidebar({
                 <span className="hidden sm:inline">Afiliado</span>
               </div>
 
-              <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 p-1 hover:text-slate-700">
+              <button onClick={() => setMobileOpen(false)} className="lg:hidden min-h-11 min-w-11 text-slate-400 p-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-lg" aria-label="Fechar menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -215,6 +236,7 @@ export default function AffiliateSidebar({
         <div
           onClick={() => setMobileOpen(false)}
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
+          aria-hidden="true"
         />
       )}
     </>

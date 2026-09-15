@@ -145,7 +145,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Sidebar — bifurcada por contexto visual (NÃO por identidade) */}
-      <div className="relative z-10 lg:w-64 shrink-0 lg:h-screen">
+      <div className="lg:w-64 shrink-0 lg:h-screen">
         {isAffiliateMode ? (
           <AffiliateSidebar
             userName={creatorName || creatorEmail}
@@ -175,5 +175,4 @@ export default function DashboardLayout({
     </div>
   );
 }
-
 
