@@ -92,12 +92,24 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     return finalProducts;
   }, [products, searchFilter, selectedCategory, selectedEducation, selectedCollection]);
 
+  // A loja pública só oferece filtros que fazem sentido para o próprio catálogo.
+  // O cadastro continua exibindo todas as opções disponíveis ao criador.
+  const storeCategories = useMemo(() => {
+    const categoryIds = new Set(products.map((product) => product.category_id).filter((id): id is string => Boolean(id)));
+    return categories.filter((category) => categoryIds.has(category.id));
+  }, [categories, products]);
+
+  const storeEducationLevels = useMemo(() => {
+    const educationIds = new Set(products.map((product) => product.education_level_id).filter((id): id is string => Boolean(id)));
+    return educationLevels.filter((level) => educationIds.has(level.id));
+  }, [educationLevels, products]);
+
   const themeProps: StoreThemeProps = {
     store,
     products,
     filteredProducts,
-    categories,
-    educationLevels,
+    categories: storeCategories,
+    educationLevels: storeEducationLevels,
     kits,
     selectedCategory,
     setSelectedCategory,

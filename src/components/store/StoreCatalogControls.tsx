@@ -50,6 +50,13 @@ export default function StoreCatalogControls({
   ];
   const hasFilters = searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' || selectedCollection !== 'all';
   const isDark = variant === 'netflix';
+  const hasCategoryFilter = categories.length > 1;
+  const hasEducationFilter = educationLevels.length > 1;
+  const controlColumns = hasCategoryFilter && hasEducationFilter
+    ? 'lg:grid-cols-[minmax(0,1.35fr)_minmax(180px,.8fr)_minmax(180px,.8fr)]'
+    : hasCategoryFilter || hasEducationFilter
+      ? 'sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(220px,.8fr)]'
+      : 'grid-cols-1';
 
   return (
     <section className={`border-y p-4 sm:p-6 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white/95 border-slate-200'}`} aria-label="Explorar materiais">
@@ -87,7 +94,7 @@ export default function StoreCatalogControls({
           </div>
         </div>
 
-        <div className={`grid gap-2 rounded-2xl p-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(180px,.8fr)_minmax(180px,.8fr)] ${isDark ? 'bg-slate-950/70' : 'bg-slate-50 border border-slate-100'}`}>
+        <div className={`grid gap-2 rounded-2xl p-2 ${controlColumns} ${isDark ? 'bg-slate-950/70' : 'bg-slate-50 border border-slate-100'}`}>
           <label className="relative block">
             <span className="sr-only">Buscar material</span>
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -99,8 +106,8 @@ export default function StoreCatalogControls({
               className={`min-h-11 w-full rounded-xl border px-10 pr-4 text-sm font-medium outline-none transition-shadow focus:ring-2 focus:ring-blue-500/25 ${isDark ? 'border-slate-800 bg-slate-900 text-white placeholder:text-slate-500' : 'border-slate-200 bg-white text-slate-900 placeholder:text-slate-400'}`}
             />
           </label>
-          <div className="min-w-0"><CustomSelect options={categoryOptions} value={selectedCategory} onChange={setSelectedCategory} icon={<Tags className="h-3.5 w-3.5" />} /></div>
-          <div className="min-w-0"><CustomSelect options={educationOptions} value={selectedEducation} onChange={setSelectedEducation} icon={<GraduationCap className="h-3.5 w-3.5" />} /></div>
+          {hasCategoryFilter && <div className="min-w-0"><CustomSelect options={categoryOptions} value={selectedCategory} onChange={setSelectedCategory} icon={<Tags className="h-3.5 w-3.5" />} /></div>}
+          {hasEducationFilter && <div className="min-w-0"><CustomSelect options={educationOptions} value={selectedEducation} onChange={setSelectedEducation} icon={<GraduationCap className="h-3.5 w-3.5" />} /></div>}
         </div>
 
         <p className={`flex items-center gap-1.5 text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
