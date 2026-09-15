@@ -173,14 +173,14 @@ export default function ProductDetailClientView({
           </div>
 
           {/* Navigation Breadcrumb Bar */}
-          <header className="bg-white border-b border-slate-200 py-3.5 px-4 sm:px-8">
+          <header className="bg-white border-b border-slate-200 py-2 px-3 sm:py-3.5 sm:px-8">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <Link
                 href={`/loja/${store.slug}`}
-                className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+                className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>
+                  <span className="truncate max-w-[220px] sm:max-w-none">
                   Voltar para a vitrine de <strong>{store.nome_loja}</strong>
                 </span>
               </Link>
@@ -194,7 +194,7 @@ export default function ProductDetailClientView({
       )}
 
       {/* Main Page Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32 sm:py-12 lg:pb-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-40 lg:pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: Content */}
@@ -659,7 +659,7 @@ export default function ProductDetailClientView({
         </footer>
       )}
       {/* Sticky Bottom Bar for Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] p-4 z-[60] safe-padding-bottom flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.08)] px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-[60] flex items-center justify-between gap-3">
         <div>
           <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Investimento</span>
           <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">R$ {currentPrice.toFixed(2).replace('.', ',')}</span>
