@@ -23,6 +23,7 @@ function MarketplaceHeaderInner() {
 
   const currentCategoria = searchParams?.get('categoria');
   const currentSort = searchParams?.get('sort');
+  const currentFilter = searchParams?.get('filter');
 
   useEffect(() => {
     setIsMounted(true);
@@ -111,8 +112,8 @@ function MarketplaceHeaderInner() {
             {/* Direita: Pills Elegantes */}
             <div className="flex items-center gap-2 overflow-x-auto hide-scroll-bar">
               <Link 
-                href="/buscar?sort=relevancia" 
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentSort === 'relevancia' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                href="/buscar?sort=popular"
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentSort === 'popular' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
               >
                 🔥 Mais Vendidos
               </Link>
@@ -123,14 +124,14 @@ function MarketplaceHeaderInner() {
                 🎒 Ensino Fundamental
               </Link>
               <Link 
-                href="/buscar?categoria=recursos-ludicos" 
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'recursos-ludicos' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                href="/buscar?categoria=jogos"
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'jogos' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
               >
                 🧩 Recursos Lúdicos
               </Link>
               <Link 
-                href="/buscar?categoria=revenda-autorizada" 
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'revenda-autorizada' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                href="/buscar?filter=plr"
+                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentFilter === 'plr' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
               >
                 💼 Revenda Autorizada
               </Link>

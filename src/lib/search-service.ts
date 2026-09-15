@@ -95,7 +95,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
       // 6. Ordenação
       if (filters.sort) {
-        if (filters.sort === 'menor-preco') {
+        if (filters.sort === 'popular') {
+          query = query.order('views_count', { ascending: false }).order('created_at', { ascending: false });
+        } else if (filters.sort === 'menor-preco') {
           query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: true });
         } else if (filters.sort === 'maior-preco') {
           query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: false });
@@ -166,7 +168,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   }
 
   if (filters.sort) {
-    if (filters.sort === 'menor-preco') {
+    if (filters.sort === 'popular') {
+      allProducts.sort((a, b) => Number(b.views_count || 0) - Number(a.views_count || 0));
+    } else if (filters.sort === 'menor-preco') {
       allProducts.sort((a, b) => filters.filter === 'plr'
         ? Number(a.preco_plr || 0) - Number(b.preco_plr || 0)
         : a.preco - b.preco);
