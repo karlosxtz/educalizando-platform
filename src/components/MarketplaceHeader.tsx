@@ -7,6 +7,7 @@ import { ShoppingCart, Search } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
 import { useCart } from '@/components/store/CartContext';
+import { supabase } from '@/lib/supabase';
 
 export default function MarketplaceHeader() {
   return (
@@ -20,6 +21,7 @@ function MarketplaceHeaderInner() {
   const { items, toggleCart } = useCart();
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
+  const [accountAreaHref, setAccountAreaHref] = useState<string | null>(null);
 
   const currentCategoria = searchParams?.get('categoria');
   const currentSort = searchParams?.get('sort');
@@ -27,6 +29,20 @@ function MarketplaceHeaderInner() {
 
   useEffect(() => {
     setIsMounted(true);
+    const resolveArea = (user?: { user_metadata?: Record<string, unknown> } | null) => {
+      const role = typeof user?.user_metadata?.role === 'string' ? user.user_metadata.role : localStorage.getItem('educalizando_active_role');
+      if (role === 'affiliate') return '/dashboard/afiliacoes';
+      if (role === 'creator' || localStorage.getItem('educalizando_creator_session')) return '/dashboard';
+      return '/aluno/dashboard';
+    };
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) setAccountAreaHref(resolveArea(data.session.user));
+      else if (localStorage.getItem('educalizando_creator_session') || localStorage.getItem('educalizando_student_session') || localStorage.getItem('educalizando_session')) setAccountAreaHref(resolveArea());
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAccountAreaHref(session?.user ? resolveArea(session.user) : null);
+    });
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
@@ -65,18 +81,14 @@ function MarketplaceHeaderInner() {
 
           {/* Direita: Ações do Usuário */}
           <div className="hidden md:flex items-center gap-3">
-            <Link 
-              href="/cadastro" 
-              className="text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100"
-            >
-              Criar Conta
-            </Link>
-            <Link 
-              href="/entrar" 
-              className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20"
-            >
-              Entrar
-            </Link>
+            {accountAreaHref ? (
+              <Link href={accountAreaHref} className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20">
+                Acessar minha área
+              </Link>
+            ) : <>
+              <Link href="/cadastro" className="text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100">Criar Conta</Link>
+              <Link href="/entrar" className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20">Entrar</Link>
+            </>}
             
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
 
