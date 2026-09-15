@@ -25,7 +25,7 @@ export default function PartnerStoresMarquee({ stores }: { stores: Store[] }) {
           const initial = store.nome_loja?.charAt(0).toUpperCase() || 'L';
           return (
             <Link href={`/loja/${store.slug}`} key={`${store.id}-${index}`} className="w-28 shrink-0 text-center sm:w-32" aria-label={`Visitar loja ${store.nome_loja}`}>
-              <div className={`partner-store-halo mx-auto rounded-full ${halos[index % halos.length]} p-[2px] shadow-lg shadow-slate-300/50 transition-transform duration-300 hover:scale-105`}>
+              <div className={`partner-store-halo mx-auto w-fit rounded-full ${halos[index % halos.length]} p-[2px] shadow-lg shadow-slate-300/50 transition-transform duration-300 hover:scale-105`}>
                 <div className="overflow-hidden rounded-full bg-white">
                   {store.logo_url ? <img src={store.logo_url} alt={store.nome_loja} className="block h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl font-black text-blue-600 sm:h-24 sm:w-24">{initial}</div>}
                 </div>
