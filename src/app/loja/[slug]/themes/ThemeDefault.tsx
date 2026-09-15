@@ -570,13 +570,10 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   key={`${prod.id}-${prod.listing_mode || 'standard'}`}
                   className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
-                  <div 
-                    onClick={() => setSelectedProduct(prod)}
-                    className="flex-1 p-5 flex flex-col justify-between space-y-4 cursor-pointer"
-                  >
+                  <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
                     <div className="space-y-3">
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
-                      <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
+                      <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`} className="block aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {prod.capa_url ? (
                           <img 
                             src={prod.capa_url} 
@@ -596,7 +593,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                           <span>{prod.tipo}</span>
                         </span>
                         {prod.listing_mode === 'plr' && <span className="absolute top-2.5 right-2.5 bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-md">Licença PLR</span>}
-                      </div>
+                      </Link>
 
                       {/* Category & Education Level Badges */}
                       <div className="flex flex-wrap items-center gap-1.5 min-h-[22px]">
@@ -613,7 +610,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       </div>
 
                       {/* Title & Description */}
-                      <div>
+                      <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`} className="block">
                         <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
                           {prod.titulo}
                         </h3>
@@ -630,7 +627,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                             <span className="text-[10px] text-slate-400 font-medium">({prod.review_count})</span>
                           </div>
                         ) : null}
-                      </div>
+                      </Link>
                     </div>
 
                     {/* Price & Buy Action */}
@@ -642,14 +639,29 @@ export default function ThemeDefault(props: StoreThemeProps) {
                         </span>
                       </div>
 
+                      <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => { e.preventDefault(); setSelectedProduct(prod); }}
+                        onClick={() => addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 })}
+                        className="px-3 py-2 rounded-xl text-xs font-extrabold border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition-all"
+                        title="Adicionar ao carrinho"
+                      >
+                        <ShoppingBag className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => { addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 }); window.location.assign(`/loja/${store.slug}/checkout`); }}
+                        className="px-3 py-2 rounded-xl text-xs font-extrabold text-white shadow-sm transition-all"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        Comprar
+                      </button>
+                      <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`}
                         className={`px-3.5 py-2 ${btnRadius} text-xs font-extrabold text-white shadow-md group-hover:shadow-lg group-hover:brightness-110 transition-all flex items-center gap-1.5`}
                         style={{ backgroundColor: primaryColor }}
                       >
                         <Zap className="w-3.5 h-3.5 fill-white" />
                         <span>Ver Detalhes</span>
-                      </button>
+                      </Link>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
