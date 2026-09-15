@@ -11,6 +11,7 @@ import MarketplaceHeader from '@/components/MarketplaceHeader';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
+import PartnerStoresMarquee from '@/components/PartnerStoresMarquee';
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
@@ -86,33 +87,7 @@ export default async function Home() {
             </Link>
           </div>
           
-          {topStores.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-slate-500 font-medium text-sm">Nenhuma loja ativa no momento.</p>
-            </div>
-          ) : (
-            <div className="flex overflow-x-auto hide-scroll-bar gap-6 py-6 px-2 snap-x">
-              {topStores.map((store) => {
-                const initial = store.nome_loja ? store.nome_loja.charAt(0).toUpperCase() : 'L';
-                return (
-                  <Link href={`/loja/${store.slug}`} key={store.id} className="flex flex-col items-center gap-3 min-w-[6.5rem] snap-start group cursor-pointer">
-                    <div className="w-24 h-24 rounded-full border-2 border-slate-200 bg-white p-1 shadow-sm group-hover:border-blue-500 group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
-                      {store.logo_url ? (
-                        <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black text-3xl">
-                          {initial}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 truncate w-full text-center px-1">
-                      {store.nome_loja}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <PartnerStoresMarquee stores={topStores} />
         </section>
 
         {/* 4. Prateleiras de Produtos (Grids) */}
