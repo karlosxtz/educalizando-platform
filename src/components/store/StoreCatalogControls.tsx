@@ -4,6 +4,7 @@ import { GraduationCap, Search, SlidersHorizontal, Tags, X } from 'lucide-react'
 import { Category, EducationLevel, StoreCollection } from '@/lib/types';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import StoreCollections from '@/components/store/StoreCollections';
+import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
 interface StoreCatalogControlsProps {
   categories: Category[];
@@ -25,12 +26,6 @@ const collectionTitles: Record<StoreCollection, string> = {
   new: 'Novidades da loja',
   plr: 'Licenças PLR',
 };
-
-const schoolCalendarFilters = [
-  ['Volta às aulas', 'volta às aulas'], ['Carnaval', 'carnaval'], ['Páscoa', 'páscoa'], ['Dia dos Povos Indígenas', 'povos indígenas'],
-  ['Dia das Mães', 'dia das mães'], ['Festa Junina', 'festa junina'], ['Dia dos Pais', 'dia dos pais'], ['Folclore', 'folclore'],
-  ['Independência do Brasil', 'independência'], ['Dia das Crianças', 'dia das crianças'], ['Consciência Negra', 'consciência negra'], ['Natal', 'natal'],
-] as const;
 
 export default function StoreCatalogControls({
   categories,
@@ -85,9 +80,9 @@ export default function StoreCatalogControls({
         <div className="space-y-2">
           <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Datas e projetos escolares</p>
           <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-            {schoolCalendarFilters.map(([label, term]) => {
-              const selected = searchFilter.toLocaleLowerCase('pt-BR') === term;
-              return <button key={term} type="button" onClick={() => setSearchFilter(selected ? '' : term)} className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : isDark ? 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'}`}>{label}</button>;
+            {SCHOOL_CALENDAR_TAGS.map((label) => {
+              const selected = searchFilter.toLocaleLowerCase('pt-BR') === label.toLocaleLowerCase('pt-BR');
+              return <button key={label} type="button" onClick={() => setSearchFilter(selected ? '' : label)} className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : isDark ? 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'}`}>{label}</button>;
             })}
           </div>
         </div>

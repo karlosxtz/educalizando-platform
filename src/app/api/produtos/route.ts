@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
       format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
       preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
-      seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 16) : [],
+      seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
       created_at: new Date().toISOString()
     };
 
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
         age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
         format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
         preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
-        seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 16) : [],
+        seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
         created_at: new Date().toISOString()
       };
 

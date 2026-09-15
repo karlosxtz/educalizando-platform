@@ -18,6 +18,7 @@ import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 import { toast } from 'sonner';
+import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
 function ProductWizardContent() {
   const router = useRouter();
@@ -578,7 +579,7 @@ function ProductWizardContent() {
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">Datas e projetos escolares</label>
                   <p className="mb-3 text-xs text-slate-500">Marque as ocasiões em que este material pode ser usado. Elas aparecerão como filtros na vitrine.</p>
                   <div className="flex flex-wrap gap-2">
-                    {['Volta às aulas', 'Carnaval', 'Páscoa', 'Dia das Mães', 'Festa Junina', 'Dia dos Pais', 'Folclore', 'Independência', 'Dia das Crianças', 'Consciência Negra', 'Natal'].map((tag) => {
+                    {SCHOOL_CALENDAR_TAGS.map((tag) => {
                       const selected = seasonalTags.includes(tag);
                       return <button key={tag} type="button" onClick={() => setSeasonalTags((current) => selected ? current.filter((item) => item !== tag) : [...current, tag])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</button>;
                     })}
