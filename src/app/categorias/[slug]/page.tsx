@@ -28,6 +28,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://educalizando.com.br/categorias/${slug}`,
+    },
     openGraph: {
       title,
       description,
@@ -61,14 +64,43 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
   });
 
   const products = result.data;
+  const pageUrl = `https://educalizando.com.br/categorias/${slug}`;
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `Materiais de ${category.nome}`,
+      description: `Atividades e materiais didáticos de ${category.nome} para imprimir.`,
+      url: pageUrl,
+      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://educalizando.com.br/' },
+        { '@type': 'ListItem', position: 2, name: 'Categorias', item: 'https://educalizando.com.br/buscar' },
+        { '@type': 'ListItem', position: 3, name: category.nome, item: pageUrl },
+      ],
+    },
+    ...(products.length ? [{
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: `Materiais de ${category.nome}`,
+      itemListElement: products.slice(0, 24).map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+        name: product.titulo,
+      })),
+    }] : []),
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        '@context': 'https://schema.org', '@type': 'CollectionPage', name: `Materiais de ${category.nome}`,
-        description: `Atividades e materiais didáticos de ${category.nome} para imprimir.`, url: `https://educalizando.com.br/categorias/${slug}`,
-        isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' }
-      }) }} />
+      {structuredData.map((data, index) => (
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+      ))}
       <MarketplaceHeader />
       
       <main className="flex-1">
@@ -78,9 +110,9 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
             <h1 className="text-3xl md:text-4xl font-bold text-[#093b6c] mb-4">
               Materiais de {category.nome}
             </h1>
-            <h2 className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
               Explore nossa seleção cuidadosamente curada de atividades, e-books e recursos pedagógicos de {category.nome}. Perfeito para professores, pais e educadores.
-            </h2>
+            </p>
           </div>
         </section>
 

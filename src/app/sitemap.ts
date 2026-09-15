@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllPublicStores, getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { getCategories, getEducationLevels } from '@/lib/category-service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://educalizando.com.br';
@@ -38,8 +39,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
+    const [stores, products, categories, educationLevels] = await Promise.all([
+      getAllPublicStores(),
+      getAllPublicMarketplaceProducts(5000),
+      getCategories(),
+      getEducationLevels(),
+    ]);
+
+    // Páginas de descoberta permanentes: importantes para quem pesquisa por
+    // disciplina ou etapa de ensino, mesmo antes de conhecer uma loja.
+    categories.forEach((category) => {
+      if (!category.slug) return;
+      sitemapEntries.push({
+        url: `${baseUrl}/categorias/${category.slug}`,
+        lastModified: category.created_at ? new Date(category.created_at) : new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.75,
+      });
+    });
+
+    educationLevels.forEach((level) => {
+      if (!level.slug) return;
+      sitemapEntries.push({
+        url: `${baseUrl}/atividades-por-ano/${level.slug}`,
+        lastModified: level.created_at ? new Date(level.created_at) : new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.75,
+      });
+    });
+
     // Busca todas as lojas públicas
-    const stores = await getAllPublicStores();
     stores.forEach((store) => {
       sitemapEntries.push({
         url: `${baseUrl}/loja/${store.slug}`,
@@ -49,9 +78,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
-    // Busca todos os produtos do marketplace
-    // 5000 é um limite seguro para o sitemap sem precisar paginar
-    const products = await getAllPublicMarketplaceProducts(5000); 
+    // Busca todos os produtos do marketplace.
+    // 5000 é um limite seguro para o sitemap sem precisar paginar.
     products.forEach((product) => {
       sitemapEntries.push({
         url: `${baseUrl}/produto/${product.id}`,

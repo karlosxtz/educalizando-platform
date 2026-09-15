@@ -32,6 +32,9 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+    },
     openGraph: {
       title,
       description,

@@ -29,6 +29,9 @@ export async function generateMetadata({ params }: EducationLevelPageProps): Pro
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://educalizando.com.br/atividades-por-ano/${slug}`,
+    },
     openGraph: {
       title,
       description,
@@ -62,9 +65,43 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
   });
 
   const products = result.data;
+  const pageUrl = `https://educalizando.com.br/atividades-por-ano/${slug}`;
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `Materiais e atividades para ${level.nome}`,
+      description: `Atividades, apostilas e recursos pedagógicos para ${level.nome}.`,
+      url: pageUrl,
+      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://educalizando.com.br/' },
+        { '@type': 'ListItem', position: 2, name: 'Níveis de ensino', item: 'https://educalizando.com.br/buscar' },
+        { '@type': 'ListItem', position: 3, name: level.nome, item: pageUrl },
+      ],
+    },
+    ...(products.length ? [{
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: `Materiais para ${level.nome}`,
+      itemListElement: products.slice(0, 24).map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+        name: product.titulo,
+      })),
+    }] : []),
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] selection:bg-blue-600 selection:text-white">
+      {structuredData.map((data, index) => (
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+      ))}
       <MarketplaceHeader />
       
       <main className="flex-1">
@@ -77,9 +114,9 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
             <h1 className="text-3xl md:text-5xl font-black text-[#093b6c] mb-6 tracking-tight leading-tight">
               Materiais e Atividades para <br className="hidden md:block"/> {level.nome}
             </h1>
-            <h2 className="text-gray-600 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+            <p className="text-gray-600 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
               Explore nossa seleção de apostilas, e-books e recursos pedagógicos desenvolvidos especificamente para {level.nome}.
-            </h2>
+            </p>
           </div>
         </section>
 
