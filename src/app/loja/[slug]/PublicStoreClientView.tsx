@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Store, Product, StoreListingProduct, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
+import { Store, Product, StoreListingProduct, StoreCollection, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 
@@ -43,6 +43,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   const [kits, setKits] = useState<Kit[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedEducation, setSelectedEducation] = useState<string>('all');
+  const [selectedCollection, setSelectedCollection] = useState<StoreCollection>('all');
 
   useEffect(() => {
     loadMetadata();
@@ -69,7 +70,15 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
       (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
     const matchCategory = selectedCategory === 'all' || p.category_id === selectedCategory;
     const matchEducation = selectedEducation === 'all' || p.education_level_id === selectedEducation;
-    return matchSearch && matchCategory && matchEducation;
+    const matchCollection = selectedCollection !== 'plr' || p.listing_mode === 'plr';
+    return matchSearch && matchCategory && matchEducation && matchCollection;
+  }).sort((a, b) => {
+    if (selectedCollection === 'popular') {
+      const score = (product: StoreListingProduct) => Number(product.views_count || 0) + (Number(product.review_count || 0) * 10) + (Number(product.average_rating || 0) * 2);
+      return score(b) - score(a) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    if (selectedCollection === 'new') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return 0;
   });
 
   const themeProps: StoreThemeProps = {
@@ -84,7 +93,9 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     selectedEducation,
     setSelectedEducation,
     searchFilter,
-    setSearchFilter
+    setSearchFilter,
+    selectedCollection,
+    setSelectedCollection
   };
 
   const layout = store.layout_theme || 'default';

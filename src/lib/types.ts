@@ -117,6 +117,8 @@ export interface StoreListingProduct extends Product {
   listing_mode?: 'standard' | 'plr';
 }
 
+export type StoreCollection = 'all' | 'popular' | 'new' | 'plr';
+
 export interface KitItem {
   id: string;
   kit_id: string;
@@ -279,6 +281,8 @@ export interface StoreThemeProps {
   setSelectedEducation: (id: string) => void;
   searchFilter: string;
   setSearchFilter: (term: string) => void;
+  selectedCollection: StoreCollection;
+  setSelectedCollection: (collection: StoreCollection) => void;
 }
 
 export interface BnccSkill {

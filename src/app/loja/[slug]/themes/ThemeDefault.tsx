@@ -52,6 +52,7 @@ import { Store, StoreListingProduct, ProductType, Category, EducationLevel, Kit 
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import StoreCollections from '@/components/store/StoreCollections';
 
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 
@@ -70,7 +71,9 @@ export default function ThemeDefault(props: StoreThemeProps) {
     selectedEducation, 
     setSelectedEducation, 
     searchFilter, 
-    setSearchFilter 
+    setSearchFilter,
+    selectedCollection,
+    setSelectedCollection
   } = props;
 
   const [selectedProduct, setSelectedProduct] = useState<StoreListingProduct | null>(null);
@@ -330,6 +333,10 @@ export default function ThemeDefault(props: StoreThemeProps) {
         </div>
       </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant="default" />
+      </div>
+
       {/* Main Store Products Catalog */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         
@@ -522,6 +529,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                     setSearchFilter('');
                     setSelectedCategory('all');
                     setSelectedEducation('all');
+                    setSelectedCollection('all');
                   }}
                   className={`inline-flex items-center gap-2 px-5 py-3 ${btnRadius} text-xs font-black text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all shadow-sm`}
                 >

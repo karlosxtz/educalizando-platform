@@ -32,6 +32,7 @@ import { Store, StoreListingProduct, ProductType, Category, EducationLevel, Kit 
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import StoreCollections from '@/components/store/StoreCollections';
 
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 
@@ -50,7 +51,9 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
     selectedEducation, 
     setSelectedEducation, 
     searchFilter, 
-    setSearchFilter 
+    setSearchFilter,
+    selectedCollection,
+    setSelectedCollection
   } = props;
 
   const [selectedProduct, setSelectedProduct] = useState<StoreListingProduct | null>(null);
@@ -273,6 +276,10 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant="linktree" />
       </div>
 
       {/* Main Store Products Catalog */}
