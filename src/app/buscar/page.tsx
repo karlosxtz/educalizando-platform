@@ -42,6 +42,10 @@ export default async function BuscarPage({
     pageTitle = `Explorando: ${catName}`;
     pageSubtitle = `Encontramos ${count} material(is) nesta categoria.`;
   }
+  if (sort === 'popular') {
+    pageTitle = 'Materiais mais acessados';
+    pageSubtitle = 'Uma seleção dos materiais que mais despertam interesse na plataforma.';
+  }
   if (data && SCHOOL_CALENDAR_TAGS.includes(data as typeof SCHOOL_CALENDAR_TAGS[number])) {
     pageTitle = `Materiais para: ${data}`;
     pageSubtitle = `Encontre materiais preparados para esta data ou projeto escolar.`;

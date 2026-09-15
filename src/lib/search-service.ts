@@ -113,10 +113,11 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       const { data, error, count } = await query;
 
       if (!error && data) {
+        const popularData = filters.sort === 'popular' ? data.slice(0, 12) : data;
         return {
-          data: data as (Product & { store?: Store })[],
-          count: count || 0,
-          totalPages: count ? Math.ceil(count / ITEMS_PER_PAGE) : 0
+          data: popularData as (Product & { store?: Store })[],
+          count: filters.sort === 'popular' ? popularData.length : count || 0,
+          totalPages: filters.sort === 'popular' ? 1 : count ? Math.ceil(count / ITEMS_PER_PAGE) : 0
         };
       }
     } catch (err) {
@@ -185,12 +186,16 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     allProducts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
+  if (filters.sort === 'popular') {
+    allProducts = allProducts.slice(0, 12);
+  }
+
   const paginated = allProducts.slice(from, to + 1);
 
   return {
     data: paginated,
     count: allProducts.length,
-    totalPages: Math.ceil(allProducts.length / ITEMS_PER_PAGE)
+    totalPages: filters.sort === 'popular' ? 1 : Math.ceil(allProducts.length / ITEMS_PER_PAGE)
   };
 }
 
