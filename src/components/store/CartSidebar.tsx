@@ -26,7 +26,7 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
       <div className="fixed inset-y-0 right-0 z-[9999] w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 safe-padding-top">
           <div className="flex items-center gap-2 text-slate-900">
             <ShoppingBag className="w-5 h-5" />
             <h2 className="text-lg font-bold">Seu Carrinho</h2>
@@ -43,7 +43,7 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
         </div>
 
         {/* Item List */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
               <ShoppingBag className="w-12 h-12 opacity-20" />
@@ -56,9 +56,9 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4">
+                <div key={item.id} className="flex gap-3 sm:gap-4">
                   {/* Thumbnail Placeholder if no image */}
                   <div className="w-20 h-20 bg-slate-100 rounded-xl border border-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
                     {item.imageUrl ? (
@@ -109,7 +109,7 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="p-6 bg-slate-50 border-t border-slate-200">
+          <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 safe-padding-bottom">
             <div className="flex items-center justify-between mb-4">
               <span className="text-slate-500 font-medium">Subtotal</span>
               <span className="text-xl font-black text-slate-900">

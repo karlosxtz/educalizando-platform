@@ -83,17 +83,17 @@ export default function CartPage() {
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
       <MarketplaceHeader />
       
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 sm:mb-8">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">Carrinho de Compras</h1>
               <p className="text-slate-500 mt-1">Seus itens estão agrupados por loja parceira.</p>
             </div>
             <button 
               onClick={clearCart}
-              className="text-sm font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              className="self-start text-sm font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4" /> Esvaziar Carrinho
             </button>
@@ -123,7 +123,7 @@ export default function CartPage() {
                   return (
                     <div key={storeId} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                       {/* Cabeçalho da Loja */}
-                      <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                      <div className="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <StoreIcon className="w-5 h-5 text-slate-500" />
                           <h2 className="font-bold text-slate-800 text-lg">{storeName}</h2>
@@ -133,7 +133,7 @@ export default function CartPage() {
                       {/* Itens da Loja */}
                       <div className="divide-y divide-slate-100">
                         {storeItems.map((item) => (
-                          <div key={item.id} className="p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                          <div key={item.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center">
                             <img 
                               src={item.imageUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&auto=format&fit=crop&q=80'} 
                               alt={item.title} 
@@ -145,7 +145,7 @@ export default function CartPage() {
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}
                               </p>
                               
-                              <div className="flex items-center gap-4">
+                              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                                 <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
                                   <button 
                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -181,7 +181,7 @@ export default function CartPage() {
 
               {/* Coluna Direita: Resumo (lg:col-span-4) */}
               <div className="lg:col-span-4">
-                <div className="sticky top-28 space-y-6">
+                <div className="lg:sticky lg:top-28 space-y-6">
                   {Object.entries(groupedItems).map(([storeId, storeItems]) => {
                     const storeData = storeMap[storeId];
                     const storeName = storeData?.nome_loja || 'Loja';

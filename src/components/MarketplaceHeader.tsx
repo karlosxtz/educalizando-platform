@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ShoppingCart, Search } from 'lucide-react';
+import { ShoppingCart, UserRound } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
 import { useCart } from '@/components/store/CartContext';
@@ -47,9 +47,9 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100 transition-all py-4">
+    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all py-3 sm:py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
           
           {/* Esquerda: Logo */}
           <div className="flex items-center justify-between w-full md:w-auto">
@@ -62,8 +62,15 @@ function MarketplaceHeaderInner() {
               />
             </Link>
             
-            <div className="flex md:hidden items-center">
-              <button onClick={toggleCart} className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors relative">
+            <div className="flex md:hidden items-center gap-1">
+              <Link
+                href={accountAreaHref || '/entrar'}
+                aria-label={accountAreaHref ? 'Acessar minha área' : 'Entrar ou criar conta'}
+                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors"
+              >
+                <UserRound className="w-5 h-5" />
+              </Link>
+              <button onClick={toggleCart} aria-label="Abrir carrinho" className="min-h-11 min-w-11 p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors relative">
                 <ShoppingCart className="w-6 h-6" />
                 {cartItemsCount > 0 && (
                   <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
@@ -108,10 +115,10 @@ function MarketplaceHeaderInner() {
       {/* 2. Navegação Secundária (Fiel ao Concorrente) */}
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 sm:py-3 gap-2 sm:gap-4">
             
             {/* Esquerda: Links Simples */}
-            <div className="flex items-center gap-6">
+            <div className="flex w-full sm:w-auto items-center gap-5 overflow-x-auto hide-scroll-bar pb-1 sm:pb-0">
               <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
                 Início
               </Link>
@@ -122,7 +129,7 @@ function MarketplaceHeaderInner() {
             </div>
 
             {/* Direita: Pills Elegantes */}
-            <div className="flex items-center gap-2 overflow-x-auto hide-scroll-bar">
+            <div className="flex w-full sm:w-auto items-center gap-2 overflow-x-auto hide-scroll-bar pb-1 sm:pb-0">
               <Link 
                 href="/buscar?sort=popular"
                 className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentSort === 'popular' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}

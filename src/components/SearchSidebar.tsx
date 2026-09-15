@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 const PRECOS = [
   { id: 'gratis', label: 'Grátis' },
@@ -26,6 +27,7 @@ const FORMATOS = [
 export default function SearchSidebar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -47,6 +49,7 @@ export default function SearchSidebar() {
   );
 
   const handleFilterClick = (name: string, value: string) => {
+    setMobileFiltersOpen(false);
     router.push(`/buscar?${createQueryString(name, value)}`);
   };
 
@@ -56,7 +59,17 @@ export default function SearchSidebar() {
   const currentFormato = searchParams.get('formato');
 
   return (
-    <aside className="w-full lg:w-64 shrink-0 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm h-fit">
+    <aside className="w-full lg:w-64 shrink-0 bg-white border border-slate-200 rounded-2xl shadow-sm h-fit">
+      <button
+        type="button"
+        onClick={() => setMobileFiltersOpen((open) => !open)}
+        className="lg:hidden flex min-h-12 w-full items-center justify-between px-4 text-sm font-black text-slate-900"
+        aria-expanded={mobileFiltersOpen}
+      >
+        <span className="flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-blue-600" /> Filtros do catálogo</span>
+        {mobileFiltersOpen ? <X className="h-4 w-4 text-slate-500" /> : <span className="text-xs text-blue-600">Abrir</span>}
+      </button>
+      <div className={`${mobileFiltersOpen ? 'block' : 'hidden'} lg:block p-5 lg:p-6`}>
       
       {/* Categorias */}
       <div className="mb-8">
@@ -144,6 +157,7 @@ export default function SearchSidebar() {
         </div>
       </div>
       
+      </div>
     </aside>
   );
 }
