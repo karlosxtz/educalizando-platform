@@ -522,19 +522,6 @@ export default function ThemeDefault(props: StoreThemeProps) {
               </p>
             </div>
 
-            {products.length === 0 && (
-              <div className="pt-2">
-                <button
-                  onClick={() => window.location.href = '/dashboard/produtos'}
-                  className={`inline-flex items-center gap-2 px-5 py-3 ${btnRadius} text-xs font-black text-white shadow-lg hover:brightness-110 active:scale-95 transition-all`}
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Cadastrar Meu Primeiro Produto</span>
-                </button>
-              </div>
-            )}
-
           {(searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' || selectedCollection !== 'all') && products.length > 0 && (
               <div className="pt-2">
                 <button

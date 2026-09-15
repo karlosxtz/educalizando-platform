@@ -435,18 +435,6 @@ export default function ThemeNetflix(props: StoreThemeProps) {
               </p>
             </div>
 
-            {products.length === 0 && (
-              <div className="pt-2">
-                <Link
-                  href="/dashboard/produtos"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black text-white shadow-lg hover:brightness-110 active:scale-95 transition-all"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Cadastrar Meu Primeiro Produto</span>
-                </Link>
-              </div>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
