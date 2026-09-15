@@ -51,7 +51,11 @@ export default async function PublicStorePage({ params }: PageProps) {
   console.log(`[PublicStorePage] Loja encontrada: id=${store.id}, nome="${store.nome_loja}"`);
 
   const allProducts = await getPublicProductsByStoreId(store.id);
-  const products = allProducts.filter(p => !p.is_free && (p.preco || 0) > 0);
+  const products = allProducts.filter((product) => {
+    const hasStandardOffer = !product.is_free && Number(product.preco || 0) > 0;
+    const hasPlrOffer = product.is_plr === true && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery === true;
+    return hasStandardOffer || hasPlrOffer;
+  });
 
   console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 

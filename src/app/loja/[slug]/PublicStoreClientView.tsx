@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Store, Product, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
+import { Store, Product, StoreListingProduct, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 
@@ -20,7 +20,22 @@ interface PublicStoreClientViewProps {
 export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
   // Products come correctly from the server (SSR) via initialProducts
   // We do NOT re-fetch them client-side because Supabase anon RLS blocks it
-  const [products] = useState<Product[]>(initialProducts);
+  const [products] = useState<StoreListingProduct[]>(() => initialProducts.flatMap((product) => {
+    const standardOffer: StoreListingProduct = { ...product, listing_mode: 'standard' };
+    const hasPlrOffer = product.is_plr === true && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery === true;
+
+    if (!hasPlrOffer) return [standardOffer];
+
+    return [
+      standardOffer,
+      {
+        ...product,
+        // A oferta de PLR é visualmente independente, mas mantém o mesmo ID para entregar o arquivo certo.
+        preco: Number(product.preco_plr),
+        listing_mode: 'plr',
+      }
+    ];
+  }));
   const [searchFilter, setSearchFilter] = useState('');
   
   const [categories, setCategories] = useState<Category[]>([]);

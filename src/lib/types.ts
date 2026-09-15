@@ -112,6 +112,11 @@ export interface Product {
   updated_at?: string;
 }
 
+/** Oferta exibida na vitrine. A licença PLR usa o mesmo produto, mas uma compra distinta. */
+export interface StoreListingProduct extends Product {
+  listing_mode?: 'standard' | 'plr';
+}
+
 export interface KitItem {
   id: string;
   kit_id: string;
@@ -263,8 +268,8 @@ export interface Affiliate {
 
 export interface StoreThemeProps {
   store: Store;
-  products: Product[];
-  filteredProducts: Product[];
+  products: StoreListingProduct[];
+  filteredProducts: StoreListingProduct[];
   categories: Category[];
   educationLevels: EducationLevel[];
   kits: Kit[];

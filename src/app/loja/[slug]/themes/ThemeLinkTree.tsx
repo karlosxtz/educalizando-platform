@@ -28,7 +28,7 @@ const InstagramIcon = ({ className }: { className?: string }) => (
     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
   </svg>
 );
-import { Store, Product, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
+import { Store, StoreListingProduct, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
@@ -53,7 +53,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
     setSearchFilter 
   } = props;
 
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<StoreListingProduct | null>(null);
   const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const { addToCart } = useCart();
 
@@ -85,7 +85,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
         productId: selectedProduct.id,
         title: selectedProduct.titulo,
         price: selectedProduct.preco,
-        isPlr: false,
+        isPlr: selectedProduct.listing_mode === 'plr',
         storeId: store.id,
         type: selectedProduct.tipo,
         imageUrl: selectedProduct.capa_url || undefined,
@@ -451,11 +451,11 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
-                  key={prod.id}
+                  key={`${prod.id}-${prod.listing_mode || 'standard'}`}
                   className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
                   <Link 
-                    href={`/loja/${store.slug}/produto/${prod.id}`}
+                    href={`/loja/${store.slug}/produto/${prod.slug || prod.id}${prod.listing_mode === 'plr' ? '?licenca=plr' : ''}`}
                     className="flex-1 p-5 flex flex-col justify-between space-y-4 cursor-pointer"
                   >
                     <div className="space-y-3">
@@ -479,6 +479,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                           {getTipoIcon(prod.tipo)}
                           <span>{prod.tipo}</span>
                         </span>
+                        {prod.listing_mode === 'plr' && <span className="absolute top-2.5 right-2.5 bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-md">Licença PLR</span>}
                       </div>
 
                       {/* Category & Education Level Badges */}
@@ -519,7 +520,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                     {/* Price & Buy Action */}
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
                       <div>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Investimento</span>
+                        <span className={`text-[10px] uppercase tracking-wider block font-bold ${prod.listing_mode === 'plr' ? 'text-purple-600' : 'text-slate-400'}`}>{prod.listing_mode === 'plr' ? 'Licença PLR' : 'Produto final'}</span>
                         <span className="text-xl font-black tracking-tight text-slate-900">
                           R$ {prod.preco.toFixed(2).replace('.', ',')}
                         </span>
