@@ -3,9 +3,11 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function WhatsAppButton() {
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     // Retrasar a exibição para que não salte de imediato, e apenas no lado do cliente
@@ -13,7 +15,10 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!isVisible) return null;
+  // Dentro de uma loja, o contato precisa ser o do criador. As vitrines
+  // já renderizam seu próprio botão com store.whatsapp; ocultar o botão
+  // global impede que o suporte da plataforma fique sobreposto a ele.
+  if (!isVisible || pathname?.startsWith('/loja/')) return null;
 
   // Número de suporte
   const phoneNumber = '5521965008441';

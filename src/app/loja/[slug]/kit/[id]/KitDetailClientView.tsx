@@ -12,6 +12,7 @@ import { Store, Kit, ProductType, CouponValidationResult, Review } from '@/lib/t
 import { validateCouponCode } from '@/lib/coupon-service';
 // import { getReviews } from '@/lib/review-service'; // Kits no longer have direct reviews
 import ProductReviewsSection from '@/components/ProductReviewsSection';
+import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 
 interface KitDetailClientViewProps {
   store: Store;
@@ -334,7 +335,7 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
 
                     {store.whatsapp && (
                       <a 
-                        href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} 
+                        href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre o combo ${kit.titulo} da loja ${store.nome_loja}.`)}
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-xs font-bold hover:bg-[#128C7E] transition-colors flex items-center gap-1.5"
@@ -476,7 +477,7 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
                   <p className="text-[11px] text-emerald-700 font-medium">Fale com o autor pelo WhatsApp</p>
                 </div>
                 <a
-                  href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                  href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre o combo ${kit.titulo} da loja ${store.nome_loja}.`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-2 bg-[#25D366] text-white rounded-xl text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-xs flex-shrink-0 flex items-center gap-1.5"

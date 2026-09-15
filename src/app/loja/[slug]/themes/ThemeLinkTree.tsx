@@ -9,6 +9,7 @@ import {
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star
 } from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
+import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -211,7 +212,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                     </a>
                   )}
                   {store.whatsapp && (
-                    <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-[#25D366] text-white rounded-full text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-sm flex items-center gap-1.5">
+                    <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre a loja ${store.nome_loja} na Educalizando.`)} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-[#25D366] text-white rounded-full text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-sm flex items-center gap-1.5">
                       <MessageCircle className="w-4 h-4 fill-white" />
                       WhatsApp
                     </a>
@@ -626,7 +627,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
       {/* Floating WhatsApp Button */}
       {store.whatsapp && (
         <a
-          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+          href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre a loja ${store.nome_loja} na Educalizando.`)}
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform z-40 group min-h-[44px] min-w-[44px] mb-[env(safe-area-inset-bottom,20px)]"
@@ -648,7 +649,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
             </a>
           )}
           {store.whatsapp && (
-            <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+            <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre a loja ${store.nome_loja} na Educalizando.`)} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
           )}
