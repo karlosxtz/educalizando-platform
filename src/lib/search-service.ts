@@ -80,17 +80,27 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
       // 4. Ano Escolar
       if (filters.ano_escolar) {
-        const eduLevel = INITIAL_EDUCATION_LEVELS.find(e => e.slug === filters.ano_escolar);
+        const { data: eduLevel } = await supabase
+          .from('education_levels')
+          .select('id')
+          .eq('slug', filters.ano_escolar)
+          .maybeSingle();
         if (eduLevel) {
           query = query.eq('education_level_id', eduLevel.id);
+        } else {
+          // Uma URL de nível inexistente nunca deve devolver o catálogo todo.
+          query = query.eq('education_level_id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
-      // 5. Formato (Map para tipo)
+      // 5. Formato. PDF é um tipo próprio; Word, PowerPoint e planilha são
+      // detalhes declarados pelo criador e não devem ser confundidos com
+      // e-book ou simulado.
       if (filters.formato) {
         if (filters.formato === 'pdf') query = query.eq('tipo', 'pdf');
-        if (filters.formato === 'word' || filters.formato === 'ppt') query = query.eq('tipo', 'ebook'); 
-        if (filters.formato === 'planilha') query = query.eq('tipo', 'simulado'); // mock
+        if (filters.formato === 'word') query = query.ilike('format_details', '%word%');
+        if (filters.formato === 'ppt') query = query.or('format_details.ilike.%powerpoint%,format_details.ilike.%ppt%,format_details.ilike.%slides%');
+        if (filters.formato === 'planilha') query = query.or('format_details.ilike.%planilha%,format_details.ilike.%excel%');
       }
 
       // 6. Ordenação
@@ -164,8 +174,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
   if (filters.formato) {
     if (filters.formato === 'pdf') allProducts = allProducts.filter(p => p.tipo === 'pdf');
-    if (filters.formato === 'word' || filters.formato === 'ppt') allProducts = allProducts.filter(p => p.tipo === 'ebook');
-    if (filters.formato === 'planilha') allProducts = allProducts.filter(p => p.tipo === 'simulado');
+    const format = (product: Product) => (product.format_details || '').toLocaleLowerCase('pt-BR');
+    if (filters.formato === 'word') allProducts = allProducts.filter(p => format(p).includes('word'));
+    if (filters.formato === 'ppt') allProducts = allProducts.filter(p => ['powerpoint', 'ppt', 'slides'].some(term => format(p).includes(term)));
+    if (filters.formato === 'planilha') allProducts = allProducts.filter(p => ['planilha', 'excel'].some(term => format(p).includes(term)));
   }
 
   if (filters.sort) {
