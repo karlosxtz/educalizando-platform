@@ -8,7 +8,7 @@ import {
   Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
   LogIn, UserPlus, UserCheck, Clock, CheckCircle, Gift
 } from 'lucide-react';
-import { Store, Product, CouponValidationResult } from '@/lib/types';
+import { Store, Product, Kit, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
@@ -19,10 +19,11 @@ import { isValidCPF } from '@/lib/infinitepay-service';
 interface CheckoutClientViewProps {
   store: Store;
   product?: Product | null;
+  kit?: Kit | null;
   initialCouponCode?: string;
 }
 
-export default function CheckoutClientView({ store, product, initialCouponCode }: CheckoutClientViewProps) {
+export default function CheckoutClientView({ store, product, kit, initialCouponCode }: CheckoutClientViewProps) {
   // Scarcity timer state
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
 
@@ -40,16 +41,20 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   };
 
   const { items: globalCartItems } = useCart();
-  const cartItems = product ? [] : globalCartItems.filter(item => item.storeId === store.id);
+  const isDirectPurchase = Boolean(product || kit);
+  const cartItems = isDirectPurchase ? [] : globalCartItems.filter(item => item.storeId === store.id);
   const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const directTitle = product?.titulo || kit?.titulo || '';
+  const directImage = product?.capa_url || kit?.capa_url || null;
+  const directType = kit ? 'combo' : product?.tipo || 'material';
 
 // Student Auth Check State
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string; storeName?: string } | null>(null);
 
   const searchParams = useSearchParams();
-  const cartHasPlrItems = !product && cartItems.some(item => item.isPlr);
-  const cartHasStandardItems = !product && cartItems.some(item => !item.isPlr);
+  const cartHasPlrItems = !isDirectPurchase && cartItems.some(item => item.isPlr);
+  const cartHasStandardItems = !isDirectPurchase && cartItems.some(item => !item.isPlr);
   const hasMixedLicenseTypes = cartHasPlrItems && cartHasStandardItems;
   const isPlrPurchase = product
     ? searchParams.get('licenca') === 'plr' && product.is_plr === true
@@ -58,6 +63,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   // Computed Price State
   const [basePrice, setBasePrice] = useState<number>(() => {
     if (product) return (isPlrPurchase && product.preco_plr) ? product.preco_plr : product.preco;
+    if (kit) return kit.preco_kit;
     return cartTotal;
   });
   const [finalPrice, setFinalPrice] = useState<number>(basePrice);
@@ -69,12 +75,12 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   useEffect(() => {
     const newBasePrice = product
       ? (isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco)
-      : cartTotal;
+      : kit ? kit.preco_kit : cartTotal;
     setBasePrice(newBasePrice);
     setFinalPrice(newBasePrice);
     // Nota: Se houver um cupom já aplicado e o carrinho mudar, o usuário precisará reaplicar o cupom, 
     // o que é um comportamento padrão de segurança em e-commerces.
-  }, [cartTotal, product, isPlrPurchase]);
+  }, [cartTotal, product, kit, isPlrPurchase]);
 
   // Form State
   const [buyerName, setBuyerName] = useState('');
@@ -92,7 +98,9 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthError, setIsAuthError] = useState(false);
   const [hasRoleMismatch, setHasRoleMismatch] = useState(false);
-  const returnToProduct = product ? `/loja/${store.slug}/produto/${product.slug || product.id}` : `/loja/${store.slug}/checkout`;
+  const returnToProduct = product
+    ? `/loja/${store.slug}/produto/${product.slug || product.id}`
+    : kit ? `/loja/${store.slug}/kit/${kit.id}` : `/loja/${store.slug}/checkout`;
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -159,8 +167,8 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       const res = await validateCouponCode(
         store.id,
         couponCode,
-        'product',
-        product ? product.id : 'cart',
+        kit ? 'kit' : 'product',
+        product ? product.id : kit ? kit.id : 'cart',
         basePrice
       );
       setCouponResult(res);
@@ -243,6 +251,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         buyerPhone,
         isPlrPurchase,
         couponCode: couponResult?.valid ? couponCode : undefined,
+        kitId: kit?.id,
         items: product ? [
           {
             productId: product.id,
@@ -257,7 +266,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
             storeId: store.id,
             quantity: 1
           }] : [])
-        ] : cartItems.map(c => ({
+        ] : kit ? [] : cartItems.map(c => ({
           productId: c.productId,
           productTitle: c.isPlr ? `${c.title} (Licença PLR)` : c.title,
           unitPrice: c.price,
@@ -323,11 +332,19 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {product ? (
             <Link
-              href={`/loja/${store.slug}/produto/${product.id}`}
+              href={`/loja/${store.slug}/produto/${product.slug || product.id}`}
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Voltar ao produto</span>
+            </Link>
+          ) : kit ? (
+            <Link
+              href={`/loja/${store.slug}/kit/${kit.id}`}
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar ao combo</span>
             </Link>
           ) : (
             <Link
@@ -623,19 +640,19 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </h3>
 
               {/* Product Preview */}
-              {product ? (
+              {isDirectPurchase ? (
                 <div className="flex items-start gap-4">
                   <img
-                    src={product.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
-                    alt={product.titulo}
+                    src={directImage || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
+                    alt={directTitle}
                     className="w-16 h-20 object-cover rounded-2xl border border-slate-200 shadow-2xs flex-shrink-0"
                   />
                   <div className="space-y-1">
                     <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
-                      {product.tipo}
+                      {directType}
                     </span>
                     <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
-                      {isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo}
+                      {isPlrPurchase ? `${directTitle} (Licença PLR)` : directTitle}
                     </h4>
                     <p className="text-[11px] text-slate-500">Vendido por {store.nome_loja}</p>
                   </div>
@@ -772,7 +789,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </div>
               <button
                 type="submit"
-                disabled={submitting || (!product && cartItems.length === 0)}
+                disabled={submitting || (!isDirectPurchase && cartItems.length === 0)}
                 className="min-h-11 rounded-xl bg-brand-navy px-4 py-3 text-xs font-black text-white shadow-lg shadow-brand-navy/20 transition-all disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Abrindo pagamento...' : 'Ir para pagar'}

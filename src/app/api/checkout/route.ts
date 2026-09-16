@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       buyerCpf: rawBuyerCpf,
       buyerPhone,
       items = [],
+      kitId,
       isPlrPurchase = false,
       couponCode
     } = body;
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
       : undefined;
 
     // 2. Validação Estrita dos Campos Obrigatórios e Validação do CPF
-    if (!storeId || !buyerName || !buyerEmail || !isValidCPF(buyerCpf) || items.length === 0) {
+    if (!storeId || !buyerName || !buyerEmail || !isValidCPF(buyerCpf) || (!kitId && items.length === 0)) {
       return NextResponse.json(
         { success: false, error: 'Por favor, informe seu Nome Completo, E-mail e um CPF válido para a emissão do recibo.' },
         { status: 400 }
@@ -83,7 +84,31 @@ export async function POST(request: Request) {
     }
 
     // 3. Buscar Produtos Reais no Banco e Validar (SERVER-SIDE PRICE)
-    const productIds = items.map((it: any) => it.productId).filter(Boolean);
+    let kitContext: { id: string; storeId: string; title: string; price: number } | null = null;
+    let productIds = items.map((it: any) => it.productId).filter(Boolean);
+
+    // Kits are paid once but grant access to each included product. The kit and
+    // its products are always reloaded here, never trusted from the browser.
+    if (kitId) {
+      if (isPlrPurchase) {
+        return NextResponse.json({ success: false, error: 'Kits não podem ser comprados como licença PLR.' }, { status: 400 });
+      }
+      const { data: kit, error: kitError } = await supabaseAdmin
+        .from('kits')
+        .select('id, store_id, titulo, preco_kit, status, excluido_em, kit_items(product_id)')
+        .eq('id', kitId)
+        .maybeSingle();
+
+      if (kitError || !kit || kit.status !== 'publicado' || kit.excluido_em || kit.store_id !== storeId) {
+        return NextResponse.json({ success: false, error: 'Este combo não está disponível para compra.' }, { status: 400 });
+      }
+      productIds = (kit.kit_items || []).map((item: { product_id: string }) => item.product_id).filter(Boolean);
+      if (productIds.length === 0 || new Set(productIds).size !== productIds.length || !(Number(kit.preco_kit) > 0)) {
+        return NextResponse.json({ success: false, error: 'Este combo não possui materiais válidos para venda.' }, { status: 400 });
+      }
+      kitContext = { id: kit.id, storeId: kit.store_id, title: kit.titulo, price: Number(kit.preco_kit) };
+    }
+
     if (productIds.length === 0) {
       return NextResponse.json({ success: false, error: 'Carrinho vazio ou inválido.' }, { status: 400 });
     }
@@ -123,7 +148,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Um ou mais produtos não existem ou estão indisponíveis.' }, { status: 400 });
     }
 
-    if (new Set(productIds).size !== items.length) {
+    const checkoutItems = kitContext
+      ? productIds.map((productId: string) => ({ productId, quantity: 1 }))
+      : items;
+
+    if (new Set(productIds).size !== checkoutItems.length) {
       return NextResponse.json({ success: false, error: 'O carrinho contém itens duplicados ou inválidos.' }, { status: 400 });
     }
 
@@ -147,7 +176,25 @@ export async function POST(request: Request) {
     // 4. Reconstruir array de items com PREÇO REAL e QUANTIDADE validada
     const realItems: any[] = [];
     let appliedCouponId: string | null = null;
-    for (const item of items) {
+    let kitDiscountedPrice = kitContext?.price || 0;
+    if (kitContext && couponCode) {
+      const couponRes = await validateCouponCode(effectiveStoreId, couponCode, 'kit', kitContext.id, kitContext.price);
+      if (!couponRes.valid || couponRes.finalPrice === undefined) {
+        return NextResponse.json({ success: false, error: couponRes.message || 'Cupom inválido para este combo.' }, { status: 400 });
+      }
+      kitDiscountedPrice = couponRes.finalPrice;
+      appliedCouponId = couponRes.coupon?.id || null;
+    }
+
+    const kitProductTotal = kitContext
+      ? realProducts.reduce((total: number, product: any) => total + Number(product.preco || 0), 0)
+      : 0;
+    if (kitContext && !(kitProductTotal > 0)) {
+      return NextResponse.json({ success: false, error: 'Não foi possível calcular o valor dos materiais deste combo.' }, { status: 400 });
+    }
+    let allocatedKitCents = 0;
+
+    for (const [itemIndex, item] of checkoutItems.entries()) {
       const realProd = realProducts.find((p: any) => p.id === item.productId);
       if (!realProd) continue;
 
@@ -179,8 +226,18 @@ export async function POST(request: Request) {
       // Preço Base 
       let finalPrice = Number(isPlrPurchase ? realProd.preco_plr : realProd.preco);
 
+      if (kitContext) {
+        const kitCents = Math.round(kitDiscountedPrice * 100);
+        const isLastKitItem = itemIndex === checkoutItems.length - 1;
+        const allocatedCents = isLastKitItem
+          ? kitCents - allocatedKitCents
+          : Math.round(kitCents * (Number(realProd.preco || 0) / kitProductTotal));
+        allocatedKitCents += allocatedCents;
+        finalPrice = allocatedCents / 100;
+      }
+
       // Validação Estrita do Cupom no Servidor
-      if (couponCode) {
+      if (couponCode && !kitContext) {
         const couponRes = await validateCouponCode(effectiveStoreId, couponCode, 'product', realProd.id, finalPrice);
         if (couponRes.valid && couponRes.finalPrice !== undefined) {
           finalPrice = couponRes.finalPrice;
@@ -192,14 +249,14 @@ export async function POST(request: Request) {
 
       realItems.push({
         ...item,
-        productTitle: isPlrPurchase ? `${realProd.titulo} (Licença PLR)` : realProd.titulo,
+        productTitle: kitContext ? `${kitContext.title} — ${realProd.titulo}` : isPlrPurchase ? `${realProd.titulo} (Licença PLR)` : realProd.titulo,
         unitPrice: finalPrice, 
         quantity: safeQuantity,
         storeId: realProd.store_id // Garante storeId correto
       });
     }
 
-    if (realItems.length !== items.length || realItems.some(item => !(Number(item.unitPrice) > 0))) {
+    if (realItems.length !== checkoutItems.length || realItems.some(item => !(Number(item.unitPrice) > 0))) {
       return NextResponse.json({ success: false, error: 'Um ou mais itens possuem preço inválido.' }, { status: 400 });
     }
 

@@ -75,10 +75,9 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
 
   const handleStartCheckout = () => {
     setIsBuying(true);
-    setTimeout(() => {
-      setIsBuying(false);
-      setCheckoutSimulated(true);
-    }, 1000);
+    // O combo é sempre recalculado no servidor no checkout; esta tela nunca
+    // deve simular um pagamento ou liberar arquivos por conta própria.
+    window.location.assign(`/loja/${store.slug}/checkout?kitId=${encodeURIComponent(kit.id)}`);
   };
 
   return (

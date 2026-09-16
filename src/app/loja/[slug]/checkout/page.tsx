@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getStoreBySlug, getProductById } from '@/lib/store-service';
+import { getKitById } from '@/lib/kit-service';
 import CheckoutClientView from './CheckoutClientView';
 
 interface CheckoutPageProps {
@@ -17,6 +18,7 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
   }
 
   let product = null;
+  let kit = null;
   if (produtoId) {
     product = await getProductById(produtoId);
     if (product?.order_bump_id) {
@@ -27,6 +29,13 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
     }
   }
 
+  if (kitId) {
+    kit = await getKitById(kitId);
+    if (!kit || kit.store_id !== store.id || kit.status !== 'publicado' || kit.excluido_em) {
+      notFound();
+    }
+  }
+
   // Se não tem produto (checkout via carrinho), não tem problema, passamos null
   // Só joga 404 se a loja não existir (já validado acima)
 
@@ -34,6 +43,7 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
     <CheckoutClientView
       store={store}
       product={product}
+      kit={kit}
       initialCouponCode={cupom}
     />
   );
