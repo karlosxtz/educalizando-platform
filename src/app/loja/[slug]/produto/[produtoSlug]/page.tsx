@@ -158,7 +158,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       />
       
       {/* Visual Breadcrumb */}
-      <div className="bg-white border-b">
+      <div className="hidden sm:block bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav className="flex items-center text-sm text-slate-500 overflow-x-auto whitespace-nowrap hide-scrollbar">
             {breadcrumbItems.map((item, index) => (

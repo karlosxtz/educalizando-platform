@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, Star, ExternalLink
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review, BnccSkill } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -47,7 +47,7 @@ export default function ProductDetailClientView({
   const [isBuying, setIsBuying] = useState(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
   const [showCouponInput, setShowCouponInput] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart, toggleCart, items } = useCart();
 
   // Coupon State
   const [couponInput, setCouponInput] = useState('');
@@ -165,16 +165,27 @@ export default function ProductDetailClientView({
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
+      {/* Mobile marketplace header: one short navigation instead of stacked bars */}
+      <header className="lg:hidden bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" aria-label="Ir para a Educalizando" className="shrink-0">
+            <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
+          </Link>
+          <Link href="/buscar" className="flex flex-col items-center text-[9px] font-bold text-slate-700"><Grid2X2 className="h-4 w-4" />Categorias</Link>
+          <button type="button" onClick={toggleCart} className="relative flex flex-col items-center text-[9px] font-bold text-slate-700" aria-label="Abrir carrinho"><ShoppingCart className="h-5 w-5" />Carrinho{items.length > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] text-white">{items.length}</span>}</button>
+        </div>
+        <Link href="/buscar" className="mt-3 flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500"><Search className="h-4 w-4" />Buscar materiais, atividades e jogos...</Link>
+      </header>
       {/* Top Educalizando Security Bar - Escondido no contexto Global (Marketplace) */}
       {context !== 'marketplace' && (
         <>
-          <div className="bg-slate-900 py-2 px-4 text-center text-xs text-slate-300 flex items-center justify-center gap-2">
+          <div className="hidden sm:flex bg-slate-900 py-2 px-4 text-center text-xs text-slate-300 items-center justify-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Pagamento Seguro via PIX • Download Imediato na Área de Membros • Garantia Educalizando</span>
           </div>
 
           {/* Navigation Breadcrumb Bar */}
-          <header className="bg-white border-b border-slate-200 py-2 px-3 sm:py-3.5 sm:px-8">
+          <header className="hidden sm:block bg-white border-b border-slate-200 py-3.5 px-8">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <Link
                 href={`/loja/${store.slug}`}
@@ -200,7 +211,11 @@ export default function ProductDetailClientView({
           
           {/* LEFT COLUMN: Content */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-8">
-
+            <div className="lg:hidden space-y-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><Link href="/" className="hover:text-blue-600">Início</Link><span>›</span><Link href={`/loja/${store.slug}`} className="hover:text-blue-600 truncate max-w-[110px]">{store.nome_loja}</Link><span>›</span><span className="truncate">Material</span></div>
+              <h1 className="text-xl font-black leading-tight tracking-tight text-slate-900">{product.titulo}</h1>
+            </div>
+            
             {/* Cover Display & Gallery */}
             <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col gap-4">
               <div className="aspect-[3/4] max-w-md mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
@@ -254,10 +269,7 @@ export default function ProductDetailClientView({
                 {isPlrPurchase && <span className="rounded-full bg-purple-100 px-3 py-1 text-[10px] font-black uppercase text-purple-800">Licença PLR</span>}
                 {educationLevel && <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold text-indigo-700">{educationLevel.nome}</span>}
               </div>
-              <div>
-                <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900">{product.titulo}</h1>
-                <p className="mt-1 text-xs font-medium text-slate-500">Vendido por <strong>{store.nome_loja}</strong></p>
-              </div>
+              <p className="text-xs font-medium text-slate-500">Vendido por <strong>{store.nome_loja}</strong></p>
               <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 {reviews.length > 0 ? `${(reviews.reduce((total, review) => total + (review.nota || 5), 0) / reviews.length).toFixed(1)} · ${reviews.length} avaliações` : 'Novo material na plataforma'}
