@@ -52,8 +52,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
 
   return (
     <section 
-      className="w-full relative bg-slate-900 overflow-hidden" 
-      style={{ aspectRatio: '21/9', minHeight: '300px', maxHeight: '500px' }}
+      className="w-full relative bg-slate-900 overflow-hidden aspect-[16/9] sm:aspect-[21/9] sm:min-h-[300px] sm:max-h-[500px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -75,7 +74,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
                 <img 
                   src={activeBanner.image_desktop_url} 
                   alt={activeBanner.title || 'Banner principal'} 
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-contain object-center sm:object-cover"
                 />
               </picture>
             </Link>
@@ -87,7 +86,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
               <img 
                 src={activeBanner.image_desktop_url} 
                 alt={activeBanner.title || 'Banner principal'} 
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-contain object-center sm:object-cover"
               />
             </picture>
           )}
