@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+
+const PRODUCT_TYPES = new Set(['pdf', 'ebook', 'video', 'curso', 'simulado']);
+const PRODUCT_STATUSES = new Set(['rascunho', 'publicado']);
+
+function isValidProductPrice(value: unknown) {
+  const price = Number(value);
+  return Number.isFinite(price) && price >= 0 && price <= 100000;
+}
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
@@ -78,6 +86,9 @@ export async function POST(request: Request) {
 
     if (!titulo || !titulo.trim()) {
       return NextResponse.json({ error: 'O título do produto é obrigatório.' }, { status: 400 });
+    }
+    if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco)) {
+      return NextResponse.json({ error: 'Dados do produto inválidos. Revise título, tipo, status e preço.' }, { status: 400 });
     }
 
     const normalizedPageCount = page_count === null || page_count === '' ? null : Number(page_count);
@@ -319,6 +330,18 @@ export async function PUT(request: Request) {
       .maybeSingle();
 
     const cleanedUpdates: Record<string, any> = { ...updates };
+    if ('titulo' in cleanedUpdates && (typeof cleanedUpdates.titulo !== 'string' || cleanedUpdates.titulo.trim().length < 4 || cleanedUpdates.titulo.trim().length > 160)) {
+      return NextResponse.json({ error: 'O título deve ter entre 4 e 160 caracteres.' }, { status: 400 });
+    }
+    if ('tipo' in cleanedUpdates && !PRODUCT_TYPES.has(cleanedUpdates.tipo)) {
+      return NextResponse.json({ error: 'Tipo de material inválido.' }, { status: 400 });
+    }
+    if ('status' in cleanedUpdates && !PRODUCT_STATUSES.has(cleanedUpdates.status)) {
+      return NextResponse.json({ error: 'Status do produto inválido.' }, { status: 400 });
+    }
+    if ('preco' in cleanedUpdates && !isValidProductPrice(cleanedUpdates.preco)) {
+      return NextResponse.json({ error: 'Informe um preço válido entre R$ 0,00 e R$ 100.000,00.' }, { status: 400 });
+    }
     const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
     const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);
     const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : currentDelivery?.plr_license_url;
