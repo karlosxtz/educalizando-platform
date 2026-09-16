@@ -69,6 +69,11 @@
   }
 }
 
+html {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 /* Custom Utilities for Clean White Theme */
 .glass-panel {
   background: #ffffff;
@@ -175,8 +180,9 @@
 }
 
 .marketplace-category-track {
+  min-width: max-content;
   will-change: transform;
-  animation: marketplace-category-scroll 34s linear infinite;
+  animation: marketplace-category-scroll 18s linear infinite;
 }
 
 .marketplace-category-rail::before,

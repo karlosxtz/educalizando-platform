@@ -53,7 +53,7 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
+    <header className="w-full sticky top-0 z-50 overflow-x-clip bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
       {cartItemsCount > 0 && (
         <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
           <span aria-hidden="true">🎁</span>
@@ -151,12 +151,12 @@ function MarketplaceHeaderInner() {
           </div>
 
           <div className="sm:hidden">
-            <div className="flex h-11 items-center justify-between gap-2 border-b border-slate-100 px-1">
-              <Link href="/" className="px-2 py-2 text-xs font-extrabold text-slate-900">Início</Link>
-              <CategoryDropdown />
-              <Link href="/lojas" className="px-2 py-2 text-xs font-extrabold text-slate-600">Lojas</Link>
+            <div className="grid h-12 grid-cols-3 items-center border-b border-slate-100">
+              <Link href="/" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-900">Início</Link>
+              <div className="flex h-full items-center justify-center"><CategoryDropdown /></div>
+              <Link href="/lojas" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-600">Lojas</Link>
             </div>
-            <div className="marketplace-category-rail relative h-12 overflow-hidden py-2" aria-label="Categorias em destaque">
+            <div className="marketplace-category-rail relative h-[52px] overflow-hidden py-1.5" aria-label="Categorias em destaque">
               <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
                 {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
               </div>
