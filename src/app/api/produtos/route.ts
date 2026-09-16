@@ -8,6 +8,17 @@ function isValidProductPrice(value: unknown) {
   const price = Number(value);
   return Number.isFinite(price) && price >= 0 && price <= 100000;
 }
+
+function normalizePreviewUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
@@ -89,6 +100,11 @@ export async function POST(request: Request) {
     }
     if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco)) {
       return NextResponse.json({ error: 'Dados do produto inválidos. Revise título, tipo, status e preço.' }, { status: 400 });
+    }
+
+    const normalizedPreviewUrl = normalizePreviewUrl(preview_url);
+    if (typeof preview_url === 'string' && preview_url.trim() && !normalizedPreviewUrl) {
+      return NextResponse.json({ error: 'A prévia deve usar um link público iniciado por http:// ou https://.' }, { status: 400 });
     }
 
     const normalizedPageCount = page_count === null || page_count === '' ? null : Number(page_count);
@@ -175,7 +191,7 @@ export async function POST(request: Request) {
       page_count: normalizedPageCount,
       age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
       format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
-      preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
+      preview_url: normalizedPreviewUrl,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
       created_at: new Date().toISOString()
     };
@@ -218,7 +234,7 @@ export async function POST(request: Request) {
         page_count: normalizedPageCount,
         age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
         format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
-        preview_url: typeof preview_url === 'string' && preview_url.trim() ? preview_url.trim() : null,
+        preview_url: normalizedPreviewUrl,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
         created_at: new Date().toISOString()
       };
@@ -367,11 +383,18 @@ export async function PUT(request: Request) {
       }
       cleanedUpdates.page_count = pageCount;
     }
-    for (const field of ['age_range', 'format_details', 'preview_url']) {
+    for (const field of ['age_range', 'format_details']) {
       if (field in cleanedUpdates) {
         const value = cleanedUpdates[field];
-        cleanedUpdates[field] = typeof value === 'string' && value.trim() ? value.trim().slice(0, field === 'preview_url' ? 2000 : 180) : null;
+        cleanedUpdates[field] = typeof value === 'string' && value.trim() ? value.trim().slice(0, 180) : null;
       }
+    }
+    if ('preview_url' in cleanedUpdates) {
+      const previewUrl = normalizePreviewUrl(cleanedUpdates.preview_url);
+      if (typeof cleanedUpdates.preview_url === 'string' && cleanedUpdates.preview_url.trim() && !previewUrl) {
+        return NextResponse.json({ error: 'A prévia deve usar um link público iniciado por http:// ou https://.' }, { status: 400 });
+      }
+      cleanedUpdates.preview_url = previewUrl;
     }
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);
