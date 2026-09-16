@@ -187,7 +187,7 @@ export default async function Home() {
                 <Gift className="w-8 h-8 text-emerald-500" />
                 Materiais Gratuitos
               </h2>
-              <Link href="/buscar?filter=free" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
+              <Link href="/buscar?preco=gratis" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
                 Ver Todos <ChevronRight className="w-4 h-4" />
               </Link>
             </div>

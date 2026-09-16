@@ -34,6 +34,9 @@ export default async function BuscarPage({
   if (isPlrMarketplace) {
     pageTitle = 'Licenças PLR (Direitos de Revenda)';
     pageSubtitle = 'Compare o valor do produto final e o valor da licença para revenda.';
+  } else if (preco === 'gratis') {
+    pageTitle = 'Materiais Gratuitos';
+    pageSubtitle = 'Resgate materiais digitais gratuitos e acesse-os pela sua área de cliente.';
   } else if (q) {
     pageTitle = `Resultados para: "${q}"`;
     pageSubtitle = `Encontramos ${count} material(is) relacionado(s) à sua busca.`;
