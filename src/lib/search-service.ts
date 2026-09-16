@@ -8,6 +8,7 @@ export interface SearchFilters {
   categoria?: string;
   preco?: string;
   ano_escolar?: string;
+  disciplina?: string;
   formato?: string;
   sort?: string;
   filter?: string;
@@ -93,7 +94,31 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         }
       }
 
-      // 5. Formato. PDF é um tipo próprio; Word, PowerPoint e planilha são
+      // 5. Disciplina: produtos são associados à disciplina pelas habilidades
+      // da BNCC. Primeiro localizamos as habilidades, depois os materiais que
+      // as utilizam; assim a rota pública não depende de texto livre no título.
+      if (filters.disciplina) {
+        const { data: skills } = await supabase
+          .from('bncc_skills')
+          .select('id')
+          .eq('subject', filters.disciplina);
+        const skillIds = (skills || []).map((skill) => skill.id);
+
+        if (!skillIds.length) {
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+        } else {
+          const { data: links } = await supabase
+            .from('product_bncc_skills')
+            .select('product_id')
+            .in('bncc_skill_id', skillIds);
+          const productIds = [...new Set((links || []).map((link) => link.product_id))];
+          query = productIds.length
+            ? query.in('id', productIds)
+            : query.eq('id', '00000000-0000-0000-0000-000000000000');
+        }
+      }
+
+      // 6. Formato. PDF é um tipo próprio; Word, PowerPoint e planilha são
       // detalhes declarados pelo criador e não devem ser confundidos com
       // e-book ou simulado.
       if (filters.formato) {
@@ -103,7 +128,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         if (filters.formato === 'planilha') query = query.or('format_details.ilike.%planilha%,format_details.ilike.%excel%');
       }
 
-      // 6. Ordenação
+      // 7. Ordenação
       if (filters.sort) {
         if (filters.sort === 'popular') {
           query = query.order('views_count', { ascending: false }).order('created_at', { ascending: false });

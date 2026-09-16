@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getAllPublicStores, getAllPublicMarketplaceProducts } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
+import { getDisciplines } from '@/lib/discipline-service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Must match the canonical host configured in the root metadata.
@@ -40,11 +41,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [stores, products, categories, educationLevels] = await Promise.all([
+    const [stores, products, categories, educationLevels, disciplines] = await Promise.all([
       getAllPublicStores(),
       getAllPublicMarketplaceProducts(5000),
       getCategories(),
       getEducationLevels(),
+      getDisciplines(),
     ]);
 
     // Páginas de descoberta permanentes: importantes para quem pesquisa por
@@ -64,6 +66,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       sitemapEntries.push({
         url: `${baseUrl}/atividades-por-ano/${level.slug}`,
         lastModified: level.created_at ? new Date(level.created_at) : new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.75,
+      });
+    });
+
+    disciplines.forEach((discipline) => {
+      sitemapEntries.push({
+        url: `${baseUrl}/disciplinas/${discipline.slug}`,
+        lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.75,
       });
