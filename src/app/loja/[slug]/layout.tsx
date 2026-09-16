@@ -24,7 +24,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     <CartProvider storeId={store.id}>
       {children}
       <CartWidget />
-      <CartSidebar storeSlug={store.slug} />
+      <CartSidebar storeSlug={store.slug} store={store} />
     </CartProvider>
   );
 }

@@ -18,7 +18,7 @@ export default function MarketplaceHeader() {
 }
 
 function MarketplaceHeaderInner() {
-  const { items, toggleCart } = useCart();
+  const { items, toggleCart, total } = useCart();
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
   const [accountAreaHref, setAccountAreaHref] = useState<string | null>(null);
@@ -47,7 +47,15 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all py-3 sm:py-4">
+    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
+      {cartItemsCount > 0 && (
+        <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
+          <span aria-hidden="true">🎁</span>
+          <span>Seu carrinho: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}.</span>
+          <span className="underline underline-offset-2">Ver ofertas</span>
+        </Link>
+      )}
+      <div className="py-3 sm:py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
           
@@ -112,7 +120,8 @@ function MarketplaceHeaderInner() {
         </div>
       </div>
 
-      {/* 2. Navegação Secundária (Fiel ao Concorrente) */}
+      </div>
+      {/* 2. Navegação Secundária */}
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 sm:py-3 gap-2 sm:gap-4">

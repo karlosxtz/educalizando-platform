@@ -1,15 +1,19 @@
 'use client';
 
 import { useCart } from './CartContext';
-import { X, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
+import { X, ShoppingBag, Trash2, ArrowRight, Gift, Check } from 'lucide-react';
 import Link from 'next/link';
+import type { Store } from '@/lib/types';
+import { getStorePromotion } from '@/lib/store-promotion';
 
 interface CartSidebarProps {
   storeSlug?: string;
+  store?: Store;
 }
 
-export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
+export default function CartSidebar({ storeSlug, store }: CartSidebarProps = {}) {
   const { items, isOpen, setIsOpen, total, removeFromCart } = useCart();
+  const promotion = getStorePromotion(store, total);
 
   if (!isOpen) return null;
 
@@ -110,6 +114,22 @@ export default function CartSidebar({ storeSlug }: CartSidebarProps = {}) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 safe-padding-bottom">
+            {promotion.enabled && (
+              <div className={`mb-4 rounded-2xl border p-3 ${promotion.qualified ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}>
+                <div className="flex items-start gap-2.5">
+                  <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${promotion.qualified ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {promotion.qualified ? <Check className="h-4 w-4" /> : <Gift className="h-4 w-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-xs font-black ${promotion.qualified ? 'text-emerald-900' : 'text-blue-950'}`}>
+                      {promotion.qualified ? `${promotion.percentage}% de desconto liberado!` : `Faltam R$ ${promotion.amountRemaining.toFixed(2).replace('.', ',')} para ganhar ${promotion.percentage}% OFF`}
+                    </p>
+                    <p className={`mt-0.5 text-[11px] font-medium ${promotion.qualified ? 'text-emerald-700' : 'text-blue-700'}`}>Oferta válida apenas para materiais desta loja.</p>
+                  </div>
+                </div>
+                {!promotion.qualified && <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${Math.min(100, (total / promotion.minimum) * 100)}%` }} /></div>}
+              </div>
+            )}
             <div className="flex items-center justify-between mb-4">
               <span className="text-slate-500 font-medium">Subtotal</span>
               <span className="text-xl font-black text-slate-900">

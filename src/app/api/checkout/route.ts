@@ -5,6 +5,7 @@ import { createOrderRecord, PaymentMethodType } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { getStorePromotion } from '@/lib/store-promotion';
 
 export async function POST(request: Request) {
   try {
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
     }
     const { data: effectiveStore } = await supabaseAdmin
       .from('stores')
-      .select('slug, creator_id')
+      .select('slug, creator_id, bulk_discount_enabled, bulk_discount_minimum, bulk_discount_percentage')
       .eq('id', effectiveStoreId)
       .maybeSingle();
     if (!effectiveStore?.slug) {
@@ -188,6 +189,17 @@ export async function POST(request: Request) {
 
     if (realItems.length !== items.length || realItems.some(item => !(Number(item.unitPrice) > 0))) {
       return NextResponse.json({ success: false, error: 'Um ou mais itens possuem preço inválido.' }, { status: 400 });
+    }
+
+    // Oferta automática da loja: nunca mistura produtos de lojas diferentes e é
+    // recalculada exclusivamente no servidor, sem confiar no valor do navegador.
+    const subtotalBeforeStoreDiscount = realItems.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
+    const storePromotion = getStorePromotion(effectiveStore, subtotalBeforeStoreDiscount);
+    if (!couponCode && storePromotion.qualified) {
+      const multiplier = 1 - (storePromotion.percentage / 100);
+      realItems.forEach((item) => {
+        item.unitPrice = Number((item.unitPrice * multiplier).toFixed(2));
+      });
     }
 
     // A forma de pagamento será escolhida no checkout hospedado da InfinitePay.
@@ -300,6 +312,7 @@ export async function POST(request: Request) {
       totalAmount: orderRecord.totalAmount,
       platformFeeAmount: orderRecord.platformFeeAmount,
       creatorNetAmount: orderRecord.creatorNetAmount,
+      storeDiscountAmount: storePromotion.qualified && !couponCode ? storePromotion.discountAmount : 0,
       checkoutUrl: infinitePayCheckout.checkoutUrl
     });
 

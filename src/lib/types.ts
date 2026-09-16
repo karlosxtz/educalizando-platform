@@ -41,6 +41,9 @@ export interface Store {
   website?: string | null;
   button_style?: string; // 'rounded', 'pill', 'square'
   welcome_message?: string | null;
+  bulk_discount_enabled?: boolean;
+  bulk_discount_minimum?: number;
+  bulk_discount_percentage?: number;
   affiliate_program_enabled?: boolean;
   affiliate_commission_type?: 'percentual' | 'fixo';
   affiliate_commission_rate?: number; // e.g. 30.0 for 30% or 10.0 for 10 BRL

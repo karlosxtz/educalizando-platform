@@ -76,7 +76,10 @@ export default function StoreSettingsPage() {
       facebook: '',
       website: '',
       button_style: 'rounded',
-      welcome_message: ''
+      welcome_message: '',
+      bulk_discount_enabled: false,
+      bulk_discount_minimum: 50,
+      bulk_discount_percentage: 10
     }
   });
 
@@ -114,7 +117,10 @@ export default function StoreSettingsPage() {
           facebook: store.facebook || '',
           website: store.website || '',
           button_style: (store.button_style as "rounded" | "pill" | "square") || 'rounded',
-          welcome_message: store.welcome_message || ''
+          welcome_message: store.welcome_message || '',
+          bulk_discount_enabled: Boolean(store.bulk_discount_enabled),
+          bulk_discount_minimum: Number(store.bulk_discount_minimum || 50),
+          bulk_discount_percentage: Number(store.bulk_discount_percentage || 10)
         });
       } catch (err) {
         console.error(err);
@@ -155,7 +161,10 @@ export default function StoreSettingsPage() {
         facebook: values.facebook,
         website: values.website,
         button_style: values.button_style,
-        welcome_message: values.welcome_message
+        welcome_message: values.welcome_message,
+        bulk_discount_enabled: values.bulk_discount_enabled,
+        bulk_discount_minimum: values.bulk_discount_minimum,
+        bulk_discount_percentage: values.bulk_discount_percentage
       });
       setCurrentStore(updated);
       setSavedSuccess(true);
@@ -302,6 +311,25 @@ export default function StoreSettingsPage() {
               {errors.whatsapp && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.whatsapp.message}</p>
               )}
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-black text-emerald-950">Desconto automático no carrinho</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-800">Incentive compras maiores. A oferta vale somente quando o carrinho tiver produtos desta mesma loja.</p>
+                </div>
+                <input type="checkbox" {...register('bulk_discount_enabled')} className="mt-1 h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" aria-label="Ativar desconto automático" />
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="text-xs font-bold text-slate-700">A partir de (R$)
+                  <input type="number" min="1" step="0.01" {...register('bulk_discount_minimum')} className="mt-1.5 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-900 outline-none focus:border-emerald-500" />
+                </label>
+                <label className="text-xs font-bold text-slate-700">Desconto (%)
+                  <input type="number" min="1" max="90" step="1" {...register('bulk_discount_percentage')} className="mt-1.5 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-900 outline-none focus:border-emerald-500" />
+                </label>
+              </div>
+              <p className="text-[11px] font-semibold text-emerald-800">Exemplo: acima de R$ {Number(watch('bulk_discount_minimum') || 0).toFixed(2).replace('.', ',')}, o cliente recebe {Number(watch('bulk_discount_percentage') || 0)}% de desconto automaticamente.</p>
             </div>
 
             {/* Instagram da Loja */}

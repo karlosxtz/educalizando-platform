@@ -83,7 +83,10 @@ export const storeSettingsSchema = z.object({
   facebook: z.string().or(z.literal('')).optional(),
   website: z.string().url({ message: 'URL do site inválida.' }).or(z.literal('')).optional(),
   button_style: z.enum(['rounded', 'pill', 'square']).optional(),
-  welcome_message: z.string().optional()
+  welcome_message: z.string().optional(),
+  bulk_discount_enabled: z.boolean().optional(),
+  bulk_discount_minimum: z.coerce.number().min(0).max(100000).optional(),
+  bulk_discount_percentage: z.coerce.number().min(1).max(90).optional()
 });
 
 export type StoreSettingsFormValues = z.infer<typeof storeSettingsSchema>;
