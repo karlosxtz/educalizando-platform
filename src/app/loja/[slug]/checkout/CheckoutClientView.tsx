@@ -87,6 +87,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthError, setIsAuthError] = useState(false);
+  const hasRoleMismatch = Boolean(errorMessage?.includes('logado como'));
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -366,6 +367,20 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                     Seu acesso ao material será liberado automaticamente nesta conta após a confirmação do pagamento.
                   </p>
                 </div>
+              ) : hasRoleMismatch ? (
+                <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="block text-sm font-extrabold">Use uma conta de {isPlrPurchase ? 'criador' : 'aluno'} para concluir esta compra</span>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-800">{isPlrPurchase ? 'Licenças PLR são exclusivas para criadores.' : 'Materiais de uso final são comprados pela conta de aluno.'}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Link href={isPlrPurchase ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como {isPlrPurchase ? 'Criador' : 'Aluno'}</Link>
+                    <Link href={isPlrPurchase ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta</Link>
+                  </div>
+                </div>
               ) : (
                 <div className="bg-rose-50 border border-rose-200 text-rose-900 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
                   <div className="flex items-center gap-2">
@@ -486,7 +501,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </div>
 
               {/* Error Message Notice */}
-              {errorMessage && (
+              {errorMessage && !hasRoleMismatch && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 sm:p-5 rounded-2xl text-xs font-semibold space-y-3">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />

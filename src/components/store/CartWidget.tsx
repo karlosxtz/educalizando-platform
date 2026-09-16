@@ -2,11 +2,13 @@
 
 import { useCart } from './CartContext';
 import { ShoppingBag } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function CartWidget() {
   const { itemCount, toggleCart } = useCart();
+  const pathname = usePathname();
 
-  if (itemCount === 0) return null;
+  if (itemCount === 0 || pathname?.includes('/checkout')) return null;
 
   return (
     <button
