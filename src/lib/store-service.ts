@@ -527,7 +527,8 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       db
         .from('reviews')
         .select('product_id, nota')
-        .eq('store_id', validStoreId),
+        .eq('store_id', validStoreId)
+        .eq('status', 'aprovado'),
       productIds.length > 0
         ? db.from('product_images').select('id, product_id, url, ordem, created_at').in('product_id', productIds).order('ordem', { ascending: true })
         : Promise.resolve({ data: [] as { id: string; product_id: string; url: string; ordem: number; created_at: string }[] }),

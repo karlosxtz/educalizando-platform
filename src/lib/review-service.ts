@@ -17,7 +17,7 @@ export interface ReviewsPage {
 export interface ReviewFilters {
   page?: number;        // 1-indexed, padrão 1
   pageSize?: number;    // padrão 20
-  status?: 'aprovado' | 'pendente' | 'oculto'; // padrão sem filtro
+  status?: 'aprovado' | 'oculto'; // padrão sem filtro
 }
 
 // 1. Obter Avaliações por Produto (com paginação)
@@ -39,9 +39,7 @@ export async function getReviews(productId: string, filters: ReviewFilters = {})
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
+    query = query.eq('status', filters.status || 'aprovado');
 
     const { data, error, count } = await query;
 
@@ -155,6 +153,4 @@ export function calculateReviewStats(reviews: Review[]): ReviewStats {
     ratingCounts
   };
 }
-
-
 

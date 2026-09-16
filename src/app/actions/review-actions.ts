@@ -143,6 +143,7 @@ export async function getProductReviewsWithNames(productId: string): Promise<Rev
       .from('reviews')
       .select('*')
       .eq('product_id', productId)
+      .eq('status', 'aprovado')
       .order('created_at', { ascending: false });
 
     if (error || !reviews) return [];
