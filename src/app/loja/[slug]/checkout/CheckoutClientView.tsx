@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, CreditCard,
   Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
-  LogIn, UserPlus, UserCheck, Clock, CheckCircle, Gift
+  LogIn, UserPlus, UserCheck, CheckCircle, Gift
 } from 'lucide-react';
 import { Store, Product, Kit, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -24,22 +24,6 @@ interface CheckoutClientViewProps {
 }
 
 export default function CheckoutClientView({ store, product, kit, initialCouponCode }: CheckoutClientViewProps) {
-  // Scarcity timer state
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   const { items: globalCartItems } = useCart();
   const isDirectPurchase = Boolean(product || kit);
   const cartItems = isDirectPurchase ? [] : globalCartItems.filter(item => item.storeId === store.id);
@@ -620,18 +604,12 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
           {/* Right Column: Order Summary Card (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Scarcity Banner */}
-            {timeLeft > 0 && (
-              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between text-rose-800 shadow-sm animate-pulse">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-rose-600" />
-                  <span className="text-xs font-extrabold uppercase tracking-wider">Oferta expira em:</span>
-                </div>
-                <span className="text-lg font-black text-rose-600 bg-white px-3 py-1 rounded-xl shadow-xs border border-rose-100">
-                  {formatTime(timeLeft)}
-                </span>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-extrabold">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <span>Compra protegida e acesso liberado após a confirmação do pagamento.</span>
               </div>
-            )}
+            </div>
 
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 sticky top-8">
               <h3 className="text-base font-black text-slate-900 border-b border-slate-100 pb-4 flex items-center justify-between">

@@ -50,14 +50,14 @@ export default function ProductReviewsSection({
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 mt-1">
             <MessageSquare className="w-6 h-6 text-brand-navy" />
-            O que os alunos estão dizendo
+            O que os clientes estão dizendo
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
             <UserCheck className="w-4 h-4 text-emerald-600" />
-            <span>Avaliações de Alunos Verificados</span>
+            <span>Avaliações de Clientes Verificados</span>
           </span>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function ProductReviewsSection({
           </div>
 
           <p className="text-xs text-slate-500 font-semibold">
-            Média baseada em <strong>{stats.totalReviews}</strong> {stats.totalReviews === 1 ? 'avaliação' : 'avaliações'} de alunos
+            Média baseada em <strong>{stats.totalReviews}</strong> {stats.totalReviews === 1 ? 'avaliação' : 'avaliações'} de clientes
           </p>
         </div>
 

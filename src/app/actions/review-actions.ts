@@ -46,7 +46,7 @@ export async function submitProductReview(params: {
     const studentEmail = currentUser.email?.toLowerCase().trim();
 
     if (!studentEmail) {
-      return { success: false, error: 'Aluno não encontrado ou sem email cadastrado.' };
+      return { success: false, error: 'Cliente não encontrado ou sem e-mail cadastrado.' };
     }
 
     // Buscar pedidos pagos deste aluno
@@ -91,7 +91,7 @@ export async function submitProductReview(params: {
     }
 
     if (!hasBought) {
-      return { success: false, error: 'Apenas alunos que compraram este material podem avaliá-lo.' };
+      return { success: false, error: 'Apenas clientes que compraram este material podem avaliá-lo.' };
     }
 
     const payload = {
@@ -122,7 +122,7 @@ export async function submitProductReview(params: {
 }
 
 function formatStudentName(fullName: string): string {
-  if (!fullName) return 'Aluno verificado';
+  if (!fullName) return 'Cliente verificado';
   const parts = fullName.trim().split(' ');
   if (parts.length === 1) return parts[0];
   const first = parts[0];
@@ -149,7 +149,7 @@ export async function getProductReviewsWithNames(productId: string): Promise<Rev
 
     // Busca os nomes formatados
     const enhancedReviews = await Promise.all(reviews.map(async (review) => {
-      let studentName = 'Aluno verificado';
+      let studentName = 'Cliente verificado';
       let avatarUrl = null;
       if (review.student_id) {
         try {

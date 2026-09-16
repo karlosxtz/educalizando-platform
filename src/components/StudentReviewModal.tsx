@@ -80,7 +80,7 @@ export default function StudentReviewModal({
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Avaliar Material</h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Sua opinião ajuda outros alunos. Conte-nos o que achou!
+                  Sua opinião ajuda outros clientes. Conte-nos o que achou!
                 </p>
               </div>
               <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
