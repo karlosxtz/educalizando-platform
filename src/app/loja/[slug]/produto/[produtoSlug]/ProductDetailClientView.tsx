@@ -17,6 +17,7 @@ import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 import { addRecentView } from '@/lib/recent-views';
 import { incrementProductViews } from '@/lib/store-service';
+import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 
 import ProductCard from '@/components/ProductCard';
 
@@ -244,6 +245,36 @@ export default function ProductDetailClientView({
               )}
             </div>
 
+            {/* Mobile product summary: decision information immediately after the gallery */}
+            <section className="lg:hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase text-white" style={{ backgroundColor: primaryColor }}>
+                  {getTipoIcon(product.tipo)} {product.tipo}
+                </span>
+                {isPlrPurchase && <span className="rounded-full bg-purple-100 px-3 py-1 text-[10px] font-black uppercase text-purple-800">Licença PLR</span>}
+                {educationLevel && <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold text-indigo-700">{educationLevel.nome}</span>}
+              </div>
+              <div>
+                <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900">{product.titulo}</h1>
+                <p className="mt-1 text-xs font-medium text-slate-500">Vendido por <strong>{store.nome_loja}</strong></p>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                {reviews.length > 0 ? `${(reviews.reduce((total, review) => total + (review.nota || 5), 0) / reviews.length).toFixed(1)} · ${reviews.length} avaliações` : 'Novo material na plataforma'}
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Investimento único</span>
+                <div className="mt-1 flex items-center gap-2">
+                  <strong className="text-3xl font-black tracking-tight text-slate-900">R$ {currentPrice.toFixed(2).replace('.', ',')}</strong>
+                  <span className="rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">Acesso vitalício</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {product.preview_url ? <a href={product.preview_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700"><ExternalLink className="h-4 w-4" /> Ver prévia</a> : <button type="button" onClick={handleAddOnly} className="min-h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700">Adicionar ao carrinho</button>}
+                {store.whatsapp && <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre o material ${product.titulo}.`)} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-black text-white" style={{ backgroundColor: primaryColor }}><MessageCircle className="h-4 w-4" /> Falar com a loja</a>}
+              </div>
+            </section>
+
             {/* Description Box */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
               <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-4">
@@ -348,7 +379,7 @@ export default function ProductDetailClientView({
           </div>
 
           {/* RIGHT COLUMN: Buy Action Card */}
-          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
+          <div className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
             <div className="bg-white shadow-[0_10px_40px_rgb(0,0,0,0.06)] rounded-3xl p-6 sm:p-8 flex flex-col space-y-6">
               
               {/* Product Header (Mobile & Desktop in Sidebar) */}
