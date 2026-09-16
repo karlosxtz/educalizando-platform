@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search, Eye
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review, BnccSkill } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -284,6 +284,12 @@ export default function ProductDetailClientView({
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 {reviews.length > 0 ? `${(reviews.reduce((total, review) => total + (review.nota || 5), 0) / reviews.length).toFixed(1)} · ${reviews.length} avaliações` : 'Novo material na plataforma'}
               </div>
+              {Number(product.views_count || 0) >= 10 && (
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                  <Eye className="h-3.5 w-3.5 text-slate-400" />
+                  {product.views_count} pessoas já conheceram este material
+                </div>
+              )}
               <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Investimento único</span>
                 <div className="mt-1 flex items-center gap-2">
@@ -454,6 +460,11 @@ export default function ProductDetailClientView({
                   ) : (
                     <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold flex items-center gap-1">
                       <Sparkles className="w-3 h-3" /> Lançamento
+                    </span>
+                  )}
+                  {Number(product.views_count || 0) >= 10 && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
+                      <Eye className="h-3.5 w-3.5" /> {product.views_count} visualizações
                     </span>
                   )}
                 </div>
