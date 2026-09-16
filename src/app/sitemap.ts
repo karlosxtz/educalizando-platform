@@ -3,7 +3,8 @@ import { getAllPublicStores, getAllPublicMarketplaceProducts } from '@/lib/store
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://educalizando.com.br';
+  // Must match the canonical host configured in the root metadata.
+  const baseUrl = 'https://www.educalizando.com.br';
 
   const sitemapEntries: MetadataRoute.Sitemap = [
     {
@@ -72,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     stores.forEach((store) => {
       sitemapEntries.push({
         url: `${baseUrl}/loja/${store.slug}`,
-        lastModified: store.created_at ? new Date(store.created_at) : new Date(),
+        lastModified: store.updated_at || store.created_at ? new Date(store.updated_at || store.created_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.9,
       });
@@ -82,10 +83,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 5000 é um limite seguro para o sitemap sem precisar paginar.
     products.forEach((product) => {
       sitemapEntries.push({
-        url: `${baseUrl}/produto/${product.id}`,
-        lastModified: product.created_at ? new Date(product.created_at) : new Date(),
+        // IDs are retained only to redirect old links; only canonical slugs
+        // should be submitted to search engines.
+        url: `${baseUrl}/produto/${product.slug || product.id}`,
+        lastModified: product.updated_at || product.created_at ? new Date(product.updated_at || product.created_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
+        ...(product.capa_url ? { images: [product.capa_url] } : {}),
       });
     });
   } catch (error) {

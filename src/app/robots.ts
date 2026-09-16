@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/dashboard/', '/api/', '/checkout/'],
     },
-    sitemap: 'https://educalizando.com.br/sitemap.xml',
+    sitemap: 'https://www.educalizando.com.br/sitemap.xml',
   };
 }

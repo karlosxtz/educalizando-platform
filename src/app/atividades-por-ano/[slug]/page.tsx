@@ -30,13 +30,13 @@ export async function generateMetadata({ params }: EducationLevelPageProps): Pro
     title,
     description,
     alternates: {
-      canonical: `https://educalizando.com.br/atividades-por-ano/${slug}`,
+      canonical: `https://www.educalizando.com.br/atividades-por-ano/${slug}`,
     },
     openGraph: {
       title,
       description,
       type: 'website',
-      url: `https://educalizando.com.br/atividades-por-ano/${slug}`,
+      url: `https://www.educalizando.com.br/atividades-por-ano/${slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -65,7 +65,7 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
   });
 
   const products = result.data;
-  const pageUrl = `https://educalizando.com.br/atividades-por-ano/${slug}`;
+  const pageUrl = `https://www.educalizando.com.br/atividades-por-ano/${slug}`;
   const structuredData = [
     {
       '@context': 'https://schema.org',
@@ -73,14 +73,14 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
       name: `Materiais e atividades para ${level.nome}`,
       description: `Atividades, apostilas e recursos pedagógicos para ${level.nome}.`,
       url: pageUrl,
-      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' },
+      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://www.educalizando.com.br' },
     },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://educalizando.com.br/' },
-        { '@type': 'ListItem', position: 2, name: 'Níveis de ensino', item: 'https://educalizando.com.br/buscar' },
+        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://www.educalizando.com.br/' },
+        { '@type': 'ListItem', position: 2, name: 'Níveis de ensino', item: 'https://www.educalizando.com.br/buscar' },
         { '@type': 'ListItem', position: 3, name: level.nome, item: pageUrl },
       ],
     },
@@ -91,7 +91,7 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
       itemListElement: products.slice(0, 24).map((product, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+        url: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
         name: product.titulo,
       })),
     }] : []),

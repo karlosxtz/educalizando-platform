@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
     title,
     description,
     alternates: {
-      canonical: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+      canonical: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
     },
     openGraph: {
       title,
@@ -117,7 +117,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
       price: product.preco,
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
-      url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+      url: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
     },
     ...(product.average_rating && product.review_count ? {
       aggregateRating: {
@@ -135,7 +135,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      item: `https://educalizando.com.br${item.href}`
+      item: `https://www.educalizando.com.br${item.href}`
     }))
   };
 

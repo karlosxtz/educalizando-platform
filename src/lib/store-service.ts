@@ -1202,7 +1202,7 @@ export async function getAllPublicStores(): Promise<Store[]> {
     try {
       let query = supabase
         .from('stores')
-        .select('id, nome_loja, slug, descricao, logo_url, banner_url, created_at')
+        .select('id, nome_loja, slug, descricao, logo_url, banner_url, created_at, updated_at')
         .neq('slug', 'eduardoadmin')
         .order('created_at', { ascending: false });
 

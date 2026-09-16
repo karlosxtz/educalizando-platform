@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     title,
     description,
     alternates: {
-      canonical: `https://educalizando.com.br/categorias/${slug}`,
+      canonical: `https://www.educalizando.com.br/categorias/${slug}`,
     },
     openGraph: {
       title,
       description,
       type: 'website',
-      url: `https://educalizando.com.br/categorias/${slug}`,
+      url: `https://www.educalizando.com.br/categorias/${slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -64,7 +64,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
   });
 
   const products = result.data;
-  const pageUrl = `https://educalizando.com.br/categorias/${slug}`;
+  const pageUrl = `https://www.educalizando.com.br/categorias/${slug}`;
   const structuredData = [
     {
       '@context': 'https://schema.org',
@@ -72,14 +72,14 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
       name: `Materiais de ${category.nome}`,
       description: `Atividades e materiais didáticos de ${category.nome} para imprimir.`,
       url: pageUrl,
-      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://educalizando.com.br' },
+      isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://www.educalizando.com.br' },
     },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://educalizando.com.br/' },
-        { '@type': 'ListItem', position: 2, name: 'Categorias', item: 'https://educalizando.com.br/buscar' },
+        { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://www.educalizando.com.br/' },
+        { '@type': 'ListItem', position: 2, name: 'Categorias', item: 'https://www.educalizando.com.br/buscar' },
         { '@type': 'ListItem', position: 3, name: category.nome, item: pageUrl },
       ],
     },
@@ -90,7 +90,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
       itemListElement: products.slice(0, 24).map((product, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://educalizando.com.br/produto/${product.slug || product.id}`,
+        url: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
         name: product.titulo,
       })),
     }] : []),

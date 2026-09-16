@@ -29,9 +29,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${store.nome_loja} — Educalizando`,
     description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+    alternates: {
+      canonical: `https://www.educalizando.com.br/loja/${store.slug}`,
+    },
     openGraph: {
       title: `${store.nome_loja} — Materiais Didáticos Digitais`,
       description: store.descricao || `Confira os materiais didáticos de ${store.nome_loja} com PIX instantâneo.`,
+      url: `https://www.educalizando.com.br/loja/${store.slug}`,
       images: store.logo_url ? [{ url: store.logo_url }] : []
     }
   };
