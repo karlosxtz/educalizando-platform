@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { getAllPublicStores, getAllPublicMarketplaceProducts } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getDisciplines } from '@/lib/discipline-service';
+import { getPublishedBlogPosts } from '@/lib/blog-service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Must match the canonical host configured in the root metadata.
@@ -41,12 +42,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [stores, products, categories, educationLevels, disciplines] = await Promise.all([
+    const [stores, products, categories, educationLevels, disciplines, blogPosts] = await Promise.all([
       getAllPublicStores(),
       getAllPublicMarketplaceProducts(5000),
       getCategories(),
       getEducationLevels(),
       getDisciplines(),
+      getPublishedBlogPosts(5000),
     ]);
 
     // Páginas de descoberta permanentes: importantes para quem pesquisa por
@@ -77,6 +79,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.75,
+      });
+    });
+
+    sitemapEntries.push({ url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 });
+    blogPosts.forEach((post) => {
+      sitemapEntries.push({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.updated_at || post.published_at || post.created_at),
+        changeFrequency: 'monthly',
+        priority: 0.65,
+        ...(post.cover_url ? { images: [post.cover_url] } : {}),
       });
     });
 
