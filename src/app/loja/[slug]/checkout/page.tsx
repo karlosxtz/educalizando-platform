@@ -19,6 +19,12 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
   let product = null;
   if (produtoId) {
     product = await getProductById(produtoId);
+    if (product?.order_bump_id) {
+      const orderBump = await getProductById(product.order_bump_id);
+      if (orderBump && orderBump.store_id === store.id && orderBump.status === 'publicado' && !orderBump.excluido_em) {
+        product.order_bump_product = orderBump;
+      }
+    }
   }
 
   // Se não tem produto (checkout via carrinho), não tem problema, passamos null

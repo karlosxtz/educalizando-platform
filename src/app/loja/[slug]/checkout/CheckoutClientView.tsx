@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, CreditCard,
   Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
-  LogIn, UserPlus, UserCheck, Clock, CheckCircle
+  LogIn, UserPlus, UserCheck, Clock, CheckCircle, Gift
 } from 'lucide-react';
 import { Store, Product, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -61,6 +61,10 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
     return cartTotal;
   });
   const [finalPrice, setFinalPrice] = useState<number>(basePrice);
+  const [includeOrderBump, setIncludeOrderBump] = useState(false);
+  const orderBump = product?.order_bump_product && product.order_bump_product.status === 'publicado' ? product.order_bump_product : null;
+  const orderBumpPrice = Number(orderBump?.preco || 0);
+  const payableTotal = finalPrice + (includeOrderBump ? orderBumpPrice : 0);
 
   useEffect(() => {
     const newBasePrice = product
@@ -240,7 +244,14 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
             productTitle: isPlrPurchase ? `${product.titulo} (Licença PLR)` : product.titulo,
             unitPrice: finalPrice,
             storeId: store.id
-          }
+          },
+          ...(includeOrderBump && orderBump ? [{
+            productId: orderBump.id,
+            productTitle: orderBump.titulo,
+            unitPrice: orderBumpPrice,
+            storeId: store.id,
+            quantity: 1
+          }] : [])
         ] : cartItems.map(c => ({
           productId: c.productId,
           productTitle: c.isPlr ? `${c.title} (Licença PLR)` : c.title,
@@ -564,12 +575,24 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                 ) : (
                   <>
                     <Lock className="w-4 h-4 text-brand-teal" />
-                    <span>Continuar para pagar R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span>Continuar para pagar R$ {payableTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </>
                 )}
               </button>
 
             </div>
+
+            {orderBump && !isPlrPurchase && (
+              <section className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-5 space-y-3">
+                <div className="flex items-center gap-2 text-emerald-800"><Gift className="w-5 h-5" /><h3 className="text-sm font-black">Leve também por um valor especial</h3></div>
+                <p className="text-xs leading-relaxed text-emerald-900">Oferta complementar opcional para aproveitar melhor sua compra. Você pode seguir sem adicioná-la.</p>
+                <label className="flex cursor-pointer gap-3 rounded-2xl border border-emerald-300 bg-white p-3.5 transition-colors hover:bg-emerald-50">
+                  <input type="checkbox" checked={includeOrderBump} onChange={(event) => setIncludeOrderBump(event.target.checked)} className="mt-1 h-5 w-5 rounded border-emerald-400 text-emerald-600 focus:ring-emerald-500" />
+                  {orderBump.capa_url && <img src={orderBump.capa_url} alt="" className="h-16 w-14 rounded-lg object-cover" />}
+                  <span className="min-w-0 flex-1"><strong className="block text-sm text-slate-900 line-clamp-2">{orderBump.titulo}</strong><span className="mt-1 block text-sm font-black text-emerald-700">Adicionar por R$ {orderBumpPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></span>
+                </label>
+              </section>
+            )}
 
           </div>
 
@@ -691,9 +714,16 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   </div>
                 )}
 
+                {includeOrderBump && orderBump && (
+                  <div className="flex items-center justify-between text-emerald-700 font-bold">
+                    <span className="truncate pr-3">Oferta complementar</span>
+                    <span>+ R$ {orderBumpPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between font-black text-slate-900 text-base pt-3 border-t border-slate-200">
                   <span>Total a Pagar</span>
-                  <span className="text-brand-navy">R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <span className="text-brand-navy">R$ {payableTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
@@ -733,7 +763,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
             <div className="mx-auto flex max-w-lg items-center gap-3">
               <div className="min-w-0 flex-1">
                 <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</span>
-                <span className="block truncate text-lg font-black text-slate-900">R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className="block truncate text-lg font-black text-slate-900">R$ {payableTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
               <button
                 type="submit"
