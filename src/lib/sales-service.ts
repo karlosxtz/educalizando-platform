@@ -186,53 +186,60 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
 export async function getTopProductsReport(storeId: string, products: Product[], period: PeriodFilter = '30d'): Promise<TopProductStat[]> {
   let realOrders: RecentOrder[] = [];
   const { startDate, endDate } = getPeriodDates(period);
+  const productMetrics = new Map<string, { units: number; revenue: number }>();
+  let loadedFromOrderItems = false;
 
   if (isRealSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select('id, total_amount, subtotal_amount, valor_total, product_title, produto_titulo, status, created_at')
-        .eq('store_id', storeId)
-        .gte('created_at', startDate)
-        .lte('created_at', endDate)
-        .order('created_at', { ascending: false });
+        .from('order_items')
+        .select('product_id, quantity, subtotal_amount, unit_price, orders!inner(status, created_at, store_id)')
+        .eq('orders.store_id', storeId)
+        .gte('orders.created_at', startDate)
+        .lte('orders.created_at', endDate);
 
-      if (!error && data && data.length > 0) {
-        realOrders = data.map(o => {
-          const isPaid = o.status === 'paid' || o.status === 'PAID' || o.status === 'pago';
-          return {
-            id: o.id,
-            clienteNome: '',
-            clienteEmail: '',
-            produtoTitulo: o.product_title || o.produto_titulo || '',
-            tipoProduto: 'pdf',
-            valorTotal: Number(o.total_amount || o.subtotal_amount || o.valor_total || 0),
-            statusPagamento: isPaid ? 'pago' : 'pendente_pix',
-            dataCompra: o.created_at,
-            metodoPagamento: 'PIX'
-          };
+      if (!error) {
+        loadedFromOrderItems = true;
+        (data || []).forEach((item: any) => {
+          const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
+          const status = String(order?.status || '').toLowerCase();
+          if (!['paid', 'pago', 'received', 'confirmed'].includes(status) || !item.product_id) return;
+
+          const units = Math.max(1, Number(item.quantity || 1));
+          const revenue = Number(item.subtotal_amount ?? Number(item.unit_price || 0) * units);
+          const previous = productMetrics.get(item.product_id) || { units: 0, revenue: 0 };
+          productMetrics.set(item.product_id, {
+            units: previous.units + units,
+            revenue: previous.revenue + Math.max(0, revenue)
+          });
         });
+      } else {
+        console.error('[getTopProductsReport] Erro:', error);
       }
     } catch (err) {
       console.error('[getTopProductsReport] Erro:', err);
     }
   }
 
-  if (realOrders.length === 0) {
+  if (!loadedFromOrderItems) {
     const local = getLocalOrders();
     const filteredLocal = local.filter(o => o.dataCompra >= startDate && o.dataCompra <= endDate);
     realOrders = filteredLocal.filter(o => o.statusPagamento === 'pago');
-  } else {
+  } else if (realOrders.length > 0) {
     realOrders = realOrders.filter(o => o.statusPagamento === 'pago');
   }
 
-  const totalStoreRevenue = realOrders.reduce((acc, o) => acc + o.valorTotal, 0);
+  const totalStoreRevenue = loadedFromOrderItems
+    ? Array.from(productMetrics.values()).reduce((sum, metric) => sum + metric.revenue, 0)
+    : realOrders.reduce((acc, o) => acc + o.valorTotal, 0);
 
   const stats: TopProductStat[] = products.map(p => {
-    // Find all real orders for this specific product
-    const matchingOrders = realOrders.filter(o => o.produtoTitulo === p.titulo || o.id === p.id);
-    const unidadesVendidas = matchingOrders.length;
-    const faturamentoTotal = matchingOrders.reduce((sum, o) => sum + o.valorTotal, 0);
+    const metric = productMetrics.get(p.id);
+    // O fallback só existe para desenvolvimento offline; em produção os itens
+    // do pedido são a fonte de verdade, inclusive em carrinhos com vários produtos.
+    const matchingOrders = loadedFromOrderItems ? [] : realOrders.filter(o => o.produtoTitulo === p.titulo || o.id === p.id);
+    const unidadesVendidas = metric?.units ?? matchingOrders.length;
+    const faturamentoTotal = metric?.revenue ?? matchingOrders.reduce((sum, o) => sum + o.valorTotal, 0);
     const porcentagem = totalStoreRevenue > 0 ? Math.round((faturamentoTotal / totalStoreRevenue) * 100) : 0;
 
     return {
