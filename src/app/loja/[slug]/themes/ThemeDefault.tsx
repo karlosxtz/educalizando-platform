@@ -121,6 +121,10 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
   const handleStartCheckout = () => {
     if (selectedProduct) {
+      if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
+        window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+        return;
+      }
       addToCart({
         productId: selectedProduct.id,
         title: selectedProduct.titulo,
@@ -138,6 +142,10 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
   const handleBuyNow = () => {
     if (!selectedProduct) return;
+    if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
+      window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+      return;
+    }
     addToCart({
       productId: selectedProduct.id,
       title: selectedProduct.titulo,
