@@ -50,6 +50,10 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isFree) {
+      router.push(productLink);
+      return;
+    }
     addToCart({
       productId: product.id,
       title: product.titulo,
@@ -65,6 +69,12 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
   const handleBuy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // O resgate do brinde é confirmado na página do material, com sessão e
+    // produto validados pelo servidor. Não enviar preço zero ao checkout pago.
+    if (isFree) {
+      router.push(productLink);
+      return;
+    }
     addToCart({
       productId: product.id,
       title: product.titulo,
@@ -175,8 +185,8 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
               onClick={handleBuy}
               className="flex-[2] min-h-9 bg-blue-600 text-white px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 active:scale-95"
             >
-              <Zap className="w-4 h-4 fill-transparent" />
-              Comprar
+              {isFree ? <Gift className="w-4 h-4" /> : <Zap className="w-4 h-4 fill-transparent" />}
+              {isFree ? 'Resgatar' : 'Comprar'}
             </button>
           </div>
         </div>

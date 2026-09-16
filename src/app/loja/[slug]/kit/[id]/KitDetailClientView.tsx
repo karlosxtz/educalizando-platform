@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2,
@@ -20,7 +19,6 @@ interface KitDetailClientViewProps {
 }
 
 export default function KitDetailClientView({ store, kit }: KitDetailClientViewProps) {
-  const [checkoutSimulated, setCheckoutSimulated] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
   // Coupon State
@@ -518,47 +516,6 @@ export default function KitDetailClientView({ store, kit }: KitDetailClientViewP
           <span>Comprar PIX</span>
         </button>
       </div>
-
-      {/* Simulated PIX Checkout Modal */}
-      <AnimatePresence>
-        {checkoutSimulated && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-8 text-center space-y-5 shadow-2xl relative"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
-                <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
-                <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Checkout Seguro
-                </span>
-              </div>
-
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-inner">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900">Simulação de PIX do Combo!</h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  O pagamento é processado com segurança pela InfinitePay e libera automaticamente os {includedProducts.length} materiais do combo após a confirmação.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setCheckoutSimulated(false)}
-                className="w-full py-3 rounded-xl font-extrabold text-xs text-white shadow-md transition-all"
-                style={{ backgroundColor: primaryColor }}
-              >
-                Concluir Teste
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">

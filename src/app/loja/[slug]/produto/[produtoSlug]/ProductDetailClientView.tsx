@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,6 +47,7 @@ export default function ProductDetailClientView({
   const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
 
   const [isBuying, setIsBuying] = useState(false);
+  const autoClaimAttempted = useRef(false);
   const [showCreatorBlockModal, setShowCreatorBlockModal] = useState(false);
   const [showCouponInput, setShowCouponInput] = useState(false);
   const { addToCart, toggleCart, items } = useCart();
@@ -105,10 +106,60 @@ export default function ProductDetailClientView({
   };
 
   const basePrice = isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco;
+  const isFreeProduct = !isPlrPurchase && (product.is_free === true || Number(basePrice) === 0);
 
   const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
     ? couponResult.finalPrice 
     : basePrice;
+
+  const productPath = `/loja/${store.slug}/produto/${product.slug || product.id}`;
+
+  const handleClaimFreeMaterial = async () => {
+    setIsBuying(true);
+    try {
+      const session = await getAuthenticatedUserRole();
+      if (!session.isAuthenticated) {
+        router.push(`/cliente/login?returnTo=${encodeURIComponent(`${productPath}?resgatar=gratis`)}&action=buy`);
+        return;
+      }
+      if (session.role === 'creator') {
+        setShowCreatorBlockModal(true);
+        return;
+      }
+
+      const response = await fetch('/api/materiais-gratis/resgatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push(`/cliente/login?returnTo=${encodeURIComponent(`${productPath}?resgatar=gratis`)}&action=buy`);
+          return;
+        }
+        if (response.status === 403) {
+          setShowCreatorBlockModal(true);
+          return;
+        }
+        throw new Error(result.error || 'Não foi possível liberar o material.');
+      }
+      router.push(result.redirectTo || `/cliente/brindes/${product.id}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Não foi possível liberar o material.');
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isFreeProduct && searchParams.get('resgatar') === 'gratis' && !autoClaimAttempted.current) {
+      autoClaimAttempted.current = true;
+      void handleClaimFreeMaterial();
+    }
+  // The query is intentionally the trigger; the remaining values identify this material.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFreeProduct, searchParams, product.id]);
 
   const getTipoIcon = (tipo: ProductType) => {
     switch (tipo) {
@@ -122,6 +173,10 @@ export default function ProductDetailClientView({
 
   // FLUXO DE ADICIONAR AO CARRINHO (Sem Redirecionar)
   const handleAddOnly = async () => {
+    if (isFreeProduct) {
+      await handleClaimFreeMaterial();
+      return;
+    }
     setIsBuying(true);
     try {
       addToCart({
@@ -143,6 +198,10 @@ export default function ProductDetailClientView({
 
   // FLUXO DE COMPRA RÁPIDA (1-CLICK CHECKOUT STYLE)
   const handleStartCheckout = async () => {
+    if (isFreeProduct) {
+      await handleClaimFreeMaterial();
+      return;
+    }
     setIsBuying(true);
     try {
       addToCart({
@@ -557,7 +616,7 @@ export default function ProductDetailClientView({
                   ) : (
                     <>
                       <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
-                      <span className="tracking-wide">Comprar Agora</span>
+                      <span className="tracking-wide">{isFreeProduct ? 'Resgatar Grátis' : 'Comprar Agora'}</span>
                     </>
                   )}
                 </button>
@@ -572,7 +631,7 @@ export default function ProductDetailClientView({
                   ) : (
                     <>
                       <ShoppingBag className="w-4 h-4" />
-                      <span>Adicionar ao Carrinho</span>
+                      <span>{isFreeProduct ? 'Liberar Material' : 'Adicionar ao Carrinho'}</span>
                     </>
                   )}
                 </button>
@@ -726,7 +785,7 @@ export default function ProductDetailClientView({
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.08)] px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-[60] flex items-center justify-between gap-3">
         <div>
           <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Investimento</span>
-          <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">R$ {currentPrice.toFixed(2).replace('.', ',')}</span>
+          <span className={`text-xl sm:text-2xl font-black tracking-tight ${isFreeProduct ? 'text-emerald-600' : 'text-slate-900'}`}>{isFreeProduct ? 'Grátis' : `R$ ${currentPrice.toFixed(2).replace('.', ',')}`}</span>
         </div>
         <div className="flex flex-1 gap-2">
           <button
@@ -736,7 +795,7 @@ export default function ProductDetailClientView({
             className="flex-1 py-3 px-2 rounded-xl font-black text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5 min-h-[44px]"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span className="tracking-wide leading-tight text-center">Adicionar</span>
+            <span className="tracking-wide leading-tight text-center">{isFreeProduct ? 'Resgatar' : 'Adicionar'}</span>
           </button>
           <button
             type="button"
@@ -750,7 +809,7 @@ export default function ProductDetailClientView({
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-transparent" />
-                <span className="tracking-wide leading-tight text-center">Comprar Agora</span>
+                <span className="tracking-wide leading-tight text-center">{isFreeProduct ? 'Liberar Grátis' : 'Comprar Agora'}</span>
               </>
             )}
           </button>
