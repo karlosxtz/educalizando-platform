@@ -79,9 +79,9 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
   };
 
   return (
-    <div className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
+    <div className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
       {/* Imagem (Capa) */}
-      <Link href={productLink} className="aspect-[4/3] sm:aspect-square w-full bg-slate-100 relative overflow-hidden block">
+      <Link href={productLink} className="aspect-square w-full bg-slate-100 relative overflow-hidden block">
         {itemCover && !imageError ? (
           <img 
             src={itemCover} 
@@ -96,53 +96,53 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
         )}
         {/* Badge PLR ou Grátis */}
         {isPlrMode && (
-          <div className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
+          <div className="absolute left-2 top-2 bg-purple-600 text-white text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
             <Rocket className="w-3 h-3" /> Revenda
           </div>
         )}
         {!product.is_plr && isFree && (
-          <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
+          <div className="absolute left-2 top-2 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
             <Gift className="w-3 h-3" /> Grátis
           </div>
         )}
       </Link>
 
       {/* Corpo do Card */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-2.5 sm:p-5 flex flex-col flex-1">
         <Link href={productLink} className="block flex-1">
-          <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors mb-2">
+          <h3 className="font-bold text-slate-900 text-[12px] sm:text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors mb-1.5 sm:mb-2">
             {itemTitle}
           </h3>
           
           {/* Quick Decision Badges */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-3">
             <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide">
               {getTipoIcon(product.tipo)} {product.tipo}
             </span>
             {product.education_level?.nome && (
-              <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide truncate max-w-[100px]">
+              <span className="hidden sm:flex bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide truncate max-w-[100px]">
                 <GraduationCap className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{product.education_level.nome}</span>
               </span>
             )}
             {product.average_rating ? (
-              <span className="bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1">
+              <span className="hidden sm:flex bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1">
                 <Star className="w-3 h-3 fill-amber-400 text-amber-500" /> {product.average_rating}
               </span>
             ) : (
-              <span className="bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide">
+              <span className="hidden sm:flex bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide">
                 <Sparkles className="w-3 h-3" /> Novo
               </span>
             )}
           </div>
 
-          <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center gap-1.5 mb-4">
+          <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wide sm:tracking-wider flex items-center gap-1 mb-2 sm:mb-4">
             <StoreIcon className="w-3.5 h-3.5" />
             <span className="truncate">{storeName}</span>
           </p>
         </Link>
 
         {/* Preço e Botão */}
-        <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
+        <div className="mt-auto pt-2 sm:pt-4 border-t border-slate-100 flex flex-col gap-2 sm:gap-3">
           {isPlrMode ? (
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -158,22 +158,22 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <span className={`text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
+              <span className={`text-base sm:text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
                 {priceDisplay}
               </span>
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             <button 
               onClick={handleAdd}
-              className="flex-1 bg-slate-100 text-slate-700 p-2 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
+              className="flex-1 min-h-9 bg-slate-100 text-slate-700 p-2 rounded-lg sm:rounded-xl text-xs font-bold shadow-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
               title="Adicionar ao Carrinho"
             >
               <ShoppingBag className="w-4 h-4" />
             </button>
             <button 
               onClick={handleBuy}
-              className="flex-[2] bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
+              className="flex-[2] min-h-9 bg-blue-600 text-white px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 active:scale-95"
             >
               <Zap className="w-4 h-4 fill-transparent" />
               Comprar

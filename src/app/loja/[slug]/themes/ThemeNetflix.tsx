@@ -184,7 +184,7 @@ export default function ThemeNetflix(props: StoreThemeProps) {
 
         {/* Store Profile Bar with Floating Circle Logo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-8">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
             
             {/* Circular Logo Overlapping Banner */}
             <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white p-1.5 border-4 border-white shadow-xl overflow-hidden flex-shrink-0 relative z-10">
@@ -312,7 +312,7 @@ export default function ThemeNetflix(props: StoreThemeProps) {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {kits.map((kit) => {
                 const prods = kit.products || [];
                 const somaPrecos = prods.reduce((sum, p) => sum + p.preco, 0);
@@ -445,7 +445,7 @@ export default function ThemeNetflix(props: StoreThemeProps) {
 
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {filteredProducts.map((prod, index) => {
               const catName = getCategoryName(prod.category_id);
               const edName = getEducationName(prod.education_level_id);

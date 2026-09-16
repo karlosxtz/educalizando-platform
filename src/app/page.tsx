@@ -132,7 +132,7 @@ export default async function Home() {
               <p className="text-slate-500 font-medium">Nenhum material publicado ainda.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {produtosEmAlta.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -171,7 +171,7 @@ export default async function Home() {
               <p className="text-slate-500 font-medium">Nenhum material sazonal no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {produtosSazonais.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -192,7 +192,7 @@ export default async function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {produtosGratuitos.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -213,7 +213,7 @@ export default async function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {produtosPLR.map(produto => (
                 <ProductCard key={produto.id} product={produto} purchaseMode="plr" />
               ))}
@@ -226,7 +226,7 @@ export default async function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             {/* Trust Badges */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-16">
               <div className="flex flex-col items-center text-center p-6 rounded-3xl bg-slate-50 border border-slate-100">
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
                   <Download className="w-6 h-6" />

@@ -108,7 +108,7 @@ export default async function BuscarPage({
               {/* Grid de Produtos */}
               {count > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
                     {products.map(product => (
                       <ProductCard key={product.id} product={product} purchaseMode={isPlrMarketplace ? 'plr' : 'standard'} />
                     ))}
@@ -144,7 +144,7 @@ export default async function BuscarPage({
                         <h3 className="text-xl font-bold text-slate-900">Que tal explorar materiais destes criadores?</h3>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
                         {topStores.slice(0, 2).map(store => (
                           <StoreCard key={store.id} store={store} />
                         ))}
