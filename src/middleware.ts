@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)
       }
-      if (user.email !== superAdminEmail) {
+      if (user.email?.trim().toLowerCase() !== superAdminEmail.trim().toLowerCase()) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)
