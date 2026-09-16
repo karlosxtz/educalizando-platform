@@ -37,18 +37,8 @@ export async function GET(
       .limit(1)
       .maybeSingle();
     if (!access) {
-      const { data: freeProduct } = await supabaseAdmin
-        .from('products')
-        .select('id')
-        .eq('id', productId)
-        .eq('is_free', true)
-        .eq('status', 'publicado')
-        .is('excluido_em', null)
-        .maybeSingle();
-      if (!freeProduct) {
-        console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
-        return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
-      }
+      console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
+      return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
     }
     if (access?.order_id) {
       const { data: accessOrder } = await supabaseAdmin

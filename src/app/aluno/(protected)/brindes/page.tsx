@@ -22,7 +22,7 @@ export default function StudentFreeProductsPage() {
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [freeProducts, setFreeProducts] = useState<(Product & { store?: Store })[]>([]);
   
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -45,25 +45,26 @@ export default function StudentFreeProductsPage() {
     loadData();
   }, [router]);
 
-  const downloadSingleProduct = async (productId: string) => {
-    const downloadUrl = `/api/aluno/materiais/${productId}/download`;
-    window.location.assign(downloadUrl);
-  };
-
-  const handleDownloadPurchase = async (product: Product, e: React.MouseEvent) => {
+  const handleClaimFreeProduct = async (product: Product, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    setDownloadingId(product.id);
+    setClaimingId(product.id);
 
     try {
-      await downloadSingleProduct(product.id);
-      toast.success('Download do brinde iniciado!');
+      const response = await fetch('/api/materiais-gratis/resgatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível liberar o material.');
+      router.push(result.redirectTo || `/cliente/brindes/${product.id}`);
     } catch (err: any) {
-      console.error('[Download Error]:', err);
-      toast.error('Não foi possível baixar o material agora. Tente novamente em instantes.');
+      console.error('[Free material claim error]:', err);
+      toast.error(err.message || 'Não foi possível liberar o material agora. Tente novamente em instantes.');
     } finally {
-      setDownloadingId(null);
+      setClaimingId(null);
     }
   };
 
@@ -198,16 +199,16 @@ export default function StudentFreeProductsPage() {
                     {/* Download Action */}
                     <button
                       type="button"
-                      onClick={(e) => handleDownloadPurchase(product, e)}
-                      disabled={downloadingId === product.id}
+                      onClick={(e) => handleClaimFreeProduct(product, e)}
+                      disabled={claimingId === product.id}
                       className="w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm transition-all flex justify-center items-center gap-2 bg-brand-teal hover:bg-teal-600 active:scale-95 disabled:opacity-50"
                     >
-                      {downloadingId === product.id ? (
+                      {claimingId === product.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Download className="w-4 h-4" />
                       )}
-                      <span>{downloadingId === product.id ? 'Baixando...' : 'Baixar Brinde'}</span>
+                      <span>{claimingId === product.id ? 'Liberando...' : 'Resgatar Brinde'}</span>
                     </button>
                     
                     {product.store && (
