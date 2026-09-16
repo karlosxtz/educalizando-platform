@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Store, Product, StoreListingProduct, StoreCollection, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
@@ -18,6 +19,7 @@ interface PublicStoreClientViewProps {
 }
 
 export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
+  const searchParams = useSearchParams();
   // Products come correctly from the server (SSR) via initialProducts
   // We do NOT re-fetch them client-side because Supabase anon RLS blocks it
   const [products] = useState<StoreListingProduct[]>(() => initialProducts.flatMap((product) => {
@@ -41,13 +43,17 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   const [categories, setCategories] = useState<Category[]>([]);
   const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
   const [kits, setKits] = useState<Kit[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => searchParams.get('category') || 'all');
   const [selectedEducation, setSelectedEducation] = useState<string>('all');
   const [selectedCollection, setSelectedCollection] = useState<StoreCollection>('all');
 
   useEffect(() => {
     loadMetadata();
   }, [store.id]);
+
+  useEffect(() => {
+    setSelectedCategory(searchParams.get('category') || 'all');
+  }, [searchParams]);
 
   const loadMetadata = async () => {
     // Only fetch metadata (categories, education levels, kits) client-side

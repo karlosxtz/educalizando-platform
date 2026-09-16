@@ -192,6 +192,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         context="store"
         relatedProducts={relatedProducts}
         bnccSkills={bnccSkills}
+        storeCategories={categories.filter((item) => storeProducts.some((storeProduct) => storeProduct.category_id === item.id))}
       />
     </div>
   );

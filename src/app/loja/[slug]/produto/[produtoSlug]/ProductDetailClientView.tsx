@@ -29,6 +29,7 @@ interface ProductDetailClientViewProps {
   context?: 'store' | 'marketplace';
   relatedProducts?: Product[];
   bnccSkills?: BnccSkill[];
+  storeCategories?: Category[];
 }
 
 export default function ProductDetailClientView({ 
@@ -38,7 +39,8 @@ export default function ProductDetailClientView({
   educationLevel,
   context = 'store',
   relatedProducts = [],
-  bnccSkills = []
+  bnccSkills = [],
+  storeCategories = []
 }: ProductDetailClientViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,6 +61,7 @@ export default function ProductDetailClientView({
 
   // Gallery State
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showMobileCategories, setShowMobileCategories] = useState(false);
 
   // Derive gallery images
   const galleryImages = [];
@@ -166,15 +169,22 @@ export default function ProductDetailClientView({
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
       {/* Mobile marketplace header: one short navigation instead of stacked bars */}
-      <header className="lg:hidden bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
+      <header className="lg:hidden relative bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" aria-label="Ir para a Educalizando" className="shrink-0">
+          <Link href={`/loja/${store.slug}`} aria-label={`Ir para a loja ${store.nome_loja}`} className="shrink-0">
             <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
           </Link>
-          <Link href="/buscar" className="flex flex-col items-center text-[9px] font-bold text-slate-700"><Grid2X2 className="h-4 w-4" />Categorias</Link>
+          <button type="button" onClick={() => setShowMobileCategories((open) => !open)} className="flex flex-col items-center text-[9px] font-bold text-slate-700" aria-expanded={showMobileCategories}><Grid2X2 className="h-4 w-4" />Categorias</button>
           <button type="button" onClick={toggleCart} className="relative flex flex-col items-center text-[9px] font-bold text-slate-700" aria-label="Abrir carrinho"><ShoppingCart className="h-5 w-5" />Carrinho{items.length > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] text-white">{items.length}</span>}</button>
         </div>
-        <Link href="/buscar" className="mt-3 flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500"><Search className="h-4 w-4" />Buscar materiais, atividades e jogos...</Link>
+        <Link href={`/loja/${store.slug}#filtros`} className="mt-3 flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500"><Search className="h-4 w-4" />Buscar materiais desta loja...</Link>
+        {showMobileCategories && (
+          <div className="absolute left-3 right-3 top-[104px] z-[70] max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+            <p className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Categorias de {store.nome_loja}</p>
+            <Link href={`/loja/${store.slug}`} onClick={() => setShowMobileCategories(false)} className="block rounded-xl px-3 py-3 text-sm font-bold text-blue-700 hover:bg-blue-50">Todos os materiais</Link>
+            {storeCategories.map((storeCategory) => <Link key={storeCategory.id} href={`/loja/${store.slug}?category=${storeCategory.id}#filtros`} onClick={() => setShowMobileCategories(false)} className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">{storeCategory.nome}</Link>)}
+          </div>
+        )}
       </header>
       {/* Top Educalizando Security Bar - Escondido no contexto Global (Marketplace) */}
       {context !== 'marketplace' && (
