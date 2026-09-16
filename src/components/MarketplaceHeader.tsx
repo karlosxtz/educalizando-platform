@@ -26,6 +26,12 @@ function MarketplaceHeaderInner() {
   const currentCategoria = searchParams?.get('categoria');
   const currentSort = searchParams?.get('sort');
   const currentFilter = searchParams?.get('filter');
+  const quickCategories = [
+    { href: '/buscar?sort=popular', label: '🔥 Mais Vendidos', active: currentSort === 'popular' },
+    { href: '/buscar?categoria=ensino-fundamental', label: '🎒 Ensino Fundamental', active: currentCategoria === 'ensino-fundamental' },
+    { href: '/buscar?categoria=jogos', label: '🧩 Recursos Lúdicos', active: currentCategoria === 'jogos' },
+    { href: '/buscar?filter=plr', label: '💼 Revenda Autorizada', active: currentFilter === 'plr' },
+  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -124,10 +130,10 @@ function MarketplaceHeaderInner() {
       {/* 2. Navegação Secundária */}
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 sm:py-3 gap-2 sm:gap-4">
+          <div className="hidden sm:flex sm:items-center justify-between py-3 gap-4">
             
             {/* Esquerda: Links Simples */}
-            <div className="flex w-full sm:w-auto items-center gap-5 overflow-x-auto hide-scroll-bar pb-1 sm:pb-0">
+            <div className="flex items-center gap-5">
               <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
                 Início
               </Link>
@@ -138,33 +144,23 @@ function MarketplaceHeaderInner() {
             </div>
 
             {/* Direita: Pills Elegantes */}
-            <div className="flex w-full sm:w-auto items-center gap-2 overflow-x-auto hide-scroll-bar pb-1 sm:pb-0">
-              <Link 
-                href="/buscar?sort=popular"
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentSort === 'popular' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
-              >
-                🔥 Mais Vendidos
-              </Link>
-              <Link 
-                href="/buscar?categoria=ensino-fundamental" 
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'ensino-fundamental' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
-              >
-                🎒 Ensino Fundamental
-              </Link>
-              <Link 
-                href="/buscar?categoria=jogos"
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentCategoria === 'jogos' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
-              >
-                🧩 Recursos Lúdicos
-              </Link>
-              <Link 
-                href="/buscar?filter=plr"
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${currentFilter === 'plr' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
-              >
-                💼 Revenda Autorizada
-              </Link>
+            <div className="flex items-center gap-2">
+              {quickCategories.map((category) => <Link key={category.href} href={category.href} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${category.active ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{category.label}</Link>)}
             </div>
             
+          </div>
+
+          <div className="sm:hidden">
+            <div className="flex h-11 items-center justify-between gap-2 border-b border-slate-100 px-1">
+              <Link href="/" className="px-2 py-2 text-xs font-extrabold text-slate-900">Início</Link>
+              <CategoryDropdown />
+              <Link href="/lojas" className="px-2 py-2 text-xs font-extrabold text-slate-600">Lojas</Link>
+            </div>
+            <div className="marketplace-category-rail relative h-12 overflow-hidden py-2" aria-label="Categorias em destaque">
+              <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
+                {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
+              </div>
+            </div>
           </div>
         </div>
       </div>

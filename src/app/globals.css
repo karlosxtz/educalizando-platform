@@ -163,3 +163,37 @@
   from { background-position: 1rem 0; }
   to { background-position: 0 0; }
 }
+
+@keyframes marketplace-category-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes marketplace-category-glow {
+  0%, 100% { filter: saturate(1); opacity: .9; }
+  50% { filter: saturate(1.2) brightness(1.03); opacity: 1; }
+}
+
+.marketplace-category-track {
+  will-change: transform;
+  animation: marketplace-category-scroll 34s linear infinite;
+}
+
+.marketplace-category-rail::before,
+.marketplace-category-rail::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.marketplace-category-rail::before { left: 0; background: linear-gradient(90deg, #fff, transparent); }
+.marketplace-category-rail::after { right: 0; background: linear-gradient(270deg, #fff, transparent); }
+.marketplace-category-rail { animation: marketplace-category-glow 3.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marketplace-category-track, .marketplace-category-rail { animation: none; }
+}
