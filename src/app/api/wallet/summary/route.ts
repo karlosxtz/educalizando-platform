@@ -49,10 +49,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
     }
 
-    // Buscar orders e wallet_transactions em paralelo
-    const [ordersResult, txResult] = await Promise.all([
+    // Pedidos, livro-caixa e saques são a fonte de verdade do resumo.
+    const [ordersResult, txResult, withdrawalsResult] = await Promise.all([
       supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
-      supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId)
+      supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId),
+      supabaseAdmin.from('withdrawals').select('amount, status').eq('store_id', storeId)
     ]);
 
     if (ordersResult.error) {
@@ -61,9 +62,15 @@ export async function GET(request: Request) {
     if (txResult.error) {
       console.error('[API Wallet Summary] Erro wallet_transactions:', txResult.error);
     }
+    if (withdrawalsResult.error) {
+      console.error('[API Wallet Summary] Erro withdrawals:', withdrawalsResult.error);
+    }
 
     const allOrders = ordersResult.data || [];
     const allTx = txResult.data || [];
+    const completedWithdrawals = (withdrawalsResult.data || []).filter((withdrawal: any) =>
+      String(withdrawal.status || '').toUpperCase() === 'COMPLETED'
+    );
 
     // Calcular resumo financeiro
     const isOrderPaid = (o: any) => {
@@ -126,12 +133,16 @@ export async function GET(request: Request) {
     }
 
     const totalTaxas = Number((taxasEducalizando + taxasAsaas).toFixed(2));
+    const totalRecebido = completedWithdrawals.reduce(
+      (sum: number, withdrawal: any) => sum + Math.max(0, Number(withdrawal.amount || 0)),
+      0
+    );
 
     const summary = {
       totalVendido: Number(totalVendido.toFixed(2)),
       saldoPendente: Number(saldoPendente.toFixed(2)),
       saldoDisponivel: Number(Math.max(0, saldoDisponivel).toFixed(2)),
-      totalRecebido: 0,
+      totalRecebido: Number(totalRecebido.toFixed(2)),
       taxasEducalizando: Number(taxasEducalizando.toFixed(2)),
       taxasAsaas: Number(taxasAsaas.toFixed(2)),
       taxasGateway: Number(taxasAsaas.toFixed(2)),

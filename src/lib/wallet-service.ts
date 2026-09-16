@@ -28,7 +28,7 @@ export interface CreatorWalletSummary {
   totalVendido: number; // Valor bruto total de vendas pagas
   saldoPendente: number; // Líquido de pedidos aguardando pagamento
   saldoDisponivel: number; // Líquido já liberado (pronto para futuro saque na Fase C)
-  totalRecebido: number; // Histórico retirado via saques (R$ 0,00 nesta Fase B)
+  totalRecebido: number; // Histórico efetivamente pago ao criador via saques concluídos
   taxasEducalizando: number; // 13% sobre subtotal, sem tarifa fixa
   taxasAsaas: number; // Taxa real cobrada pelo Asaas
   totalTaxas: number; // Soma das duas taxas
@@ -98,14 +98,16 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
 
   let orders: any[] = [];
   let transactions: WalletTransaction[] = [];
+  let completedWithdrawals: Array<{ amount: number }> = [];
 
   // A. Buscar Pedidos e Transações no Supabase se configurado
   if (isRealSupabaseConfigured()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      const [ordRes, txRes] = await Promise.all([
+      const [ordRes, txRes, withdrawalsRes] = await Promise.all([
         supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
-        supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId)
+        supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId),
+        supabaseAdmin.from('withdrawals').select('amount, status').eq('store_id', storeId).eq('status', 'COMPLETED')
       ]);
 
       if (!ordRes.error && ordRes.data) {
@@ -127,6 +129,11 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
           netAmount: Number(t.net_amount || 0),
           description: t.description || '',
           createdAt: t.created_at
+        }));
+      }
+      if (!withdrawalsRes.error && withdrawalsRes.data) {
+        completedWithdrawals = withdrawalsRes.data.map((withdrawal: any) => ({
+          amount: Math.max(0, Number(withdrawal.amount || 0))
         }));
       }
     } catch (err) {
@@ -222,12 +229,13 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   }
 
   const totalTaxas = Number((calculatedTaxasEducalizando + calculatedTaxasPagamento).toFixed(2));
+  const totalRecebido = completedWithdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
 
   return {
     totalVendido: Number(totalVendido.toFixed(2)),
     saldoPendente: Number(calculatedSaldoPendente.toFixed(2)),
     saldoDisponivel: Number(Math.max(0, calculatedSaldoDisponivel).toFixed(2)),
-    totalRecebido: 0,
+    totalRecebido: Number(totalRecebido.toFixed(2)),
     taxasEducalizando: Number(calculatedTaxasEducalizando.toFixed(2)),
     taxasAsaas: Number(calculatedTaxasPagamento.toFixed(2)),
     totalTaxas
