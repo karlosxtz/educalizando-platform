@@ -169,7 +169,7 @@ export default function ProductDetailClientView({
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
       {/* Mobile marketplace header: one short navigation instead of stacked bars */}
-      <header className="lg:hidden relative bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
+      {context !== 'marketplace' && <header className="lg:hidden relative bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <Link href={`/loja/${store.slug}`} aria-label={`Ir para a loja ${store.nome_loja}`} className="shrink-0">
             <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
@@ -185,7 +185,7 @@ export default function ProductDetailClientView({
             {storeCategories.map((storeCategory) => <Link key={storeCategory.id} href={`/loja/${store.slug}?category=${storeCategory.id}#filtros`} onClick={() => setShowMobileCategories(false)} className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">{storeCategory.nome}</Link>)}
           </div>
         )}
-      </header>
+      </header>}
       {/* Top Educalizando Security Bar - Escondido no contexto Global (Marketplace) */}
       {context !== 'marketplace' && (
         <>
@@ -221,10 +221,10 @@ export default function ProductDetailClientView({
           
           {/* LEFT COLUMN: Content */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-8">
-            <div className="lg:hidden space-y-2">
+            {context !== 'marketplace' && <div className="lg:hidden space-y-2">
               <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><Link href="/" className="hover:text-blue-600">Início</Link><span>›</span><Link href={`/loja/${store.slug}`} className="hover:text-blue-600 truncate max-w-[110px]">{store.nome_loja}</Link><span>›</span><span className="truncate">Material</span></div>
               <h1 className="text-xl font-black leading-tight tracking-tight text-slate-900">{product.titulo}</h1>
-            </div>
+            </div>}
 
             {/* Cover Display & Gallery */}
             <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col gap-4">
