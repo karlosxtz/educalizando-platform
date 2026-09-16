@@ -52,7 +52,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
 
   return (
     <section 
-      className="w-full relative bg-slate-900 overflow-hidden aspect-[16/9] sm:aspect-[21/9] sm:min-h-[300px] sm:max-h-[500px]"
+      className="w-full relative overflow-hidden aspect-[21/9] sm:min-h-[300px] sm:max-h-[500px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
