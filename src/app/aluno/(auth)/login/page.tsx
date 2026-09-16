@@ -98,7 +98,7 @@ function StudentLoginForm() {
               <span>Entre para Continuar a Compra</span>
             </div>
             <p className="text-[11px] font-medium leading-normal text-emerald-700">
-              Para finalizar a compra deste material didático, é necessário estar conectado em uma <strong>conta de Aluno</strong>.
+              Para finalizar a compra deste material didático, é necessário estar conectado em uma <strong>conta de Cliente</strong>.
             </p>
           </div>
         )}
@@ -128,7 +128,7 @@ function StudentLoginForm() {
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Criar conta de aluno</span>
+            <span>Criar conta de cliente</span>
           </button>
         </div>
 
@@ -139,12 +139,12 @@ function StudentLoginForm() {
           </div>
         )}
 
-        {/* Form A: Login de Aluno */}
+        {/* Form A: Login de Cliente */}
         {tab === 'login' ? (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                E-mail do Aluno *
+                E-mail do Cliente *
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -185,14 +185,14 @@ function StudentLoginForm() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>{isBuyAction ? 'Entrar e Continuar Compra' : 'Entrar na Área do Aluno'}</span>
+                  <span>{isBuyAction ? 'Entrar e Continuar Compra' : 'Entrar na Área do Cliente'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
         ) : (
-          /* Form B: Cadastro de Aluno */
+          /* Form B: Cadastro de Cliente */
           <form onSubmit={handleRegister} className="space-y-3.5">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
@@ -274,7 +274,7 @@ function StudentLoginForm() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>{isBuyAction ? 'Criar Conta e Ir para Checkout' : 'Criar Conta de Aluno'}</span>
+                  <span>{isBuyAction ? 'Criar Conta e Ir para Checkout' : 'Criar Conta de Cliente'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -309,11 +309,11 @@ export default function StudentLoginPage() {
 
         <div className="bg-brand-navy/5 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-brand-navy/10 text-brand-navy text-xs font-bold">
           <GraduationCap className="w-4 h-4 text-brand-navy" />
-          <span>Autenticação de Aluno Educalizando</span>
+          <span>Autenticação de Cliente Educalizando</span>
         </div>
 
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-          Acesse ou Crie sua Conta de Aluno
+          Acesse ou Crie sua Conta de Cliente
         </h2>
         <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
           Faça login ou crie sua conta gratuitamente para comprar e baixar seus materiais didáticos.

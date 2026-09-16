@@ -75,7 +75,7 @@ function StudentSignupForm() {
               <span>Cadastro para Continuar a Compra</span>
             </div>
             <p className="text-[11px] font-medium leading-normal text-emerald-700">
-              Crie sua conta de Aluno gratuitamente para finalizar sua compra e acessar o material.
+              Crie sua conta de Cliente gratuitamente para finalizar sua compra e acessar o material.
             </p>
           </div>
         )}
@@ -114,7 +114,7 @@ function StudentSignupForm() {
 
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-              E-mail de Aluno *
+              E-mail de Cliente *
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -185,7 +185,7 @@ function StudentSignupForm() {
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                <span>{isBuyAction ? 'Criar Conta e Ir para Checkout' : 'Criar Conta de Aluno'}</span>
+                <span>{isBuyAction ? 'Criar Conta e Ir para Checkout' : 'Criar Conta de Cliente'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -194,7 +194,7 @@ function StudentSignupForm() {
 
         <div className="pt-4 border-t border-slate-100 text-center space-y-2">
           <p className="text-xs text-slate-500 font-medium">
-            Já tem uma conta de aluno?{' '}
+            Já tem uma conta de cliente?{' '}
             <Link 
               href={returnTo ? `/aluno/login?returnTo=${encodeURIComponent(returnTo)}&action=buy` : '/aluno/login'} 
               className="text-brand-navy font-extrabold hover:underline"
@@ -225,7 +225,7 @@ export default function StudentSignupPage() {
 
         <div className="bg-brand-navy/5 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-brand-navy/10 text-brand-navy text-xs font-bold">
           <GraduationCap className="w-4 h-4 text-brand-navy" />
-          <span>Cadastro de Aluno Educalizando</span>
+          <span>Cadastro de Cliente Educalizando</span>
         </div>
 
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">

@@ -13,8 +13,8 @@ interface StudentHeaderProps {
 }
 
 export default function StudentHeader({
-  studentName = 'Aluno Educalizando',
-  studentEmail = 'aluno@educalizando.com',
+  studentName = 'Cliente Educalizando',
+  studentEmail = 'cliente@educalizando.com',
   studentAvatarUrl
 }: StudentHeaderProps) {
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function StudentHeader({
             style={{ width: 'auto', height: '38px' }}
           />
           <span className="hidden sm:inline-flex text-[10px] font-bold text-brand-teal uppercase tracking-widest bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full items-center gap-1">
-            <GraduationCap className="w-3 h-3 text-brand-teal" /> Área do Aluno
+            <GraduationCap className="w-3 h-3 text-brand-teal" /> Área do Cliente
           </span>
         </Link>
 

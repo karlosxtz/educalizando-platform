@@ -70,7 +70,7 @@ export default function StudentPortalHomePage() {
         >
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 px-4 py-1.5 rounded-full text-xs font-extrabold shadow-inner">
             <GraduationCap className="w-4 h-4" />
-            <span>Portal do Aluno Educalizando</span>
+            <span>Portal do Cliente Educalizando</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
@@ -103,7 +103,7 @@ export default function StudentPortalHomePage() {
             className="w-full py-4 rounded-2xl font-extrabold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] active:scale-95"
           >
             <UserPlus className="w-4 h-4 text-blue-400" />
-            <span>Criar conta de aluno</span>
+            <span>Criar conta de cliente</span>
           </Link>
 
           <p className="text-[11px] text-slate-500 font-medium pt-2">
@@ -120,7 +120,7 @@ export default function StudentPortalHomePage() {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 border-t border-slate-900 text-center text-xs text-slate-400">
-        <p>© {new Date().getFullYear()} Educalizando. Área de Membros Oficial do Aluno.</p>
+        <p>© {new Date().getFullYear()} Educalizando. Área de Membros Oficial do Cliente.</p>
       </footer>
 
     </div>

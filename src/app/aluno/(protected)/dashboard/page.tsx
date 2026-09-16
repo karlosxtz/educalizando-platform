@@ -64,7 +64,7 @@ export default function StudentDashboardStoresPage() {
         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-navy bg-slate-100 px-3 py-1 rounded-full border border-slate-200 inline-flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> Área de Membros do Aluno
+              <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> Área de Membros do Cliente
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Minhas Lojas ({groupedStores.length})
