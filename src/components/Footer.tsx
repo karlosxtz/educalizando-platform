@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ShieldCheck, MessageCircle, Mail } from 'lucide-react';
+import NewsletterForm from './NewsletterForm';
 
 export default function Footer() {
   return (
@@ -92,6 +93,10 @@ export default function Footer() {
             </ul>
           </div>
 
+        </div>
+
+        <div className="pb-8">
+          <NewsletterForm />
         </div>
 
         {/* Barra Inferior (Copyright e Pagamentos) */}
