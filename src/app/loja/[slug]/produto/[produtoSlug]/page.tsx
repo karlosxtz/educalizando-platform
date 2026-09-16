@@ -97,9 +97,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
 
   const storeProducts = await getPublicProductsByStoreId(store.id);
-  const relatedProducts = storeProducts
-    .filter(p => p.id !== product.id)
-    .slice(0, 4);
+  const otherStoreProducts = storeProducts.filter((item) => item.id !== product.id);
+  const relatedProducts = [
+    ...otherStoreProducts.filter((item) =>
+      (product.category_id && item.category_id === product.category_id) ||
+      (product.education_level_id && item.education_level_id === product.education_level_id)
+    ),
+    ...otherStoreProducts.filter((item) =>
+      !((product.category_id && item.category_id === product.category_id) ||
+        (product.education_level_id && item.education_level_id === product.education_level_id))
+    ),
+  ].slice(0, 4);
 
   // Breadcrumb structure
   const breadcrumbItems: { label: string; href: string; icon?: ReactNode }[] = [
