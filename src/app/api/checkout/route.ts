@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (cookies SSR ou Bearer)
     const user = await getRequestUser(request);
     const metadata = user?.user_metadata || {};
-    const authenticatedRole = metadata.role === 'creator' || metadata.is_creator === true ? 'creator' : 'student';
+    let authenticatedRole = metadata.role === 'creator' || metadata.is_creator === true ? 'creator' : 'student';
 
     // Se o comprador não tem identificação válida:
     if (!user) {
@@ -37,6 +37,18 @@ export async function POST(request: Request) {
         },
         { status: 401 }
       );
+    }
+
+    // Uma loja vinculada torna a conta de fato uma conta de criador, inclusive
+    // para cadastros antigos cujo metadata ainda não contém o campo role.
+    if (authenticatedRole !== 'creator') {
+      const { data: creatorStore } = await supabaseAdmin
+        .from('stores')
+        .select('id')
+        .eq('creator_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      if (creatorStore) authenticatedRole = 'creator';
     }
     
     // Verificação de Role (Papel)

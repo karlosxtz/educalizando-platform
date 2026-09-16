@@ -64,7 +64,20 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
       if (data && data.user) {
         const userMetadata = data.user.user_metadata || {};
         const rawRole = userMetadata.role || (userMetadata.is_creator ? 'creator' : 'student');
-        const role = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
+        let role: 'student' | 'creator' = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
+
+        // O perfil pode ter sido criado antes da flag de papel existir. A loja
+        // vinculada ao usuário é a fonte de verdade adicional para bloquear
+        // uma conta de criador de comprar materiais de consumo final.
+        if (role !== 'creator') {
+          const { data: creatorStore } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('creator_id', data.user.id)
+            .limit(1)
+            .maybeSingle();
+          if (creatorStore) role = 'creator';
+        }
 
         // Sincronizar localmente no navegador
         if (typeof window !== 'undefined' && role === 'student') {

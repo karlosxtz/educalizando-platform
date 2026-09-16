@@ -91,7 +91,8 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthError, setIsAuthError] = useState(false);
-  const hasRoleMismatch = Boolean(errorMessage?.includes('logado como'));
+  const [hasRoleMismatch, setHasRoleMismatch] = useState(false);
+  const returnToProduct = product ? `/loja/${store.slug}/produto/${product.slug || product.id}` : `/loja/${store.slug}/checkout`;
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -104,6 +105,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         const hasValidRole = isPlrPurchase ? session.role === 'creator' : session.role === 'student';
         
         if (session.isAuthenticated && hasValidRole) {
+          setHasRoleMismatch(false);
           let storeName = '';
           if (isPlrPurchase && session.userId) {
             try {
@@ -127,6 +129,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         } else if (session.isAuthenticated && !hasValidRole) {
           setIsStudentLoggedIn(false);
           setStudentSession(null);
+          setHasRoleMismatch(true);
           setErrorMessage(
             isPlrPurchase 
               ? 'Você está logado como ALUNO, mas apenas CRIADORES podem comprar PLR. Saia da sua conta atual e faça login como Criador.' 
@@ -135,11 +138,13 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
         } else {
           setIsStudentLoggedIn(false);
           setStudentSession(null);
+          setHasRoleMismatch(false);
         }
       } catch (err) {
         console.error(err);
         setIsStudentLoggedIn(false);
         setStudentSession(null);
+        setHasRoleMismatch(false);
       }
     }
     checkStudentAuth();
@@ -366,7 +371,21 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
               </div>
 
               {/* Status de Login ou Opções Rápidas */}
-              {isStudentLoggedIn === true ? (
+              {hasRoleMismatch ? (
+                <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="block text-sm font-extrabold">Você está conectado como Criador</span>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-800">Para comprar materiais e acessar os arquivos, entre ou crie uma conta de Cliente. Após concluir, você voltará automaticamente para este produto.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                    <Link href={`/cliente/login?returnTo=${encodeURIComponent(returnToProduct)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como Cliente</Link>
+                    <Link href={`/cliente/cadastro?returnTo=${encodeURIComponent(returnToProduct)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta de Cliente</Link>
+                  </div>
+                </div>
+              ) : isStudentLoggedIn === true ? (
                 <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 p-4 rounded-2xl text-xs font-bold space-y-1.5 shadow-xs">
                   <div className="flex items-center gap-2 text-emerald-800">
                     <UserCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
@@ -377,20 +396,6 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <p className="text-[11px] text-emerald-700 font-medium pl-7">
                     Seu acesso ao material será liberado automaticamente nesta conta após a confirmação do pagamento.
                   </p>
-                </div>
-              ) : hasRoleMismatch ? (
-                <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="block text-sm font-extrabold">Use uma conta de {isPlrPurchase ? 'criador' : 'cliente'} para concluir esta compra</span>
-                      <p className="mt-1 text-xs leading-relaxed text-amber-800">{isPlrPurchase ? 'Licenças PLR são exclusivas para criadores.' : 'Materiais de uso final são comprados pela conta de cliente.'}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <Link href={isPlrPurchase ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como {isPlrPurchase ? 'Criador' : 'Cliente'}</Link>
-                    <Link href={isPlrPurchase ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta</Link>
-                  </div>
                 </div>
               ) : (
                 <div className="bg-rose-50 border border-rose-200 text-rose-900 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
