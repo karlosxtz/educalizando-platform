@@ -60,7 +60,7 @@ export default function PrivacidadePage() {
                 A plataforma utiliza cookies com duas funções essenciais e fundamentais para o nosso modelo de negócios:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Cookies de Autenticação:</strong> Para manter sua sessão ativa e segura na área do aluno, painel do produtor ou vitrine do afiliado.</li>
+                <li><strong>Cookies de Autenticação:</strong> Para manter sua sessão ativa e segura na área do cliente, painel do produtor ou vitrine do afiliado.</li>
                 <li><strong>Cookies de Rastreamento (Afiliados):</strong> Para identificar de qual parceiro veio o comprador, garantindo que as comissões de venda sejam pagas corretamente e de forma justa a quem indicou o material.</li>
               </ul>
             </section>

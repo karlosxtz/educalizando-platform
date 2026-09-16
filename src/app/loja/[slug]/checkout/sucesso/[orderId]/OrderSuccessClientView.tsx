@@ -92,7 +92,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
                 Parabéns! Sua compra foi confirmada!
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md mx-auto">
-                O seu acesso ao material didático digital já foi liberado automaticamente na sua Área do Aluno.
+                O seu acesso ao material didático digital já foi liberado automaticamente na sua Área do Cliente.
               </p>
             </div>
 
@@ -103,11 +103,11 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
 
             <div className="pt-4">
               <Link
-                href="/aluno/dashboard"
+                href="/cliente/dashboard"
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-sm shadow-xl shadow-brand-navy/20 inline-flex items-center justify-center gap-2 transition-all"
               >
                 <BookOpen className="w-5 h-5 text-brand-teal" />
-                <span>Acessar Meus Materiais na Área do Aluno</span>
+                <span>Acessar Meus Materiais na Área do Cliente</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

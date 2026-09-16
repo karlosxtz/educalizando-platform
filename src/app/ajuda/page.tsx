@@ -47,7 +47,7 @@ export default function AjudaPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
                 <GraduationCap className="w-5 h-5" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900">Para Compradores (Área do Aluno)</h2>
+              <h2 className="text-2xl font-black text-slate-900">Para Compradores (Área do Cliente)</h2>
             </div>
             
             <div className="space-y-4">
@@ -77,7 +77,7 @@ export default function AjudaPage() {
                   <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
                 </summary>
                 <div className="px-5 pb-5 pt-0 text-slate-600 font-medium leading-relaxed">
-                  Trabalhamos com total transparência. Você tem <strong>7 dias de garantia incondicional</strong> em todas as compras realizadas na plataforma. Se não estiver satisfeito, basta solicitar o reembolso na sua área do aluno.
+                  Trabalhamos com total transparência. Você tem <strong>7 dias de garantia incondicional</strong> em todas as compras realizadas na plataforma. Se não estiver satisfeito, basta solicitar o reembolso na sua área do cliente.
                 </div>
               </details>
             </div>

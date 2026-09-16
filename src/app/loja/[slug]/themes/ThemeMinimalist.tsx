@@ -136,7 +136,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
             <span className="truncate">Loja na Educalizando • Compra protegida</span>
           </div>
           <Link
-            href={`/aluno/login?from=${store.slug}`}
+            href={`/cliente/login?from=${store.slug}`}
             className="shrink-0 text-brand-teal hover:text-white font-extrabold transition-colors"
           >
             Já comprou? Acesse materiais

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
           success: false, 
           error: isPlrPurchase 
             ? 'Para comprar Licenças PLR, é obrigatório estar conectado em uma conta de CRIADOR.' 
-            : 'Para realizar compras na Educalizando, é obrigatório estar conectado em uma conta de ALUNO.' 
+            : 'Para realizar compras na Educalizando, é obrigatório estar conectado em uma conta de CLIENTE.'
         },
         { status: 401 }
       );
@@ -47,13 +47,13 @@ export async function POST(request: Request) {
     }
     if (!isPlrPurchase && authenticatedRole === 'creator') {
       return NextResponse.json(
-        { success: false, error: 'Criadores não podem comprar materiais comuns. Por favor, utilize uma conta de ALUNO.' },
+        { success: false, error: 'Criadores não podem comprar materiais comuns. Por favor, utilize uma conta de CLIENTE.' },
         { status: 401 }
       );
     }
 
     const studentId = user.id; // Será usado como ID do comprador (seja aluno ou criador)
-    const buyerName = (metadata.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Aluno')).trim();
+    const buyerName = (metadata.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Cliente')).trim();
     const buyerEmail = (user.email || rawBuyerEmail || '').toLowerCase().trim();
     const buyerCpf = String(metadata.cpf || rawBuyerCpf || '').replace(/\D/g, '');
     const buyerPhoneDigits = String(buyerPhone || '').replace(/\D/g, '');

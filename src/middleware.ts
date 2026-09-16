@@ -67,12 +67,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Proteger rotas do Aluno (Área Logada)
-  const privateStudentRoutes = ['/aluno/dashboard', '/aluno/conta', '/aluno/materiais']
+  // 2. Proteger rotas do Cliente (Área Logada)
+  const privateStudentRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais']
   if (privateStudentRoutes.some(route => pathname.startsWith(route))) {
     if (!user) {
       const url = request.nextUrl.clone()
-      url.pathname = '/aluno/login'
+      url.pathname = '/cliente/login'
       return NextResponse.redirect(url)
     }
   }
@@ -95,9 +95,9 @@ export const config = {
     '/api/admin/:path*',
     '/dashboard/:path*',
     '/painel/:path*',
-    '/aluno/dashboard/:path*',
-    '/aluno/conta/:path*',
-    '/aluno/materiais/:path*',
+    '/cliente/dashboard/:path*',
+    '/cliente/conta/:path*',
+    '/cliente/materiais/:path*',
     '/api/produtos/:path*',
     '/api/financeiro/:path*',
     '/api/aluno/materiais/:path*',

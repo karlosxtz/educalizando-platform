@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     
     if (segments[0] === 'loja' && segments.length >= 2) {
       storeSlug = segments[1];
-    } else if (segments.length > 0 && !['admin', 'api', 'login', 'afiliado', 'aluno'].includes(segments[0])) {
+    } else if (segments.length > 0 && !['admin', 'api', 'login', 'afiliado', 'aluno', 'cliente'].includes(segments[0])) {
       // Caso a raiz seja a loja
       storeSlug = segments[0];
     }

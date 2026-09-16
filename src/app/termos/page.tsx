@@ -54,7 +54,7 @@ export default function TermosPage() {
                 Todas as transações financeiras na Educalizando são processadas de forma segura e criptografada (através de Pix com liberação imediata e Cartões de Crédito).
               </p>
               <p>
-                Em conformidade com o Código de Defesa do Consumidor (Art. 49), garantimos ao Comprador o direito de arrependimento. Sendo assim, qualquer cliente tem direito a um <strong>reembolso incondicional</strong> no prazo de até 7 (sete) dias corridos a partir da data de aprovação da compra, sem necessidade de justificativa, processado diretamente através da sua Área do Aluno.
+                Em conformidade com o Código de Defesa do Consumidor (Art. 49), garantimos ao Comprador o direito de arrependimento. Sendo assim, qualquer cliente tem direito a um <strong>reembolso incondicional</strong> no prazo de até 7 (sete) dias corridos a partir da data de aprovação da compra, sem necessidade de justificativa, processado diretamente através da sua Área do Cliente.
               </p>
             </section>
 

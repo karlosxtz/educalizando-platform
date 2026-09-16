@@ -14,7 +14,7 @@ export async function sendWelcomeStudentEmail(params: {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <h2 style="color: #2563eb;">🎉 Seja muito bem-vindo(a) à Educalizando!</h2>
         <p>Olá, ${params.buyerName.split(' ')[0]}!</p>
-        <p>Sua conta de aluno foi criada com sucesso. Estamos muito felizes em ter você conosco.</p>
+        <p>Sua conta de cliente foi criada com sucesso. Estamos muito felizes em ter você conosco.</p>
         <div style="margin: 30px 0;">
           <a href="https://educalizando.com/entrar" style="background-color: #2563eb; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Plataforma</a>
         </div>
@@ -119,7 +119,7 @@ export async function sendSaleConfirmationToBuyer(params: {
           <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Materiais:</strong> ${params.productTitles}</p>
         </div>
         <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/aluno/dashboard" style="background-color: #2563eb; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar meus materiais</a>
+          <a href="https://educalizando.com/cliente/dashboard" style="background-color: #2563eb; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar meus materiais</a>
         </div>
         <p style="font-size: 14px;"><strong>Precisa de ajuda com o material?</strong><br/>
         Fale com o suporte no WhatsApp: <a href="${supportLink}" style="color: #2563eb; font-weight: bold;">${supportPhone}</a></p>

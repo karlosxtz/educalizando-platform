@@ -21,7 +21,7 @@ export default function StudentHeader({
 
   const handleLogout = async () => {
     await signOutStudent();
-    router.push('/aluno/login');
+    router.push('/cliente/login');
   };
 
   return (
@@ -29,7 +29,7 @@ export default function StudentHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand & Badge */}
-        <Link href="/aluno/dashboard" className="flex items-center gap-3 group">
+        <Link href="/cliente/dashboard" className="flex items-center gap-3 group">
           <img
             src="/branding/logo-educalizando.png?v=3"
             alt="Educalizando"
@@ -44,21 +44,21 @@ export default function StudentHeader({
         {/* User Account & Actions */}
         <div className="flex items-center gap-4">
           <Link
-            href="/aluno/dashboard"
+            href="/cliente/dashboard"
             className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
           >
             <BookOpen className="w-4 h-4 text-brand-teal" />
             <span>Meus Materiais</span>
           </Link>
           <Link
-            href="/aluno/brindes"
+            href="/cliente/brindes"
             className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5 bg-brand-teal/10 px-2 py-1.5 rounded-lg border border-brand-teal/20"
           >
             <span className="text-brand-teal">🎁</span>
             <span className="text-brand-teal">Brindes</span>
           </Link>
           <Link
-            href="/aluno/conta"
+            href="/cliente/conta"
             className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
           >
             <span>Minha Conta</span>
@@ -67,7 +67,7 @@ export default function StudentHeader({
           <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
           {/* Student Profile Pill */}
-          <Link href="/aluno/conta" className="flex items-center gap-2.5 group/profile cursor-pointer transition-opacity hover:opacity-80">
+          <Link href="/cliente/conta" className="flex items-center gap-2.5 group/profile cursor-pointer transition-opacity hover:opacity-80">
             {studentAvatarUrl ? (
               <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center shadow-xs border border-slate-200">
                 <img src={studentAvatarUrl} alt={studentName} className="w-full h-full object-cover" />

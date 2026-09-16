@@ -27,7 +27,7 @@ function StudentSignupForm() {
     if (returnTo && returnTo.startsWith('/')) {
       return returnTo;
     }
-    return '/aluno/dashboard';
+    return '/cliente/dashboard';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,7 +196,7 @@ function StudentSignupForm() {
           <p className="text-xs text-slate-500 font-medium">
             Já tem uma conta de cliente?{' '}
             <Link 
-              href={returnTo ? `/aluno/login?returnTo=${encodeURIComponent(returnTo)}&action=buy` : '/aluno/login'} 
+              href={returnTo ? `/cliente/login?returnTo=${encodeURIComponent(returnTo)}&action=buy` : '/cliente/login'}
               className="text-brand-navy font-extrabold hover:underline"
             >
               Fazer login

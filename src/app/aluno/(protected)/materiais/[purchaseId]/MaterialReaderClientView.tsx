@@ -29,7 +29,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       try {
         const session = await getCurrentStudentSession();
         if (!session) {
-          router.push('/aluno/login');
+          router.push('/cliente/login');
           return;
         }
         setStudentSession(session);
@@ -123,7 +123,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
             <h2 className="text-xl font-bold">Acesso Indisponível</h2>
             <p className="text-xs text-slate-500">{errorMsg || 'Acesso negado para este combo.'}</p>
             <Link
-              href="/aluno/dashboard"
+              href="/cliente/dashboard"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 text-white hover:bg-blue-700 transition-all"
             >
               <ArrowLeft className="w-4 h-4" /> Voltar para Meus Materiais
@@ -219,7 +219,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
           
           <div className="flex items-center gap-3">
             <Link
-              href={`/aluno/loja/${purchase.store_id}`}
+              href={`/cliente/loja/${purchase.store_id}`}
               className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl border border-slate-200 flex-shrink-0"
             >
               <ArrowLeft className="w-3.5 h-3.5 text-blue-600" />

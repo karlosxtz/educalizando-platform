@@ -63,7 +63,7 @@ export default function DashboardLayout({
 
           if (context === null) {
             // Sem permissão para o dashboard — redirecionar para aluno
-            router.replace('/aluno/dashboard');
+            router.replace('/cliente/dashboard');
             return;
           }
 
@@ -106,7 +106,7 @@ export default function DashboardLayout({
     const context = resolveContextForRoute(pathname || '', roles);
 
     if (context === null) {
-      router.replace('/aluno/dashboard');
+      router.replace('/cliente/dashboard');
       return;
     }
 

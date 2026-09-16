@@ -31,7 +31,7 @@ function StudentLoginForm() {
     if (returnTo && returnTo.startsWith('/')) {
       return returnTo;
     }
-    return '/aluno/dashboard';
+    return '/cliente/dashboard';
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -49,7 +49,7 @@ function StudentLoginForm() {
       window.location.href = getSafeReturnUrl();
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Erro ao realizar login de aluno. Verifique seus dados.');
+      setErrorMsg(err.message || 'Erro ao realizar login de cliente. Verifique seus dados.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ function StudentLoginForm() {
       window.location.href = getSafeReturnUrl();
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Erro ao criar conta de aluno.');
+      setErrorMsg(err.message || 'Erro ao criar conta de cliente.');
     } finally {
       setLoading(false);
     }

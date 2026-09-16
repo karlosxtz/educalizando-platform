@@ -76,7 +76,7 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
           role,
           userId: data.user.id,
           email: data.user.email || '',
-          fullName: userMetadata.full_name || 'Aluno Educalizando',
+          fullName: userMetadata.full_name || 'Cliente Educalizando',
           cpf: userMetadata.cpf || '',
           avatarUrl: userMetadata.avatar_url || ''
         };
@@ -98,7 +98,7 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
           role: 'student',
           userId: parsed.id || 'student-demo',
           email: parsed.email || 'aluno@educalizando.com',
-          fullName: userMeta.full_name || 'Aluno Educalizando',
+          fullName: userMeta.full_name || 'Cliente Educalizando',
           cpf: userMeta.cpf || '',
           avatarUrl: userMeta.avatar_url || ''
         };
@@ -240,7 +240,7 @@ export async function signInStudent({ email, password }: { email: string; passwo
     const mockUser = {
       id: 'student-demo',
       email,
-      user_metadata: { full_name: 'Aluno Educalizando', cpf: '12345678901', role: 'student' }
+      user_metadata: { full_name: 'Cliente Educalizando', cpf: '12345678901', role: 'student' }
     };
     if (typeof window !== 'undefined') {
       localStorage.setItem('educalizando_student_session', JSON.stringify(mockUser));
@@ -261,7 +261,7 @@ export async function getCurrentStudentSession() {
     return {
       id: authSession.userId || 'student-demo',
       email: authSession.email || 'aluno@educalizando.com',
-      fullName: authSession.fullName || 'Aluno Educalizando',
+      fullName: authSession.fullName || 'Cliente Educalizando',
       cpf: authSession.cpf || '12345678901',
       avatarUrl: authSession.avatarUrl || ''
     };

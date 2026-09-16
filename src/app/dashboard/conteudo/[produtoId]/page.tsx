@@ -533,7 +533,7 @@ export default function ProductContentManagementPage({ params }: ProductContentP
               {formTipo === 'ARQUIVO' ? (
                 <FileUpload
                   label="Upload do Arquivo Didático (PDF / DOCX / ZIP)"
-                  helperText="O arquivo será liberado na Área do Aluno após o pagamento."
+                  helperText="O arquivo será liberado na Área do Cliente após o pagamento."
                   bucket="product-files"
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
                   maxSizeMB={15}

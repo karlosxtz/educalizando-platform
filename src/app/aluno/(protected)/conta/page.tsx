@@ -34,7 +34,7 @@ export default function StudentAccountSettingsPage() {
       try {
         const session = await getCurrentStudentSession();
         if (!session) {
-          router.push('/aluno/login');
+          router.push('/cliente/login');
           return;
         }
         setStudentSession(session);

@@ -84,11 +84,11 @@ export default function Header() {
         {/* CTA Buttons Header */}
         <div className="hidden sm:flex items-center gap-3">
           <Link
-            href="/aluno/login"
+            href="/cliente/login"
             className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-brand-navy border border-slate-200 transition-all flex items-center gap-1.5"
           >
             <GraduationCap className="w-4 h-4 text-brand-teal" />
-            <span>Área do Aluno</span>
+            <span>Área do Cliente</span>
           </Link>
 
           <Link
@@ -161,11 +161,11 @@ export default function Header() {
           </button>
           <div className="pt-2 flex flex-col gap-2">
             <Link
-              href="/aluno/login"
+              href="/cliente/login"
               className="w-full py-2.5 rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2"
             >
               <GraduationCap className="w-4 h-4 text-brand-teal" />
-              <span>Área do Aluno</span>
+              <span>Área do Cliente</span>
             </Link>
 
             <Link

@@ -27,14 +27,14 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
       try {
         const session = await getCurrentStudentSession();
         if (!session) {
-          router.push('/aluno/login');
+          router.push('/cliente/login');
           return;
         }
         setStudentSession(session);
 
         const prod = await getProductById(resolvedParams.id);
         if (!prod || !prod.is_free) {
-          router.push('/aluno/brindes');
+          router.push('/cliente/brindes');
           return;
         }
         
@@ -48,7 +48,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
         setProduct({ ...prod, store: storeData });
       } catch (err) {
         console.error(err);
-        router.push('/aluno/brindes');
+        router.push('/cliente/brindes');
       } finally {
         setLoading(false);
       }
@@ -90,7 +90,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Link
-          href="/aluno/brindes"
+          href="/cliente/brindes"
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar para Materiais Grátis

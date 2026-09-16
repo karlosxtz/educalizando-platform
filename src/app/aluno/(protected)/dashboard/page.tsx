@@ -24,7 +24,7 @@ export default function StudentDashboardStoresPage() {
       try {
         const session = await getCurrentStudentSession();
         if (!session) {
-          router.push('/aluno/login');
+          router.push('/cliente/login');
           return;
         }
         setStudentSession(session);
@@ -159,7 +159,7 @@ export default function StudentDashboardStoresPage() {
                     </span>
 
                     <Link
-                      href={`/aluno/loja/${store.id}`}
+                      href={`/cliente/loja/${store.id}`}
                       className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md group-hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
                       style={{ backgroundColor: primaryColor }}
                     >

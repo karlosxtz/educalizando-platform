@@ -20,6 +20,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      { source: '/cliente', destination: '/aluno' },
+      { source: '/cliente/:path*', destination: '/aluno/:path*' },
+    ];
+  },
   async headers() {
     return [
       {

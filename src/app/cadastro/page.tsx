@@ -26,12 +26,12 @@ export default function RegisterTriagePage() {
         {/* Grid de Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
           
-          {/* Card 1 - Aluno */}
-          <Link href="/aluno/cadastro" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 group">
+          {/* Card 1 - Cliente */}
+          <Link href="/cliente/cadastro" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 group">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <ShoppingCart className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Sou Aluno</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Quero comprar materiais</h2>
             <p className="text-sm text-slate-500 font-medium">
               Quero criar uma conta grátis para comprar e baixar materiais.
             </p>

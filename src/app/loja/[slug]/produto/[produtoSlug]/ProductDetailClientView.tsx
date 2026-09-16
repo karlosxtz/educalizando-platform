@@ -675,23 +675,23 @@ export default function ProductDetailClientView({
                 </span>
                 <h3 className="text-xl font-black text-slate-900">Você está conectado como Criador</h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Esta conta é utilizada para vender materiais na Educalizando. Para comprar e acessar materiais didáticos, utilize uma <strong>conta de Aluno</strong>.
+                  Esta conta é utilizada para vender materiais na Educalizando. Para comprar e acessar materiais didáticos, utilize uma <strong>conta de Cliente</strong>.
                 </p>
               </div>
 
               <div className="space-y-2.5 pt-2">
                 <Link
-                  href={`/aluno/login?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
+                  href={`/cliente/login?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
                   className="w-full py-3.5 rounded-2xl bg-brand-navy hover:bg-brand-navy-hover text-white font-bold text-xs shadow-md flex items-center justify-center gap-2"
                 >
-                  <UserCheck className="w-4 h-4" /> Entrar com Conta de Aluno
+                  <UserCheck className="w-4 h-4" /> Entrar com Conta de Cliente
                 </Link>
 
                 <Link
-                  href={`/aluno/cadastro?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
+                  href={`/cliente/cadastro?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
                   className="w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2"
                 >
-                  Criar Conta de Aluno Gratuitamente
+                  Criar Conta de Cliente Gratuitamente
                 </Link>
               </div>
             </motion.div>

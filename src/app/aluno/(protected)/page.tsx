@@ -16,7 +16,7 @@ export default function StudentPortalHomePage() {
       try {
         const session = await getCurrentStudentSession();
         if (session) {
-          router.push('/aluno/dashboard');
+          router.push('/cliente/dashboard');
           return;
         }
       } catch (err) {
@@ -90,7 +90,7 @@ export default function StudentPortalHomePage() {
           className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-4"
         >
           <Link
-            href="/aluno/login"
+            href="/cliente/login"
             className="w-full py-4 rounded-2xl font-extrabold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] active:scale-95"
           >
             <LogIn className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function StudentPortalHomePage() {
           </Link>
 
           <Link
-            href="/aluno/cadastro"
+            href="/cliente/cadastro"
             className="w-full py-4 rounded-2xl font-extrabold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02] active:scale-95"
           >
             <UserPlus className="w-4 h-4 text-blue-400" />

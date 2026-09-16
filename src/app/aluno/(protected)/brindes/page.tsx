@@ -29,7 +29,7 @@ export default function StudentFreeProductsPage() {
       try {
         const session = await getCurrentStudentSession();
         if (!session) {
-          router.push('/aluno/login');
+          router.push('/cliente/login');
           return;
         }
         setStudentSession(session);
@@ -98,7 +98,7 @@ export default function StudentFreeProductsPage() {
         
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs font-bold text-slate-500">
-          <Link href="/aluno/dashboard" className="hover:text-brand-teal transition-colors flex items-center gap-1">
+          <Link href="/cliente/dashboard" className="hover:text-brand-teal transition-colors flex items-center gap-1">
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Voltar para Minhas Lojas</span>
           </Link>

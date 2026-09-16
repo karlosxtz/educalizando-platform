@@ -115,11 +115,11 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
           setStudentSession({
             id: session.userId || 'student-demo',
             email: session.email || '',
-            fullName: session.fullName || (isPlrPurchase ? 'Criador' : 'Aluno Educalizando'),
+            fullName: session.fullName || (isPlrPurchase ? 'Criador' : 'Cliente Educalizando'),
             cpf: session.cpf,
             storeName: storeName || undefined
           });
-          if (session.fullName && session.fullName !== 'Aluno Educalizando' && session.fullName !== 'Criador') {
+          if (session.fullName && session.fullName !== 'Cliente Educalizando' && session.fullName !== 'Criador') {
             setBuyerName(session.fullName);
           }
           if (session.email) setBuyerEmail(session.email);
@@ -130,7 +130,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
           setErrorMessage(
             isPlrPurchase 
               ? 'Você está logado como ALUNO, mas apenas CRIADORES podem comprar PLR. Saia da sua conta atual e faça login como Criador.' 
-              : 'Você está logado como CRIADOR, mas criadores não podem comprar materiais comuns. Saia da conta e use uma conta de ALUNO.'
+              : 'Você está logado como CRIADOR, mas criadores não podem comprar materiais comuns. Saia da conta e use uma conta de CLIENTE.'
           );
         } else {
           setIsStudentLoggedIn(false);
@@ -221,7 +221,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
       setErrorMessage(
         isPlrPurchase 
           ? 'Para comprar Licenças PLR, é obrigatório estar conectado em uma conta de CRIADOR. Utilize o botão abaixo para fazer login.' 
-          : 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de ALUNO. Utilize um dos botões abaixo para entrar ou criar sua conta.'
+          : 'Para realizar uma compra na Educalizando, é obrigatório estar conectado em uma conta de CLIENTE. Utilize um dos botões abaixo para entrar ou criar sua conta.'
       );
       return;
     }
@@ -371,7 +371,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-center gap-2 text-emerald-800">
                     <UserCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                     <span className="font-extrabold text-sm text-emerald-950">
-                      Conectado como {isPlrPurchase ? 'Criador' : 'Aluno'}: {studentSession?.fullName || buyerName || (isPlrPurchase ? 'Criador' : 'Aluno')} {studentSession?.storeName ? ` - ${studentSession.storeName}` : ''} ({studentSession?.email || buyerEmail})
+                      Conectado como {isPlrPurchase ? 'Criador' : 'Cliente'}: {studentSession?.fullName || buyerName || (isPlrPurchase ? 'Criador' : 'Cliente')} {studentSession?.storeName ? ` - ${studentSession.storeName}` : ''} ({studentSession?.email || buyerEmail})
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-700 font-medium pl-7">
@@ -383,13 +383,13 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="block text-sm font-extrabold">Use uma conta de {isPlrPurchase ? 'criador' : 'aluno'} para concluir esta compra</span>
-                      <p className="mt-1 text-xs leading-relaxed text-amber-800">{isPlrPurchase ? 'Licenças PLR são exclusivas para criadores.' : 'Materiais de uso final são comprados pela conta de aluno.'}</p>
+                      <span className="block text-sm font-extrabold">Use uma conta de {isPlrPurchase ? 'criador' : 'cliente'} para concluir esta compra</span>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-800">{isPlrPurchase ? 'Licenças PLR são exclusivas para criadores.' : 'Materiais de uso final são comprados pela conta de cliente.'}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <Link href={isPlrPurchase ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como {isPlrPurchase ? 'Criador' : 'Aluno'}</Link>
-                    <Link href={isPlrPurchase ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta</Link>
+                    <Link href={isPlrPurchase ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como {isPlrPurchase ? 'Criador' : 'Cliente'}</Link>
+                    <Link href={isPlrPurchase ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}` : `/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`} className="px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta</Link>
                   </div>
                 </div>
               ) : (
@@ -397,30 +397,30 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                   <div className="flex items-center gap-2">
                     <LogIn className="w-5 h-5 text-rose-600 flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-rose-950">
-                      É necessário estar conectado em uma conta de {isPlrPurchase ? 'CRIADOR' : 'ALUNO'} para comprar
+                      É necessário estar conectado em uma conta de {isPlrPurchase ? 'CRIADOR' : 'CLIENTE'} para comprar
                     </span>
                   </div>
                   <p className="text-xs text-rose-800 font-medium leading-relaxed">
-                    Escolha abaixo uma das opções para entrar ou criar sua conta {isPlrPurchase ? 'de criador' : 'de aluno'} em poucos segundos e retornar ao pagamento:
+                    Escolha abaixo uma das opções para entrar ou criar sua conta {isPlrPurchase ? 'de criador' : 'de cliente'} em poucos segundos e retornar ao pagamento:
                   </p>
                   <div className="flex flex-wrap gap-2.5 pt-1">
                     <Link
                       href={isPlrPurchase 
                         ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
-                        : `/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        : `/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs"
                     >
                       <LogIn className="w-4 h-4" />
-                      <span>Fazer Login de {isPlrPurchase ? 'Criador' : 'Aluno'}</span>
+                      <span>Fazer Login de {isPlrPurchase ? 'Criador' : 'Cliente'}</span>
                     </Link>
                     <Link
                       href={isPlrPurchase 
                         ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
-                        : `/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        : `/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                     >
                       <UserPlus className="w-4 h-4 text-rose-600" />
-                      <span>Criar Conta de {isPlrPurchase ? 'Criador' : 'Aluno'}</span>
+                      <span>Criar Conta de {isPlrPurchase ? 'Criador' : 'Cliente'}</span>
                     </Link>
                   </div>
                 </div>
@@ -519,7 +519,7 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                     <span className="leading-snug">{errorMessage}</span>
                   </div>
 
-                  {(isAuthError || errorMessage.includes('ALUNO') || errorMessage.includes('CRIADOR')) && (
+                  {(isAuthError || errorMessage.includes('CLIENTE') || errorMessage.includes('CRIADOR')) && (
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-rose-200/80">
                       {isPlrPurchase ? (
                         <>
@@ -541,18 +541,18 @@ export default function CheckoutClientView({ store, product, initialCouponCode }
                       ) : (
                         <>
                           <Link
-                            href={`/aluno/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                            href={`/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                             className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
                           >
                             <LogIn className="w-4 h-4" />
-                            <span>Fazer Login de Aluno Agora</span>
+                            <span>Fazer Login de Cliente Agora</span>
                           </Link>
                           <Link
-                            href={`/aluno/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                            href={`/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                             className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                           >
                             <UserPlus className="w-4 h-4 text-rose-600" />
-                            <span>Criar Conta de Aluno Grátis</span>
+                            <span>Criar Conta de Cliente Grátis</span>
                           </Link>
                         </>
                       )}

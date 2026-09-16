@@ -33,7 +33,7 @@ function MarketplaceHeaderInner() {
       const role = typeof user?.user_metadata?.role === 'string' ? user.user_metadata.role : localStorage.getItem('educalizando_active_role');
       if (role === 'affiliate') return '/dashboard/afiliacoes';
       if (role === 'creator' || localStorage.getItem('educalizando_creator_session')) return '/dashboard';
-      return '/aluno/dashboard';
+      return '/cliente/dashboard';
     };
     supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) setAccountAreaHref(resolveArea(data.session.user));
