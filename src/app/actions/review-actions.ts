@@ -26,17 +26,25 @@ export async function submitProductReview(params: {
       return { success: false, error: 'Funcionalidade requer banco de dados real configurado.' };
     }
 
-    if (params.nota < 1 || params.nota > 5) {
+    if (!Number.isInteger(params.nota) || params.nota < 1 || params.nota > 5) {
       return { success: false, error: 'A nota deve ser entre 1 e 5.' };
+    }
+    const comentario = typeof params.comentario === 'string' ? params.comentario.trim() : '';
+    if (comentario.length > 1200) {
+      return { success: false, error: 'O comentário pode ter no máximo 1.200 caracteres.' };
     }
 
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('id, store_id')
+      .select('id, store_id, stores!inner(creator_id)')
       .eq('id', params.productId)
       .maybeSingle();
     if (!product || product.store_id !== params.storeId) {
       return { success: false, error: 'Produto ou loja inválidos.' };
+    }
+    const store = Array.isArray(product.stores) ? product.stores[0] : product.stores;
+    if (store?.creator_id === currentUser.id) {
+      return { success: false, error: 'Criadores não podem avaliar materiais da própria loja.' };
     }
 
     // 2. Validar se o usuário autenticado realmente comprou o produto.
@@ -99,7 +107,7 @@ export async function submitProductReview(params: {
       student_id: currentUser.id,
       store_id: product.store_id,
       nota: params.nota,
-      comentario: params.comentario || null
+      comentario: comentario || null
     };
 
     const { data, error } = await supabaseAdmin
