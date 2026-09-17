@@ -87,16 +87,16 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: result?.error || 'Não foi possível analisar o saque.' }, { status: 400 });
     }
 
-    if (withdrawal.store_id && withdrawal.creator_id) {
+    if (withdrawal.store_id && withdrawal.creator_id && action !== 'reopen') {
       const approved = action === 'complete';
       await createNotification({
         storeId: withdrawal.store_id,
         creatorId: withdrawal.creator_id,
         type: approved ? 'WITHDRAWAL_APPROVED' : 'WITHDRAWAL_FAILED',
-        title: approved ? 'Saque pago' : 'Saque recusado',
+        title: approved ? 'Saque pago' : action === 'reverse' ? 'Saque estornado' : 'Saque recusado',
         body: approved
           ? `Seu saque de R$ ${Number(withdrawal.amount).toFixed(2).replace('.', ',')} foi pago.`
-          : `Seu saque de R$ ${Number(withdrawal.amount).toFixed(2).replace('.', ',')} foi recusado${reviewNote?.trim() ? `: ${reviewNote.trim()}` : '.'}`,
+          : `Seu saque de R$ ${Number(withdrawal.amount).toFixed(2).replace('.', ',')} foi ${action === 'reverse' ? 'estornado' : 'recusado'}${reviewNote?.trim() ? `: ${reviewNote.trim()}` : '.'}`,
         metadata: { withdrawalId: withdrawal.id, amount: Number(withdrawal.amount) }
       });
     }

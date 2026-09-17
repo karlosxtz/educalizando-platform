@@ -54,7 +54,7 @@ export default function SuperAdminSaques() {
     const reviewNote = action !== 'complete'
       ? prompt(action === 'reverse' ? 'Informe o motivo do estorno (o valor será devolvido ao saldo):' : action === 'reopen' ? 'Informe o motivo para reabrir a solicitação:' : 'Informe o motivo da rejeição (o saldo será devolvido ao produtor):')
       : null;
-    if (action === 'reject' && !reviewNote?.trim()) return;
+    if ((action === 'reject' || action === 'reverse' || action === 'reopen') && !reviewNote?.trim()) return;
     if (!confirm(`Confirma ${action === 'complete' ? 'que o PIX já foi pago' : action === 'reopen' ? 'reabrir esta solicitação' : 'a alteração e devolução do saldo'}?`)) return;
     
     try {
@@ -65,7 +65,8 @@ export default function SuperAdminSaques() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`Saque ${action === 'complete' ? 'marcado como pago' : 'rejeitado e devolvido ao saldo'} com sucesso.`);
+        const result = action === 'complete' ? 'marcado como pago' : action === 'reopen' ? 'reaberto e reservado novamente' : action === 'reverse' ? 'estornado e devolvido ao saldo' : 'rejeitado e devolvido ao saldo';
+        alert(`Saque ${result} com sucesso.`);
         fetchWithdrawals();
       } else {
         alert('Erro: ' + data.error);
@@ -197,7 +198,7 @@ export default function SuperAdminSaques() {
                         </>
                       )}
                       {item.status === 'COMPLETED' && <button onClick={() => handleAction(item.id, 'reverse')} className="text-rose-400 hover:text-rose-300 font-medium">Estornar</button>}
-                      {(item.status === 'FAILED' || item.status === 'CANCELLED') && <button onClick={() => handleAction(item.id, 'reopen')} className="text-amber-400 hover:text-amber-300 font-medium">Reabrir</button>}
+                      {item.status === 'FAILED' && <button onClick={() => handleAction(item.id, 'reopen')} className="text-amber-400 hover:text-amber-300 font-medium">Reabrir</button>}
                     </td>
                   </tr>
                 ))
