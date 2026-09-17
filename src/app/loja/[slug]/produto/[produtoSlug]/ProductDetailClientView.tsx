@@ -526,6 +526,11 @@ export default function ProductDetailClientView({
                       <Eye className="h-3.5 w-3.5" /> {product.views_count} visualizações
                     </span>
                   )}
+                  {Number(product.sales_count || 0) > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                      <ShoppingBag className="h-3.5 w-3.5" /> {product.sales_count} {product.sales_count === 1 ? 'compra confirmada' : 'compras confirmadas'}
+                    </span>
+                  )}
                 </div>
               </div>
               

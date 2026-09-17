@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 
 export async function generateMetadata({ params }: GlobalProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -76,11 +77,13 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     }
   }
 
-  const [categories, educationLevels, bnccSkills] = await Promise.all([
+  const [categories, educationLevels, bnccSkills, salesCount] = await Promise.all([
     getCategories(store.id),
     getEducationLevels(),
-    getBnccSkillsByIds(product.bncc_skill_ids || [])
+    getBnccSkillsByIds(product.bncc_skill_ids || []),
+    getPaidProductSalesCount(product.id)
   ]);
+  product.sales_count = salesCount;
 
   const category = categories.find(c => c.id === product?.category_id) || null;
   const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;

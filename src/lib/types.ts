@@ -112,6 +112,7 @@ export interface Product {
   average_rating?: number;
   review_count?: number;
   views_count?: number;
+  sales_count?: number;
   created_at: string;
   updated_at?: string;
 }

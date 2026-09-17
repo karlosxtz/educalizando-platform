@@ -6,6 +6,7 @@ import ProductDetailClientView from './ProductDetailClientView';
 import Link from 'next/link';
 import { ChevronRight, Home, Store } from 'lucide-react';
 import { ReactNode } from 'react';
+import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -87,11 +88,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     }
   }
 
-  const [categories, educationLevels, bnccSkills] = await Promise.all([
+  const [categories, educationLevels, bnccSkills, salesCount] = await Promise.all([
     getCategories(store.id),
     getEducationLevels(),
-    getBnccSkillsByIds(product.bncc_skill_ids || [])
+    getBnccSkillsByIds(product.bncc_skill_ids || []),
+    getPaidProductSalesCount(product.id)
   ]);
+  product.sales_count = salesCount;
 
   const category = categories.find(c => c.id === product?.category_id) || null;
   const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
