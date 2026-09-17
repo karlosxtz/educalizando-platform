@@ -9,6 +9,11 @@ function isValidProductPrice(value: unknown) {
   return Number.isFinite(price) && price >= 0 && price <= 100000;
 }
 
+function isValidAffiliateRate(value: unknown) {
+  const rate = Number(value);
+  return Number.isFinite(rate) && rate >= 0 && rate <= 80;
+}
+
 function normalizePreviewUrl(value: unknown): string | null {
   if (typeof value !== 'string' || !value.trim()) return null;
 
@@ -98,7 +103,7 @@ export async function POST(request: Request) {
     if (!titulo || !titulo.trim()) {
       return NextResponse.json({ error: 'O título do produto é obrigatório.' }, { status: 400 });
     }
-    if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco)) {
+    if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco) || !isValidAffiliateRate(affiliate_commission_rate)) {
       return NextResponse.json({ error: 'Dados do produto inválidos. Revise título, tipo, status e preço.' }, { status: 400 });
     }
 
@@ -357,6 +362,9 @@ export async function PUT(request: Request) {
     }
     if ('preco' in cleanedUpdates && !isValidProductPrice(cleanedUpdates.preco)) {
       return NextResponse.json({ error: 'Informe um preço válido entre R$ 0,00 e R$ 100.000,00.' }, { status: 400 });
+    }
+    if ('affiliate_commission_rate' in cleanedUpdates && !isValidAffiliateRate(cleanedUpdates.affiliate_commission_rate)) {
+      return NextResponse.json({ error: 'A comissão por produto deve ficar entre 0% e 80%.' }, { status: 400 });
     }
     const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
     const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);

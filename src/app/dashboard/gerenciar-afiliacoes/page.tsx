@@ -52,22 +52,16 @@ export default function CreatorAffiliatesPage() {
     if (!store) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('stores')
-        .update({ 
-          affiliate_program_enabled: isProgramEnabled,
-          affiliate_commission_type: commissionType,
-          affiliate_commission_rate: commissionRate
-        })
-        .eq('id', store.id);
-        
-      if (!error) {
-        alert('Configurações salvas com sucesso!');
-      } else {
-        alert('Erro ao salvar as configurações.');
-      }
+      const response = await fetch('/api/affiliates/program-settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: store.id, enabled: isProgramEnabled, commissionType, commissionRate }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Erro ao salvar as configurações.');
+      setStore({ ...store, ...payload.store });
+      alert('Configurações salvas com sucesso!');
     } catch (e) {
-      console.error(e);
+      alert(e instanceof Error ? e.message : 'Erro ao salvar as configurações.');
     } finally {
       setIsSaving(false);
     }
