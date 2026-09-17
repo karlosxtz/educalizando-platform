@@ -30,6 +30,8 @@ export interface WithdrawalRecord {
   creatorId: string;
   storeId: string;
   amount: number;
+  netAmount?: number;
+  withdrawalFee?: number;
   pixKeyId: string;
   pixKeyType: 'CPF';
   pixKeyMasked: string;
@@ -339,6 +341,8 @@ export async function getWithdrawalsHistory(storeId: string): Promise<Withdrawal
           creatorId: d.creator_id,
           storeId: d.store_id,
           amount: Number(d.amount),
+          netAmount: Number(d.net_amount ?? d.amount),
+          withdrawalFee: Number(d.withdrawal_fee || 0),
           pixKeyId: d.pix_key_id,
           pixKeyType: d.pix_key_type || 'CPF',
           pixKeyMasked: d.pix_key_masked,

@@ -63,8 +63,18 @@ export default function FinancialWalletDashboardPage() {
   // Withdrawal Form State
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
   const [minimumWithdrawalAmount, setMinimumWithdrawalAmount] = useState(MIN_WITHDRAWAL_AMOUNT);
+  const [withdrawalFee, setWithdrawalFee] = useState(0);
   const [withdrawSubmitting, setWithdrawSubmitting] = useState(false);
-  useEffect(() => { fetch('/api/financeiro/withdrawal-settings').then((r) => r.ok ? r.json() : null).then((d) => { if (d) setMinimumWithdrawalAmount(Number(d.minimumWithdrawalAmount || 0)); }).catch(() => {}); }, []);
+  useEffect(() => {
+    fetch('/api/financeiro/withdrawal-settings')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setMinimumWithdrawalAmount(Number(data.minimumWithdrawalAmount || 0));
+        setWithdrawalFee(Math.max(0, Number(data.withdrawalFee || 0)));
+      })
+      .catch(() => {});
+  }, []);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
@@ -138,7 +148,8 @@ export default function FinancialWalletDashboardPage() {
   const handleOpenWithdrawModal = () => {
     setWithdrawError(null);
     setWithdrawSuccess(null);
-    setWithdrawAmountInput(summary.saldoDisponivel > 0 ? summary.saldoDisponivel.toFixed(2) : '1.00');
+    const maxTransfer = Math.max(0, summary.saldoDisponivel - withdrawalFee);
+    setWithdrawAmountInput(maxTransfer > 0 ? maxTransfer.toFixed(2) : '1.00');
     setShowWithdrawModal(true);
   };
 
@@ -158,8 +169,8 @@ export default function FinancialWalletDashboardPage() {
       return;
     }
 
-    if (val > summary.saldoDisponivel) {
-      setWithdrawError(`Saldo disponível insuficiente. Seu saldo atual é ${formatCurrency(summary.saldoDisponivel)}.`);
+    if (val + withdrawalFee > summary.saldoDisponivel) {
+      setWithdrawError(`Saldo disponível insuficiente. O valor solicitado com a taxa totaliza ${formatCurrency(val + withdrawalFee)} e seu saldo é ${formatCurrency(summary.saldoDisponivel)}.`);
       return;
     }
 
@@ -210,7 +221,7 @@ export default function FinancialWalletDashboardPage() {
         throw new Error(data.error || 'Erro ao solicitar saque PIX.');
       }
 
-      setWithdrawSuccess(`Saque de ${formatCurrency(val)} solicitado com sucesso! O saldo foi reservado e aguarda pagamento pela administração.`);
+      setWithdrawSuccess(`Saque de ${formatCurrency(val)} solicitado com sucesso${withdrawalFee > 0 ? ` (taxa: ${formatCurrency(withdrawalFee)})` : ''}! O saldo foi reservado e aguarda pagamento pela administração.`);
       setTimeout(() => {
         setShowWithdrawModal(false);
         loadData();
@@ -797,7 +808,7 @@ export default function FinancialWalletDashboardPage() {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none"
                     />
                     <span className="text-[10px] text-slate-500 block font-medium">
-                      Valor mínimo: {formatCurrency(minimumWithdrawalAmount)}. Sem taxas adicionais de saque.
+                      Valor mínimo: {formatCurrency(minimumWithdrawalAmount)}. {withdrawalFee > 0 ? `Taxa de saque: ${formatCurrency(withdrawalFee)}. Reserva total: ${formatCurrency(Math.max(0, Number(withdrawAmountInput.replace(',', '.')) || 0) + withdrawalFee)}.` : 'Sem taxa adicional de saque.'}
                     </span>
                   </div>
 

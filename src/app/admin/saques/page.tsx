@@ -7,6 +7,8 @@ import Link from 'next/link';
 interface WithdrawalData {
   id: string;
   amount: number;
+  net_amount?: number | null;
+  withdrawal_fee?: number | null;
   status: string;
   requested_at: string;
   pix_key_masked: string;
@@ -81,6 +83,7 @@ export default function SuperAdminSaques() {
       "ID Saque": w.id,
       "Loja": w.store?.nome_loja || 'Desconhecida',
       "Valor (R$)": Number(w.amount).toFixed(2),
+      "Taxa de saque (R$)": Number(w.withdrawal_fee || 0).toFixed(2),
       "Chave PIX": w.pix_key_masked,
       "Data Solicitação": new Date(w.requested_at).toLocaleString('pt-BR'),
       "Status": w.status
@@ -158,7 +161,8 @@ export default function SuperAdminSaques() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-emerald-400 font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.net_amount ?? item.amount)}
+                      {Number(item.withdrawal_fee || 0) > 0 && <span className="block mt-1 text-[10px] font-medium text-amber-400">Taxa: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.withdrawal_fee || 0)}</span>}
                     </td>
                     <td className="px-6 py-4 font-mono text-xs">
                       <span className="text-white">{item.pix_key_full || item.pix_key_masked}</span>
