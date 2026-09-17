@@ -18,6 +18,7 @@ export default function CreatorAffiliatesPage() {
   const [commissionType, setCommissionType] = useState<'percentual' | 'fixo'>('percentual');
   const [commissionRate, setCommissionRate] = useState(30);
   const [isSaving, setIsSaving] = useState(false);
+  const [report, setReport] = useState({ totalAffiliates: 0, approvedAffiliates: 0, clicks: 0, sales: 0, revenue: 0, commissions: 0, conversion: 0 });
 
   useEffect(() => {
     loadData();
@@ -40,6 +41,9 @@ export default function CreatorAffiliatesPage() {
         
         const myAffiliates = await getStoreAffiliatesAction(myStore.id);
         setAffiliates(myAffiliates);
+        const reportResponse = await fetch(`/api/affiliates/creator-report?storeId=${encodeURIComponent(myStore.id)}`);
+        const reportData = await reportResponse.json();
+        if (reportResponse.ok && reportData.report) setReport(reportData.report);
       }
     } catch (e) {
       console.error('Failed to load affiliates', e);
@@ -348,6 +352,16 @@ export default function CreatorAffiliatesPage() {
           </div>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-4 flex items-center justify-between"><div><h2 className="font-bold text-slate-900">Resultado do programa</h2><p className="mt-1 text-xs text-slate-500">Dados de cliques e pedidos pagos atribuídos aos seus afiliados.</p></div><span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">{report.conversion.toFixed(1)}% conversão</span></div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><ReportCard label="Afiliados aprovados" value={`${report.approvedAffiliates}/${report.totalAffiliates}`} /><ReportCard label="Cliques rastreados" value={String(report.clicks)} /><ReportCard label="Vendas pagas" value={String(report.sales)} /><ReportCard label="Comissões geradas" value={`R$ ${report.commissions.toFixed(2).replace('.', ',')}`} /></div>
+        <p className="mt-4 text-sm font-medium text-slate-600">Receita atribuída a afiliados: <strong>R$ {report.revenue.toFixed(2).replace('.', ',')}</strong></p>
+      </section>
     </div>
   );
+}
+
+function ReportCard({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl border border-slate-100 bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-1 text-lg font-black text-slate-900">{value}</p></div>;
 }
