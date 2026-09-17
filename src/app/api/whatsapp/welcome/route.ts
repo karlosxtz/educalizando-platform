@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     let message = '';
     
     // Fallback constants
-    const defaultCreator = `Olá {{nome}}! 👋\n\nQue alegria ter você na Educalizando! Sua loja acaba de nascer e estamos super empolgados para ver seus materiais didáticos transformando salas de aula em todo o Brasil. 🚀\n\nAcesse seu painel agora mesmo para começar a publicar: https://educalizando.com/dashboard/loja\n\nSe precisar de ajuda, conte com a gente! 💙`;
+    const defaultCreator = `Olá {{nome}}! 👋\n\nQue alegria ter você na Educalizando! Sua loja acaba de nascer e estamos super empolgados para ver seus materiais didáticos transformando salas de aula em todo o Brasil. 🚀\n\nAcesse seu painel agora mesmo para começar a publicar: https://educalizando.com/dashboard\n\nSe precisar de ajuda, conte com a gente! 💙`;
     const defaultStudent = `Oie {{nome}}! 👋\n\nBem-vindo(a) à comunidade Educalizando! 🎉\nEstamos muito felizes em te receber.\n\nAqui você vai encontrar os melhores materiais, atividades e jogos para enriquecer suas aulas e facilitar o seu dia a dia. Tudo pronto para usar!\n\nExplore agora o nosso acervo: https://educalizando.com/buscar\n\nQualquer dúvida, é só chamar! 📚✨`;
     const defaultAffiliate = `Olá {{nome}}! 👋\n\nSeja muito bem-vindo(a) ao time de Afiliados Educalizando! 💰\n\nSua conta está pronta. A partir de agora, você já pode acessar nossa vitrine, gerar seus links exclusivos e começar a indicar os melhores materiais didáticos do mercado para garantir sua comissão.\n\nBora lucrar? Acesse seu painel: https://educalizando.com/dashboard/afiliacoes\n\nSucesso nas indicações! 🚀🤝`;
 

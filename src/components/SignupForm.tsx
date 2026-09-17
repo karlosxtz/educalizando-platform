@@ -72,7 +72,9 @@ export default function SignupForm() {
         origin: { y: 0.6 }
       });
 
-      router.push('/dashboard/loja');
+      // Após o cadastro, a pessoa já está autenticada. A home do painel
+      // apresenta os próximos passos sem obrigá-la a entrar na configuração.
+      router.push('/dashboard');
       router.refresh();
 
     } catch (err: any) {
