@@ -40,7 +40,7 @@ export default function SuperAdminLojas() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('ATENÇÃO: Excluir esta loja apagará TODOS os produtos, kits e histórico vinculados a ela. Tem certeza absoluta?')) return;
+    if (!confirm('Excluir esta loja vazia? Lojas com catálogo, kits ou compras não podem ser apagadas para preservar o histórico.')) return;
     
     try {
       const res = await fetch(`/api/admin/stores?id=${id}`, { method: 'DELETE' });

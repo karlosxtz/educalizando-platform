@@ -34,7 +34,20 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID da loja obrigatório' }, { status: 400 });
     }
 
-    // Excluir loja (ON DELETE CASCADE vai limpar produtos, kits, etc)
+    // Uma exclusão em cascata destruiria catálogo, pedidos e acessos. A loja
+    // só pode ser apagada quando ainda não possui operação vinculada.
+    const [{ count: productsCount, error: productsError }, { count: kitsCount, error: kitsError }, { count: purchasesCount, error: purchasesError }] = await Promise.all([
+      supabaseAdmin.from('products').select('id', { count: 'exact', head: true }).eq('store_id', storeId),
+      supabaseAdmin.from('kits').select('id', { count: 'exact', head: true }).eq('store_id', storeId),
+      supabaseAdmin.from('purchases').select('id', { count: 'exact', head: true }).eq('store_id', storeId)
+    ]);
+    if (productsError || kitsError || purchasesError) throw productsError || kitsError || purchasesError;
+    if (productsCount || kitsCount || purchasesCount) {
+      return NextResponse.json({
+        error: `Esta loja possui ${productsCount || 0} produto(s), ${kitsCount || 0} kit(s) ou ${purchasesCount || 0} compra(s) vinculada(s). A exclusão foi bloqueada para preservar o histórico.`
+      }, { status: 409 });
+    }
+
     const { error } = await supabaseAdmin
       .from('stores')
       .delete()
