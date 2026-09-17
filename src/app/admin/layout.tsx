@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare } from 'lucide-react';
+import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -37,6 +37,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/transacoes', label: 'Transações', icon: DollarSign },
     { href: '/admin/saques', label: 'Solicitações de Saque', icon: Wallet, badge: 'Financeiro' },
     { href: '/admin/categorias', label: 'Categorias Globais', icon: Tags },
+    { href: '/admin/niveis-ensino', label: 'Níveis de Ensino', icon: GraduationCap },
     { href: '/admin/avisos', label: 'Avisos Globais', icon: Megaphone },
     { href: '/admin/banners', label: 'Banners Principais', icon: MonitorPlay },
     { href: '/admin/tutoriais', label: 'Tutoriais (Criadores)', icon: PlaySquare },
@@ -86,6 +87,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/categorias" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Tags className="w-4 h-4" />
               Categorias Globais
+            </Link>
+            <Link href="/admin/niveis-ensino" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
+              <GraduationCap className="w-4 h-4" />
+              Níveis de Ensino
             </Link>
             <Link href="/admin/avisos" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Megaphone className="w-4 h-4" />
