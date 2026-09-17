@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
 import { isSuperAdmin } from '@/lib/api-auth';
 
 export async function POST(request: Request) {
@@ -8,41 +7,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const { storeId } = await request.json();
-
-    if (!storeId) {
-      return NextResponse.json({ error: 'ID da loja obrigatório' }, { status: 400 });
-    }
-
-    // Buscar creator_id da loja
-    const { data: store, error: storeError } = await supabaseAdmin
-      .from('stores')
-      .select('creator_id')
-      .eq('id', storeId)
-      .single();
-
-    if (storeError || !store) {
-      return NextResponse.json({ error: 'Loja não encontrada' }, { status: 404 });
-    }
-
-    // Buscar o email do usuário na auth.users
-    const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserById(store.creator_id);
-
-    if (userError || !user.user?.email) {
-      return NextResponse.json({ error: 'Usuário dono não encontrado ou sem email' }, { status: 404 });
-    }
-
-    // Gerar um Magic Link para esse email
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: user.user.email,
-    });
-
-    if (linkError) {
-      return NextResponse.json({ error: 'Falha ao gerar link de acesso: ' + linkError.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, url: linkData.properties?.action_link });
+    // Nunca gere uma sessão como outro usuário. A auditoria deve ocorrer pelos
+    // dados administrativos, sem expor um magic link que permitiria assumir a
+    // identidade de um criador.
+    return NextResponse.json({ error: 'Acesso como criador está desativado por segurança.' }, { status: 410 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

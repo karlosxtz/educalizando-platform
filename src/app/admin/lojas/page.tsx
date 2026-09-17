@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Store, Trash2, ExternalLink, LogIn, Package } from 'lucide-react';
+import { Store, Trash2, ExternalLink, Package } from 'lucide-react';
 import Link from 'next/link';
 
 interface StoreData {
@@ -53,28 +53,6 @@ export default function SuperAdminLojas() {
       }
     } catch (e) {
       alert('Erro inesperado.');
-    }
-  }
-
-  async function handleImpersonate(storeId: string, storeName: string) {
-    if (!confirm(`Deseja entrar no painel da loja "${storeName}" como se fosse o dono?`)) return;
-
-    try {
-      const res = await fetch('/api/admin/impersonate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId }),
-      });
-      const data = await res.json();
-      
-      if (data.success && data.url) {
-        // Redireciona o Admin para o Magic Link, que vai logá-lo como o usuário e abrir a dashboard
-        window.open(data.url, '_blank');
-      } else {
-        alert('Erro ao logar como criador: ' + (data.error || 'Erro desconhecido.'));
-      }
-    } catch (e) {
-      alert('Erro inesperado ao conectar com a API.');
     }
   }
 
@@ -145,13 +123,6 @@ export default function SuperAdminLojas() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleImpersonate(store.id, store.nome_loja)}
-                          className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors group relative"
-                          title="Logar como este Criador"
-                        >
-                          <LogIn className="w-5 h-5" />
-                        </button>
                         <button
                           onClick={() => handleDelete(store.id)}
                           className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
