@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
+import { supabase } from '@/lib/supabase';
 import { getCategories, getEducationLevels, getBnccSkills } from '@/lib/category-service';
 import { ProductType, Category, EducationLevel, Store, Product, BnccSkill } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
@@ -24,6 +25,7 @@ function ProductWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const plrProductId = searchParams.get('licenca-plr');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,6 +66,7 @@ function ProductWizardContent() {
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
   const [plrDeliveryMethod, setPlrDeliveryMethod] = useState<'upload' | 'link'>('upload');
+  const [plrSourceTitle, setPlrSourceTitle] = useState<string | null>(null);
 
   const [allowAffiliates, setAllowAffiliates] = useState<boolean>(false);
   const [affiliateCommissionRate, setAffiliateCommissionRate] = useState<string>('50');
@@ -153,6 +156,27 @@ function ProductWizardContent() {
               setSelectedBnccSkills(existing.bncc_skill_ids);
               setUsesBncc(existing.bncc_skill_ids.length > 0);
             }
+          }
+        } else if (plrProductId) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData.session?.access_token;
+          const response = await fetch(`/api/plr/purchases/${encodeURIComponent(plrProductId)}/publish-data`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined
+          });
+          const plrData = await response.json().catch(() => null);
+          if (!response.ok) {
+            toast.warning(plrData?.error || 'Não foi possível carregar os dados da licença PLR.');
+          } else if (plrData?.data) {
+            const source = plrData.data;
+            setPlrSourceTitle(plrData.sourceTitle || 'Material PLR');
+            setTipo(source.tipo || 'pdf');
+            setCategoryId(source.categoryId || '');
+            setEducationLevelId(source.educationLevelId || '');
+            setPageCount(source.pageCount ? String(source.pageCount) : '');
+            setAgeRange(source.ageRange || '');
+            setFormatDetails(source.formatDetails || '');
+            setSelectedBnccSkills(Array.isArray(source.bnccSkillIds) ? source.bnccSkillIds : []);
+            setUsesBncc(Array.isArray(source.bnccSkillIds) && source.bnccSkillIds.length > 0);
           }
         }
       } catch (err: any) {
@@ -493,6 +517,15 @@ function ProductWizardContent() {
                   Defina o título, a descrição formatada, o tipo de arquivo e os filtros pedagógicos.
                 </p>
               </div>
+
+              {plrSourceTitle && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                  <p className="font-black">Licença PLR confirmada: {plrSourceTitle}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                    Preenchemos apenas os filtros pedagógicos autorizados. Personalize o título, a descrição, a capa e envie os arquivos que serão vendidos na sua loja.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>

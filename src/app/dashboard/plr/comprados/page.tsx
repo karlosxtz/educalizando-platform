@@ -183,7 +183,7 @@ export default function PLRsCompradosPage() {
                       </div>
 
                       <Link 
-                        href="/dashboard/produtos/novo"
+                        href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(item.productId)}`}
                         className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-600/20"
                       >
                         <Plus className="w-4 h-4" />
