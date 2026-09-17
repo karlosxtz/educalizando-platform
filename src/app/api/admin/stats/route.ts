@@ -19,7 +19,8 @@ export async function GET(request: Request) {
     // 2. Total de produtos
     const { count: totalProducts } = await supabaseAdmin
       .from('products')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .is('excluido_em', null);
 
     // 3. Total de compras / alunos
     const { count: totalPurchases } = await supabaseAdmin

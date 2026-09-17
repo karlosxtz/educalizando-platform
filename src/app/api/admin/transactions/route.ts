@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     // Buscando as vendas e transações financeiras da tabela orders
     const { data: orders, error } = await supabaseAdmin
       .from('orders')
-      .select('*')
+      .select('id, status, created_at, buyer_name, buyer_email, total_amount, platform_fee_amount, creator_net_amount, store_id')
       .order('created_at', { ascending: false })
       .limit(1000);
 
