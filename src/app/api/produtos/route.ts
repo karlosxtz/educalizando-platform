@@ -123,6 +123,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (status === 'publicado' && !arquivo_url) {
+      return NextResponse.json(
+        { error: 'Envie o arquivo final ou informe um link de entrega antes de publicar o material.' },
+        { status: 400 }
+      );
+    }
 
     const cleanStoreId = (store_id || '').toString().replace(/^store_/i, '');
 
@@ -332,7 +338,7 @@ export async function PUT(request: Request) {
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('store_id, is_plr, preco_plr, has_plr_delivery')
+      .select('store_id, status, is_plr, preco_plr, has_plr_delivery')
       .eq('id', id)
       .maybeSingle();
     if (product) {
@@ -369,9 +375,17 @@ export async function PUT(request: Request) {
     const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
     const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);
     const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : currentDelivery?.plr_license_url;
+    const nextStatus = 'status' in cleanedUpdates ? cleanedUpdates.status : product.status;
+    const nextOriginalDelivery = 'arquivo_url' in cleanedUpdates ? cleanedUpdates.arquivo_url : currentDelivery?.arquivo_url;
     if (nextIsPlr && (!(nextPlrPrice > 0) || !nextPlrDelivery)) {
       return NextResponse.json(
         { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
+        { status: 400 }
+      );
+    }
+    if (nextStatus === 'publicado' && !nextOriginalDelivery) {
+      return NextResponse.json(
+        { error: 'Envie o arquivo final ou informe um link de entrega antes de publicar o material.' },
         { status: 400 }
       );
     }
