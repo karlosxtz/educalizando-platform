@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Tags, Trash2, Plus } from 'lucide-react';
+import { Tags, Trash2, Plus, Pencil, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CategoryData {
   id: string;
@@ -15,6 +16,7 @@ export default function SuperAdminCategorias() {
   const [novoNome, setNovoNome] = useState('');
   const [novoSlug, setNovoSlug] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -41,20 +43,22 @@ export default function SuperAdminCategorias() {
     setSaving(true);
     try {
       const res = await fetch('/api/admin/categories', {
-        method: 'POST',
+        method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: novoNome, slug: novoSlug })
+        body: JSON.stringify({ id: editingId, nome: novoNome, slug: novoSlug })
       });
       const data = await res.json();
       if (data.success) {
         setNovoNome('');
         setNovoSlug('');
+        setEditingId(null);
+        toast.success(editingId ? 'Categoria atualizada.' : 'Categoria criada.');
         fetchCategories();
       } else {
-        alert('Erro ao criar: ' + data.error);
+        toast.error(data.error || 'Não foi possível salvar a categoria.');
       }
     } catch (error) {
-      alert('Erro inesperado');
+      toast.error('Erro inesperado ao salvar a categoria.');
     } finally {
       setSaving(false);
     }
@@ -67,13 +71,26 @@ export default function SuperAdminCategorias() {
       const res = await fetch(`/api/admin/categories?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
+        toast.success('Categoria excluída.');
         fetchCategories();
       } else {
-        alert('Erro ao excluir: ' + data.error);
+        toast.error(data.error || 'Não foi possível excluir a categoria.');
       }
     } catch (e) {
-      alert('Erro inesperado.');
+      toast.error('Erro inesperado ao excluir a categoria.');
     }
+  }
+
+  function startEdit(category: CategoryData) {
+    setEditingId(category.id);
+    setNovoNome(category.nome);
+    setNovoSlug(category.slug);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setNovoNome('');
+    setNovoSlug('');
   }
 
   // Gera slug automatico baseado no nome
@@ -98,7 +115,7 @@ export default function SuperAdminCategorias() {
       <div className="bg-slate-950 border border-slate-800 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
           <Plus className="w-5 h-5 text-blue-500" />
-          Adicionar Nova Categoria
+          {editingId ? 'Editar Categoria Global' : 'Adicionar Nova Categoria'}
         </h2>
         <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 space-y-2 w-full">
@@ -128,8 +145,13 @@ export default function SuperAdminCategorias() {
             disabled={saving}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 whitespace-nowrap h-[42px]"
           >
-            {saving ? 'Adicionando...' : 'Adicionar'}
+            {saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Adicionar'}
           </button>
+          {editingId && (
+            <button type="button" onClick={cancelEdit} className="text-slate-300 hover:text-white px-3 py-2 rounded-lg inline-flex items-center gap-1">
+              <X className="w-4 h-4" /> Cancelar
+            </button>
+          )}
         </form>
       </div>
 
@@ -171,6 +193,13 @@ export default function SuperAdminCategorias() {
                       {cat.slug}
                     </td>
                     <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => startEdit(cat)}
+                        className="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 p-2 hover:bg-blue-500/10 rounded-lg transition-colors mr-1"
+                        title="Editar categoria"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
                       <button 
                         onClick={() => handleDelete(cat.id)}
                         className="text-red-500 hover:text-red-400 inline-flex items-center gap-1 p-2 hover:bg-red-500/10 rounded-lg transition-colors"
