@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Settings, Save, Percent, DollarSign } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SuperAdminConfiguracoes() {
   const [loading, setLoading] = useState(true);
@@ -52,12 +53,12 @@ export default function SuperAdminConfiguracoes() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Configurações salvas com sucesso!');
+        toast.success('Configurações salvas com sucesso.');
       } else {
-        alert('Erro ao salvar: ' + data.error);
+        toast.error(data.error || 'Não foi possível salvar as configurações.');
       }
     } catch (error) {
-      alert('Erro inesperado');
+      toast.error('Erro inesperado ao salvar as configurações.');
     } finally {
       setSaving(false);
     }
@@ -85,7 +86,7 @@ export default function SuperAdminConfiguracoes() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                   <Percent className="w-4 h-4 text-emerald-500" />
-                  Taxa da Plataforma (%)
+                  Taxa vigente da Plataforma (%)
                 </label>
                 <input
                   type="number"
@@ -93,8 +94,8 @@ export default function SuperAdminConfiguracoes() {
                   min="0"
                   max="100"
                   value={formData.platform_fee_percentage}
-                  onChange={() => setFormData({...formData, platform_fee_percentage: 13})}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  readOnly
+                  className="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-2 text-slate-300 cursor-not-allowed"
                 />
                 <p className="text-xs text-slate-500">Taxa fixa vigente da Educalizando: 13% por venda.</p>
               </div>
@@ -176,7 +177,7 @@ export default function SuperAdminConfiguracoes() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  Novo Aluno (Student)
+                  Novo Cliente
                 </label>
                 <textarea
                   rows={5}
