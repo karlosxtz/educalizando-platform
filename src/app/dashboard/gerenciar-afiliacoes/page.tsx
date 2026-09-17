@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { updateAffiliateStatus } from '@/lib/affiliate-service';
 import { getStoreAffiliatesAction } from '@/app/actions/affiliate-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import { Affiliate, Store } from '@/lib/types';
@@ -72,9 +71,16 @@ export default function CreatorAffiliatesPage() {
   }
 
   async function handleStatusChange(id: string, status: 'aprovado' | 'rejeitado') {
-    const ok = await updateAffiliateStatus(id, status);
-    if (ok) {
+    try {
+      const response = await fetch('/api/affiliates/manage', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ affiliateId: id, status }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível atualizar a afiliação.');
       setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Não foi possível atualizar a afiliação.');
     }
   }
 
