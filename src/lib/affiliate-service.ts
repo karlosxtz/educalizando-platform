@@ -373,12 +373,20 @@ export async function getAffiliateAvailableBalance(userId: string): Promise<numb
   try {
     const { data, error } = await supabaseAdmin
       .from('wallet_transactions')
-      .select('net_amount')
+      .select('net_amount,type,description,store_id,created_at')
       .eq('creator_id', userId)
       .eq('status', 'COMPLETED');
 
     if (!error && data) {
-      availableBalance = data.reduce((sum, tx) => sum + Number(tx.net_amount), 0);
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      availableBalance = data
+        .filter((tx) => (
+          (tx.type === 'AFFILIATE_COMMISSION' && new Date(tx.created_at).getTime() <= sevenDaysAgo)
+          || (tx.type === 'REFUND' && String(tx.description || '').startsWith('Estorno de Comissão -'))
+          || (tx.type === 'WITHDRAWAL' && String(tx.description || '').startsWith('Reserva para Saque PIX (Afiliado)'))
+          || (tx.type === 'ADJUSTMENT' && String(tx.description || '').startsWith('Devolução de saldo do saque rejeitado'))
+        ))
+        .reduce((sum, tx) => sum + Number(tx.net_amount), 0);
     }
   } catch (err) {
     console.error('[getAffiliateAvailableBalance] Erro:', err);
