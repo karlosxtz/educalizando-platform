@@ -62,7 +62,10 @@ export default function LoginPage() {
       if (values.email.toLowerCase() === superAdminEmail.toLowerCase()) {
         window.location.href = '/admin';
       } else {
-        window.location.href = '/dashboard/loja';
+        // O painel inicial concentra o resumo da loja e os próximos passos.
+        // A configuração da loja permanece acessível pelo menu, sem ser um
+        // desvio obrigatório após cada login.
+        window.location.href = '/dashboard';
       }
       
     } catch (err: any) {
