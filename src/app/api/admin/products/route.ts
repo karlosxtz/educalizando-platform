@@ -34,14 +34,44 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID do produto obrigatório' }, { status: 400 });
     }
 
-    // Excluir produto fisicamente (Super Admin tem esse poder)
-    const { error } = await supabaseAdmin
+    // Nunca removemos fisicamente: pedidos pagos, acessos e lançamentos
+    // financeiros precisam continuar auditáveis mesmo após moderação.
+    const { data, error } = await supabaseAdmin
       .from('products')
-      .delete()
-      .eq('id', productId);
+      .update({ excluido_em: new Date().toISOString(), status: 'rascunho', updated_at: new Date().toISOString() })
+      .eq('id', productId)
+      .select('id')
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
 
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    if (!(await isSuperAdmin(request))) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const productId = typeof body.id === 'string' ? body.id : '';
+    if (!productId) return NextResponse.json({ error: 'ID do produto obrigatório' }, { status: 400 });
+
+    // A restauração retorna como rascunho para que o criador revise o material
+    // antes de voltar a exibi-lo publicamente.
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .update({ excluido_em: null, status: 'rascunho', updated_at: new Date().toISOString() })
+      .eq('id', productId)
+      .select('id')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

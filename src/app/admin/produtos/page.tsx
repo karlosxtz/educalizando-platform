@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Package, Trash2, ExternalLink } from 'lucide-react';
+import { Package, Trash2, ExternalLink, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface ProductData {
   id: string;
@@ -10,6 +11,7 @@ interface ProductData {
   tipo: string;
   preco: number;
   status: string;
+  excluido_em: string | null;
   created_at: string;
   store: {
     nome_loja: string;
@@ -40,19 +42,31 @@ export default function SuperAdminProdutos() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('ATENÇÃO: Excluir este produto apagará ele permanentemente da plataforma. Deseja prosseguir?')) return;
+    if (!confirm('Remover este produto da vitrine? Pedidos e acessos já gerados serão preservados.')) return;
     
     try {
       const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        alert('Produto excluído com sucesso.');
+        toast.success('Produto removido do catálogo com segurança.');
         fetchProducts();
       } else {
-        alert('Erro ao excluir: ' + data.error);
+        toast.error(data.error || 'Não foi possível remover o produto.');
       }
     } catch (e) {
-      alert('Erro inesperado.');
+      toast.error('Erro inesperado ao remover o produto.');
+    }
+  }
+
+  async function handleRestore(id: string) {
+    try {
+      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success('Produto restaurado como rascunho para revisão do criador.');
+      fetchProducts();
+    } catch (error: any) {
+      toast.error(error.message || 'Não foi possível restaurar o produto.');
     }
   }
 
@@ -112,28 +126,24 @@ export default function SuperAdminProdutos() {
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         product.status === 'publicado' ? 'bg-emerald-500/10 text-emerald-500' : 
-                        product.status === 'excluido' ? 'bg-red-500/10 text-red-500' :
+                        product.excluido_em ? 'bg-red-500/10 text-red-500' :
                         'bg-amber-500/10 text-amber-500'
                       }`}>
-                        {product.status}
+                        {product.excluido_em ? 'removido' : product.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-3 whitespace-nowrap">
-                      <Link 
-                        href={`/loja/${product.store?.slug}/produto/${product.id}`}
-                        target="_blank"
-                        className="text-blue-500 hover:text-blue-400 inline-flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        <span className="hidden sm:inline">Ver</span>
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(product.id)}
-                        className="text-red-500 hover:text-red-400 inline-flex items-center gap-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Excluir</span>
-                      </button>
+                      {!product.excluido_em && <>
+                        <Link href={`/loja/${product.store?.slug}/produto/${product.id}`} target="_blank" className="text-blue-500 hover:text-blue-400 inline-flex items-center gap-1">
+                          <ExternalLink className="w-4 h-4" /><span className="hidden sm:inline">Ver</span>
+                        </Link>
+                        <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:text-red-400 inline-flex items-center gap-1">
+                          <Trash2 className="w-4 h-4" /><span className="hidden sm:inline">Remover</span>
+                        </button>
+                      </>}
+                      {product.excluido_em && <button onClick={() => handleRestore(product.id)} className="text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1">
+                        <RotateCcw className="w-4 h-4" /><span className="hidden sm:inline">Restaurar</span>
+                      </button>}
                     </td>
                   </tr>
                 ))
