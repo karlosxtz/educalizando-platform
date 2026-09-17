@@ -549,7 +549,7 @@ function ProductWizardContent() {
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
-                      Descrição Detalhada & O que o aluno vai receber
+                      Descrição Detalhada & O que o cliente vai receber
                     </label>
                   </div>
                   <textarea
@@ -896,10 +896,10 @@ function ProductWizardContent() {
                 <div>
                   <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                     <User className="w-5 h-5 text-blue-600" />
-                    Bloco 1: Produto Final (Consumo do Aluno)
+                    Bloco 1: Produto Final (Acesso do Cliente)
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    O material padrão e o preço que os alunos pagarão para consumir o seu conteúdo.
+                    O material padrão e o preço que os clientes pagarão para acessar o seu conteúdo.
                   </p>
                 </div>
 
@@ -920,7 +920,7 @@ function ProductWizardContent() {
                         <span className={`text-sm font-bold ${isFree ? 'text-emerald-900' : 'text-slate-700'}`}>🎁 Material Gratuito (Brinde)</span>
                       </div>
                       <p className={`text-[11px] mt-1 font-medium leading-relaxed ${isFree ? 'text-emerald-700' : 'text-slate-500'}`}>
-                        Se marcado, o aluno poderá baixar este material gratuitamente.
+                        Se marcado, o cliente poderá baixar este material gratuitamente.
                       </p>
                     </div>
                   </div>

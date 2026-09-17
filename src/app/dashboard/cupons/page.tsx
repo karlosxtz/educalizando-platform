@@ -351,7 +351,7 @@ export default function CouponsDashboardPage() {
           <div className="space-y-1">
             <h3 className="text-lg font-black text-slate-900">Nenhum cupom encontrado</h3>
             <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
-              Crie cupons de desconto promocionais para atrair novos alunos para a sua loja.
+              Crie cupons de desconto promocionais para atrair novos clientes para a sua loja.
             </p>
           </div>
           <button
@@ -668,7 +668,7 @@ export default function CouponsDashboardPage() {
                     />
                   ) : (
                     <div className="w-full px-4 py-3 bg-slate-100 rounded-xl text-slate-400 text-xs font-bold border border-slate-200">
-                      Uso Ilimitado por Alunos
+                      Uso Ilimitado por Clientes
                     </div>
                   )}
                 </div>

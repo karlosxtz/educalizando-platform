@@ -21,8 +21,8 @@ export default function FAQ() {
       a: 'Você pode vender apostilas digitais em PDF, e-books esquematizados, cadernos de questões, simulados gabaritados, videoaulas e cursos completos.'
     },
     {
-      q: 'Como o meu aluno acessa o conteúdo após a compra?',
-      a: 'Assim que o pagamento via PIX é confirmado (em poucos segundos), o aluno recebe acesso imediato à Área de Membros da sua loja para baixar os arquivos em PDF ou assistir aos vídeos.'
+      q: 'Como o meu cliente acessa o conteúdo após a compra?',
+      a: 'Assim que o pagamento via PIX é confirmado (em poucos segundos), o cliente recebe acesso imediato à Área do Cliente para baixar os arquivos em PDF ou assistir aos vídeos.'
     },
     {
       q: 'Posso personalizar as cores e o nome da minha loja?',

@@ -9,7 +9,7 @@ export default function SocialProof() {
       icon: Zap,
       color: 'text-brand-amber bg-amber-50 border-amber-200',
       title: 'Checkout PIX Instantâneo',
-      description: 'O aluno paga via QR Code ou Copia e Cola e o dinheiro cai direto na sua conta, com liberação automática do material.'
+      description: 'O cliente paga via QR Code ou Copia e Cola e o dinheiro cai direto na sua conta, com liberação automática do material.'
     },
     {
       icon: Store,

@@ -11,7 +11,7 @@ export default function Benefits() {
     {
       icon: Zap,
       title: 'Checkout PIX Instantâneo',
-      desc: 'O aluno faz o pagamento via PIX e recebe acesso imediato. O valor cai direto na sua conta registrada.'
+      desc: 'O cliente faz o pagamento via PIX e recebe acesso imediato. O valor cai direto na sua conta registrada.'
     },
     {
       icon: Store,
@@ -31,7 +31,7 @@ export default function Benefits() {
     {
       icon: Smartphone,
       title: 'Área de Membros Responsiva',
-      desc: 'Alunos podem ler apostilas e assistir videoaulas pelo celular, tablet ou computador de forma rápida.'
+      desc: 'Clientes podem ler apostilas e assistir videoaulas pelo celular, tablet ou computador de forma rápida.'
     },
     {
       icon: Clock,

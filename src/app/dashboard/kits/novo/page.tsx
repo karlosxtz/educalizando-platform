@@ -351,7 +351,7 @@ function KitWizardContent() {
                     rows={4}
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
-                    placeholder="Explique o que o aluno ganha comprando este combo completo e quais arquivos receberá..."
+                    placeholder="Explique o que o cliente recebe ao comprar este combo completo..."
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                   />
                 </div>
@@ -477,7 +477,7 @@ function KitWizardContent() {
                   4. Preço Final do Kit & Cálculo de Economia
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Defina o preço único de venda e confira como os alunos enxergarão o desconto oferecido.
+                  Defina o preço único de venda e confira como os clientes enxergarão o desconto oferecido.
                 </p>
               </div>
 
@@ -517,7 +517,7 @@ function KitWizardContent() {
               <div className="bg-gradient-to-br from-emerald-600 to-teal-800 p-6 rounded-3xl text-white space-y-4 shadow-xl">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-300" />
-                  <h4 className="text-xs font-extrabold uppercase tracking-widest">Resumo de Desconto & Economia para o Aluno</h4>
+                  <h4 className="text-xs font-extrabold uppercase tracking-widest">Resumo de Desconto & Economia para o Cliente</h4>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/20">

@@ -55,7 +55,7 @@ function StudentSignupForm() {
       }
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Erro ao realizar cadastro do aluno.');
+      setErrorMsg(err.message || 'Erro ao realizar cadastro de cliente.');
     } finally {
       setLoading(false);
     }

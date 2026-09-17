@@ -307,7 +307,7 @@ export default function StoreSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all"
                 placeholder="(11) 91234-5678"
               />
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Os alunos poderão falar com você direto pelo WhatsApp através da sua loja.</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">Os clientes poderão falar com você direto pelo WhatsApp através da sua loja.</p>
               {errors.whatsapp && (
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.whatsapp.message}</p>
               )}
@@ -650,7 +650,7 @@ export default function StoreSettingsPage() {
                   educalizando.com.br/loja/{watchedSlug || 'sua-loja'}
                 </p>
                 <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
-                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus alunos.'}
+                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus clientes.'}
                 </p>
 
                 {/* Preview Social Links */}
