@@ -5,7 +5,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/dashboard/', '/api/', '/checkout/'],
+      disallow: [
+        '/admin/',
+        '/dashboard/',
+        '/cliente/',
+        '/aluno/',
+        '/api/',
+        '/checkout/',
+        '/loja/*/checkout/'
+      ],
     },
     sitemap: 'https://www.educalizando.com.br/sitemap.xml',
   };
