@@ -46,6 +46,7 @@ function ProductWizardContent() {
   const [ageRange, setAgeRange] = useState('');
   const [formatDetails, setFormatDetails] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
+  const [instagramVideoUrl, setInstagramVideoUrl] = useState('');
   const [preco, setPreco] = useState<string>('');
   const [precoOriginal, setPrecoOriginal] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
@@ -115,6 +116,7 @@ function ProductWizardContent() {
             setAgeRange(existing.age_range || '');
             setFormatDetails(existing.format_details || '');
             setPreviewUrl(existing.preview_url || '');
+            setInstagramVideoUrl(existing.instagram_video_url || '');
             setPreco(existing.preco.toString().replace('.', ','));
             setPrecoOriginal(existing.preco_original ? existing.preco_original.toString().replace('.', ',') : '');
             
@@ -368,6 +370,7 @@ function ProductWizardContent() {
           age_range: ageRange.trim() || null,
           format_details: formatDetails.trim() || null,
           preview_url: previewUrl.trim() || null,
+          instagram_video_url: instagramVideoUrl.trim() || null,
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
@@ -397,6 +400,7 @@ function ProductWizardContent() {
           age_range: ageRange.trim() || null,
           format_details: formatDetails.trim() || null,
           preview_url: previewUrl.trim() || null,
+          instagram_video_url: instagramVideoUrl.trim() || null,
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
@@ -624,6 +628,12 @@ function ProductWizardContent() {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                     />
                   </div>
+                </div>
+
+                <div className="rounded-2xl border border-pink-100 bg-pink-50/60 p-4">
+                  <label className="text-xs font-bold uppercase tracking-wider text-pink-800 block mb-1.5">Vídeo do Instagram na galeria</label>
+                  <input type="url" value={instagramVideoUrl} onChange={(event) => setInstagramVideoUrl(event.target.value)} placeholder="https://www.instagram.com/reel/..." className="w-full px-4 py-3 bg-white border border-pink-200 focus:border-pink-500 rounded-xl text-slate-900 text-sm font-medium focus:outline-none" />
+                  <p className="mt-2 text-[11px] text-pink-800">Cole o link público de um Reel ou post. Ele aparecerá junto das fotos do material com acesso ao Instagram da loja.</p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">

@@ -105,6 +105,8 @@ export interface Product {
   age_range?: string | null;
   format_details?: string | null;
   preview_url?: string | null;
+  /** Link público de um Reel/post do Instagram exibido na galeria do produto. */
+  instagram_video_url?: string | null;
   status: ProductStatus;
   category_id?: string | null;
   education_level_id?: string | null;

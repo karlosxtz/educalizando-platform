@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search, Eye
+  MessageCircle, Sparkles, Lock, Clock, Check, Share2, Loader2, Ticket, Tag, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search, Eye, Camera, Play
 } from 'lucide-react';
 import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review, BnccSkill } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -65,7 +65,7 @@ export default function ProductDetailClientView({
   const [showMobileCategories, setShowMobileCategories] = useState(false);
 
   // Derive gallery images
-  const galleryImages = [];
+  const galleryImages: string[] = [];
   if (product.capa_url) galleryImages.push(product.capa_url);
   if (product.images && product.images.length > 0) {
     product.images.forEach(img => {
@@ -74,6 +74,14 @@ export default function ProductDetailClientView({
       }
     });
   }
+  const galleryMedia = [
+    ...galleryImages.map((url) => ({ type: 'image' as const, url })),
+    ...(product.instagram_video_url ? [{ type: 'instagram' as const, url: product.instagram_video_url }] : []),
+  ];
+  const activeMedia = galleryMedia[activeImageIndex];
+  const instagramEmbedUrl = activeMedia?.type === 'instagram'
+    ? activeMedia.url.replace(/\/(reels?|p|tv)\/([^/?#]+).*$/i, '/$1/$2/embed/captioned/')
+    : null;
 
   useEffect(() => {
     // Registra a visualização no histórico local
@@ -291,18 +299,21 @@ export default function ProductDetailClientView({
             {/* Cover Display & Gallery */}
             <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col gap-4">
               <div className="aspect-[3/4] max-w-md mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
-                {galleryImages.length > 0 ? (
+                {activeMedia ? (
                   <AnimatePresence mode="wait">
-                    <motion.img 
+                    {activeMedia.type === 'image' ? <motion.img
                       key={activeImageIndex}
-                      src={galleryImages[activeImageIndex]} 
+                      src={activeMedia.url}
                       alt={product.titulo} 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       className="w-full h-full object-cover" 
-                    />
+                    /> : <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full bg-slate-950">
+                      <iframe src={instagramEmbedUrl || activeMedia.url} title={`Vídeo do Instagram: ${product.titulo}`} className="h-full w-full border-0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy" />
+                      <a href={store.instagram || activeMedia.url} target="_blank" rel="noopener noreferrer" className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-2 text-xs font-black text-white shadow-lg"><Camera className="h-4 w-4 text-pink-400" /> Ver no Instagram</a>
+                    </motion.div>}
                   </AnimatePresence>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-semibold p-8 text-center">
@@ -312,9 +323,9 @@ export default function ProductDetailClientView({
               </div>
 
               {/* Gallery Thumbnails */}
-              {galleryImages.length > 1 && (
+              {galleryMedia.length > 1 && (
                 <div className="flex justify-center gap-3 overflow-x-auto pb-2 px-2">
-                  {galleryImages.map((url, idx) => (
+                  {galleryMedia.map((media, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
@@ -325,7 +336,7 @@ export default function ProductDetailClientView({
                       }`}
                       style={activeImageIndex === idx ? { borderColor: primaryColor } : undefined}
                     >
-                      <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      {media.type === 'image' ? <img src={media.url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-orange-400 text-white"><Camera className="h-5 w-5" /><Play className="h-3.5 w-3.5 fill-current" /></span>}
                     </button>
                   ))}
                 </div>

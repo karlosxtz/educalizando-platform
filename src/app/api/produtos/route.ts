@@ -24,6 +24,16 @@ function normalizePreviewUrl(value: unknown): string | null {
     return null;
   }
 }
+
+function normalizeInstagramVideoUrl(value: unknown): string | null {
+  const normalized = normalizePreviewUrl(value);
+  if (!normalized) return null;
+  const url = new URL(normalized);
+  const host = url.hostname.toLowerCase().replace(/^www\./, '');
+  const isInstagram = host === 'instagram.com' || host === 'instagr.am';
+  const hasPublicPostPath = /^\/(reel|reels|p|tv)\//i.test(url.pathname);
+  return isInstagram && hasPublicPostPath ? normalized : null;
+}
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 
@@ -98,6 +108,7 @@ export async function POST(request: Request) {
       age_range = null,
       format_details = null,
       preview_url = null,
+      instagram_video_url = null,
       seasonal_tags = [],
       bncc_skill_ids
     } = body;
@@ -116,6 +127,10 @@ export async function POST(request: Request) {
     const normalizedPreviewUrl = normalizePreviewUrl(preview_url);
     if (typeof preview_url === 'string' && preview_url.trim() && !normalizedPreviewUrl) {
       return NextResponse.json({ error: 'A prévia deve usar um link público iniciado por http:// ou https://.' }, { status: 400 });
+    }
+    const normalizedInstagramVideoUrl = normalizeInstagramVideoUrl(instagram_video_url);
+    if (typeof instagram_video_url === 'string' && instagram_video_url.trim() && !normalizedInstagramVideoUrl) {
+      return NextResponse.json({ error: 'Use o link público de um post ou Reel do Instagram.' }, { status: 400 });
     }
 
     const normalizedPageCount = page_count === null || page_count === '' ? null : Number(page_count);
@@ -211,6 +226,7 @@ export async function POST(request: Request) {
       age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
       format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
       preview_url: normalizedPreviewUrl,
+      instagram_video_url: normalizedInstagramVideoUrl,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
       created_at: new Date().toISOString()
     };
@@ -258,6 +274,7 @@ export async function POST(request: Request) {
         age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
         format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
         preview_url: normalizedPreviewUrl,
+        instagram_video_url: normalizedInstagramVideoUrl,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
         created_at: new Date().toISOString()
       };
@@ -433,6 +450,13 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'A prévia deve usar um link público iniciado por http:// ou https://.' }, { status: 400 });
       }
       cleanedUpdates.preview_url = previewUrl;
+    }
+    if ('instagram_video_url' in cleanedUpdates) {
+      const instagramVideoUrl = normalizeInstagramVideoUrl(cleanedUpdates.instagram_video_url);
+      if (typeof cleanedUpdates.instagram_video_url === 'string' && cleanedUpdates.instagram_video_url.trim() && !instagramVideoUrl) {
+        return NextResponse.json({ error: 'Use o link público de um post ou Reel do Instagram.' }, { status: 400 });
+      }
+      cleanedUpdates.instagram_video_url = instagramVideoUrl;
     }
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);
