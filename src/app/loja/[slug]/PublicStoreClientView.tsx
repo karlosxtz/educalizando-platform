@@ -129,17 +129,17 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
 
   const layout = store.layout_theme || 'default';
 
-  switch (layout) {
-    case 'minimalist':
-      return <ThemeMinimalist {...themeProps} />;
-    case 'netflix':
-      return <ThemeNetflix {...themeProps} />;
-    case 'linktree':
-      return <ThemeLinkTree {...themeProps} />;
-    case 'pinterest':
-      return <ThemePinterest {...themeProps} />;
-    case 'default':
-    default:
-      return <ThemeDefault {...themeProps} />;
-  }
+  const theme = (() => {
+    switch (layout) {
+      case 'minimalist': return <ThemeMinimalist {...themeProps} />;
+      case 'netflix': return <ThemeNetflix {...themeProps} />;
+      case 'linktree': return <ThemeLinkTree {...themeProps} />;
+      case 'pinterest': return <ThemePinterest {...themeProps} />;
+      case 'default':
+      default: return <ThemeDefault {...themeProps} />;
+    }
+  })();
+
+  const buttonStyle = store.button_style || 'rounded';
+  return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"]{border-radius:.75rem!important}`}</style></div>;
 }

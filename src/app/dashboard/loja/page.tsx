@@ -95,6 +95,7 @@ export default function StoreSettingsPage() {
   const watchedAuthorImageUrl = watch('author_image_url');
   const watchedButtonStyle = watch('button_style');
   const previewRadius = watchedButtonStyle === 'pill' ? 'rounded-full' : watchedButtonStyle === 'square' ? 'rounded-md' : 'rounded-xl';
+  const previewTheme = watchedLayoutTheme === 'netflix' ? 'Carrossel Dark' : watchedLayoutTheme === 'linktree' ? 'Link-in-Bio' : watchedLayoutTheme === 'pinterest' ? 'Pinterest Grid' : watchedLayoutTheme === 'minimalist' ? 'Minimalista' : 'Padrão';
 
   useEffect(() => {
     async function loadStoreData() {
@@ -616,7 +617,8 @@ export default function StoreSettingsPage() {
             <span>Preview em Tempo Real da Sua Loja</span>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg space-y-4 sticky top-6">
+          <div className={`relative overflow-hidden rounded-2xl border shadow-lg space-y-4 sticky top-6 ${watchedLayoutTheme === 'netflix' ? 'border-slate-700 bg-slate-950 text-white' : watchedLayoutTheme === 'pinterest' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
+            <div className="absolute right-3 top-3 z-20 rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-black text-white">Prévia: {previewTheme}</div>
             {/* Banner Preview */}
             <div className="h-32 bg-slate-800 relative overflow-hidden">
               {watchedBannerUrl ? (
@@ -681,6 +683,7 @@ export default function StoreSettingsPage() {
                   Botão de Compra
                 </span>
               </div>
+              <div className={`grid gap-2 ${watchedLayoutTheme === 'linktree' ? 'grid-cols-1' : 'grid-cols-2'}`}><button type="button" className={`${previewRadius} min-h-10 bg-slate-100 px-3 text-xs font-black text-slate-700`}>Adicionar</button><button type="button" className={`${previewRadius} min-h-10 px-3 text-xs font-black text-white`} style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}>Comprar</button></div>
             </div>
             
             {/* Simulated Floating WhatsApp Button in Preview */}
