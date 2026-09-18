@@ -4,6 +4,7 @@ import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getDisciplines } from '@/lib/discipline-service';
 import { getPublishedBlogPosts } from '@/lib/blog-service';
 import { glossaryTerms } from '@/lib/glossary';
+import { seoLandings } from '@/lib/seo-landings';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Must match the canonical host configured in the root metadata.
@@ -50,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   glossaryTerms.forEach((term) => sitemapEntries.push({ url: `${baseUrl}/glossario/${term.slug}`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 }));
+  Object.values(seoLandings).forEach((landing) => sitemapEntries.push({ url: `${baseUrl}/${landing.slug}`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 }));
 
   try {
     const [stores, products, categories, educationLevels, disciplines, blogPosts] = await Promise.all([
