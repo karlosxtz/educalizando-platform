@@ -5,6 +5,7 @@ import {
   getPublicProductsByStoreId 
 } from '@/lib/store-service';
 import PublicStoreClientView from './PublicStoreClientView';
+import StoreAnalytics from '@/components/store/StoreAnalytics';
 
 // Forçar renderização dinâmica em tempo real no Next.js App Router
 export const dynamic = 'force-dynamic';
@@ -80,6 +81,7 @@ export default async function PublicStorePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PublicStoreClientView store={store} initialProducts={products} />
+      <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
     </>
   );
 }

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ChevronRight, Home, Store } from 'lucide-react';
 import { ReactNode } from 'react';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
+import StoreAnalytics from '@/components/store/StoreAnalytics';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -208,6 +209,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         bnccSkills={bnccSkills}
         storeCategories={categories.filter((item) => storeProducts.some((storeProduct) => storeProduct.category_id === item.id))}
       />
+      <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
     </div>
   );
 }

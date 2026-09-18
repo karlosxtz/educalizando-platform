@@ -41,6 +41,8 @@ export interface Store {
   website?: string | null;
   button_style?: string; // 'rounded', 'pill', 'square'
   welcome_message?: string | null;
+  meta_pixel_id?: string | null;
+  google_analytics_id?: string | null;
   guided_chat_enabled?: boolean;
   guided_chat_welcome?: string | null;
   bulk_discount_enabled?: boolean;

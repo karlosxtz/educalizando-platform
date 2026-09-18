@@ -84,6 +84,8 @@ export const storeSettingsSchema = z.object({
   website: z.string().url({ message: 'URL do site inválida.' }).or(z.literal('')).optional(),
   button_style: z.enum(['rounded', 'pill', 'square', 'soft', 'sharp']).optional(),
   welcome_message: z.string().optional(),
+  meta_pixel_id: z.string().regex(/^\d{5,20}$/, { message: 'Informe somente o ID numérico do Meta Pixel.' }).or(z.literal('')).optional(),
+  google_analytics_id: z.string().regex(/^G-[A-Z0-9]+$/i, { message: 'Use o Measurement ID do GA4, como G-ABC123DEF.' }).or(z.literal('')).optional(),
   bulk_discount_enabled: z.boolean().optional(),
   bulk_discount_minimum: z.coerce.number().min(0).max(100000).optional(),
   bulk_discount_percentage: z.coerce.number().min(1).max(90).optional()
