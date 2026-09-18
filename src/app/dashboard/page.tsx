@@ -12,7 +12,6 @@ import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
 import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
-import OnboardingTour from '@/components/dashboard/OnboardingTour';
 
 export default function DashboardOverviewPage() {
   const [store, setStore] = useState<StoreType | null>(null);
@@ -50,7 +49,6 @@ export default function DashboardOverviewPage() {
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-4 sm:p-8 -m-4 sm:-m-8">
-      <OnboardingTour />
       {/* Mural Pedagógico Banner */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
@@ -309,4 +307,3 @@ export default function DashboardOverviewPage() {
     </div>
   );
 }
-

@@ -12,6 +12,7 @@ import { Store } from '@/lib/types';
 import { resolveUserRoles, resolveContextForRoute, canAccessAffiliateCenter, UserRoles } from '@/lib/role-service';
 import { supabase } from '@/lib/supabase';
 import SystemBanners from '@/components/dashboard/SystemBanners';
+import OnboardingTour from '@/components/dashboard/OnboardingTour';
 
 export default function DashboardLayout({
   children,
@@ -172,7 +173,9 @@ export default function DashboardLayout({
 
       {/* Toast de Venda em Tempo Real (global, fora do scroll) */}
       {store?.id && !isAffiliateMode && <SaleToast storeId={store.id} />}
+
+      {/* Exibido em qualquer área do criador até a conclusão explícita do tour. */}
+      {store?.id && !isAffiliateMode && <OnboardingTour storageKey={`educalizando_tour360_${store.id}`} />}
     </div>
   );
 }
-
