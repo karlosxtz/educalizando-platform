@@ -88,3 +88,59 @@ export async function sendEvolutionText(phone: unknown, text: string): Promise<{
     return { sent: false, reason: 'network_error' };
   }
 }
+
+function evolutionConfig() {
+  const apiKey = process.env.EVOLUTION_API_KEY;
+  const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');
+  const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
+  return { apiKey, baseUrl, instanceName };
+}
+
+export type EvolutionInstanceHealth = {
+  configured: boolean;
+  connected: boolean;
+  state: string;
+  instanceName: string | null;
+  server: string | null;
+  checkedAt: string;
+  error?: string;
+};
+
+export async function getEvolutionInstanceHealth(): Promise<EvolutionInstanceHealth> {
+  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  const checkedAt = new Date().toISOString();
+  if (!apiKey || !instanceName) {
+    return { configured: false, connected: false, state: 'not_configured', instanceName: null, server: null, checkedAt };
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/instance/connectionState/${encodeURIComponent(instanceName)}`, {
+      headers: { apikey: apiKey },
+      cache: 'no-store',
+    });
+    const data = await response.json().catch(() => ({}));
+    const state = String(data?.instance?.state || data?.instance?.status || 'unknown').toLowerCase();
+    if (!response.ok) {
+      return { configured: true, connected: false, state: 'unavailable', instanceName, server: new URL(baseUrl).host, checkedAt, error: `A Evolution respondeu com status ${response.status}.` };
+    }
+    return { configured: true, connected: state === 'open', state, instanceName, server: new URL(baseUrl).host, checkedAt };
+  } catch {
+    return { configured: true, connected: false, state: 'unreachable', instanceName, server: null, checkedAt, error: 'Não foi possível consultar o servidor da Evolution.' };
+  }
+}
+
+export async function logoutEvolutionInstance(): Promise<{ disconnected: boolean; error?: string }> {
+  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  if (!apiKey || !instanceName) return { disconnected: false, error: 'A Evolution não está configurada.' };
+
+  try {
+    const response = await fetch(`${baseUrl}/instance/logout/${encodeURIComponent(instanceName)}`, {
+      method: 'DELETE',
+      headers: { apikey: apiKey },
+    });
+    if (!response.ok) return { disconnected: false, error: `A Evolution respondeu com status ${response.status}.` };
+    return { disconnected: true };
+  } catch {
+    return { disconnected: false, error: 'Não foi possível desconectar a instância.' };
+  }
+}
