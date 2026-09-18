@@ -18,7 +18,7 @@ export default function WhatsAppButton() {
   // Dentro de uma loja, o contato precisa ser o do criador. As vitrines
   // já renderizam seu próprio botão com store.whatsapp; ocultar o botão
   // global impede que o suporte da plataforma fique sobreposto a ele.
-  if (!isVisible || pathname?.startsWith('/loja/') || pathname?.startsWith('/atendimento/')) return null;
+  if (!isVisible || pathname?.startsWith('/loja/') || pathname?.startsWith('/atendimento/') || pathname?.startsWith('/dashboard/')) return null;
 
   // Número de suporte
   const phoneNumber = '5521965008441';

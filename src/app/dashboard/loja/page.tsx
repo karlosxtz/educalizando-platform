@@ -184,7 +184,7 @@ export default function StoreSettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 max-w-full space-y-8 overflow-x-hidden">
       {/* Title & Link Bar */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -222,10 +222,10 @@ export default function StoreSettingsPage() {
       </div>
 
       {/* Main Grid: Form Settings & Live Preview */}
-      <div className="grid lg:grid-cols-12 gap-8">
+      <div className="grid min-w-0 lg:grid-cols-12 gap-8">
         
         {/* Form Container */}
-        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+        <div className="min-w-0 lg:col-span-7 bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
             {actionError && (
@@ -263,14 +263,14 @@ export default function StoreSettingsPage() {
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Link Exclusivo (Slug) *
               </label>
-              <div className="flex items-center">
-                <span className="bg-slate-100 border border-r-0 border-slate-200 text-slate-500 text-xs px-3 py-3 rounded-l-xl font-mono">
+              <div className="flex min-w-0 flex-col sm:flex-row">
+                <span className="max-w-full truncate bg-slate-100 border border-slate-200 sm:border-r-0 text-slate-500 text-xs px-3 py-3 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none font-mono">
                   educalizando.com.br/loja/
                 </span>
                 <input
                   type="text"
                   {...register('slug')}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-r-xl text-slate-900 text-sm focus:outline-none font-mono"
+                  className="min-w-0 w-full px-4 py-3 bg-slate-50 border border-slate-200 sm:border-l-0 focus:border-blue-600 rounded-b-xl sm:rounded-r-xl sm:rounded-bl-none text-slate-900 text-sm focus:outline-none font-mono"
                   placeholder="prof-ricardo"
                 />
               </div>
