@@ -1,6 +1,7 @@
 export const revalidate = 60; // Atualiza a página estática a cada 60 segundos
 
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
@@ -12,6 +13,17 @@ import RecentlyViewed from '@/components/RecentlyViewed';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import { getSchoolCalendarTagsForMonth, getUpcomingSchoolEvents } from '@/lib/school-calendar';
 import PartnerStoresMarquee from '@/components/PartnerStoresMarquee';
+
+export const metadata: Metadata = {
+  title: 'Materiais Didáticos Digitais para Professores | Educalizando',
+  description: 'Encontre materiais didáticos digitais, atividades pedagógicas, apostilas, planos de aula e jogos educativos criados por professores. Compre com acesso imediato na Educalizando.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Materiais Didáticos Digitais para Professores | Educalizando',
+    description: 'Atividades pedagógicas, apostilas, planos de aula e jogos educativos com acesso digital imediato.',
+    url: '/',
+  },
+};
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
@@ -72,6 +84,7 @@ export default async function Home() {
       </nav>
 
       <main className="flex-1 pb-20">
+        <h1 className="sr-only">Materiais didáticos digitais para professores e educadores</h1>
         
         {/* HERO BANNER CAROUSEL */}
         <MainBannersCarousel banners={activeBanners} />
