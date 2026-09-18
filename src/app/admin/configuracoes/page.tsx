@@ -11,12 +11,7 @@ export default function SuperAdminConfiguracoes() {
     platform_fee_percentage: 13,
     platform_fixed_fee: 0,
     minimum_withdrawal_amount: 50,
-    withdrawal_fee: 0,
-    whatsapp_template_creator: '',
-    whatsapp_template_student: '',
-    whatsapp_template_affiliate: '',
-    whatsapp_template_creator_sale: '',
-    whatsapp_template_buyer_sale: ''
+    withdrawal_fee: 0
   });
 
   useEffect(() => {
@@ -29,12 +24,7 @@ export default function SuperAdminConfiguracoes() {
             platform_fee_percentage: data.settings.platform_fee_percentage,
             platform_fixed_fee: data.settings.platform_fixed_fee,
             minimum_withdrawal_amount: data.settings.minimum_withdrawal_amount,
-            withdrawal_fee: data.settings.withdrawal_fee,
-            whatsapp_template_creator: data.settings.whatsapp_template_creator || '',
-            whatsapp_template_student: data.settings.whatsapp_template_student || '',
-            whatsapp_template_affiliate: data.settings.whatsapp_template_affiliate || '',
-            whatsapp_template_creator_sale: data.settings.whatsapp_template_creator_sale || '',
-            whatsapp_template_buyer_sale: data.settings.whatsapp_template_buyer_sale || ''
+            withdrawal_fee: data.settings.withdrawal_fee
           });
         }
       } catch (e) {
@@ -154,74 +144,6 @@ export default function SuperAdminConfiguracoes() {
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
                 <p className="text-xs text-slate-500">Custo repassado ao criador para transferências.</p>
-              </div>
-            </div>
-
-            <hr className="border-slate-800" />
-
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2 pt-4">
-              <Settings className="w-5 h-5 text-green-500" />
-              Templates de Boas-vindas (WhatsApp)
-            </h2>
-            <p className="text-sm text-slate-400 mb-6">Você pode utilizar a variável <code className="bg-slate-800 px-1 rounded text-blue-400">{`{{nome}}`}</code> para inserir o primeiro nome do usuário.</p>
-
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  Novo Lojista (Creator)
-                </label>
-                <textarea
-                  rows={5}
-                  value={formData.whatsapp_template_creator}
-                  onChange={(e) => setFormData({...formData, whatsapp_template_creator: e.target.value})}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  placeholder="Olá {{nome}}! ..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  Novo Cliente
-                </label>
-                <textarea
-                  rows={5}
-                  value={formData.whatsapp_template_student}
-                  onChange={(e) => setFormData({...formData, whatsapp_template_student: e.target.value})}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  placeholder="Oie {{nome}}! ..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  Novo Afiliado (Affiliate)
-                </label>
-                <textarea
-                  rows={5}
-                  value={formData.whatsapp_template_affiliate}
-                  onChange={(e) => setFormData({...formData, whatsapp_template_affiliate: e.target.value})}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  placeholder="Olá {{nome}}! ..."
-                />
-              </div>
-            </div>
-
-            <hr className="border-slate-800" />
-
-            <h2 className="text-xl font-semibold text-white mb-3 flex items-center gap-2 pt-2">
-              <Settings className="w-5 h-5 text-emerald-500" />
-              Alertas de Compra Confirmada
-            </h2>
-            <p className="text-sm text-slate-400 mb-6">Os alertas são enviados após confirmação do pagamento. Use <code className="bg-slate-800 px-1 rounded text-blue-400">{'{{nome}}'}</code>, <code className="bg-slate-800 px-1 rounded text-blue-400">{'{{comprador}}'}</code>, <code className="bg-slate-800 px-1 rounded text-blue-400">{'{{produto}}'}</code>, <code className="bg-slate-800 px-1 rounded text-blue-400">{'{{valor}}'}</code> e <code className="bg-slate-800 px-1 rounded text-blue-400">{'{{pedido}}'}</code>.</p>
-
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Alerta para criador</label>
-                <textarea rows={5} value={formData.whatsapp_template_creator_sale} onChange={(e) => setFormData({...formData, whatsapp_template_creator_sale: e.target.value})} className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="💰 Nova venda confirmada! ..." />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Confirmação para Cliente</label>
-                <textarea rows={5} value={formData.whatsapp_template_buyer_sale} onChange={(e) => setFormData({...formData, whatsapp_template_buyer_sale: e.target.value})} className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="✅ Compra confirmada! ..." />
               </div>
             </div>
 

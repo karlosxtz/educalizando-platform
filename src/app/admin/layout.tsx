@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap } from 'lucide-react';
+import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -44,6 +44,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/blog', label: 'Blog e Guias', icon: FileText },
     { href: '/admin/leads', label: 'Leads e Contatos', icon: Users },
     { href: '/admin/avaliacoes', label: 'Avaliações', icon: MessageSquare },
+    { href: '/admin/whatsapp', label: 'Automações WhatsApp', icon: Bot },
     { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
   ];
 
@@ -115,6 +116,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/avaliacoes" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <MessageSquare className="w-4 h-4" />
               Avaliações
+            </Link>
+            <Link href="/admin/whatsapp" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-400 transition-colors">
+              <Bot className="w-4 h-4" />
+              Automações WhatsApp
             </Link>
             <Link href="/admin/configuracoes" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Settings className="w-4 h-4" />

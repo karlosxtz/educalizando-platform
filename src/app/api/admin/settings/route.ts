@@ -7,10 +7,6 @@ function validMoney(value: unknown) {
   return Number.isFinite(amount) && amount >= 0 && amount <= 100000 ? amount : null;
 }
 
-function optionalTemplate(value: unknown) {
-  return typeof value === 'string' ? value.trim().slice(0, 2000) : '';
-}
-
 export async function GET(request: Request) {
   try {
     if (!(await isSuperAdmin(request))) {
@@ -43,12 +39,6 @@ export async function POST(request: Request) {
     if (minimumWithdrawalAmount === null || withdrawalFee === null) {
       return NextResponse.json({ error: 'Informe valores válidos entre R$ 0,00 e R$ 100.000,00.' }, { status: 400 });
     }
-    const whatsappTemplateCreator = optionalTemplate(body.whatsapp_template_creator);
-    const whatsappTemplateStudent = optionalTemplate(body.whatsapp_template_student);
-    const whatsappTemplateAffiliate = optionalTemplate(body.whatsapp_template_affiliate);
-    const whatsappTemplateCreatorSale = optionalTemplate(body.whatsapp_template_creator_sale);
-    const whatsappTemplateBuyerSale = optionalTemplate(body.whatsapp_template_buyer_sale);
-
     const { data: existing } = await supabaseAdmin.from('platform_settings').select('id').limit(1).single();
 
     let result;
@@ -60,11 +50,6 @@ export async function POST(request: Request) {
           platform_fixed_fee: 0,
           minimum_withdrawal_amount: minimumWithdrawalAmount,
           withdrawal_fee: withdrawalFee,
-          whatsapp_template_creator: whatsappTemplateCreator,
-          whatsapp_template_student: whatsappTemplateStudent,
-          whatsapp_template_affiliate: whatsappTemplateAffiliate,
-          whatsapp_template_creator_sale: whatsappTemplateCreatorSale,
-          whatsapp_template_buyer_sale: whatsappTemplateBuyerSale,
           updated_at: new Date().toISOString(),
           updated_by: 'SuperAdmin'
         })
@@ -77,11 +62,6 @@ export async function POST(request: Request) {
           platform_fixed_fee: 0,
           minimum_withdrawal_amount: minimumWithdrawalAmount,
           withdrawal_fee: withdrawalFee,
-          whatsapp_template_creator: whatsappTemplateCreator,
-          whatsapp_template_student: whatsappTemplateStudent,
-          whatsapp_template_affiliate: whatsappTemplateAffiliate,
-          whatsapp_template_creator_sale: whatsappTemplateCreatorSale,
-          whatsapp_template_buyer_sale: whatsappTemplateBuyerSale,
           updated_by: 'SuperAdmin'
         }]);
     }
