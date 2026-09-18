@@ -18,6 +18,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const { data: moduleSubscription } = await supabaseAdmin
+      .from('whatsapp_store_subscriptions')
+      .select('*').eq('order_nsu', orderNsu).maybeSingle();
+    if (moduleSubscription) {
+      const payment = await checkInfinitePayPayment({ orderNsu, transactionNsu, slug: invoiceSlug });
+      if (!payment.paid || payment.amountInCents !== moduleSubscription.amount_cents) return NextResponse.json({ success: false, message: 'Pagamento do módulo não confirmado.' }, { status: 400 });
+      const base = moduleSubscription.expires_at && new Date(moduleSubscription.expires_at) > new Date() ? new Date(moduleSubscription.expires_at) : new Date();
+      base.setDate(base.getDate() + 30);
+      await supabaseAdmin.from('whatsapp_store_subscriptions').update({ status: 'active', paid_at: new Date().toISOString(), expires_at: base.toISOString(), transaction_nsu: transactionNsu, updated_at: new Date().toISOString() }).eq('id', moduleSubscription.id);
+      return NextResponse.json({ success: true, message: 'Módulo WhatsApp liberado.' });
+    }
+
     const order = await getOrderRecordById(orderNsu);
     if (!order || order.paymentProvider !== 'infinitepay') {
       return NextResponse.json({ success: false, message: 'Pedido não encontrado.' }, { status: 400 });
