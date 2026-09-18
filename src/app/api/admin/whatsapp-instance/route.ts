@@ -15,7 +15,12 @@ export async function POST(request: Request) {
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 2000) : '';
     if (!text) return NextResponse.json({ error: 'Escreva uma mensagem para o teste.' }, { status: 400 });
     const result = await sendEvolutionText(body.phone, text);
-    if (!result.sent) return NextResponse.json({ error: 'Não foi possível enviar a mensagem de teste.', reason: result.reason }, { status: 503 });
+    if (!result.sent) {
+      return NextResponse.json({
+        error: result.error || 'Não foi possível enviar a mensagem de teste.',
+        reason: result.reason,
+      }, { status: result.reason === 'invalid_phone' ? 400 : 503 });
+    }
     return NextResponse.json({ success: true });
   }
 

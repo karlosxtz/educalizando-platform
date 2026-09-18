@@ -59,33 +59,40 @@ export async function getWhatsAppTemplate(key: WhatsAppTemplateKey): Promise<str
   return DEFAULT_TEMPLATES[key];
 }
 
-export async function sendEvolutionText(phone: unknown, text: string): Promise<{ sent: boolean; reason?: string }> {
+export async function sendEvolutionText(phone: unknown, text: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
   const number = normalizeWhatsAppNumber(phone);
-  if (!number) return { sent: false, reason: 'invalid_phone' };
+  if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
 
   const apiKey = process.env.EVOLUTION_API_KEY;
   const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');
   const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
   if (!apiKey || !instanceName) {
     console.warn('[WhatsApp] Evolution API não configurada. Defina EVOLUTION_API_KEY e EVOLUTION_INSTANCE_NAME.');
-    return { sent: false, reason: 'not_configured' };
+    return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
   }
 
   try {
     const response = await fetch(`${baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ number, text }),
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
+      body: JSON.stringify({ number, text, linkPreview: false }),
+      cache: 'no-store',
     });
 
     if (!response.ok) {
-      console.error(`[WhatsApp] Evolution respondeu com status ${response.status}.`);
-      return { sent: false, reason: `http_${response.status}` };
+      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: { message?: unknown } } | null;
+      const remoteMessage = [body?.message, body?.error, body?.response?.message]
+        .find((value) => typeof value === 'string' && value.trim());
+      const error = typeof remoteMessage === 'string'
+        ? remoteMessage.slice(0, 300)
+        : `A Evolution recusou o envio (status ${response.status}).`;
+      console.error(`[WhatsApp] Evolution respondeu com status ${response.status}: ${error}`);
+      return { sent: false, reason: `http_${response.status}`, error };
     }
     return { sent: true };
   } catch (error) {
     console.error('[WhatsApp] Falha de rede ao enviar mensagem pela Evolution.', error);
-    return { sent: false, reason: 'network_error' };
+    return { sent: false, reason: 'network_error', error: 'Não foi possível alcançar a Evolution para enviar a mensagem.' };
   }
 }
 
