@@ -12,6 +12,7 @@ import ThemeMinimalist from './themes/ThemeMinimalist';
 import ThemeNetflix from './themes/ThemeNetflix';
 import ThemeLinkTree from './themes/ThemeLinkTree';
 import ThemePinterest from './themes/ThemePinterest';
+import StoreExperienceTheme from './themes/StoreExperienceTheme';
 
 interface PublicStoreClientViewProps {
   store: Store;
@@ -131,10 +132,10 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
 
   const theme = (() => {
     switch (layout) {
-      case 'minimalist': return <ThemeMinimalist {...themeProps} />;
-      case 'netflix': return <ThemeNetflix {...themeProps} />;
-      case 'linktree': return <ThemeLinkTree {...themeProps} />;
-      case 'pinterest': return <ThemePinterest {...themeProps} />;
+      case 'minimalist': return <StoreExperienceTheme {...themeProps} variant="minimalist" />;
+      case 'netflix': return <StoreExperienceTheme {...themeProps} variant="netflix" />;
+      case 'linktree': return <StoreExperienceTheme {...themeProps} variant="linktree" />;
+      case 'pinterest': return <StoreExperienceTheme {...themeProps} variant="pinterest" />;
       case 'default':
       default: return <ThemeDefault {...themeProps} />;
     }
