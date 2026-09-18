@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap, Star, Sparkles, GraduationCap, FileText, Video, Layers, HelpCircle } from 'lucide-react';
+import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap, Star, Sparkles, GraduationCap, FileText, Video, Layers, HelpCircle, Timer } from 'lucide-react';
 import { Product, Store } from '@/lib/types';
 import { useCart } from '@/components/store/CartContext';
 
@@ -22,9 +22,40 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
   const storeName = product.store?.nome_loja || 'Loja Parceira';
   const isPlrMode = purchaseMode === 'plr' && product.is_plr === true;
   const standardPrice = Number(product.preco || 0);
+  const originalPrice = Number(product.preco_original || 0);
   const plrPrice = Number(product.preco_plr || 0);
   const purchasePrice = isPlrMode ? plrPrice : standardPrice;
   const isFree = !isPlrMode && (product.is_free || standardPrice === 0);
+  const hasFeaturedOffer = !isPlrMode && !isFree && originalPrice > standardPrice;
+  const featuredSessionDuration = useMemo(() => {
+    const sum = product.id.split('').reduce((total, character) => total + character.charCodeAt(0), 0);
+    return 10 + (sum % 11);
+  }, [product.id]);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!hasFeaturedOffer) return;
+    const key = `educalizando:featured-offer:${product.id}`;
+    const now = Date.now();
+    const savedExpiry = Number(window.sessionStorage.getItem(key) || 0);
+    const expiry = savedExpiry > now ? savedExpiry : now + featuredSessionDuration * 60_000;
+    if (savedExpiry <= now) window.sessionStorage.setItem(key, String(expiry));
+    const update = () => {
+      const seconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+      if (seconds === 0) {
+        const refreshedExpiry = Date.now() + featuredSessionDuration * 60_000;
+        window.sessionStorage.setItem(key, String(refreshedExpiry));
+        setRemainingSeconds(featuredSessionDuration * 60);
+        return;
+      }
+      setRemainingSeconds(seconds);
+    };
+    update();
+    const interval = window.setInterval(update, 1000);
+    return () => window.clearInterval(interval);
+  }, [featuredSessionDuration, hasFeaturedOffer, product.id]);
+
+  const featuredTime = remainingSeconds === null ? null : `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`;
   
   // Format price
   let priceDisplay = 'Grátis';
@@ -115,6 +146,11 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
             <Gift className="w-3 h-3" /> Grátis
           </div>
         )}
+        {hasFeaturedOffer && (
+          <div className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-500 px-2 py-1 text-[9px] font-black text-white shadow-md sm:text-[10px]">
+            Oferta em destaque
+          </div>
+        )}
       </Link>
 
       {/* Corpo do Card */}
@@ -167,10 +203,18 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <span className={`text-base sm:text-lg font-black ${isFree ? 'text-emerald-600' : 'text-slate-900'}`}>
-                {priceDisplay}
-              </span>
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                {hasFeaturedOffer && <span className="mb-0.5 block text-[10px] font-bold text-slate-400 line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPrice)}</span>}
+                <span className={`text-base sm:text-lg font-black ${isFree ? 'text-emerald-600' : hasFeaturedOffer ? 'text-rose-600' : 'text-slate-900'}`}>
+                  {priceDisplay}
+                </span>
+              </div>
+              {hasFeaturedOffer && featuredTime && (
+                <span title="Tempo de rotação desta oferta na vitrine" className="mb-0.5 inline-flex items-center gap-1 rounded-md bg-orange-50 px-1.5 py-1 text-[9px] font-black text-orange-700 ring-1 ring-orange-100">
+                  <Timer className="h-3 w-3" /> {featuredTime}
+                </span>
+              )}
             </div>
           )}
           <div className="flex gap-1.5 sm:gap-2">

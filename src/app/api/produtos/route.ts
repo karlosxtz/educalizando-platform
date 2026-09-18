@@ -79,6 +79,7 @@ export async function POST(request: Request) {
       descricao, 
       tipo = 'pdf', 
       preco = 0, 
+      preco_original = null,
       capa_url, 
       arquivo_url, 
       status = 'publicado',
@@ -105,6 +106,10 @@ export async function POST(request: Request) {
     }
     if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco) || !isValidAffiliateRate(affiliate_commission_rate)) {
       return NextResponse.json({ error: 'Dados do produto inválidos. Revise título, tipo, status e preço.' }, { status: 400 });
+    }
+    const normalizedOriginalPrice = preco_original === null || preco_original === '' ? null : Number(preco_original);
+    if (normalizedOriginalPrice !== null && (!isValidProductPrice(normalizedOriginalPrice) || normalizedOriginalPrice <= Number(preco) || Boolean(is_free))) {
+      return NextResponse.json({ error: 'O preço original deve ser maior que o preço de venda e não pode ser usado em materiais gratuitos.' }, { status: 400 });
     }
 
     const normalizedPreviewUrl = normalizePreviewUrl(preview_url);
@@ -187,6 +192,8 @@ export async function POST(request: Request) {
       descricao: descricao || null,
       tipo,
       preco: Number(preco) || 0,
+      preco_original: normalizedOriginalPrice,
+      is_featured_offer: normalizedOriginalPrice !== null && normalizedOriginalPrice > Number(preco) && !Boolean(is_free),
       capa_url: capa_url || null,
       has_original_delivery: Boolean(arquivo_url),
       status: status || 'publicado',
@@ -209,6 +216,8 @@ export async function POST(request: Request) {
 
     if (productPayload.is_free) {
       productPayload.preco = 0;
+      productPayload.preco_original = null;
+      productPayload.is_featured_offer = false;
     }
 
     if (targetStoreId) {
@@ -233,6 +242,8 @@ export async function POST(request: Request) {
         descricao: descricao || null,
         tipo,
         preco: Number(preco) || 0,
+        preco_original: normalizedOriginalPrice,
+        is_featured_offer: normalizedOriginalPrice !== null && normalizedOriginalPrice > Number(preco) && !Boolean(is_free),
         capa_url: capa_url || null,
         has_original_delivery: Boolean(arquivo_url),
         status: status || 'publicado',
@@ -338,7 +349,7 @@ export async function PUT(request: Request) {
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('store_id, status, is_plr, preco_plr, has_plr_delivery')
+      .select('store_id, status, is_plr, preco, preco_original, is_free, preco_plr, has_plr_delivery')
       .eq('id', id)
       .maybeSingle();
     if (product) {
@@ -368,6 +379,9 @@ export async function PUT(request: Request) {
     }
     if ('preco' in cleanedUpdates && !isValidProductPrice(cleanedUpdates.preco)) {
       return NextResponse.json({ error: 'Informe um preço válido entre R$ 0,00 e R$ 100.000,00.' }, { status: 400 });
+    }
+    if ('preco_original' in cleanedUpdates && cleanedUpdates.preco_original !== null && cleanedUpdates.preco_original !== '' && !isValidProductPrice(cleanedUpdates.preco_original)) {
+      return NextResponse.json({ error: 'Informe um preço original válido entre R$ 0,00 e R$ 100.000,00.' }, { status: 400 });
     }
     if ('affiliate_commission_rate' in cleanedUpdates && !isValidAffiliateRate(cleanedUpdates.affiliate_commission_rate)) {
       return NextResponse.json({ error: 'A comissão por produto deve ficar entre 0% e 80%.' }, { status: 400 });
@@ -421,6 +435,17 @@ export async function PUT(request: Request) {
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);
       cleanedUpdates.preco = 0;
+    }
+    if ('preco' in cleanedUpdates || 'preco_original' in cleanedUpdates || 'is_free' in cleanedUpdates) {
+      const nextIsFree = 'is_free' in cleanedUpdates ? Boolean(cleanedUpdates.is_free) : Boolean(product.is_free);
+      const nextPrice = 'preco' in cleanedUpdates ? Number(cleanedUpdates.preco) : Number(product.preco);
+      const rawOriginal = 'preco_original' in cleanedUpdates ? cleanedUpdates.preco_original : product.preco_original;
+      const nextOriginalPrice = rawOriginal === null || rawOriginal === '' || nextIsFree ? null : Number(rawOriginal);
+      if (nextOriginalPrice !== null && (!(nextOriginalPrice > nextPrice) || !Number.isFinite(nextOriginalPrice))) {
+        return NextResponse.json({ error: 'O preço original deve ser maior que o preço de venda.' }, { status: 400 });
+      }
+      cleanedUpdates.preco_original = nextOriginalPrice;
+      cleanedUpdates.is_featured_offer = Boolean(nextOriginalPrice !== null && nextOriginalPrice > nextPrice && !nextIsFree);
     }
     
     // Validar movimentação de loja (novo store_id)

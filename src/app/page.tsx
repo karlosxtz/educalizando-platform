@@ -2,7 +2,7 @@ export const revalidate = 60; // Atualiza a página estática a cada 60 segundos
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent } from 'lucide-react';
+import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent, Sparkles } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
 import { getActiveBanners } from '@/lib/banners-service';
@@ -54,6 +54,17 @@ export default async function Home() {
   const monthlyTags = getSchoolCalendarTagsForMonth();
   const upcomingEvents = getUpcomingSchoolEvents();
   const produtosSazonais = allProducts.filter((product) => product.seasonal_tags?.some((tag) => monthlyTags.includes(tag as typeof monthlyTags[number]))).slice(0, 4);
+  const featuredOffers = allProducts
+    .filter((product) => !product.is_free && Number(product.preco_original || 0) > Number(product.preco || 0))
+    .sort((a, b) => {
+      const aSeasonal = a.seasonal_tags?.some((tag) => monthlyTags.includes(tag as typeof monthlyTags[number])) ? 1 : 0;
+      const bSeasonal = b.seasonal_tags?.some((tag) => monthlyTags.includes(tag as typeof monthlyTags[number])) ? 1 : 0;
+      if (aSeasonal !== bSeasonal) return bSeasonal - aSeasonal;
+      const day = new Date().toISOString().slice(0, 10);
+      const rank = (value: string) => `${value}:${day}`.split('').reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 10007, 7);
+      return rank(a.id) - rank(b.id);
+    })
+    .slice(0, 8);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
@@ -126,6 +137,24 @@ export default async function Home() {
         
         {/* Vistos Recentemente (Histórico Local) */}
         <RecentlyViewed />
+
+        {featuredOffers.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <div className="overflow-hidden rounded-[2rem] border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-rose-50 p-5 shadow-sm sm:p-8">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-orange-700"><Sparkles className="h-3.5 w-3.5" /> Seleção rotativa</p>
+                  <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Oferta em Destaque</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-medium text-slate-600">Preços promocionais cadastrados pelos criadores, com prioridade para materiais das datas pedagógicas deste mês.</p>
+                </div>
+                <Link href="/ofertas" className="text-sm font-bold text-orange-700 hover:text-orange-900">Ver todas as ofertas →</Link>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+                {featuredOffers.slice(0, 4).map((produto) => <ProductCard key={produto.id} product={produto} />)}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Seção 1: Em Alta */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

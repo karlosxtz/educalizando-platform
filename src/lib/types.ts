@@ -83,6 +83,10 @@ export interface Product {
   descricao: string | null;
   tipo: ProductType;
   preco: number;
+  /** Valor de referência opcional, exibido riscado quando maior que o preço atual. */
+  preco_original?: number | null;
+  /** Derivado pelo servidor a partir do preço original e usado na vitrine de ofertas. */
+  is_featured_offer?: boolean;
   is_free?: boolean;
   is_plr?: boolean;
   preco_plr?: number;

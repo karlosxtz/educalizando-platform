@@ -141,6 +141,9 @@ function MarketplaceHeaderInner() {
               <Link href="/lojas" className="whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">
                 Lojas
               </Link>
+              <Link href="/ofertas" className="whitespace-nowrap text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">
+                Ofertas
+              </Link>
             </div>
 
             {/* Direita: Pills Elegantes */}
@@ -151,10 +154,11 @@ function MarketplaceHeaderInner() {
           </div>
 
           <div className="sm:hidden">
-            <div className="grid h-12 grid-cols-3 items-center border-b border-slate-100">
+            <div className="grid h-12 grid-cols-4 items-center border-b border-slate-100">
               <Link href="/" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-900">Início</Link>
               <div className="flex h-full items-center justify-center"><CategoryDropdown /></div>
               <Link href="/lojas" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-600">Lojas</Link>
+              <Link href="/ofertas" className="flex h-full items-center justify-center text-xs font-extrabold text-orange-600">Ofertas</Link>
             </div>
             <div className="marketplace-category-rail relative h-[52px] overflow-hidden py-1.5" aria-label="Categorias em destaque">
               <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">

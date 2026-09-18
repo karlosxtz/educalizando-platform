@@ -111,6 +111,9 @@ export default function ProductDetailClientView({
   const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
     ? couponResult.finalPrice 
     : basePrice;
+  const originalPrice = !isPlrPurchase && Number(product.preco_original || 0) > Number(product.preco || 0)
+    ? Number(product.preco_original)
+    : null;
 
   const productPath = `/loja/${store.slug}/produto/${product.slug || product.id}`;
 
@@ -352,7 +355,7 @@ export default function ProductDetailClientView({
               <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Investimento único</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <strong className="text-3xl font-black tracking-tight text-slate-900">R$ {currentPrice.toFixed(2).replace('.', ',')}</strong>
+                  <div><>{originalPrice && <span className="block text-xs font-bold text-slate-400 line-through">R$ {originalPrice.toFixed(2).replace('.', ',')}</span>}</><strong className="text-3xl font-black tracking-tight text-slate-900">R$ {currentPrice.toFixed(2).replace('.', ',')}</strong></div>
                   <span className="rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">Acesso vitalício</span>
                 </div>
               </div>
@@ -541,9 +544,8 @@ export default function ProductDetailClientView({
                   Investimento Único
                 </span>
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
-                    R$ {currentPrice.toFixed(2).replace('.', ',')}
-                  </span>
+                  <div>{originalPrice && <span className="mb-1 block text-sm font-bold text-slate-400 line-through">R$ {originalPrice.toFixed(2).replace('.', ',')}</span>}<span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">R$ {currentPrice.toFixed(2).replace('.', ',')}</span></div>
+                  {originalPrice && <span className="rounded-md bg-orange-100 px-2 py-0.5 text-xs font-black text-orange-700">Oferta em destaque</span>}
                   <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                     Sem Mensalidade
                   </span>
@@ -790,6 +792,7 @@ export default function ProductDetailClientView({
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.08)] px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-[60] flex items-center justify-between gap-3">
         <div>
           <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Investimento</span>
+          {originalPrice && <span className="block text-xs font-bold text-slate-400 line-through">R$ {originalPrice.toFixed(2).replace('.', ',')}</span>}
           <span className={`text-xl sm:text-2xl font-black tracking-tight ${isFreeProduct ? 'text-emerald-600' : 'text-slate-900'}`}>{isFreeProduct ? 'Grátis' : `R$ ${currentPrice.toFixed(2).replace('.', ',')}`}</span>
         </div>
         <div className="flex flex-1 gap-2">

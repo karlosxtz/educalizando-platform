@@ -47,6 +47,7 @@ function ProductWizardContent() {
   const [formatDetails, setFormatDetails] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
   const [preco, setPreco] = useState<string>('');
+  const [precoOriginal, setPrecoOriginal] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('upload');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
@@ -113,6 +114,7 @@ function ProductWizardContent() {
             setFormatDetails(existing.format_details || '');
             setPreviewUrl(existing.preview_url || '');
             setPreco(existing.preco.toString().replace('.', ','));
+            setPrecoOriginal(existing.preco_original ? existing.preco_original.toString().replace('.', ',') : '');
             
             // Reconstruir galeria de imagens
             const urls = [];
@@ -294,6 +296,11 @@ function ProductWizardContent() {
           setErrorMsg('Informe um preço de venda maior que zero, ou marque como Material Gratuito.');
           return;
         }
+        const numOriginalPrice = precoOriginal.trim() ? parseFloat(precoOriginal.replace(',', '.')) : null;
+        if (numOriginalPrice !== null && (isNaN(numOriginalPrice) || numOriginalPrice <= numPrice)) {
+          setErrorMsg('O preço original deve ser maior que o preço de venda para exibir uma oferta.');
+          return;
+        }
       }
       if (!arquivoUrl) {
         setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
@@ -341,6 +348,7 @@ function ProductWizardContent() {
     setErrorMsg(null);
 
     const numericPrice = isFree ? 0 : (parseFloat(preco.replace(',', '.')) || 0);
+    const numericOriginalPrice = !isFree && precoOriginal.trim() ? parseFloat(precoOriginal.replace(',', '.')) : null;
     const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
     const numericCommissionRate = parseFloat(affiliateCommissionRate.replace(',', '.')) || 0;
     const numericPageCount = pageCount.trim() ? Number(pageCount) : null;
@@ -357,6 +365,7 @@ function ProductWizardContent() {
           format_details: formatDetails.trim() || null,
           preview_url: previewUrl.trim() || null,
           preco: numericPrice,
+          preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
           status,
@@ -384,6 +393,7 @@ function ProductWizardContent() {
           format_details: formatDetails.trim() || null,
           preview_url: previewUrl.trim() || null,
           preco: numericPrice,
+          preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
           status,
@@ -927,11 +937,13 @@ function ProductWizardContent() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                    Preço de Venda (R$) {isFree ? '' : '*'}
-                  </label>
-                  <div className="relative max-w-xs">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+                      Preço de Venda (R$) {isFree ? '' : '*'}
+                    </label>
+                    <p className="mb-2 text-[11px] font-medium text-slate-500">Valor que a pessoa pagará pelo material.</p>
+                    <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
                     <input
                       type="text"
@@ -945,8 +957,27 @@ function ProductWizardContent() {
                           : 'bg-slate-50 border-slate-200 focus:border-blue-600 text-slate-900'
                       }`}
                     />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">Preço original</label>
+                    <p className="mb-2 text-[11px] font-medium text-slate-500">Opcional — aparece riscado e entra em Oferta em Destaque.</p>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
+                      <input
+                        type="text"
+                        value={isFree ? '' : precoOriginal}
+                        disabled={isFree}
+                        onChange={(e) => setPrecoOriginal(e.target.value)}
+                        placeholder="Ex.: 39,90"
+                        className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-black focus:outline-none transition-colors ${isFree ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-amber-50/40 border-amber-200 focus:border-amber-500 text-slate-900'}`}
+                      />
+                    </div>
                   </div>
                 </div>
+                {!isFree && precoOriginal.trim() && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">✨ Este material será exibido na vitrine <strong>Oferta em Destaque</strong>. O contador do card indica apenas a rotação da vitrine, não a validade do preço.</p>
+                )}
 
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
