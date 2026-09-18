@@ -94,6 +94,7 @@ export default function StoreSettingsPage() {
   const watchedLayoutTheme = watch('layout_theme');
   const watchedAuthorImageUrl = watch('author_image_url');
   const watchedButtonStyle = watch('button_style');
+  const previewRadius = watchedButtonStyle === 'pill' ? 'rounded-full' : watchedButtonStyle === 'square' ? 'rounded-md' : 'rounded-xl';
 
   useEffect(() => {
     async function loadStoreData() {
@@ -674,7 +675,7 @@ export default function StoreSettingsPage() {
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span className="text-slate-400 font-medium">Cor de Destaque:</span>
                 <span
-                  className="px-3 py-1 rounded-full text-white text-[10px] font-extrabold uppercase"
+                  className={`px-3 py-1 ${previewRadius} text-white text-[10px] font-extrabold uppercase`}
                   style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
                 >
                   Botão de Compra
