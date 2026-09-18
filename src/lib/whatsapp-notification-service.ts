@@ -31,6 +31,19 @@ export function normalizeWhatsAppNumber(phone: unknown): string | null {
   return null;
 }
 
+function readEvolutionError(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (Array.isArray(value)) {
+    const messages = value.map(readEvolutionError).filter((message): message is string => Boolean(message));
+    return messages.length ? messages.join(' ') : null;
+  }
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return readEvolutionError(record.message) || readEvolutionError(record.error) || JSON.stringify(record);
+  }
+  return null;
+}
+
 export function firstName(value: string | null | undefined, fallback = 'Educador(a)') {
   return value?.trim().split(/\s+/)[0] || fallback;
 }
@@ -75,16 +88,15 @@ export async function sendEvolutionText(phone: unknown, text: string): Promise<{
     const response = await fetch(`${baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ number, text, linkPreview: false }),
+      body: JSON.stringify({ number, text }),
       cache: 'no-store',
     });
 
     if (!response.ok) {
-      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: { message?: unknown } } | null;
-      const remoteMessage = [body?.message, body?.error, body?.response?.message]
-        .find((value) => typeof value === 'string' && value.trim());
-      const error = typeof remoteMessage === 'string'
-        ? remoteMessage.slice(0, 300)
+      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: unknown } | null;
+      const remoteMessage = readEvolutionError(body?.response) || readEvolutionError(body?.message) || readEvolutionError(body?.error);
+      const error = remoteMessage
+        ? remoteMessage.slice(0, 500)
         : `A Evolution recusou o envio (status ${response.status}).`;
       console.error(`[WhatsApp] Evolution respondeu com status ${response.status}: ${error}`);
       return { sent: false, reason: `http_${response.status}`, error };
