@@ -11,7 +11,6 @@ import {
 import { toast } from 'sonner';
 
 import { getCurrentStudentSession } from '@/lib/student-service';
-import { getAllFreeProducts } from '@/lib/store-service';
 import { Product, Store, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
 
@@ -34,8 +33,10 @@ export default function StudentFreeProductsPage() {
         }
         setStudentSession(session);
 
-        const products = await getAllFreeProducts();
-        setFreeProducts(products);
+        const response = await fetch('/api/materiais-gratis');
+        const result = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(result?.error || 'Não foi possível carregar os brindes.');
+        setFreeProducts(result?.products || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -125,7 +126,7 @@ export default function StudentFreeProductsPage() {
                 Meus Brindes <span className="text-2xl">🎁</span>
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Materiais gratuitos liberados para você baixar a qualquer momento.
+                Compre em uma loja e receba acesso aos materiais gratuitos daquela mesma loja.
               </p>
             </div>
           </div>
@@ -143,7 +144,7 @@ export default function StudentFreeProductsPage() {
                 Nenhum brinde disponível
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
-                No momento, não há nenhum material gratuito disponibilizado. Fique de olho, os criadores sempre liberam novos brindes.
+                Faça sua primeira compra na plataforma. Depois, os brindes das lojas em que você comprou aparecerão aqui — sem misturar conteúdos de outras lojas.
               </p>
             </div>
           </div>

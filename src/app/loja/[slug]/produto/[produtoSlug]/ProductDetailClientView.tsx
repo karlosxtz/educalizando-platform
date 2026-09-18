@@ -622,6 +622,7 @@ export default function ProductDetailClientView({
 
               {/* Primary Call to Action Buttons */}
               <div className="flex flex-col gap-3">
+                {isFreeProduct && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-900">Este brinde é liberado para clientes que já fizeram uma compra paga nesta mesma loja.</p>}
                 <button
                   type="button"
                   onClick={handleStartCheckout}

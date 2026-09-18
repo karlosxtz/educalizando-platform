@@ -44,6 +44,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Este material gratuito não está disponível.' }, { status: 404 });
     }
 
+    // O brinde pertence à loja: somente uma compra paga nessa mesma loja libera o resgate.
+    const { data: paidPurchase, error: purchaseError } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('student_id', user.id)
+      .eq('store_id', product.store_id)
+      .eq('status', 'paid')
+      .gt('total_amount', 0)
+      .limit(1)
+      .maybeSingle();
+    if (purchaseError) throw purchaseError;
+    if (!paidPurchase) {
+      return NextResponse.json({ error: 'Este brinde é liberado após uma compra paga nesta mesma loja. Compre um material desta loja para acessar os conteúdos gratuitos dela.' }, { status: 403 });
+    }
+
     const { data: activeAccess } = await supabaseAdmin
       .from('student_product_access')
       .select('id')
