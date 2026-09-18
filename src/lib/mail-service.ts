@@ -12,7 +12,18 @@ const firstName = (name: string) => escapeHtml(name.trim().split(/\s+/)[0] || 'c
 const button = (href: string, label: string, color = '#0f766e') => `<p style="margin:28px 0"><a href="${href}" style="display:inline-block;border-radius:8px;background:${color};padding:13px 20px;color:#fff;font-weight:700;text-decoration:none">${label}</a></p>`;
 const layout = (title: string, content: string) => `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.55"><h2 style="color:#0f766e">${title}</h2>${content}<hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0"><p style="font-size:12px;color:#64748b">Educalizando · Materiais didáticos digitais com acesso seguro.</p></div>`;
 
-export function getMailConfiguration() { return { configured: Boolean(resend), from, appUrl }; }
+export async function getMailConfiguration() {
+  const domain = from.match(/@([^>\s]+)/)?.[1]?.toLowerCase() || null;
+  if (!resend || !domain) return { configured: false, from, appUrl, domain, domainStatus: 'not_configured' };
+  try {
+    const { data, error } = await resend.domains.list();
+    if (error) return { configured: true, from, appUrl, domain, domainStatus: 'unknown', domainError: error.message };
+    const domainData = data?.data.find(item => item.name.toLowerCase() === domain);
+    return { configured: true, from, appUrl, domain, domainStatus: domainData?.status || 'not_found' };
+  } catch (error) {
+    return { configured: true, from, appUrl, domain, domainStatus: 'unknown', domainError: error instanceof Error ? error.message : 'Não foi possível consultar a Resend.' };
+  }
+}
 
 async function send(to: string, subject: string, html: string): Promise<MailResult> {
   if (!resend) return { sent: false, error: 'RESEND_API_KEY não configurada no servidor.' };
