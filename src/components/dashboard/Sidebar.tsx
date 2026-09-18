@@ -199,24 +199,24 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       <aside
         className={`fixed lg:sticky top-0 left-0 bottom-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } h-[100dvh] w-[min(86vw,22rem)] lg:w-64 shadow-2xl lg:shadow-none`}
+        } h-[100dvh] w-[min(86vw,22rem)] lg:w-64 overflow-x-hidden shadow-2xl lg:shadow-none`}
         id="creator-mobile-navigation"
         aria-label="Menu principal do criador"
       >
-        <div className="p-5 space-y-6 overflow-y-auto flex-1">
+        <div className="min-w-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-5">
           
           {/* Top Brand Logo & Active Store Indicator */}
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <Link href="/" className="flex items-center group shrink-0">
+          <div className="flex min-w-0 items-center justify-between gap-2 pt-1">
+            <Link href="/" className="group flex min-w-0 max-w-[118px] items-center">
               <img
                 src="/branding/logo-educalizando.png?v=3"
                 alt="Educalizando"
-                className="h-[48px] sm:h-[50px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
-                style={{ width: 'auto', height: '50px' }}
+                className="h-[42px] w-auto max-w-full object-contain transition-transform group-hover:scale-[1.02]"
+                style={{ width: 'auto', height: '42px' }}
               />
             </Link>
 
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1">
               {/* Notificações em tempo real */}
               {storeId && <NotificationCenter storeId={storeId} />}
 
@@ -266,9 +266,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                       : 'text-slate-600 hover:bg-slate-100 hover:text-brand-navy'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <Icon className={`w-4 h-4 ${isActive ? 'text-brand-navy' : 'text-slate-400'}`} />
-                    <span>{item.label}</span>
+                    <span className="min-w-0 leading-tight">{item.label}</span>
                   </div>
 
                   {item.badge ? (
@@ -302,7 +302,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
         </div>
 
         {/* Sidebar Footer: Creator Account & Logout */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
               <User className="w-4 h-4" />
