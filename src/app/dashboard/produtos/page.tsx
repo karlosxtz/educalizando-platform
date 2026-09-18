@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
   FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X, ShieldCheck
+  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X, ShieldCheck, Search, RotateCcw
 } from 'lucide-react';
 
 import { 
@@ -33,6 +33,8 @@ export default function ProductsManagementPage() {
   // Filters
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedEducationFilter, setSelectedEducationFilter] = useState<string>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+  const [searchFilter, setSearchFilter] = useState('');
 
   // Modals State
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
@@ -128,7 +130,10 @@ export default function ProductsManagementPage() {
   const filteredProducts = products.filter(p => {
     const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter;
     const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter;
-    return matchCategory && matchEducation;
+    const matchStatus = selectedStatusFilter === 'all' || p.status === selectedStatusFilter;
+    const term = searchFilter.trim().toLocaleLowerCase('pt-BR');
+    const matchSearch = !term || `${p.titulo} ${p.descricao || ''}`.toLocaleLowerCase('pt-BR').includes(term);
+    return matchCategory && matchEducation && matchStatus && matchSearch;
   });
 
   const getTipoIcon = (tipo: ProductType) => {
@@ -176,6 +181,9 @@ export default function ProductsManagementPage() {
     { value: 'all', label: 'Todos os Níveis' },
     ...educationLevels.map(e => ({ value: e.id, label: e.nome }))
   ];
+  const statusFilterOptions: CustomSelectOption[] = [{ value: 'all', label: 'Todos os status' }, { value: 'publicado', label: 'Publicados' }, { value: 'rascunho', label: 'Rascunhos' }];
+  const clearFilters = () => { setSelectedCategoryFilter('all'); setSelectedEducationFilter('all'); setSelectedStatusFilter('all'); setSearchFilter(''); };
+  const hasFilters = selectedCategoryFilter !== 'all' || selectedEducationFilter !== 'all' || selectedStatusFilter !== 'all' || Boolean(searchFilter);
 
   if (loading) {
     return (
@@ -241,15 +249,19 @@ export default function ProductsManagementPage() {
         </div>
       )}
 
-      {showSeo && <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Verificador SEO da loja</p><h2 className="mt-1 text-xl font-black text-slate-900">Média atual: {seoAverage}/100</h2><p className="mt-1 text-sm text-slate-600">Análise automática baseada nos dados reais dos produtos. Uma nota alta ajuda a organização e a relevância, mas não garante posição no Google.</p></div><div className={`rounded-xl px-4 py-3 text-center text-sm font-black ${seoNeedsWork.length ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>{seoNeedsWork.length} produto(s) para melhorar</div></div>{seoReports.length > 0 && <div className="mt-4 space-y-2">{seoReports.map(report => <details key={report.product.id} className="rounded-xl border border-blue-100 bg-white p-3"><summary className="flex cursor-pointer list-none items-center justify-between gap-3"><span className="min-w-0 truncate text-sm font-bold text-slate-800">{report.product.titulo}</span><span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-black ${report.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>SEO bom · {report.score}</span></summary>{report.suggestions.length > 0 ? <div className="mt-3 space-y-1 text-xs text-slate-600">{report.suggestions.map(suggestion => <p key={suggestion}>• {suggestion}</p>)}<Link href={`/dashboard/produtos/novo?edit=${report.product.id}`} className="mt-2 inline-flex text-xs font-black text-blue-700">Editar produto para corrigir →</Link></div> : <p className="mt-3 text-xs font-semibold text-emerald-700">Tudo certo nos critérios básicos.</p>}</details>)}</div>}</section>}
+      {showSeo && <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 shadow-xs"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">SEO visível nos cards</p><p className="mt-1 text-sm text-slate-600">Média da loja: <strong>{seoAverage}/100</strong> · Cada material mostra sua nota e a primeira melhoria recomendada.</p></div><span className={`rounded-xl px-3 py-2 text-xs font-black ${seoNeedsWork.length ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>{seoNeedsWork.length} para melhorar</span></div></section>}
 
       {/* Styled Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
           <Filter className="w-4 h-4 text-blue-600" /> Filtrar Por:
         </div>
+        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-slate-500">{filteredProducts.length} resultado(s)</span>{hasFilters && <button onClick={clearFilters} className="inline-flex items-center gap-1 text-xs font-black text-blue-700"><RotateCcw className="h-3.5 w-3.5" /> Limpar</button>}</div>
+        </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.3fr)_minmax(180px,1fr)_minmax(180px,1fr)_minmax(170px,.8fr)]">
+          <label className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={searchFilter} onChange={event => setSearchFilter(event.target.value)} placeholder="Buscar produto" className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm outline-none focus:border-blue-500" /></label>
           {/* Custom Category Select */}
           <div className="w-full sm:w-56">
             <CustomSelect
@@ -269,6 +281,8 @@ export default function ProductsManagementPage() {
               icon={<GraduationCap className="w-4 h-4" />}
             />
           </div>
+
+          <div className="w-full sm:w-56"><CustomSelect options={statusFilterOptions} value={selectedStatusFilter} onChange={setSelectedStatusFilter} icon={<Eye className="w-4 h-4" />} /></div>
         </div>
       </div>
 
@@ -300,7 +314,7 @@ export default function ProductsManagementPage() {
                 key={prod.id}
                 className="relative flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
               >
-                {getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${getSeoReport(prod.id)!.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getSeoReport(prod.id)!.score}</span>}
+                {showSeo && getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${getSeoReport(prod.id)!.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getSeoReport(prod.id)!.score}</span>}
                 <div className="space-y-3">
                   {/* Cover Image & Badges */}
                   <div className="h-40 rounded-xl overflow-hidden bg-slate-100 relative">
@@ -356,7 +370,7 @@ export default function ProductsManagementPage() {
                         {prod.descricao}
                       </p>
                     )}
-                    {getSeoReport(prod.id)?.suggestions.length ? <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] font-semibold leading-relaxed text-amber-800">Melhore: {getSeoReport(prod.id)!.suggestions[0]}.</p> : <p className="mt-2 text-[10px] font-semibold text-emerald-700">SEO completo</p>}
+                    {showSeo && (getSeoReport(prod.id)?.suggestions.length ? <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] font-semibold leading-relaxed text-amber-800">Melhore: {getSeoReport(prod.id)!.suggestions[0]}.</p> : <p className="mt-2 text-[10px] font-semibold text-emerald-700">SEO completo</p>)}
                     <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-slate-500">
                       <Eye className="w-4 h-4 text-slate-400" />
                       <span>{prod.views_count || 0} visualizações</span>
