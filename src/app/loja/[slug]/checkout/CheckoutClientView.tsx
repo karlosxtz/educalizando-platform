@@ -71,6 +71,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerCpf, setBuyerCpf] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
+  const [remarketingConsent, setRemarketingConsent] = useState(false);
 
   // Coupon State
   const [couponCode, setCouponCode] = useState(initialCouponCode || '');
@@ -87,6 +88,19 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
     : kit ? `/loja/${store.slug}/kit/${kit.id}` : `/loja/${store.slug}/checkout`;
 
   const primaryColor = store.cor_primaria || '#093b6c';
+
+  useEffect(() => {
+    if (!remarketingConsent || buyerPhone.replace(/\D/g, '').length < 10) return;
+    const browserKey = '@educalizando:remarketing-browser-token';
+    let browserToken = localStorage.getItem(browserKey);
+    if (!browserToken) { browserToken = crypto.randomUUID(); localStorage.setItem(browserKey, browserToken); }
+    const items = product ? [{ productId: product.id, quantity: 1 }] : kit ? [] : cartItems.map((item) => ({ productId: item.productId, quantity: item.quantity }));
+    if (!items.length) return;
+    const timer = window.setTimeout(() => {
+      void fetch('/api/remarketing/abandoned-cart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, browserToken, phone: buyerPhone, customerName: buyerName, consent: true, items }) });
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [remarketingConsent, buyerPhone, buyerName, store.id, product?.id, kit?.id, cartItems]);
 
   // Verificar se o usuário está logado ao carregar o Checkout
   useEffect(() => {
@@ -233,6 +247,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
         buyerEmail: buyerEmail.trim().toLowerCase(),
         buyerCpf: cleanCpf,
         buyerPhone,
+        remarketingBrowserToken: typeof window !== 'undefined' ? localStorage.getItem('@educalizando:remarketing-browser-token') : null,
         isPlrPurchase,
         couponCode: couponResult?.valid ? couponCode : undefined,
         kitId: kit?.id,
@@ -480,7 +495,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
-                      Celular / WhatsApp (Opcional)
+                      Celular / WhatsApp
                     </label>
                     <input
                       type="tel"
@@ -492,6 +507,10 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                     />
                   </div>
                 </div>
+                <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+                  <input type="checkbox" checked={remarketingConsent} onChange={(event) => setRemarketingConsent(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                  <span>Quero receber no WhatsApp da <strong>Educalizando</strong> um lembrete único sobre este carrinho caso eu não conclua a compra. Posso cancelar a qualquer momento respondendo SAIR.</span>
+                </label>
               </div>
             </div>
 

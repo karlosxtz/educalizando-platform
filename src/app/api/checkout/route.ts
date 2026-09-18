@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       buyerEmail: rawBuyerEmail,
       buyerCpf: rawBuyerCpf,
       buyerPhone,
+      remarketingBrowserToken,
       items = [],
       kitId,
       isPlrPurchase = false,
@@ -347,6 +348,14 @@ export async function POST(request: Request) {
       couponId: appliedCouponId || undefined,
       platformSettings: platformSettings || undefined
     });
+
+    if (remarketingBrowserToken) {
+      await supabaseAdmin.from('abandoned_cart_reminders')
+        .update({ order_id: orderRecord.id, updated_at: new Date().toISOString() })
+        .eq('browser_token', remarketingBrowserToken)
+        .eq('store_id', effectiveStoreId)
+        .eq('status', 'pending');
+    }
 
     // 7. Criar o checkout hospedado da InfinitePay na conta central.
     const infinitePayCheckout = await createInfinitePayCheckout({
