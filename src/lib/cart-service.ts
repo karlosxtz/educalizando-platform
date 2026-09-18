@@ -18,6 +18,9 @@ export interface CartItem {
 }
 
 const CART_STORAGE_KEY = '@educalizando:cart';
+const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+type StoredCart = { items: CartItem[]; expiresAt: number };
 
 // 1. LER CARRINHO
 export function getCart(): CartItem[] {
@@ -25,7 +28,14 @@ export function getCart(): CartItem[] {
   try {
     const data = localStorage.getItem(CART_STORAGE_KEY);
     if (!data) return [];
-    return JSON.parse(data) as CartItem[];
+    const parsed = JSON.parse(data) as CartItem[] | StoredCart;
+    // Compatibilidade com o formato antigo (array direto).
+    if (Array.isArray(parsed)) return parsed;
+    if (!parsed.expiresAt || parsed.expiresAt <= Date.now()) {
+      localStorage.removeItem(CART_STORAGE_KEY);
+      return [];
+    }
+    return Array.isArray(parsed.items) ? parsed.items : [];
   } catch (err) {
     console.error('[CartService] Erro ao ler carrinho:', err);
     return [];
@@ -36,7 +46,7 @@ export function getCart(): CartItem[] {
 export function saveCart(items: CartItem[]): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, expiresAt: Date.now() + CART_TTL_MS } satisfies StoredCart));
     // Dispara evento global para abas / componentes sincronizarem
     window.dispatchEvent(new Event('cart_updated'));
   } catch (err) {
