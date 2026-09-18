@@ -1,218 +1,58 @@
+import 'server-only';
 import { Resend } from 'resend';
 
-// Inicializa a biblioteca da Resend (somente se a chave existir no ambiente)
+type MailResult = { sent: boolean; error?: string };
+type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; creatorWhatsapp?: string | null };
+
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+const from = process.env.RESEND_FROM_EMAIL || 'Educalizando <onboarding@resend.dev>';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const DEFAULT_FROM = 'Educalizando <contato@educalizando.com>';
+const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char] || char);
+const firstName = (name: string) => escapeHtml(name.trim().split(/\s+/)[0] || 'cliente');
+const button = (href: string, label: string, color = '#0f766e') => `<p style="margin:28px 0"><a href="${href}" style="display:inline-block;border-radius:8px;background:${color};padding:13px 20px;color:#fff;font-weight:700;text-decoration:none">${label}</a></p>`;
+const layout = (title: string, content: string) => `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.55"><h2 style="color:#0f766e">${title}</h2>${content}<hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0"><p style="font-size:12px;color:#64748b">Educalizando · Materiais didáticos digitais com acesso seguro.</p></div>`;
 
-export async function sendWelcomeStudentEmail(params: {
-  buyerEmail: string;
-  buyerName: string;
-}) {
-  if (!resend) return;
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #2563eb;">🎉 Seja muito bem-vindo(a) à Educalizando!</h2>
-        <p>Olá, ${params.buyerName.split(' ')[0]}!</p>
-        <p>Sua conta de cliente foi criada com sucesso. Estamos muito felizes em ter você conosco.</p>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/entrar" style="background-color: #2563eb; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Plataforma</a>
-        </div>
-        <p>Precisa de ajuda? Fale com nosso suporte oficial no WhatsApp:</p>
-        <p><a href="https://wa.me/5521965008441" style="color: #2563eb; font-weight: bold;">(21) 96500-8441</a></p>
-      </div>
-    `;
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.buyerEmail,
-      subject: '🎉 Seja muito bem-vindo(a) à Educalizando! Seu acesso foi liberado.',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail:', error);
-  }
+export function getMailConfiguration() { return { configured: Boolean(resend), from, appUrl }; }
+
+async function send(to: string, subject: string, html: string): Promise<MailResult> {
+  if (!resend) return { sent: false, error: 'RESEND_API_KEY não configurada no servidor.' };
+  if (!to?.includes('@')) return { sent: false, error: 'E-mail do destinatário inválido.' };
+  const { error } = await resend.emails.send({ from, to, subject, html });
+  if (error) { console.error('[Resend]', error); return { sent: false, error: error.message || 'A Resend recusou o envio.' }; }
+  return { sent: true };
 }
 
-export async function sendWelcomeCreatorEmail(params: {
-  producerEmail: string;
-  producerName: string;
-}) {
-  if (!resend) return;
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #10b981;">🚀 Bem-vindo(a) à Educalizando!</h2>
-        <p>Olá, ${params.producerName.split(' ')[0]}!</p>
-        <p>Sua conta de criador está ativa. Agora você pode criar sua loja e vender seus materiais.</p>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/produtor" style="background-color: #10b981; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Painel do Criador</a>
-        </div>
-        <p>Precisa de ajuda? Fale com nosso suporte oficial no WhatsApp:</p>
-        <p><a href="https://wa.me/5521965008441" style="color: #10b981; font-weight: bold;">(21) 96500-8441</a></p>
-      </div>
-    `;
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.producerEmail,
-      subject: '🚀 Bem-vindo(a) à Educalizando! Sua conta de criador está ativa.',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail:', error);
-  }
+export async function sendWelcomeStudentEmail({ buyerEmail, buyerName }: { buyerEmail: string; buyerName: string }) {
+  return send(buyerEmail, 'Boas-vindas à Educalizando — seu acesso está pronto', layout('🎉 Boas-vindas à Educalizando!', `<p>Olá, ${firstName(buyerName)}!</p><p>Sua conta de cliente foi criada com sucesso. Entre para conhecer seus materiais e acompanhar suas compras.</p>${button(`${appUrl}/login`, 'Acessar minha conta', '#2563eb')}`));
+}
+export async function sendWelcomeCreatorEmail({ producerEmail, producerName }: { producerEmail: string; producerName: string }) {
+  return send(producerEmail, 'Boas-vindas à Educalizando — sua loja está pronta', layout('🚀 Sua conta de criador está ativa!', `<p>Olá, ${firstName(producerName)}!</p><p>Agora você pode configurar sua loja, publicar materiais e acompanhar suas vendas.</p>${button(`${appUrl}/dashboard`, 'Abrir painel do criador')}`));
+}
+export async function sendWelcomeAffiliateEmail({ affiliateEmail, affiliateName }: { affiliateEmail: string; affiliateName: string }) {
+  return send(affiliateEmail, 'Boas-vindas ao programa de afiliados', layout('💸 Bem-vindo(a) ao programa de afiliados!', `<p>Olá, ${firstName(affiliateName)}!</p><p>Sua conta está pronta para você criar links e acompanhar as comissões.</p>${button(`${appUrl}/afiliados/painel`, 'Abrir painel de afiliado', '#7c3aed')}`));
 }
 
-export async function sendWelcomeAffiliateEmail(params: {
-  affiliateEmail: string;
-  affiliateName: string;
-}) {
-  if (!resend) return;
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #8b5cf6;">💸 Bem-vindo(a) ao programa de Afiliados!</h2>
-        <p>Olá, ${params.affiliateName.split(' ')[0]}!</p>
-        <p>Sua conta de afiliado foi criada. Gere seus links de indicação e comece a lucrar.</p>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/afiliados/painel" style="background-color: #8b5cf6; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Painel de Afiliado</a>
-        </div>
-        <p>Dúvidas? Fale com nosso suporte oficial no WhatsApp:</p>
-        <p><a href="https://wa.me/5521965008441" style="color: #8b5cf6; font-weight: bold;">(21) 96500-8441</a></p>
-      </div>
-    `;
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.affiliateEmail,
-      subject: '💸 Bem-vindo(a) ao programa de Afiliados da Educalizando!',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail:', error);
-  }
+const productsBox = (titles: string) => `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>Materiais:</strong><br>${escapeHtml(titles)}</div>`;
+export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
+  return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
 }
-
-export async function sendSaleConfirmationToBuyer(params: {
-  buyerEmail: string;
-  buyerName: string;
-  orderId: string;
-  productTitles: string;
-  creatorWhatsapp?: string | null;
-}) {
-  if (!resend) return;
-  
-  let supportLink = 'https://wa.me/5521965008441';
-  let supportPhone = '(21) 96500-8441 (Suporte Educalizando)';
-  
-  if (params.creatorWhatsapp && params.creatorWhatsapp.trim() !== '') {
-    const cleanPhone = params.creatorWhatsapp.replace(/\\D/g, '');
-    supportLink = `https://wa.me/55${cleanPhone}`;
-    supportPhone = `${params.creatorWhatsapp} (Suporte do Lojista)`;
-  }
-
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #2563eb;">📦 Compra Aprovada!</h2>
-        <p>Olá, ${params.buyerName.split(' ')[0]}!</p>
-        <p>Sua compra foi aprovada e seus materiais já estão disponíveis na Educalizando.</p>
-        <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Materiais:</strong> ${params.productTitles}</p>
-        </div>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/cliente/dashboard" style="background-color: #2563eb; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar meus materiais</a>
-        </div>
-        <p style="font-size: 14px;"><strong>Precisa de ajuda com o material?</strong><br/>
-        Fale com o suporte no WhatsApp: <a href="${supportLink}" style="color: #2563eb; font-weight: bold;">${supportPhone}</a></p>
-        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 20px 0;" />
-        <p style="font-size: 12px; color: #999;">Educalizando - A maior plataforma de materiais didáticos do Brasil.<br/>ID do Pedido: ${params.orderId}</p>
-      </div>
-    `;
-
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.buyerEmail,
-      subject: '📦 Compra Aprovada! Seus materiais da Educalizando já estão disponíveis.',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail de acesso:', error);
-  }
+export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
+  const phone = params.creatorWhatsapp?.replace(/\D/g, '');
+  const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
+  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Use o botão abaixo para abrir seus materiais.</p>${productsBox(params.productTitles)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}${help}`));
 }
-
-export async function sendSaleNotificationToCreator(params: {
-  producerEmail: string;
-  producerName: string;
-  amount: number;
-  productTitle: string;
-  orderId: string;
-}) {
-  if (!resend) return;
-
-  const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(params.amount);
-
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #10b981;">💰 Ka-ching! Nova Venda Realizada!</h2>
-        <p>Parabéns, ${params.producerName.split(' ')[0]}!</p>
-        <p>Você acabou de realizar uma nova venda na Educalizando.</p>
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Produto:</strong> ${params.productTitle}</p>
-          <p style="margin: 0; font-size: 24px; color: #047857; font-weight: bold;">Valor Líquido: ${formattedAmount}</p>
-          <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">Pedido: #${params.orderId}</p>
-        </div>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/produtor/financeiro" style="background-color: #10b981; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ver meu Painel Financeiro</a>
-        </div>
-        <p style="font-size: 14px;"><strong>Dúvidas?</strong> Fale com o suporte de criadores: <a href="https://wa.me/5521965008441" style="color: #10b981; font-weight: bold;">(21) 96500-8441</a></p>
-      </div>
-    `;
-
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.producerEmail,
-      subject: '💰 Ka-ching! Você realizou uma nova venda na Educalizando!',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail de venda:', error);
-  }
+export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
+  const [payment, delivery] = await Promise.all([sendPaymentConfirmedEmail(params), sendMaterialDeliveryEmail(params)]);
+  return { sent: payment.sent && delivery.sent, error: payment.error || delivery.error };
 }
-
-export async function sendSaleNotificationToAffiliate(params: {
-  affiliateEmail: string;
-  affiliateName: string;
-  amount: number;
-  productTitle: string;
-}) {
-  if (!resend) return;
-
-  const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(params.amount);
-
-  try {
-    const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h2 style="color: #8b5cf6;">💸 Oba! Nova Comissão!</h2>
-        <p>Olá, ${params.affiliateName.split(' ')[0]}!</p>
-        <p>Você recebeu uma nova comissão de afiliado na Educalizando!</p>
-        <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Material Indicado:</strong> ${params.productTitle}</p>
-          <p style="margin: 0; font-size: 24px; color: #6d28d9; font-weight: bold;">Sua Comissão: ${formattedAmount}</p>
-        </div>
-        <div style="margin: 30px 0;">
-          <a href="https://educalizando.com/afiliados/painel" style="background-color: #8b5cf6; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ver meu Painel de Afiliado</a>
-        </div>
-        <p style="font-size: 14px;"><strong>Dúvidas?</strong> Fale com o suporte para afiliados: <a href="https://wa.me/5521965008441" style="color: #8b5cf6; font-weight: bold;">(21) 96500-8441</a></p>
-      </div>
-    `;
-
-    await resend.emails.send({
-      from: DEFAULT_FROM,
-      to: params.affiliateEmail,
-      subject: '💸 Oba! Você recebeu uma nova comissão de afiliado na Educalizando!',
-      html,
-    });
-  } catch (error) {
-    console.error('[Mail Service] Erro ao enviar e-mail de comissão:', error);
-  }
+export async function sendSaleNotificationToCreator({ producerEmail, producerName, amount, productTitle, orderId }: { producerEmail: string; producerName: string; amount: number; productTitle: string; orderId: string }) {
+  const amountText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+  return send(producerEmail, '💰 Nova venda confirmada na sua loja', layout('💰 Você realizou uma nova venda!', `<p>Parabéns, ${firstName(producerName)}!</p><p>O pagamento do pedido <strong>#${escapeHtml(orderId)}</strong> foi confirmado.</p><p><strong>Produto:</strong> ${escapeHtml(productTitle)}<br><strong>Valor líquido:</strong> ${amountText}</p>${button(`${appUrl}/dashboard/pedidos`, 'Ver pedidos')}`));
+}
+export async function sendSaleNotificationToAffiliate({ affiliateEmail, affiliateName, amount, productTitle }: { affiliateEmail: string; affiliateName: string; amount: number; productTitle: string }) {
+  const amountText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+  return send(affiliateEmail, '💸 Nova comissão de afiliado', layout('💸 Você recebeu uma comissão!', `<p>Olá, ${firstName(affiliateName)}!</p><p><strong>Material:</strong> ${escapeHtml(productTitle)}<br><strong>Comissão:</strong> ${amountText}</p>${button(`${appUrl}/afiliados/painel`, 'Ver comissões', '#7c3aed')}`));
+}
+export async function sendAutomationTestEmail(to: string, name: string) {
+  return send(to, '[Teste] Automação de e-mail Educalizando', layout('🧪 Teste enviado com sucesso', `<p>Olá, ${firstName(name)}!</p><p>Se este e-mail chegou, a integração com a Resend está funcionando corretamente.</p>`));
 }

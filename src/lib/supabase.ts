@@ -181,6 +181,14 @@ export async function registerCreatorInSupabase({
       await sendWelcomeWhatsApp(whatsapp, fullName, 'creator', authData.session?.access_token);
     }
 
+    if (authData.session?.access_token) {
+      void fetch('/api/email-automations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },
+        body: JSON.stringify({ action: 'welcome', role: 'creator' })
+      });
+    }
+
     return { user: authData.user, storeSlug: storeData.slug };
   } else {
     // Fallback de Simulação Local
@@ -361,6 +369,14 @@ export async function registerAffiliateInSupabase({
 
     if (whatsapp) {
       await sendWelcomeWhatsApp(whatsapp, fullName, 'affiliate', authData.session?.access_token);
+    }
+
+    if (authData.session?.access_token) {
+      void fetch('/api/email-automations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },
+        body: JSON.stringify({ action: 'welcome', role: 'affiliate' })
+      });
     }
 
     return { user: authData.user };

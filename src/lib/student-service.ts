@@ -195,6 +195,14 @@ export async function registerStudentInSupabase({
       await sendWelcomeWhatsApp(whatsapp, fullName, 'student', authData.session?.access_token);
     }
 
+    if (authData.session?.access_token) {
+      void fetch('/api/email-automations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },
+        body: JSON.stringify({ action: 'welcome', role: 'student' })
+      });
+    }
+
     return { user: authData.user, session: authData.session };
   } else {
     await new Promise(resolve => setTimeout(resolve, 600));
