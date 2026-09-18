@@ -164,6 +164,7 @@ export default function ProductsManagementPage() {
   }), [products]);
   const seoAverage = seoReports.length ? Math.round(seoReports.reduce((sum, report) => sum + report.score, 0) / seoReports.length) : 0;
   const seoNeedsWork = seoReports.filter(report => report.score < 90);
+  const getSeoReport = (productId: string) => seoReports.find(report => report.product.id === productId);
 
   // Build Options for CustomSelect Filter Component
   const categoryFilterOptions: CustomSelectOption[] = [
@@ -228,7 +229,7 @@ export default function ProductsManagementPage() {
             className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
-            <span>Cadastrar Novo Produto (Tela Cheia)</span>
+            <span className="hidden sm:inline">Novo produto</span>
           </Link>
         </div>
       </div>
@@ -297,8 +298,9 @@ export default function ProductsManagementPage() {
             return (
               <div
                 key={prod.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-all relative overflow-hidden"
+                className="relative flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
               >
+                {getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${getSeoReport(prod.id)!.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getSeoReport(prod.id)!.score}</span>}
                 <div className="space-y-3">
                   {/* Cover Image & Badges */}
                   <div className="h-40 rounded-xl overflow-hidden bg-slate-100 relative">
@@ -354,6 +356,7 @@ export default function ProductsManagementPage() {
                         {prod.descricao}
                       </p>
                     )}
+                    {getSeoReport(prod.id)?.suggestions.length ? <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] font-semibold leading-relaxed text-amber-800">Melhore: {getSeoReport(prod.id)!.suggestions[0]}.</p> : <p className="mt-2 text-[10px] font-semibold text-emerald-700">SEO completo</p>}
                     <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-slate-500">
                       <Eye className="w-4 h-4 text-slate-400" />
                       <span>{prod.views_count || 0} visualizações</span>
