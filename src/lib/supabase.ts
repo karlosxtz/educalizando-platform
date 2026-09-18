@@ -182,7 +182,7 @@ export async function registerCreatorInSupabase({
     }
 
     if (authData.session?.access_token) {
-      void fetch('/api/email-automations', {
+      void fetch('/api/email-automations/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },
         body: JSON.stringify({ action: 'welcome', role: 'creator' })
@@ -372,7 +372,7 @@ export async function registerAffiliateInSupabase({
     }
 
     if (authData.session?.access_token) {
-      void fetch('/api/email-automations', {
+      void fetch('/api/email-automations/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },
         body: JSON.stringify({ action: 'welcome', role: 'affiliate' })
