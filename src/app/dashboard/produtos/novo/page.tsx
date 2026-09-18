@@ -49,7 +49,7 @@ function ProductWizardContent() {
   const [preco, setPreco] = useState<string>('');
   const [precoOriginal, setPrecoOriginal] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
-  const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('upload');
+  const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('link');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -983,30 +983,32 @@ function ProductWizardContent() {
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
                     Arquivo do Produto Final
                   </label>
-                  <div className="flex bg-slate-100 p-1 rounded-xl w-full mb-4">
+                  <div className="grid gap-3 sm:grid-cols-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMethod('link')}
+                      className={`rounded-2xl border p-4 text-left transition-all ${
+                        deliveryMethod === 'link' ? 'border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-200' : 'border-slate-200 bg-white hover:border-emerald-300'
+                      }`}
+                    >
+                      <span className="flex items-start gap-3">
+                        <span className={`mt-0.5 rounded-full p-1 ${deliveryMethod === 'link' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500'}`}><LinkIcon className="w-4 h-4" /></span>
+                        <span><span className="flex items-center gap-2 text-sm font-black text-slate-900">Link do Drive <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">Recomendado</span></span><span className="mt-1 block text-xs font-medium text-slate-500">Google Drive, Mega, Dropbox e outros.</span></span>
+                      </span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
                         setDeliveryMethod('upload');
                         if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
                       }}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                        deliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                      className={`rounded-2xl border p-4 text-left transition-all ${
+                        deliveryMethod === 'upload' ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'
                       }`}
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        <UploadCloud className="w-4 h-4" /> Upload Seguro
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryMethod('link')}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                        deliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        <LinkIcon className="w-4 h-4" /> Link Externo
+                      <span className="flex items-start gap-3">
+                        <span className={`mt-0.5 rounded-full p-1 ${deliveryMethod === 'upload' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}><UploadCloud className="w-4 h-4" /></span>
+                        <span><span className="text-sm font-black text-slate-900">Upload do arquivo</span><span className="mt-1 block text-xs font-medium text-slate-500">Envie do seu computador (até 15 MB).</span></span>
                       </span>
                     </button>
                   </div>
@@ -1022,17 +1024,18 @@ function ProductWizardContent() {
                       helperText="Formatos suportados: PDF, DOCX, ZIP, etc. (máx. 15MB)."
                     />
                   ) : (
-                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+                    <div className="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-3">
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <LinkIcon className="w-4 h-4 text-blue-600" />
-                        Link do Arquivo Externo
+                        <LinkIcon className="w-4 h-4 text-emerald-600" />
+                        Adicionar link do Drive
                       </h4>
+                      <p className="text-xs font-medium text-slate-600">Cole um link público com permissão para qualquer pessoa com o link visualizar ou baixar.</p>
                       <input
                         type="url"
                         value={arquivoUrl || ''}
                         onChange={(e) => setArquivoUrl(e.target.value)}
-                        placeholder="https://drive.google.com/..."
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                        placeholder="https://drive.google.com/... ou https://1drv.ms/..."
+                        className="w-full px-4 py-3 bg-white border border-emerald-200 focus:border-emerald-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
                       />
                     </div>
                   )}
