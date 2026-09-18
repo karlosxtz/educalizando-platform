@@ -565,7 +565,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {filteredProducts.map((prod, index) => {
               const catName = getCategoryName(prod.category_id);
               const edName = getEducationName(prod.education_level_id);
@@ -576,9 +576,9 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
                   key={`${prod.id}-${prod.listing_mode || 'standard'}`}
-                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
+                  className="min-w-0 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
-                  <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
+                  <div className="min-w-0 flex-1 p-4 sm:p-5 flex flex-col justify-between space-y-4">
                     <div className="space-y-3">
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
                       <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`} className="block aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
