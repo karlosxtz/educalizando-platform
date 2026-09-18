@@ -1,13 +1,20 @@
 'use client';
 
 import { ChangeEvent, ReactNode, useRef, useState } from 'react';
-import { Download, FileArchive, FileImage, FileText, ImagePlus, QrCode, RotateCw, Scissors, Upload, Zap } from 'lucide-react';
+import { Download, FileArchive, FileImage, FileText, ImagePlus, QrCode, RotateCw, Scissors, ShieldCheck, Upload, Zap } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import QRCode from 'qrcode';
 import JSZip from 'jszip';
 import { degrees, PDFDocument } from 'pdf-lib';
 
-const download = (blob: Blob, name: string) => { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); URL.revokeObjectURL(url); };
+const download = (blob: Blob, name: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+};
 const asPdf = (data: Uint8Array) => new Blob([data.slice().buffer], { type: 'application/pdf' });
 
 function UploadButton({ label, accept, multiple, onChange }: { label: string; accept?: string; multiple?: boolean; onChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
@@ -24,11 +31,60 @@ export default function CreatorToolsPage() {
   const [qrText, setQrText] = useState('');
   const [qrImage, setQrImage] = useState('');
   const [coverPreview, setCoverPreview] = useState('');
+  const [rotationFile, setRotationFile] = useState<File | null>(null);
+  const [rotationDegrees, setRotationDegrees] = useState<90 | 180 | 270>(90);
+  const rotationInput = useRef<HTMLInputElement>(null);
 
-  const optimizeImage = async (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; try { setNotice('Otimizando imagem…'); const result = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 2000, fileType: 'image/webp', useWebWorker: true }); download(result, `${file.name.replace(/\.[^.]+$/, '')}.webp`); setNotice('Imagem otimizada e convertida para WebP.'); } catch { setNotice('Não foi possível processar esta imagem.'); } };
-  const processPdf = async (event: ChangeEvent<HTMLInputElement>, action: 'join' | 'split' | 'rotate') => { const files = Array.from(event.target.files || []); if (!files.length) return; try { setNotice('Processando PDF…'); if (action === 'join') { const output = await PDFDocument.create(); for (const file of files) { const source = await PDFDocument.load(await file.arrayBuffer()); (await output.copyPages(source, source.getPageIndices())).forEach((page) => output.addPage(page)); } download(asPdf(await output.save()), 'pdf-unido.pdf'); } else { const source = await PDFDocument.load(await files[0].arrayBuffer()); if (action === 'rotate') { source.getPages().forEach((page) => page.setRotation(degrees(page.getRotation().angle + 90))); download(asPdf(await source.save()), 'pdf-girado.pdf'); } else { for (let index = 0; index < source.getPageCount(); index++) { const output = await PDFDocument.create(); output.addPage((await output.copyPages(source, [index]))[0]); download(asPdf(await output.save()), `pagina-${index + 1}.pdf`); } } } setNotice('Arquivo pronto para baixar.'); } catch { setNotice('Não foi possível processar este PDF.'); } };
-  const createZip = async (event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files || []); if (!files.length) return; const zip = new JSZip(); files.forEach((file) => zip.file(file.name, file)); download(await zip.generateAsync({ type: 'blob' }), 'materiais-educalizando.zip'); setNotice('Arquivo ZIP criado com sucesso.'); };
-  const createCover = (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const source = String(reader.result); setCoverPreview(source); const image = new Image(); image.onload = () => { const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1080; const context = canvas.getContext('2d'); if (!context) return; const scale = Math.max(1080 / image.width, 1080 / image.height); const width = image.width * scale; const height = image.height * scale; context.drawImage(image, (1080 - width) / 2, (1080 - height) / 2, width, height); canvas.toBlob((blob) => blob && download(blob, 'capa-educalizando-1080x1080.jpg'), 'image/jpeg', .92); setNotice('Capa criada em 1080 × 1080.'); }; image.src = source; }; reader.readAsDataURL(file); };
+  const optimizeImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; if (!file) return;
+    try { setNotice('Otimizando imagem…'); const result = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 2000, fileType: 'image/webp', useWebWorker: true }); download(result, `${file.name.replace(/\.[^.]+$/, '')}.webp`); setNotice('Imagem otimizada e convertida para WebP.'); } catch { setNotice('Não foi possível processar esta imagem.'); }
+  };
+  const processPdf = async (event: ChangeEvent<HTMLInputElement>, action: 'join' | 'split') => {
+    const files = Array.from(event.target.files || []); if (!files.length) return;
+    try {
+      setNotice('Processando PDF…');
+      if (action === 'join') { const output = await PDFDocument.create(); for (const file of files) { const source = await PDFDocument.load(await file.arrayBuffer()); (await output.copyPages(source, source.getPageIndices())).forEach((page) => output.addPage(page)); } download(asPdf(await output.save()), 'pdf-unido.pdf'); }
+      else { const source = await PDFDocument.load(await files[0].arrayBuffer()); for (let index = 0; index < source.getPageCount(); index++) { const output = await PDFDocument.create(); output.addPage((await output.copyPages(source, [index]))[0]); download(asPdf(await output.save()), `pagina-${index + 1}.pdf`); } }
+      setNotice('Arquivo pronto para baixar.');
+    } catch { setNotice('Não foi possível processar este PDF.'); }
+  };
+  const rotatePdf = async () => {
+    if (!rotationFile) return;
+    try { setNotice('Girando PDF…'); const source = await PDFDocument.load(await rotationFile.arrayBuffer()); source.getPages().forEach((page) => page.setRotation(degrees(page.getRotation().angle + rotationDegrees))); download(asPdf(await source.save()), `${rotationFile.name.replace(/\.pdf$/i, '')}-girado-${rotationDegrees}.pdf`); setNotice(`PDF girado em ${rotationDegrees}° e pronto para baixar.`); } catch { setNotice('Não foi possível girar este PDF.'); }
+  };
+  const createZip = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []); if (!files.length) return;
+    const zip = new JSZip(); files.forEach((file) => zip.file(file.name, file)); download(await zip.generateAsync({ type: 'blob' }), 'materiais-educalizando.zip'); setNotice('Arquivo ZIP criado com sucesso.');
+  };
+  const createCover = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { const source = String(reader.result); setCoverPreview(source); const image = new Image(); image.onload = () => { const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1080; const context = canvas.getContext('2d'); if (!context) return; const scale = Math.max(1080 / image.width, 1080 / image.height); const width = image.width * scale; const height = image.height * scale; context.drawImage(image, (1080 - width) / 2, (1080 - height) / 2, width, height); canvas.toBlob((blob) => blob && download(blob, 'capa-educalizando-1080x1080.jpg'), 'image/jpeg', .92); setNotice('Capa criada em 1080 × 1080.'); }; image.src = source; };
+    reader.readAsDataURL(file);
+  };
 
-  return <div className="mx-auto w-full max-w-5xl space-y-7 pb-16"><section className="rounded-3xl bg-gradient-to-br from-[#062d63] via-[#084d9f] to-[#0e83d3] p-7 text-white"><Zap className="mb-3 h-6 w-6 text-amber-300" /><h1 className="text-3xl font-black">Caixa de Ferramentas</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100">Ferramentas para preparar seus materiais. Os arquivos são processados no seu próprio dispositivo.</p></section>{notice && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">✓ {notice}</p>}<div><h2 className="text-xl font-black text-slate-900">Organize seus arquivos</h2><p className="mt-1 text-sm text-slate-500">Escolha uma ação por vez para resultados mais precisos.</p></div><section className="grid grid-cols-1 gap-5 lg:grid-cols-2"><ToolCard title="Otimizar imagem" description="Comprime, redimensiona e converte imagens para WebP." icon={<FileImage className="h-6 w-6" />}><UploadButton label="Selecionar imagem" accept="image/*,.heic" onChange={optimizeImage} /></ToolCard><ToolCard title="Unir PDFs" description="Junte vários PDFs em um único material." icon={<FileText className="h-6 w-6" />}><UploadButton label="Selecionar PDFs para unir" accept="application/pdf" multiple onChange={(event) => processPdf(event, 'join')} /></ToolCard><ToolCard title="Dividir PDF" description="Baixe cada página do PDF em um arquivo separado." icon={<Scissors className="h-6 w-6" />}><UploadButton label="Selecionar PDF para dividir" accept="application/pdf" onChange={(event) => processPdf(event, 'split')} /></ToolCard><ToolCard title="Girar PDF" description="Gira todas as páginas do arquivo em 90 graus." icon={<RotateCw className="h-6 w-6" />}><UploadButton label="Selecionar PDF para girar" accept="application/pdf" onChange={(event) => processPdf(event, 'rotate')} /></ToolCard><ToolCard wide title="Criar arquivo ZIP" description="Compacte vários materiais de uma só vez. Use para enviar arquivos organizados aos seus clientes." icon={<FileArchive className="h-6 w-6" />}><UploadButton label="Selecionar arquivos para compactar" multiple onChange={createZip} /></ToolCard></section><section className="grid grid-cols-1 gap-5 lg:grid-cols-2"><ToolCard title="Capa 1:1 para produto" description="Envie sua imagem e receba uma capa centralizada em 1080 × 1080, ideal para a loja no mobile e PC." icon={<ImagePlus className="h-6 w-6" />}>{coverPreview && <img src={coverPreview} alt="Prévia da capa" className="mt-4 h-36 w-36 rounded-2xl object-cover" />}<UploadButton label="Enviar imagem e criar capa" accept="image/*,.heic" onChange={createCover} /></ToolCard><ToolCard title="Gerar QR Code" description="Transforme links, textos ou WhatsApp em QR Codes." icon={<QrCode className="h-6 w-6" />}><input value={qrText} onChange={(event) => setQrText(event.target.value)} placeholder="Cole aqui o link ou texto" className="mt-5 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-blue-500" /><button type="button" onClick={async () => qrText.trim() && setQrImage(await QRCode.toDataURL(qrText, { width: 800, margin: 2 }))} className="mt-3 min-h-11 rounded-xl bg-brand-navy px-5 text-xs font-black text-white hover:bg-blue-800">Gerar QR Code</button>{qrImage && <div className="mt-4 flex items-center gap-4"><img src={qrImage} alt="QR Code gerado" className="h-28 w-28 rounded-xl border bg-white p-1" /><a href={qrImage} download="qrcode-educalizando.png" className="inline-flex items-center gap-1 text-xs font-black text-blue-700"><Download className="h-4 w-4" />Baixar QR Code</a></div>}</ToolCard></section></div>;
+  return <div className="mx-auto w-full max-w-5xl space-y-7 pb-16">
+    <section className="rounded-3xl bg-gradient-to-br from-[#062d63] via-[#084d9f] to-[#0e83d3] p-7 text-white"><Zap className="mb-3 h-6 w-6 text-amber-300" /><h1 className="text-3xl font-black">Caixa de Ferramentas</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-blue-100">Ferramentas para preparar seus materiais. Os arquivos são processados no seu próprio dispositivo.</p></section>
+    {notice && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">✓ {notice}</p>}
+    <div><h2 className="text-xl font-black text-slate-900">Organize seus arquivos</h2><p className="mt-1 text-sm text-slate-500">Escolha uma ação por vez para resultados mais precisos.</p></div>
+    <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <ToolCard title="Otimizar imagem" description="Comprime, redimensiona e converte imagens para WebP." icon={<FileImage className="h-6 w-6" />}><UploadButton label="Selecionar imagem" accept="image/*,.heic" onChange={optimizeImage} /></ToolCard>
+      <ToolCard title="Unir PDFs" description="Junte vários PDFs em um único material." icon={<FileText className="h-6 w-6" />}><UploadButton label="Selecionar PDFs para unir" accept="application/pdf" multiple onChange={(event) => processPdf(event, 'join')} /></ToolCard>
+      <ToolCard title="Dividir PDF" description="Baixe cada página do PDF em um arquivo separado." icon={<Scissors className="h-6 w-6" />}><UploadButton label="Selecionar PDF para dividir" accept="application/pdf" onChange={(event) => processPdf(event, 'split')} /></ToolCard>
+      <ToolCard title="Girar PDF" description="Escolha o PDF, defina o ângulo e baixe a versão girada." icon={<RotateCw className="h-6 w-6" />}>
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="flex items-center gap-2 text-xs font-semibold text-slate-500"><ShieldCheck className="h-4 w-4 text-teal-500" />Seu PDF fica no seu aparelho e não é enviado à internet.</p>
+          <input ref={rotationInput} className="hidden" type="file" accept="application/pdf" onChange={(event) => setRotationFile(event.target.files?.[0] || null)} />
+          <button type="button" onClick={() => rotationInput.current?.click()} className="mt-4 flex min-h-16 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-white px-4 text-sm font-black text-brand-navy transition hover:border-blue-500 hover:bg-blue-50"><Upload className="h-5 w-5 text-teal-500" />{rotationFile ? rotationFile.name : 'Escolha o PDF'}</button>
+          <div className="mt-4 flex flex-wrap gap-2">{([90, 180, 270] as const).map((angle) => <button key={angle} type="button" aria-pressed={rotationDegrees === angle} onClick={() => setRotationDegrees(angle)} className={`min-h-10 rounded-lg px-4 text-sm font-black transition ${rotationDegrees === angle ? 'bg-teal-500 text-white shadow-sm' : 'border border-teal-500 bg-white text-teal-600 hover:bg-teal-50'}`}>Girar {angle}°</button>)}</div>
+          <button type="button" disabled={!rotationFile} onClick={rotatePdf} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-4 text-sm font-black text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300"><RotateCw className="h-4 w-4" />Girar e baixar</button>
+        </div>
+      </ToolCard>
+      <ToolCard wide title="Criar arquivo ZIP" description="Compacte vários materiais de uma só vez. Use para enviar arquivos organizados aos seus clientes." icon={<FileArchive className="h-6 w-6" />}><UploadButton label="Selecionar arquivos para compactar" multiple onChange={createZip} /></ToolCard>
+    </section>
+    <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <ToolCard title="Capa 1:1 para produto" description="Envie sua imagem e receba uma capa centralizada em 1080 × 1080, ideal para a loja no mobile e PC." icon={<ImagePlus className="h-6 w-6" />}>{coverPreview && <img src={coverPreview} alt="Prévia da capa" className="mt-4 h-36 w-36 rounded-2xl object-cover" />}<UploadButton label="Enviar imagem e criar capa" accept="image/*,.heic" onChange={createCover} /></ToolCard>
+      <ToolCard title="Gerar QR Code" description="Transforme links, textos ou WhatsApp em QR Codes." icon={<QrCode className="h-6 w-6" />}><input value={qrText} onChange={(event) => setQrText(event.target.value)} placeholder="Cole aqui o link ou texto" className="mt-5 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-blue-500" /><button type="button" onClick={async () => qrText.trim() && setQrImage(await QRCode.toDataURL(qrText, { width: 800, margin: 2 }))} className="mt-3 min-h-11 rounded-xl bg-brand-navy px-5 text-xs font-black text-white hover:bg-blue-800">Gerar QR Code</button>{qrImage && <div className="mt-4 flex items-center gap-4"><img src={qrImage} alt="QR Code gerado" className="h-28 w-28 rounded-xl border bg-white p-1" /><a href={qrImage} download="qrcode-educalizando.png" className="inline-flex items-center gap-1 text-xs font-black text-blue-700"><Download className="h-4 w-4" />Baixar QR Code</a></div>}</ToolCard>
+    </section>
+  </div>;
 }
