@@ -49,6 +49,7 @@ export default function FileUploadMultiple({
   const [cropZoom, setCropZoom] = useState(1);
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
+  const [cropFit, setCropFit] = useState(false);
 
   const effectiveMaxSizeMB = Math.min(maxSizeMB, ABSOLUTE_MAX_SIZE_MB);
 
@@ -155,6 +156,7 @@ export default function FileUploadMultiple({
         setCropZoom(1);
         setCropX(0);
         setCropY(0);
+        setCropFit(false);
       } else {
         processFileUpload(e.target.files);
       }
@@ -172,10 +174,16 @@ export default function FileUploadMultiple({
       canvas.height = 1200;
       const context = canvas.getContext('2d');
       if (!context) return;
-      const baseScale = Math.max(canvas.width / image.width, canvas.height / image.height);
+      // O modo automático preserva toda a arte e completa as sobras com branco.
+      // Assim a imagem fica segura mesmo em vitrines que usam object-cover.
+      const baseScale = cropFit
+        ? Math.min(canvas.width / image.width, canvas.height / image.height)
+        : Math.max(canvas.width / image.width, canvas.height / image.height);
       const scale = baseScale * cropZoom;
       const width = image.width * scale;
       const height = image.height * scale;
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(image, (canvas.width - width) / 2 + cropX, (canvas.height - height) / 2 + cropY, width, height);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.92));
       if (blob) {
@@ -359,13 +367,17 @@ export default function FileUploadMultiple({
               <div><h3 className="text-lg font-black text-slate-900">Ajustar capa do produto</h3><p className="mt-1 text-xs leading-relaxed text-slate-500">Posicione a imagem dentro da área 3:4. O que aparecer no quadro será a capa da vitrine.</p></div>
               <button type="button" onClick={() => { URL.revokeObjectURL(cropPreview); setCropFile(null); setCropPreview(''); }} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Fechar editor"><X className="h-5 w-5" /></button>
             </div>
-            <div className="mx-auto mt-5 aspect-[3/4] w-full max-w-[300px] overflow-hidden rounded-2xl bg-slate-100 shadow-inner">
-              <img src={cropPreview} alt="Ajuste da capa" className="h-full w-full object-cover" style={{ transform: `translate(${cropX / 3}px, ${cropY / 3}px) scale(${cropZoom})`, transformOrigin: 'center' }} />
+            <div className="mx-auto mt-5 aspect-[3/4] w-full max-w-[300px] overflow-hidden rounded-2xl bg-white shadow-inner ring-1 ring-slate-200">
+              <img src={cropPreview} alt="Ajuste da capa" className={`h-full w-full ${cropFit ? 'object-contain' : 'object-cover'}`} style={{ transform: `translate(${cropX / 3}px, ${cropY / 3}px) scale(${cropZoom})`, transformOrigin: 'center' }} />
+            </div>
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 sm:flex sm:items-center sm:justify-between sm:gap-4">
+              <div><p className="text-sm font-black text-emerald-900">Não conseguiu encaixar a imagem?</p><p className="mt-0.5 text-xs font-medium text-emerald-800">O autoajuste preserva a arte inteira em uma capa 3:4, sem cortar o conteúdo.</p></div>
+              <button type="button" onClick={() => { setCropFit(true); setCropZoom(1); setCropX(0); setCropY(0); }} className="mt-3 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:mt-0"><Sparkles className="h-4 w-4" /> Autoajustar</button>
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              <label className="text-xs font-bold text-slate-700">Zoom<input type="range" min="1" max="2.5" step="0.05" value={cropZoom} onChange={(event) => setCropZoom(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
-              <label className="text-xs font-bold text-slate-700">Mover horizontal<input type="range" min="-180" max="180" step="2" value={cropX} onChange={(event) => setCropX(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
-              <label className="text-xs font-bold text-slate-700">Mover vertical<input type="range" min="-220" max="220" step="2" value={cropY} onChange={(event) => setCropY(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
+              <label className="text-xs font-bold text-slate-700">Zoom<input type="range" min="1" max="2.5" step="0.05" value={cropZoom} onChange={(event) => { setCropFit(false); setCropZoom(Number(event.target.value)); }} className="mt-2 w-full accent-blue-600" /></label>
+              <label className="text-xs font-bold text-slate-700">Mover horizontal<input type="range" min="-180" max="180" step="2" value={cropX} onChange={(event) => { setCropFit(false); setCropX(Number(event.target.value)); }} className="mt-2 w-full accent-blue-600" /></label>
+              <label className="text-xs font-bold text-slate-700">Mover vertical<input type="range" min="-220" max="220" step="2" value={cropY} onChange={(event) => { setCropFit(false); setCropY(Number(event.target.value)); }} className="mt-2 w-full accent-blue-600" /></label>
             </div>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" onClick={() => { URL.revokeObjectURL(cropPreview); setCropFile(null); setCropPreview(''); }} className="min-h-11 rounded-xl border border-slate-200 px-4 text-xs font-black text-slate-700">Cancelar</button><button type="button" onClick={applyCoverCrop} className="min-h-11 rounded-xl bg-brand-navy px-5 text-xs font-black text-white hover:bg-blue-800">Usar esta capa</button></div>
           </div>
