@@ -125,6 +125,21 @@ export type EvolutionInstanceHealth = {
   error?: string;
 };
 
+export type EvolutionQrCode = {
+  connected: boolean;
+  created: boolean;
+  qrCode: string | null;
+  error?: string;
+};
+
+function extractQrCode(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null;
+  const record = data as Record<string, unknown>;
+  const qrcode = record.qrcode && typeof record.qrcode === 'object' ? record.qrcode as Record<string, unknown> : null;
+  const base64 = qrcode?.base64 || record.base64;
+  return typeof base64 === 'string' && base64 ? base64 : null;
+}
+
 export async function getEvolutionInstanceHealth(): Promise<EvolutionInstanceHealth> {
   const { apiKey, baseUrl, instanceName } = evolutionConfig();
   const checkedAt = new Date().toISOString();
@@ -178,5 +193,50 @@ export async function restartEvolutionInstance(): Promise<{ restarted: boolean; 
     return { restarted: true };
   } catch {
     return { restarted: false, error: 'Não foi possível reiniciar a instância.' };
+  }
+}
+
+export async function getEvolutionConnectionQrCode(force = false): Promise<EvolutionQrCode> {
+  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  if (!apiKey || !instanceName) return { connected: false, created: false, qrCode: null, error: 'A Evolution não está configurada.' };
+
+  const headers = { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey };
+  try {
+    const stateResponse = await fetch(`${baseUrl}/instance/connectionState/${encodeURIComponent(instanceName)}`, { headers, cache: 'no-store' });
+    const stateData = await stateResponse.json().catch(() => ({}));
+    const state = String(stateData?.instance?.state || stateData?.instance?.status || '').toLowerCase();
+    if (stateResponse.ok && state === 'open' && !force) return { connected: true, created: false, qrCode: null };
+
+    if (force && stateResponse.ok) {
+      const logoutResponse = await fetch(`${baseUrl}/instance/logout/${encodeURIComponent(instanceName)}`, {
+        method: 'DELETE',
+        headers,
+        cache: 'no-store',
+      });
+      if (!logoutResponse.ok) return { connected: false, created: false, qrCode: null, error: `A Evolution não conseguiu preparar a nova conexão (status ${logoutResponse.status}).` };
+    }
+
+    let connectResponse = await fetch(`${baseUrl}/instance/connect/${encodeURIComponent(instanceName)}`, { headers, cache: 'no-store' });
+    let data = await connectResponse.json().catch(() => ({}));
+    let created = false;
+
+    if (connectResponse.status === 404) {
+      created = true;
+      connectResponse = await fetch(`${baseUrl}/instance/create`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ instanceName, integration: 'WHATSAPP-BAILEYS', qrcode: true }),
+        cache: 'no-store',
+      });
+      data = await connectResponse.json().catch(() => ({}));
+    }
+
+    if (!connectResponse.ok) {
+      return { connected: false, created, qrCode: null, error: `A Evolution não gerou o QR Code (status ${connectResponse.status}).` };
+    }
+
+    return { connected: false, created, qrCode: extractQrCode(data), error: extractQrCode(data) ? undefined : 'O QR Code está sendo preparado. Atualize em alguns segundos.' };
+  } catch {
+    return { connected: false, created: false, qrCode: null, error: 'Não foi possível gerar o QR Code da instância.' };
   }
 }

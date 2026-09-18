@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
-import { getEvolutionInstanceHealth, logoutEvolutionInstance, restartEvolutionInstance, sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { getEvolutionConnectionQrCode, getEvolutionInstanceHealth, logoutEvolutionInstance, restartEvolutionInstance, sendEvolutionText } from '@/lib/whatsapp-notification-service';
 
 export async function GET(request: Request) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
@@ -34,6 +34,12 @@ export async function POST(request: Request) {
     const result = await restartEvolutionInstance();
     if (!result.restarted) return NextResponse.json({ error: result.error || 'Não foi possível reiniciar a instância.' }, { status: 503 });
     return NextResponse.json({ success: true });
+  }
+
+  if (body.action === 'qrcode') {
+    const result = await getEvolutionConnectionQrCode(Boolean(body.force));
+    if (result.error && !result.qrCode) return NextResponse.json({ error: result.error, connection: result }, { status: 503 });
+    return NextResponse.json({ success: true, connection: result });
   }
 
   return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });

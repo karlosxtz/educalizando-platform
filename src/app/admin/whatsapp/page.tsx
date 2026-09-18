@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Copy, MessageCircle, Power, RefreshCw, RotateCcw, Save, Send, Sparkles, UserPlus, WalletCards, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Copy, MessageCircle, Power, QrCode, RefreshCw, RotateCcw, Save, Send, Sparkles, UserPlus, WalletCards, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 type TemplateKey = 'whatsapp_template_creator' | 'whatsapp_template_student' | 'whatsapp_template_affiliate' | 'whatsapp_template_creator_sale' | 'whatsapp_template_buyer_sale';
@@ -29,6 +29,8 @@ export default function WhatsAppAutomationsPage() {
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
 
   const refreshHealth = async (silent = false) => {
     if (!silent) setCheckingHealth(true);
@@ -122,6 +124,28 @@ export default function WhatsAppAutomationsPage() {
       setRestarting(false);
     }
   };
+  const openQrCode = async () => {
+    if (health?.connected && !window.confirm('Gerar um novo QR Code irá desconectar a sessão atual do WhatsApp para conectá-la novamente. Deseja continuar?')) return;
+    setLoadingQr(true);
+    try {
+      const response = await fetch('/api/admin/whatsapp-instance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'qrcode', force: Boolean(health?.connected) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      if (data.connection?.connected) {
+        setQrCode(null);
+        toast.success('Esta instância já está conectada.');
+        await refreshHealth(true);
+        return;
+      }
+      if (!data.connection?.qrCode) throw new Error('O QR Code ainda está sendo preparado. Tente novamente em alguns segundos.');
+      setQrCode(data.connection.qrCode);
+      toast.success(data.connection?.created ? 'Instância criada. Escaneie o QR Code.' : 'Escaneie o QR Code no WhatsApp.');
+    } catch (error: any) {
+      toast.error(error.message || 'Não foi possível abrir o QR Code.');
+    } finally {
+      setLoadingQr(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -134,7 +158,7 @@ export default function WhatsAppAutomationsPage() {
           <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Saúde da instância</p><div className="mt-3 flex items-center gap-2">{health?.connected ? <Wifi className="h-6 w-6 text-emerald-400" /> : <WifiOff className="h-6 w-6 text-rose-400" />}<h2 className="text-xl font-black text-white">{health?.connected ? 'WhatsApp conectado' : health?.configured ? 'WhatsApp desconectado' : 'Integração não configurada'}</h2></div></div><button type="button" onClick={() => refreshHealth()} disabled={checkingHealth} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-bold text-slate-200 hover:border-emerald-500 disabled:opacity-60"><RefreshCw className={`h-3.5 w-3.5 ${checkingHealth ? 'animate-spin' : ''}`} /> Atualizar</button></div>
           <div className="mt-5 grid grid-cols-2 gap-3 text-xs"><div className="rounded-xl bg-slate-900 p-3"><span className="block text-slate-500">Instância</span><strong className="mt-1 block truncate text-slate-100">{health?.instanceName || '—'}</strong></div><div className="rounded-xl bg-slate-900 p-3"><span className="block text-slate-500">Estado real</span><strong className="mt-1 block capitalize text-slate-100">{health?.state || 'Consultando…'}</strong></div><div className="rounded-xl bg-slate-900 p-3"><span className="block text-slate-500">Servidor</span><strong className="mt-1 block truncate text-slate-100">{health?.server || '—'}</strong></div><div className="rounded-xl bg-slate-900 p-3"><span className="block text-slate-500">Última consulta</span><strong className="mt-1 block text-slate-100">{health?.checkedAt ? new Date(health.checkedAt).toLocaleTimeString('pt-BR') : '—'}</strong></div></div>
           {health?.error && <p className="mt-4 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-100"><AlertTriangle className="h-4 w-4 shrink-0" />{health.error}</p>}
-          <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={restart} disabled={!health?.configured || restarting} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-500/40 px-4 text-xs font-black text-amber-200 hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-40"><RotateCcw className={`h-4 w-4 ${restarting ? 'animate-spin' : ''}`} />{restarting ? 'Reconectando…' : 'Reconectar instância'}</button><button type="button" onClick={disconnect} disabled={!health?.configured || !health?.connected || disconnecting} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-500/40 px-4 text-xs font-black text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Power className="h-4 w-4" />{disconnecting ? 'Desconectando…' : 'Desconectar instância'}</button></div>
+          <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={openQrCode} disabled={!health?.configured || loadingQr} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-sky-500/40 px-4 text-xs font-black text-sky-200 hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><QrCode className="h-4 w-4" />{loadingQr ? 'Gerando QR Code…' : 'Conectar por QR Code'}</button><button type="button" onClick={restart} disabled={!health?.configured || restarting} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-500/40 px-4 text-xs font-black text-amber-200 hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-40"><RotateCcw className={`h-4 w-4 ${restarting ? 'animate-spin' : ''}`} />{restarting ? 'Reconectando…' : 'Reconectar instância'}</button><button type="button" onClick={disconnect} disabled={!health?.configured || !health?.connected || disconnecting} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-500/40 px-4 text-xs font-black text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Power className="h-4 w-4" />{disconnecting ? 'Desconectando…' : 'Desconectar instância'}</button></div>{qrCode && <div className="mt-5 rounded-2xl border border-sky-400/30 bg-sky-400/5 p-4 text-center"><p className="text-sm font-black text-white">Escaneie com o WhatsApp do celular</p><p className="mt-1 text-xs text-slate-400">WhatsApp › Dispositivos conectados › Conectar dispositivo.</p><img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code para conectar o WhatsApp" className="mx-auto mt-4 h-56 w-56 rounded-xl bg-white p-2" /><button type="button" onClick={() => setQrCode(null)} className="mt-3 text-xs font-bold text-sky-300 hover:text-sky-200">Fechar QR Code</button></div>}
         </article>
         <article className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Teste sem CPF</p><h2 className="mt-3 text-xl font-black text-white">Enviar mensagem de teste</h2><p className="mt-2 text-xs leading-relaxed text-slate-400">Use qualquer WhatsApp válido. O teste não cria conta, pedido ou cobrança.</p><label className="mt-5 block text-xs font-bold text-slate-300">WhatsApp de destino<input value={testPhone} onChange={(event) => setTestPhone(event.target.value)} inputMode="tel" placeholder="(11) 99999-9999" className="mt-2 min-h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-sm text-white outline-none focus:border-emerald-500" /></label><label className="mt-4 block text-xs font-bold text-slate-300">Mensagem<textarea value={testText} onChange={(event) => setTestText(event.target.value)} rows={4} maxLength={2000} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm leading-relaxed text-white outline-none focus:border-emerald-500" /></label><button type="button" onClick={sendTest} disabled={testing || !health?.connected} className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" />{testing ? 'Enviando…' : 'Enviar teste'}</button></article>
       </section>
