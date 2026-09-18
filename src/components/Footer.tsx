@@ -73,6 +73,7 @@ export default function Footer() {
             <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Suporte e Contato</h4>
             <ul className="space-y-4">
               <li><Link href="/ajuda" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Central de Ajuda</Link></li>
+              <li><Link href="/glossario" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Glossário Pedagógico</Link></li>
               <li><Link href="/sobre" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Sobre o Educalizando</Link></li>
               <li><Link href="/termos" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Termos de Uso</Link></li>
               <li><Link href="/privacidade" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Política de Privacidade</Link></li>
