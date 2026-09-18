@@ -1,11 +1,12 @@
-export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'creator' | 'student' | 'affiliate') {
+export async function sendWelcomeWhatsApp(phone: string, name: string, role: 'creator' | 'student' | 'affiliate', accessToken?: string | null) {
   try {
     // Agora o Client-Side (Navegador) delega a responsabilidade para o nosso Backend na Vercel
     // Isso evita bloqueios de CORS e protege nossas chaves de API
     const response = await fetch('/api/whatsapp/welcome', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
       },
       body: JSON.stringify({ phone, name, role })
     });

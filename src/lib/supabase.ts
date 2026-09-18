@@ -178,7 +178,7 @@ export async function registerCreatorInSupabase({
     }
 
     if (whatsapp) {
-      sendWelcomeWhatsApp(whatsapp, fullName, 'creator').catch(console.error);
+      await sendWelcomeWhatsApp(whatsapp, fullName, 'creator', authData.session?.access_token);
     }
 
     return { user: authData.user, storeSlug: storeData.slug };
@@ -360,7 +360,7 @@ export async function registerAffiliateInSupabase({
     }
 
     if (whatsapp) {
-      sendWelcomeWhatsApp(whatsapp, fullName, 'affiliate').catch(console.error);
+      await sendWelcomeWhatsApp(whatsapp, fullName, 'affiliate', authData.session?.access_token);
     }
 
     return { user: authData.user };

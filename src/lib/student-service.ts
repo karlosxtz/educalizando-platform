@@ -192,7 +192,7 @@ export async function registerStudentInSupabase({
     }
 
     if (whatsapp) {
-      sendWelcomeWhatsApp(whatsapp, fullName, 'student').catch(console.error);
+      await sendWelcomeWhatsApp(whatsapp, fullName, 'student', authData.session?.access_token);
     }
 
     return { user: authData.user, session: authData.session };

@@ -70,7 +70,10 @@ export async function POST(request: Request) {
     const buyerName = (metadata.full_name || rawBuyerName || (isPlrPurchase ? 'Criador' : 'Cliente')).trim();
     const buyerEmail = (user.email || rawBuyerEmail || '').toLowerCase().trim();
     const buyerCpf = String(metadata.cpf || rawBuyerCpf || '').replace(/\D/g, '');
-    const buyerPhoneDigits = String(buyerPhone || '').replace(/\D/g, '');
+    // O telefone informado no checkout tem prioridade. Caso esteja vazio,
+    // usamos o WhatsApp validado no cadastro do Cliente para permitir os
+    // avisos de pagamento e a identificação no gateway.
+    const buyerPhoneDigits = String(buyerPhone || metadata.whatsapp || metadata.phone || '').replace(/\D/g, '');
     const infinitePayPhone = buyerPhoneDigits
       ? `+${buyerPhoneDigits.startsWith('55') ? buyerPhoneDigits : `55${buyerPhoneDigits}`}`
       : undefined;
@@ -333,7 +336,7 @@ export async function POST(request: Request) {
       buyerName: buyerName,
       buyerEmail,
       buyerCpf,
-      buyerPhone: body.buyerPhone,
+      buyerPhone: buyerPhoneDigits || undefined,
       paymentMethod: normalizedMethod,
       items: realItems,
       asaasFeeAmount: gatewayFeeAmount,

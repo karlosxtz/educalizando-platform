@@ -2,11 +2,12 @@ import type { OrderRecord } from './order-service';
 import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
 import { supabaseAdmin } from './supabase';
+import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord) {
   const { data: store } = await supabaseAdmin
     .from('stores')
-    .select('creator_id')
+    .select('creator_id, nome_loja, whatsapp')
     .eq('id', order.storeId)
     .maybeSingle();
   const creatorId = store?.creator_id;
@@ -46,7 +47,13 @@ export async function notifyConfirmedSale(order: OrderRecord) {
   if (!notificationId) return;
 
   try {
-    const { data: creator } = await supabaseAdmin.auth.admin.getUserById(creatorId);
+    const [creatorResult, buyerResult] = await Promise.all([
+      supabaseAdmin.auth.admin.getUserById(creatorId),
+      order.studentId ? supabaseAdmin.auth.admin.getUserById(order.studentId) : Promise.resolve({ data: { user: null } })
+    ]);
+    const creator = creatorResult.data;
+    const buyer = buyerResult.data;
+
     if (creator?.user?.email) {
       await sendSaleNotificationToCreator({
         producerEmail: creator.user.email,
@@ -56,7 +63,35 @@ export async function notifyConfirmedSale(order: OrderRecord) {
         orderId: order.id
       });
     }
+
+    const productTitles = order.items.length
+      ? order.items.map((item) => item.productTitle || 'Material digital').join(', ')
+      : 'Material digital';
+    const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalAmount);
+    const creatorName = creator?.user?.user_metadata?.full_name || store.nome_loja || 'Criador(a)';
+    const buyerPhone = order.buyerPhone || buyer?.user?.user_metadata?.whatsapp || buyer?.user?.user_metadata?.phone || null;
+    const creatorTemplate = await getWhatsAppTemplate('creatorSale');
+    const buyerTemplate = await getWhatsAppTemplate('buyerSale');
+
+    // O envio ocorre somente após a inserção idempotente da notificação acima.
+    // Assim, chamadas repetidas do webhook não geram mensagens duplicadas.
+    await Promise.allSettled([
+      sendEvolutionText(store.whatsapp, renderWhatsAppTemplate(creatorTemplate, {
+        nome: firstName(creatorName),
+        comprador: order.buyerName || 'Um cliente',
+        produto: productTitles,
+        valor: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.creatorNetAmount),
+        pedido: order.id,
+      })),
+      sendEvolutionText(buyerPhone, renderWhatsAppTemplate(buyerTemplate, {
+        nome: firstName(order.buyerName, 'Cliente'),
+        comprador: order.buyerName || 'Cliente',
+        produto: productTitles,
+        valor: currency,
+        pedido: order.id,
+      })),
+    ]);
   } catch (error) {
-    console.error('[Sale Notification] Falha ao enviar e-mail:', error);
+    console.error('[Sale Notification] Falha ao enviar alertas da venda:', error);
   }
 }

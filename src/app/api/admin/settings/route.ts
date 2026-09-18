@@ -46,6 +46,8 @@ export async function POST(request: Request) {
     const whatsappTemplateCreator = optionalTemplate(body.whatsapp_template_creator);
     const whatsappTemplateStudent = optionalTemplate(body.whatsapp_template_student);
     const whatsappTemplateAffiliate = optionalTemplate(body.whatsapp_template_affiliate);
+    const whatsappTemplateCreatorSale = optionalTemplate(body.whatsapp_template_creator_sale);
+    const whatsappTemplateBuyerSale = optionalTemplate(body.whatsapp_template_buyer_sale);
 
     const { data: existing } = await supabaseAdmin.from('platform_settings').select('id').limit(1).single();
 
@@ -61,6 +63,8 @@ export async function POST(request: Request) {
           whatsapp_template_creator: whatsappTemplateCreator,
           whatsapp_template_student: whatsappTemplateStudent,
           whatsapp_template_affiliate: whatsappTemplateAffiliate,
+          whatsapp_template_creator_sale: whatsappTemplateCreatorSale,
+          whatsapp_template_buyer_sale: whatsappTemplateBuyerSale,
           updated_at: new Date().toISOString(),
           updated_by: 'SuperAdmin'
         })
@@ -76,6 +80,8 @@ export async function POST(request: Request) {
           whatsapp_template_creator: whatsappTemplateCreator,
           whatsapp_template_student: whatsappTemplateStudent,
           whatsapp_template_affiliate: whatsappTemplateAffiliate,
+          whatsapp_template_creator_sale: whatsappTemplateCreatorSale,
+          whatsapp_template_buyer_sale: whatsappTemplateBuyerSale,
           updated_by: 'SuperAdmin'
         }]);
     }
