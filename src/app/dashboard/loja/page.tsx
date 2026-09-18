@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Store as StoreIcon, Copy, ExternalLink, Check, Save, 
@@ -177,6 +177,12 @@ export default function StoreSettingsPage() {
     }
   };
 
+  const onInvalid = (formErrors: FieldErrors<StoreSettingsFormValues>) => {
+    const firstError = Object.values(formErrors).find((error) => error?.message)?.message;
+    setActionError(firstError ? `Não foi possível salvar: ${firstError}` : 'Não foi possível salvar. Revise os campos destacados.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -228,7 +234,7 @@ export default function StoreSettingsPage() {
         
         {/* Form Container */}
         <div className="min-w-0 lg:col-span-7 bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             
             {actionError && (
               <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
