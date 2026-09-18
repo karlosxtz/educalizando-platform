@@ -51,6 +51,8 @@ function ProductWizardContent() {
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('link');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
+  const [arquivoNome, setArquivoNome] = useState('');
+  const [driveLinkDraft, setDriveLinkDraft] = useState('');
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
@@ -129,6 +131,8 @@ function ProductWizardContent() {
             setGalleryUrls(urls);
             
             setArquivoUrl(existing.arquivo_url);
+            setArquivoNome(existing.arquivo_nome || '');
+            setDriveLinkDraft(existing.arquivo_url || '');
             if (existing.arquivo_url && (existing.arquivo_url.startsWith('http://') || existing.arquivo_url.startsWith('https://'))) {
               if (!existing.arquivo_url.includes('supabase.co')) {
                 setDeliveryMethod('link');
@@ -368,6 +372,7 @@ function ProductWizardContent() {
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
+          arquivo_nome: arquivoNome.trim() || null,
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
@@ -396,6 +401,7 @@ function ProductWizardContent() {
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
           arquivo_url: arquivoUrl,
+          arquivo_nome: arquivoNome.trim() || null,
           status,
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
@@ -986,7 +992,10 @@ function ProductWizardContent() {
                   <div className="grid gap-3 sm:grid-cols-2 mb-4">
                     <button
                       type="button"
-                      onClick={() => setDeliveryMethod('link')}
+                      onClick={() => {
+                        setDeliveryMethod('link');
+                        if (arquivoUrl?.includes('supabase.co')) setArquivoUrl(null);
+                      }}
                       className={`rounded-2xl border p-4 text-left transition-all ${
                         deliveryMethod === 'link' ? 'border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-200' : 'border-slate-200 bg-white hover:border-emerald-300'
                       }`}
@@ -1001,6 +1010,8 @@ function ProductWizardContent() {
                       onClick={() => {
                         setDeliveryMethod('upload');
                         if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
+                        setDriveLinkDraft('');
+                        setArquivoNome('');
                       }}
                       className={`rounded-2xl border p-4 text-left transition-all ${
                         deliveryMethod === 'upload' ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-200' : 'border-slate-200 bg-white hover:border-blue-300'
@@ -1031,12 +1042,31 @@ function ProductWizardContent() {
                       </h4>
                       <p className="text-xs font-medium text-slate-600">Cole um link público com permissão para qualquer pessoa com o link visualizar ou baixar.</p>
                       <input
+                        type="text"
+                        value={arquivoNome}
+                        onChange={(e) => setArquivoNome(e.target.value)}
+                        placeholder="Nome do material (ex.: Apostila completa)"
+                        className="w-full px-4 py-3 bg-white border border-emerald-200 focus:border-emerald-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
+                      />
+                      <input
                         type="url"
-                        value={arquivoUrl || ''}
-                        onChange={(e) => setArquivoUrl(e.target.value)}
+                        value={driveLinkDraft}
+                        onChange={(e) => setDriveLinkDraft(e.target.value)}
                         placeholder="https://drive.google.com/... ou https://1drv.ms/..."
                         className="w-full px-4 py-3 bg-white border border-emerald-200 focus:border-emerald-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
                       />
+                      <button type="button" onClick={() => {
+                        const normalizedLink = driveLinkDraft.trim();
+                        if (!arquivoNome.trim()) { toast.error('Informe o nome do material antes de salvar o link.'); return; }
+                        try {
+                          const parsed = new URL(normalizedLink);
+                          if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protocol');
+                        } catch { toast.error('Informe um link válido iniciado por https://.'); return; }
+                        setArquivoUrl(normalizedLink);
+                        toast.success('Link de entrega salvo.');
+                      }} className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl bg-emerald-600 px-5 text-sm font-black text-white shadow-sm transition-colors hover:bg-emerald-700"><LinkIcon className="h-4 w-4" /> Salvar link</button>
+                      {arquivoUrl && deliveryMethod === 'link' && <p className="rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-emerald-800">✓ Link salvo para entrega: {arquivoNome}</p>}
+                      <p className="text-xs font-medium text-slate-600">Aceitamos links do Google Drive, OneDrive, Mega e Dropbox. Garanta a permissão “qualquer pessoa com o link”.</p>
                     </div>
                   )}
                 </div>

@@ -55,13 +55,13 @@ export async function GET(request: Request) {
 
   const { data: delivery } = await supabaseAdmin
     .from('product_deliveries')
-    .select('arquivo_url, plr_license_url')
+    .select('arquivo_url, arquivo_nome, plr_license_url')
     .eq('product_id', id)
     .maybeSingle();
   const { store: _store, ...safeProduct } = product;
   return NextResponse.json({
     success: true,
-    product: { ...safeProduct, arquivo_url: delivery?.arquivo_url || null, plr_license_url: delivery?.plr_license_url || null }
+    product: { ...safeProduct, arquivo_url: delivery?.arquivo_url || null, arquivo_nome: delivery?.arquivo_nome || null, plr_license_url: delivery?.plr_license_url || null }
   });
 }
 
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       preco_original = null,
       capa_url, 
       arquivo_url, 
+      arquivo_nome = null,
       status = 'publicado',
       category_id,
       education_level_id,
@@ -280,6 +281,7 @@ export async function POST(request: Request) {
     const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
       product_id: insertedProduct.id,
       arquivo_url: arquivo_url || null,
+      arquivo_nome: typeof arquivo_nome === 'string' && arquivo_nome.trim() ? arquivo_nome.trim().slice(0, 160) : null,
       plr_license_url: plr_license_url || null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'product_id' });
@@ -325,7 +327,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: arquivo_url || null, plr_license_url: plr_license_url || null } });
+    return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: arquivo_url || null, arquivo_nome: typeof arquivo_nome === 'string' ? arquivo_nome.trim() || null : null, plr_license_url: plr_license_url || null } });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });
@@ -363,7 +365,7 @@ export async function PUT(request: Request) {
 
     const { data: currentDelivery } = await supabaseAdmin
       .from('product_deliveries')
-      .select('arquivo_url, plr_license_url')
+      .select('arquivo_url, arquivo_nome, plr_license_url')
       .eq('product_id', id)
       .maybeSingle();
 
@@ -463,7 +465,7 @@ export async function PUT(request: Request) {
       }
     }
 
-    const { gallery_urls, bncc_skill_ids, arquivo_url, plr_license_url, ...otherUpdates } = cleanedUpdates;
+    const { gallery_urls, bncc_skill_ids, arquivo_url, arquivo_nome, plr_license_url, ...otherUpdates } = cleanedUpdates;
     if ('arquivo_url' in cleanedUpdates) otherUpdates.has_original_delivery = Boolean(arquivo_url);
     if ('plr_license_url' in cleanedUpdates) otherUpdates.has_plr_delivery = Boolean(plr_license_url);
     otherUpdates.updated_at = new Date().toISOString();
@@ -480,10 +482,11 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (arquivo_url !== undefined || plr_license_url !== undefined) {
+    if (arquivo_url !== undefined || arquivo_nome !== undefined || plr_license_url !== undefined) {
       const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
         product_id: id,
         arquivo_url: arquivo_url !== undefined ? arquivo_url || null : currentDelivery?.arquivo_url || null,
+        arquivo_nome: arquivo_nome !== undefined ? (typeof arquivo_nome === 'string' && arquivo_nome.trim() ? arquivo_nome.trim().slice(0, 160) : null) : currentDelivery?.arquivo_nome || null,
         plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null,
         updated_at: new Date().toISOString()
       }, { onConflict: 'product_id' });
@@ -547,6 +550,7 @@ export async function PUT(request: Request) {
       product: {
         ...data,
         arquivo_url: arquivo_url !== undefined ? arquivo_url || null : currentDelivery?.arquivo_url || null,
+        arquivo_nome: arquivo_nome !== undefined ? (typeof arquivo_nome === 'string' && arquivo_nome.trim() ? arquivo_nome.trim().slice(0, 160) : null) : currentDelivery?.arquivo_nome || null,
         plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null
       }
     });

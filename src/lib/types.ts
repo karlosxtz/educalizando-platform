@@ -98,6 +98,7 @@ export interface Product {
   order_bump_id?: string | null;
   capa_url: string | null;
   arquivo_url: string | null;
+  arquivo_nome?: string | null;
   page_count?: number | null;
   age_range?: string | null;
   format_details?: string | null;
