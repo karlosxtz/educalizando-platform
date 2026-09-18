@@ -88,6 +88,8 @@ export default function ThemeDefault(props: StoreThemeProps) {
     switch (store.button_style) {
       case 'pill': return 'rounded-full';
       case 'square': return 'rounded-md';
+      case 'soft': return 'rounded-2xl';
+      case 'sharp': return 'rounded-none';
       case 'rounded':
       default: return 'rounded-xl';
     }

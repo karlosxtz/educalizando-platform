@@ -8,11 +8,6 @@ import { getPublicKitsByStoreId } from '@/lib/kit-service';
 
 // Import Themes
 import ThemeDefault from './themes/ThemeDefault';
-import ThemeMinimalist from './themes/ThemeMinimalist';
-import ThemeNetflix from './themes/ThemeNetflix';
-import ThemeLinkTree from './themes/ThemeLinkTree';
-import ThemePinterest from './themes/ThemePinterest';
-import StoreExperienceTheme from './themes/StoreExperienceTheme';
 
 interface PublicStoreClientViewProps {
   store: Store;
@@ -128,19 +123,8 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     setSelectedCollection
   };
 
-  const layout = store.layout_theme || 'default';
-
-  const theme = (() => {
-    switch (layout) {
-      case 'minimalist': return <StoreExperienceTheme {...themeProps} variant="minimalist" />;
-      case 'netflix': return <StoreExperienceTheme {...themeProps} variant="netflix" />;
-      case 'linktree': return <StoreExperienceTheme {...themeProps} variant="linktree" />;
-      case 'pinterest': return <StoreExperienceTheme {...themeProps} variant="pinterest" />;
-      case 'default':
-      default: return <ThemeDefault {...themeProps} />;
-    }
-  })();
+  const theme = <ThemeDefault {...themeProps} />;
 
   const buttonStyle = store.button_style || 'rounded';
-  return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"][class*="px-"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"][class*="px-"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"][class*="px-"]{border-radius:.75rem!important}`}</style></div>;
+  return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"][class*="px-"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"][class*="px-"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"][class*="px-"]{border-radius:.75rem!important}.store-button-style-soft button,.store-button-style-soft a[class*="rounded"][class*="px-"]{border-radius:1.25rem!important}.store-button-style-sharp button,.store-button-style-sharp a[class*="rounded"][class*="px-"]{border-radius:0!important}`}</style></div>;
 }

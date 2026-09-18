@@ -94,8 +94,7 @@ export default function StoreSettingsPage() {
   const watchedLayoutTheme = watch('layout_theme');
   const watchedAuthorImageUrl = watch('author_image_url');
   const watchedButtonStyle = watch('button_style');
-  const previewRadius = watchedButtonStyle === 'pill' ? 'rounded-full' : watchedButtonStyle === 'square' ? 'rounded-md' : 'rounded-xl';
-  const previewTheme = watchedLayoutTheme === 'netflix' ? 'Carrossel Dark' : watchedLayoutTheme === 'linktree' ? 'Link-in-Bio' : watchedLayoutTheme === 'pinterest' ? 'Pinterest Grid' : watchedLayoutTheme === 'minimalist' ? 'Minimalista' : 'Padrão';
+  const previewRadius = watchedButtonStyle === 'pill' ? 'rounded-full' : watchedButtonStyle === 'sharp' ? 'rounded-none' : watchedButtonStyle === 'square' ? 'rounded-md' : watchedButtonStyle === 'soft' ? 'rounded-2xl' : 'rounded-xl';
 
   useEffect(() => {
     async function loadStoreData() {
@@ -111,14 +110,14 @@ export default function StoreSettingsPage() {
           cor_primaria: store.cor_primaria || '#2563eb',
           whatsapp: store.whatsapp ? formatWhatsApp(store.whatsapp) : '',
           instagram: store.instagram || '',
-          layout_theme: store.layout_theme || 'default',
+          layout_theme: 'default',
           author_image_url: store.author_image_url || '',
           author_bio: store.author_bio || '',
           youtube: store.youtube || '',
           tiktok: store.tiktok || '',
           facebook: store.facebook || '',
           website: store.website || '',
-          button_style: (store.button_style as "rounded" | "pill" | "square") || 'rounded',
+          button_style: (store.button_style as "rounded" | "pill" | "square" | "soft" | "sharp") || 'rounded',
           welcome_message: store.welcome_message || '',
           bulk_discount_enabled: Boolean(store.bulk_discount_enabled),
           bulk_discount_minimum: Number(store.bulk_discount_minimum || 50),
@@ -155,7 +154,7 @@ export default function StoreSettingsPage() {
         cor_primaria: values.cor_primaria,
         whatsapp: values.whatsapp,
         instagram: values.instagram,
-        layout_theme: values.layout_theme,
+        layout_theme: 'default',
         author_image_url: values.author_image_url,
         author_bio: values.author_bio,
         youtube: values.youtube,
@@ -417,7 +416,7 @@ export default function StoreSettingsPage() {
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-2">
                 <Palette className="w-4 h-4 text-blue-600" /> Cor Primária de Destaque da Sua Vitrine Pública *
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="color"
                   {...register('cor_primaria')}
@@ -428,8 +427,8 @@ export default function StoreSettingsPage() {
                   {...register('cor_primaria')}
                   className="w-32 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono text-xs uppercase"
                 />
-                <div className="flex gap-2">
-                  {['#ff5722', '#2563eb', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'].map(color => (
+                <div className="flex flex-wrap gap-2">
+                  {['#1d4ed8', '#7c3aed', '#db2777', '#e11d48', '#ea580c', '#ca8a04', '#16a34a', '#059669', '#0891b2', '#0f766e', '#334155', '#111827'].map(color => (
                     <button
                       key={color}
                       type="button"
@@ -510,40 +509,13 @@ export default function StoreSettingsPage() {
               />
             </div>
 
-            {/* Seletor de Tema */}
+            {/* Layout único */}
             <div className="space-y-3 pb-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Tema / Layout da Vitrine Pública
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { id: 'default', name: 'Padrão (Default)', desc: 'Listagem com barra lateral' },
-                  { id: 'minimalist', name: 'Minimalista', desc: 'Foco no produto, visual limpo' },
-                  { id: 'netflix', name: 'Carrossel Dark', desc: 'Fundo escuro, estilo Netflix' },
-                  { id: 'linktree', name: 'Link-in-Bio', desc: 'Lista vertical mobile-first' },
-                  { id: 'pinterest', name: 'Pinterest Grid', desc: 'Grade moderna e densa' }
-                ].map(theme => (
-                  <label 
-                    key={theme.id}
-                    className={`cursor-pointer flex flex-col p-3 rounded-xl border-2 transition-all ${
-                      watchedLayoutTheme === theme.id 
-                        ? 'border-blue-600 bg-blue-50/50' 
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <input 
-                        type="radio" 
-                        value={theme.id} 
-                        {...register('layout_theme')} 
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="font-bold text-slate-900 text-sm">{theme.name}</span>
-                    </div>
-                    <span className="text-xs text-slate-500 pl-6">{theme.desc}</span>
-                  </label>
-                ))}
-              </div>
+              <input type="hidden" value="default" {...register('layout_theme')} />
+              <div className="rounded-xl border-2 border-blue-600 bg-blue-50/50 p-4"><p className="font-bold text-slate-900 text-sm">✓ Vitrine padrão otimizada</p><p className="mt-1 text-xs text-slate-600">Layout estável, responsivo e focado na conversão. Personalize abaixo as cores e os formatos dos botões.</p></div>
             </div>
 
             {/* Estilo dos Botões */}
@@ -551,11 +523,13 @@ export default function StoreSettingsPage() {
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Estilo dos Botões
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {[
                   { id: 'rounded', name: 'Arredondado' },
                   { id: 'pill', name: 'Pílula' },
-                  { id: 'square', name: 'Quadrado' }
+                  { id: 'square', name: 'Quadrado' },
+                  { id: 'soft', name: 'Suave' },
+                  { id: 'sharp', name: 'Reto' }
                 ].map(style => (
                   <label 
                     key={style.id}
@@ -624,7 +598,7 @@ export default function StoreSettingsPage() {
           </div>
 
           <div className={`relative overflow-hidden rounded-2xl border shadow-lg space-y-4 sticky top-6 ${watchedLayoutTheme === 'netflix' ? 'border-slate-700 bg-slate-950 text-white' : watchedLayoutTheme === 'pinterest' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
-            <div className="absolute right-3 top-3 z-20 rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-black text-white">Prévia: {previewTheme}</div>
+            <div className="absolute right-3 top-3 z-20 rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-black text-white">Prévia: padrão</div>
             {/* Banner Preview */}
             <div className="h-32 bg-slate-800 relative overflow-hidden">
               {watchedBannerUrl ? (

@@ -82,7 +82,7 @@ export const storeSettingsSchema = z.object({
   tiktok: z.string().or(z.literal('')).optional(),
   facebook: z.string().or(z.literal('')).optional(),
   website: z.string().url({ message: 'URL do site inválida.' }).or(z.literal('')).optional(),
-  button_style: z.enum(['rounded', 'pill', 'square']).optional(),
+  button_style: z.enum(['rounded', 'pill', 'square', 'soft', 'sharp']).optional(),
   welcome_message: z.string().optional(),
   bulk_discount_enabled: z.boolean().optional(),
   bulk_discount_minimum: z.coerce.number().min(0).max(100000).optional(),
