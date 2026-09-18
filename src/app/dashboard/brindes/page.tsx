@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
   FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter 
+  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Search, LockKeyhole, RotateCcw, CheckCircle2
 } from 'lucide-react';
 
 import { 
@@ -35,6 +35,9 @@ export default function ProductsManagementPage() {
   // Filters
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedEducationFilter, setSelectedEducationFilter] = useState<string>('all');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Modals State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -149,7 +152,8 @@ export default function ProductsManagementPage() {
         arquivo_url: data.arquivo_url,
         status: data.status,
         category_id: data.category_id,
-        education_level_id: data.education_level_id
+        education_level_id: data.education_level_id,
+        is_free: true
       });
       setProducts(prev => [created, ...prev]);
     }
@@ -159,7 +163,11 @@ export default function ProductsManagementPage() {
   const filteredProducts = products.filter(p => {
     const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter;
     const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter;
-    return matchCategory && matchEducation;
+    const matchType = selectedTypeFilter === 'all' || p.tipo === selectedTypeFilter;
+    const matchStatus = selectedStatusFilter === 'all' || p.status === selectedStatusFilter;
+    const searchableText = `${p.titulo} ${p.descricao || ''}`.toLocaleLowerCase('pt-BR');
+    const matchSearch = !searchTerm.trim() || searchableText.includes(searchTerm.trim().toLocaleLowerCase('pt-BR'));
+    return matchCategory && matchEducation && matchType && matchStatus && matchSearch;
   });
 
   const getTipoIcon = (tipo: ProductType) => {
@@ -193,6 +201,30 @@ export default function ProductsManagementPage() {
     ...educationLevels.map(e => ({ value: e.id, label: e.nome }))
   ];
 
+  const typeFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todos os formatos' },
+    { value: 'pdf', label: 'PDF' },
+    { value: 'ebook', label: 'E-book' },
+    { value: 'video', label: 'Vídeo' },
+    { value: 'curso', label: 'Curso' },
+    { value: 'simulado', label: 'Simulado' },
+  ];
+
+  const statusFilterOptions: CustomSelectOption[] = [
+    { value: 'all', label: 'Todos os status' },
+    { value: 'publicado', label: 'Publicados' },
+    { value: 'rascunho', label: 'Rascunhos' },
+  ];
+
+  const hasActiveFilters = selectedCategoryFilter !== 'all' || selectedEducationFilter !== 'all' || selectedTypeFilter !== 'all' || selectedStatusFilter !== 'all' || Boolean(searchTerm.trim());
+  const clearFilters = () => {
+    setSelectedCategoryFilter('all');
+    setSelectedEducationFilter('all');
+    setSelectedTypeFilter('all');
+    setSelectedStatusFilter('all');
+    setSearchTerm('');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -210,7 +242,7 @@ export default function ProductsManagementPage() {
             <Package className="w-7 h-7 text-brand-navy" /> Meus Materiais Grátis ({products.length})
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Cadastre e gerencie suas apostilas, e-books e cursos categorizados por tema e escolaridade.
+            Brindes exclusivos para clientes que já compraram em sua loja.
           </p>
         </div>
 
@@ -240,15 +272,30 @@ export default function ProductsManagementPage() {
         </div>
       )}
 
-      {/* Styled Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-          <Filter className="w-4 h-4 text-blue-600" /> Filtrar Por:
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white"><LockKeyhole className="h-5 w-5" /></div>
+          <div>
+            <h2 className="font-black text-emerald-950">Materiais grátis liberados por compra</h2>
+            <p className="mt-1 max-w-4xl text-sm leading-6 text-emerald-900">Seus materiais grátis aparecem somente para clientes que já fizeram uma compra aprovada nesta mesma loja. Quem nunca comprou na plataforma — ou comprou em outra loja — não consegue acessar estes brindes.</p>
+          </div>
         </div>
+      </section>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+      {/* Styled Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+            <Filter className="w-4 h-4 text-blue-600" /> Encontre um material
+          </div>
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar por título ou descrição" className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {/* Custom Category Select */}
-          <div className="w-full sm:w-56">
+          <div className="w-full">
             <CustomSelect
               options={categoryFilterOptions}
               value={selectedCategoryFilter}
@@ -258,7 +305,7 @@ export default function ProductsManagementPage() {
           </div>
 
           {/* Custom Education Level Select */}
-          <div className="w-full sm:w-56">
+          <div className="w-full">
             <CustomSelect
               options={educationFilterOptions}
               value={selectedEducationFilter}
@@ -266,7 +313,15 @@ export default function ProductsManagementPage() {
               icon={<GraduationCap className="w-4 h-4" />}
             />
           </div>
+          <div className="w-full">
+            <CustomSelect options={typeFilterOptions} value={selectedTypeFilter} onChange={setSelectedTypeFilter} icon={<FileText className="w-4 h-4" />} />
+          </div>
+          <div className="w-full">
+            <CustomSelect options={statusFilterOptions} value={selectedStatusFilter} onChange={setSelectedStatusFilter} icon={<Eye className="w-4 h-4" />} />
+          </div>
+          <button onClick={clearFilters} disabled={!hasActiveFilters} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"><RotateCcw className="h-4 w-4" /> Limpar</button>
         </div>
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Exibindo {filteredProducts.length} de {products.length} materiais grátis.</div>
       </div>
 
       {/* Products Catalog Grid */}
@@ -277,7 +332,7 @@ export default function ProductsManagementPage() {
             {products.length === 0 ? 'Você ainda não publicou nenhum material grátis' : 'Nenhum material grátis atende a este filtro'}
           </h3>
           <p className="text-sm text-slate-500">
-            Sua loja está pronta! Abra o Wizard guiado para cadastrar seu primeiro e-book ou apostila em PDF.
+            {products.length === 0 ? 'Sua loja está pronta! Cadastre um brinde para clientes que já compraram nesta loja.' : 'Ajuste ou limpe os filtros para visualizar seus materiais.'}
           </p>
           <button
             onClick={handleOpenCreateWizard}
