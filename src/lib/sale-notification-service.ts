@@ -2,7 +2,7 @@ import type { OrderRecord } from './order-service';
 import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
 import { supabaseAdmin } from './supabase';
-import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
+import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionDocument, sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord) {
   const { data: store } = await supabaseAdmin
@@ -91,6 +91,23 @@ export async function notifyConfirmedSale(order: OrderRecord) {
         pedido: order.id,
       })),
     ]);
+
+    // Envia os documentos diretamente no WhatsApp quando o criador forneceu
+    // uma URL pública. O texto acima sempre mantém a biblioteca como fallback.
+    if (buyerPhone && order.items.length) {
+      const productIds = order.items.map(item => item.productId).filter(Boolean);
+      const { data: deliveries } = await supabaseAdmin
+        .from('product_deliveries')
+        .select('product_id, arquivo_url, arquivo_nome')
+        .in('product_id', productIds);
+      await Promise.allSettled((deliveries || [])
+        .filter(delivery => typeof delivery.arquivo_url === 'string' && /^https:\/\//i.test(delivery.arquivo_url))
+        .slice(0, 5)
+        .map(delivery => {
+          const item = order.items.find(candidate => candidate.productId === delivery.product_id);
+          return sendEvolutionDocument(buyerPhone, delivery.arquivo_url, delivery.arquivo_nome || `${item?.productTitle || 'material'}.pdf`, `📎 ${item?.productTitle || 'Material comprado'}`);
+        }));
+    }
   } catch (error) {
     console.error('[Sale Notification] Falha ao enviar alertas da venda:', error);
   }

@@ -2,7 +2,7 @@ import 'server-only';
 import { Resend } from 'resend';
 
 type MailResult = { sent: boolean; id?: string; error?: string };
-type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string }>; creatorWhatsapp?: string | null };
+type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string; fileUrl?: string | null; fileName?: string | null }>; creatorWhatsapp?: string | null };
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
 const from = process.env.RESEND_FROM_EMAIL || 'Educalizando <onboarding@resend.dev>';
@@ -25,10 +25,12 @@ export async function getMailConfiguration() {
   }
 }
 
-async function send(to: string, subject: string, html: string): Promise<MailResult> {
+async function send(to: string, subject: string, html: string, attachments?: Array<{ path: string; filename: string }>): Promise<MailResult> {
   if (!resend) return { sent: false, error: 'RESEND_API_KEY não configurada no servidor.' };
   if (!to?.includes('@')) return { sent: false, error: 'E-mail do destinatário inválido.' };
-  const { data, error } = await resend.emails.send({ from, to, subject, html });
+  let { data, error } = await resend.emails.send({ from, to, subject, html, ...(attachments?.length ? { attachments } : {}) });
+  // Um arquivo remoto indisponível não pode impedir a confirmação da compra.
+  if (error && attachments?.length) ({ data, error } = await resend.emails.send({ from, to, subject, html }));
   if (error) { console.error('[Resend]', error); return { sent: false, error: error.message || 'A Resend recusou o envio.' }; }
   return { sent: true, id: data?.id };
 }
@@ -55,7 +57,8 @@ export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
 export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   const phone = params.creatorWhatsapp?.replace(/\D/g, '');
   const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
-  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Para materiais em PDF, o download gera uma cópia licenciada vinculada à sua compra.</p>${help}`));
+  const attachments = (params.products || []).filter(item => /^https:\/\//i.test(item.fileUrl || '')).slice(0, 5).map(item => ({ path: item.fileUrl!, filename: item.fileName || `${item.title}.pdf` }));
+  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Quando o arquivo permitir anexo remoto, ele segue anexado a este e-mail. A biblioteca sempre mantém o acesso seguro.</p>${help}`), attachments);
 }
 export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
   const [payment, delivery] = await Promise.all([sendPaymentConfirmedEmail(params), sendMaterialDeliveryEmail(params)]);

@@ -616,6 +616,12 @@ export async function updateOrderStatus(
         }
 
         const { sendSaleConfirmationToBuyer } = await import('./mail-service');
+        let deliveryByProduct = new Map<string, { arquivo_url: string | null; arquivo_nome: string | null }>();
+        if (isRealSupabaseConfigured() && order.items.length) {
+          const { supabaseAdmin } = await import('./supabase');
+          const { data: deliveries } = await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome').in('product_id', order.items.map(item => item.productId));
+          deliveryByProduct = new Map((deliveries || []).map(item => [item.product_id, item]));
+        }
         const productTitles = order.items.length > 0 
           ? order.items.map(it => it.productTitle || 'Infoproduto Digital').join(', ')
           : 'Kit Combo Digital';
@@ -625,7 +631,10 @@ export async function updateOrderStatus(
           buyerName: order.buyerName,
           orderId: order.id,
           productTitles,
-          products: order.items.map(it => ({ id: it.productId, title: it.productTitle || 'Material digital' })),
+          products: order.items.map(it => {
+            const delivery = deliveryByProduct.get(it.productId);
+            return { id: it.productId, title: it.productTitle || 'Material digital', fileUrl: delivery?.arquivo_url, fileName: delivery?.arquivo_nome };
+          }),
           creatorWhatsapp
         });
       } catch (mailErr) {
