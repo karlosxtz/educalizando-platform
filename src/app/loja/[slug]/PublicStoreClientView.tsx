@@ -142,5 +142,5 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   })();
 
   const buttonStyle = store.button_style || 'rounded';
-  return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"]{border-radius:.75rem!important}`}</style></div>;
+  return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"][class*="px-"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"][class*="px-"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"][class*="px-"]{border-radius:.75rem!important}`}</style></div>;
 }
