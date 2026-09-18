@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
-import { getEvolutionInstanceHealth, logoutEvolutionInstance, sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { getEvolutionInstanceHealth, logoutEvolutionInstance, restartEvolutionInstance, sendEvolutionText } from '@/lib/whatsapp-notification-service';
 
 export async function GET(request: Request) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
@@ -27,6 +27,12 @@ export async function POST(request: Request) {
   if (body.action === 'disconnect') {
     const result = await logoutEvolutionInstance();
     if (!result.disconnected) return NextResponse.json({ error: result.error || 'Não foi possível desconectar a instância.' }, { status: 503 });
+    return NextResponse.json({ success: true });
+  }
+
+  if (body.action === 'restart') {
+    const result = await restartEvolutionInstance();
+    if (!result.restarted) return NextResponse.json({ error: result.error || 'Não foi possível reiniciar a instância.' }, { status: 503 });
     return NextResponse.json({ success: true });
   }
 

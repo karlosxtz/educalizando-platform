@@ -163,3 +163,20 @@ export async function logoutEvolutionInstance(): Promise<{ disconnected: boolean
     return { disconnected: false, error: 'Não foi possível desconectar a instância.' };
   }
 }
+
+export async function restartEvolutionInstance(): Promise<{ restarted: boolean; error?: string }> {
+  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  if (!apiKey || !instanceName) return { restarted: false, error: 'A Evolution não está configurada.' };
+
+  try {
+    const response = await fetch(`${baseUrl}/instance/restart/${encodeURIComponent(instanceName)}`, {
+      method: 'POST',
+      headers: { apikey: apiKey },
+      cache: 'no-store',
+    });
+    if (!response.ok) return { restarted: false, error: `A Evolution não conseguiu reiniciar a instância (status ${response.status}).` };
+    return { restarted: true };
+  } catch {
+    return { restarted: false, error: 'Não foi possível reiniciar a instância.' };
+  }
+}
