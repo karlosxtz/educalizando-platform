@@ -72,13 +72,13 @@ export async function getWhatsAppTemplate(key: WhatsAppTemplateKey): Promise<str
   return DEFAULT_TEMPLATES[key];
 }
 
-export async function sendEvolutionText(phone: unknown, text: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
+export async function sendEvolutionText(phone: unknown, text: string, instanceOverride?: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
   const number = normalizeWhatsAppNumber(phone);
   if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
 
   const apiKey = process.env.EVOLUTION_API_KEY;
   const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');
-  const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
+  const instanceName = instanceOverride || process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
   if (!apiKey || !instanceName) {
     console.warn('[WhatsApp] Evolution API não configurada. Defina EVOLUTION_API_KEY e EVOLUTION_INSTANCE_NAME.');
     return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
