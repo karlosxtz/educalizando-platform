@@ -163,106 +163,42 @@ function saveLocalAccessLogs(logs: AccessEventLog[]) {
   }
 }
 
+function mapContentRow(d: any, storeId: string, idx = 0): ContentItem {
+  return {
+    id: d.id,
+    storeId: d.store_id || storeId,
+    productId: d.product_id || null,
+    productTitle: d.product_title || null,
+    titulo: d.titulo,
+    descricao: d.descricao || null,
+    tipo: d.tipo === 'LINK_EXTERNO' ? 'LINK_EXTERNO' : 'ARQUIVO',
+    url: d.url,
+    fileName: d.file_name || null,
+    fileSizeBytes: d.file_size_bytes || null,
+    fileSizeFormatted: d.file_size_formatted || null,
+    mimeType: d.mime_type || null,
+    downloadsCount: Number(d.downloads_count || 0),
+    externalAccessCount: Number(d.external_access_count || 0),
+    downloadLimit: d.download_limit ? Number(d.download_limit) : null,
+    validityDays: d.validity_days ? Number(d.validity_days) : null,
+    active: d.active !== false,
+    orderIndex: d.order_index ?? idx,
+    createdAt: d.created_at || new Date().toISOString(),
+    updatedAt: d.updated_at || new Date().toISOString()
+  };
+}
+
 // 2. Buscar Todos os Conteúdos por Loja (Isolamento por store_id)
 export async function getContentByStoreId(storeId: string): Promise<ContentItem[]> {
   if (!storeId) return [];
 
-  let contents: ContentItem[] = [];
-
   if (isRealSupabaseConfigured()) {
-    try {
-      const { data, error } = await supabase
-        .from('digital_contents')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('order_index', { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        contents = data.map((d: any, idx: number) => ({
-          id: d.id,
-          storeId: d.store_id || storeId,
-          productId: d.product_id || null,
-          productTitle: d.product_title || null,
-          titulo: d.titulo,
-          descricao: d.descricao || null,
-          tipo: d.tipo === 'LINK_EXTERNO' ? 'LINK_EXTERNO' : 'ARQUIVO',
-          url: d.url,
-          fileName: d.file_name || null,
-          fileSizeBytes: d.file_size_bytes || null,
-          fileSizeFormatted: d.file_size_formatted || null,
-          mimeType: d.mime_type || null,
-          downloadsCount: Number(d.downloads_count || 0),
-          externalAccessCount: Number(d.external_access_count || 0),
-          downloadLimit: d.download_limit ? Number(d.download_limit) : null,
-          validityDays: d.validity_days ? Number(d.validity_days) : null,
-          active: d.active !== false,
-          orderIndex: d.order_index ?? idx,
-          createdAt: d.created_at || new Date().toISOString(),
-          updatedAt: d.updated_at || new Date().toISOString()
-        }));
-      }
-    } catch (e) {
-      console.error('[getContentByStoreId] Erro no Supabase:', e);
-    }
+    const { data, error } = await supabase.from('digital_contents').select('*').eq('store_id', storeId).order('order_index', { ascending: true });
+    if (error) throw new Error(`Não foi possível carregar os conteúdos reais: ${error.message}`);
+    return (data || []).map((item, idx) => mapContentRow(item, storeId, idx));
   }
 
-  if (contents.length === 0) {
-    const allLocal = getLocalContents();
-    contents = allLocal.filter(c => c.storeId === storeId);
-    
-    // Conteúdos iniciais padrão se ainda não existirem no localStorage
-    if (contents.length === 0) {
-      contents = [
-        {
-          id: 'cnt_demo_pdf_1',
-          storeId: storeId,
-          productId: 'prod_1',
-          productTitle: 'Apostila Completa de Legislação Educacional 2026',
-          titulo: 'E-book PDF Esquematizado (Edição 2026)',
-          descricao: 'Material didático oficial em PDF para impressão ou leitura digital.',
-          tipo: 'ARQUIVO',
-          url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-          fileName: 'Apostila_Legislação_Educalizando.pdf',
-          fileSizeBytes: 4200000,
-          fileSizeFormatted: '4.2 MB',
-          mimeType: 'application/pdf',
-          downloadsCount: 14,
-          externalAccessCount: 0,
-          downloadLimit: 5,
-          validityDays: 365,
-          active: true,
-          orderIndex: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'cnt_demo_link_2',
-          storeId: storeId,
-          productId: 'prod_1',
-          productTitle: 'Apostila Completa de Legislação Educacional 2026',
-          titulo: 'Videoaula 01 — Fundamentos da Legislação (YouTube)',
-          descricao: 'Link exclusivo para assistir a aula no YouTube.',
-          tipo: 'LINK_EXTERNO',
-          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          fileName: null,
-          fileSizeBytes: null,
-          fileSizeFormatted: null,
-          mimeType: null,
-          downloadsCount: 0,
-          externalAccessCount: 32,
-          downloadLimit: null,
-          validityDays: null,
-          active: true,
-          orderIndex: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      saveLocalContents(contents);
-    }
-  }
-
-  return contents.sort((a, b) => a.orderIndex - b.orderIndex);
+  return getLocalContents().filter(c => c.storeId === storeId).sort((a, b) => a.orderIndex - b.orderIndex);
 }
 
 // 3. Buscar Conteúdos Vinculados a um Produto Específico
@@ -274,6 +210,7 @@ export async function getContentByProductId(storeId: string, productId: string):
 // 4. Obter Métricas da Tela Principal do Módulo
 export async function getContentDeliveryMetrics(storeId: string): Promise<ContentDeliveryMetrics> {
   const contents = await getContentByStoreId(storeId);
+  const accessLogs = await getStoreAccessLogs(storeId);
 
   const productIdsWithContent = new Set(contents.filter(c => c.productId).map(c => c.productId));
   const totalProdutosComConteudo = productIdsWithContent.size;
@@ -282,8 +219,8 @@ export async function getContentDeliveryMetrics(storeId: string): Promise<Conten
   const totalArquivos = contents.filter(c => c.tipo === 'ARQUIVO').length;
   const totalLinksExternos = contents.filter(c => c.tipo === 'LINK_EXTERNO').length;
 
-  const totalDownloads = contents.reduce((acc, c) => acc + c.downloadsCount, 0);
-  const totalAcessos = contents.reduce((acc, c) => acc + c.downloadsCount + c.externalAccessCount, 0);
+  const totalDownloads = accessLogs.filter(log => log.tipoEvento === 'FILE_DOWNLOAD').length;
+  const totalAcessos = accessLogs.length;
 
   return {
     totalProdutosComConteudo,
@@ -351,9 +288,7 @@ export async function createContentItem(storeId: string, itemData: {
   };
 
   if (isRealSupabaseConfigured()) {
-    try {
-      await supabase.from('digital_contents').insert([{
-        id: newItem.id,
+    const { data, error } = await supabase.from('digital_contents').insert([{
         store_id: storeId,
         product_id: newItem.productId,
         product_title: newItem.productTitle,
@@ -372,10 +307,9 @@ export async function createContentItem(storeId: string, itemData: {
         active: true,
         order_index: newItem.orderIndex,
         created_at: newItem.createdAt
-      }]);
-    } catch (e) {
-      console.error('[createContentItem] Erro no Supabase:', e);
-    }
+      }]).select().single();
+    if (error || !data) throw new Error(error?.message || 'O conteúdo não foi salvo no banco de dados.');
+    return mapContentRow(data, storeId, newItem.orderIndex);
   }
 
   const allLocal = getLocalContents();
@@ -387,6 +321,22 @@ export async function createContentItem(storeId: string, itemData: {
 
 // 6. Atualizar Conteúdo Existente
 export async function updateContentItem(storeId: string, contentId: string, updates: Partial<ContentItem>): Promise<ContentItem | null> {
+  if (isRealSupabaseConfigured()) {
+    const { data, error } = await supabase.from('digital_contents').update({
+      titulo: updates.titulo,
+      descricao: updates.descricao,
+      tipo: updates.tipo,
+      url: updates.url,
+      download_limit: updates.downloadLimit,
+      validity_days: updates.validityDays,
+      active: updates.active,
+      order_index: updates.orderIndex,
+      updated_at: new Date().toISOString()
+    }).eq('id', contentId).eq('store_id', storeId).select().single();
+    if (error || !data) throw new Error(error?.message || 'O conteúdo não foi atualizado no banco de dados.');
+    return mapContentRow(data, storeId);
+  }
+
   const all = getLocalContents();
   const index = all.findIndex(c => c.id === contentId && c.storeId === storeId);
   if (index === -1) return null;
@@ -400,35 +350,15 @@ export async function updateContentItem(storeId: string, contentId: string, upda
   all[index] = updated;
   saveLocalContents(all);
 
-  if (isRealSupabaseConfigured()) {
-    try {
-      await supabase.from('digital_contents').update({
-        titulo: updated.titulo,
-        descricao: updated.descricao,
-        tipo: updated.tipo,
-        url: updated.url,
-        download_limit: updated.downloadLimit,
-        validity_days: updated.validityDays,
-        active: updated.active,
-        order_index: updated.orderIndex,
-        updated_at: updated.updatedAt
-      }).eq('id', contentId).eq('store_id', storeId);
-    } catch (e) {
-      console.error('[updateContentItem] Erro no Supabase:', e);
-    }
-  }
-
   return updated;
 }
 
 // 7. Excluir Conteúdo Digital (Soft Delete / Hard Delete com verificação)
 export async function deleteContentItem(storeId: string, contentId: string): Promise<boolean> {
   if (isRealSupabaseConfigured()) {
-    try {
-      await supabase.from('digital_contents').delete().eq('id', contentId).eq('store_id', storeId);
-    } catch (e) {
-      // Ignorar se não existir no banco remoto
-    }
+    const { error } = await supabase.from('digital_contents').delete().eq('id', contentId).eq('store_id', storeId);
+    if (error) throw new Error(error.message);
+    return true;
   }
 
   const allLocal = getLocalContents();
@@ -439,6 +369,13 @@ export async function deleteContentItem(storeId: string, contentId: string): Pro
 
 // 8. Reordenar Conteúdos de um Produto
 export async function reorderContents(storeId: string, orderedIds: string[]): Promise<void> {
+  if (isRealSupabaseConfigured()) {
+    const updates = orderedIds.map((id, index) => supabase.from('digital_contents').update({ order_index: index, updated_at: new Date().toISOString() }).eq('id', id).eq('store_id', storeId));
+    const results = await Promise.all(updates);
+    const failed = results.find(result => result.error);
+    if (failed?.error) throw new Error(failed.error.message);
+    return;
+  }
   const all = getLocalContents();
   orderedIds.forEach((id, newIdx) => {
     const item = all.find(c => c.id === id && c.storeId === storeId);
@@ -567,6 +504,16 @@ export async function recordAccessEvent(event: {
     data: new Date().toISOString()
   };
 
+  if (isRealSupabaseConfigured()) {
+    const { error } = await supabase.from('content_access_events').insert({
+      store_id: event.storeId, customer_id: event.customerId || null, customer_name: event.customerName || null,
+      customer_email: event.customerEmail || null, content_id: event.contentId, content_title: event.contentTitle,
+      product_id: event.productId || null, product_title: event.productTitle || null, event_type: event.tipoEvento
+    });
+    if (error) throw new Error(error.message);
+    return newLog;
+  }
+
   const allContents = getLocalContents();
   const target = allContents.find(c => c.id === event.contentId);
   if (target) {
@@ -587,6 +534,11 @@ export async function recordAccessEvent(event: {
 
 // 11. Obter Logs de Acesso da Loja
 export async function getStoreAccessLogs(storeId: string): Promise<AccessEventLog[]> {
+  if (isRealSupabaseConfigured()) {
+    const { data, error } = await supabase.from('content_access_events').select('*').eq('store_id', storeId).order('created_at', { ascending: false });
+    if (error) throw new Error(`Não foi possível carregar os acessos reais: ${error.message}`);
+    return (data || []).map((item: any) => ({ id: item.id, storeId: item.store_id, customerId: item.customer_id, customerName: item.customer_name, customerEmail: item.customer_email, contentId: item.content_id, contentTitle: item.content_title, productId: item.product_id, productTitle: item.product_title, tipoEvento: item.event_type, data: item.created_at, ip: item.ip || null }));
+  }
   const all = getLocalAccessLogs();
   return all.filter(l => l.storeId === storeId);
 }

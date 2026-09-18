@@ -112,6 +112,7 @@ export async function GET(
     let productTitle = 'Material Didatico Educalizando';
     let fileUrl: string | null = null;
     let fileExt = 'pdf';
+    let deliveredContent: { id: string; storeId: string; title: string } | null = null;
 
     const { searchParams } = new URL(request.url);
     const contentId = searchParams.get('contentId');
@@ -121,7 +122,7 @@ export async function GET(
       if (contentId) {
         const { data: itemData } = await supabaseAdmin
           .from('digital_contents')
-          .select('titulo, url, file_name')
+          .select('id, store_id, titulo, url, file_name')
           .eq('id', contentId)
           .eq('product_id', productId)
           .maybeSingle();
@@ -129,6 +130,7 @@ export async function GET(
         if (itemData) {
           if (itemData.titulo) productTitle = itemData.titulo;
           if (itemData.url) fileUrl = itemData.url;
+          deliveredContent = { id: itemData.id, storeId: itemData.store_id, title: itemData.titulo || productTitle };
         }
       }
 
@@ -172,6 +174,19 @@ export async function GET(
 
     // 4. Resolver URL de Download (Suporte para URLs externas, Signed URLs e Supabase Storage)
     if (fileUrl && typeof fileUrl === 'string') {
+      if (deliveredContent) {
+        const { error: accessEventError } = await supabaseAdmin.from('content_access_events').insert({
+          store_id: deliveredContent.storeId,
+          customer_id: studentId,
+          customer_name: user.user_metadata?.full_name || null,
+          customer_email: user.email || null,
+          content_id: deliveredContent.id,
+          content_title: deliveredContent.title,
+          product_id: productId,
+          event_type: 'FILE_DOWNLOAD',
+        });
+        if (accessEventError) return NextResponse.json({ error: 'Não foi possível registrar o download.' }, { status: 500 });
+      }
       let activeUrl = fileUrl;
 
       // EXTRAÇÃO CRÍTICA: Se a URL no banco for uma URL pública do próprio Supabase (que falha em buckets privados),

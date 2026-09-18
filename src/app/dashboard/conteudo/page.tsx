@@ -23,6 +23,7 @@ export default function ContentDeliveryDashboardPage() {
 
   const [storeId, setStoreId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [metrics, setMetrics] = useState<ContentDeliveryMetrics>({
@@ -55,6 +56,7 @@ export default function ContentDeliveryDashboardPage() {
 
   async function loadData() {
     setLoading(true);
+    setLoadError(null);
     try {
       const [prodsData, contsData, metData] = await Promise.all([
         getProductsByStoreId(storeId),
@@ -66,6 +68,7 @@ export default function ContentDeliveryDashboardPage() {
       setMetrics(metData);
     } catch (err) {
       console.error('Erro ao carregar módulo Conteúdo & Entregas:', err);
+      setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar os dados reais da sua loja.');
     } finally {
       setLoading(false);
     }
@@ -129,6 +132,12 @@ export default function ContentDeliveryDashboardPage() {
         </div>
       </div>
 
+      {loadError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <div className="flex flex-wrap items-center justify-between gap-3"><span><b>Dados não carregados.</b> {loadError}</span><button onClick={() => void loadData()} className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-3 py-2 text-xs font-black text-white"><RefreshCw className="h-4 w-4" /> Tentar novamente</button></div>
+        </div>
+      )}
+
       {/* 4 Section 8 Metric Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
         {/* Card 1: Produtos com Conteúdo */}
@@ -186,9 +195,7 @@ export default function ContentDeliveryDashboardPage() {
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-medium">
         <div className="flex items-center gap-2">
           <Info className="w-5 h-5 text-brand-teal flex-shrink-0" />
-          <span>
-            <strong>Fluxo Automático:</strong> Quando o pagamento do pedido é confirmado, o comprador recebe acesso imediato aos materiais cadastrados abaixo.
-          </span>
+          <span><strong>Fluxo automático e rastreado:</strong> após o pagamento confirmado, o comprador recebe acesso aos materiais cadastrados. Downloads e links externos são contabilizados a partir dos acessos reais.</span>
         </div>
       </div>
 
@@ -293,11 +300,7 @@ export default function ContentDeliveryDashboardPage() {
                       {/* Product Name & Cover */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={prod.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
-                            alt={prod.titulo}
-                            className="w-10 h-12 object-cover rounded-xl border border-slate-200 shadow-2xs flex-shrink-0"
-                          />
+                          {prod.capa_url ? <img src={prod.capa_url} alt={prod.titulo} className="w-10 h-12 object-cover rounded-xl border border-slate-200 shadow-2xs flex-shrink-0" /> : <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-[9px] font-bold text-slate-400">Sem capa</div>}
                           <span className="font-bold text-slate-900 text-sm">{prod.titulo}</span>
                         </div>
                       </td>

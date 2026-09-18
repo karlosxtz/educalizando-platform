@@ -139,10 +139,10 @@ export default function ProductContentManagementPage({ params }: ProductContentP
           descricao: formDescricao.trim() || undefined,
           tipo: formTipo,
           url: formUrl.trim(),
-          fileName: formTipo === 'ARQUIVO' ? 'Material_Didatico_Educalizando.pdf' : undefined,
-          fileSizeBytes: formTipo === 'ARQUIVO' ? 2500000 : undefined,
-          fileSizeFormatted: formTipo === 'ARQUIVO' ? '2.5 MB' : undefined,
-          mimeType: formTipo === 'ARQUIVO' ? 'application/pdf' : undefined,
+          fileName: formTipo === 'ARQUIVO' ? formUrl.split('/').pop()?.split('?')[0] || undefined : undefined,
+          fileSizeBytes: undefined,
+          fileSizeFormatted: undefined,
+          mimeType: undefined,
           downloadLimit,
           validityDays
         });
@@ -192,7 +192,6 @@ export default function ProductContentManagementPage({ params }: ProductContentP
   }
 
   const productTitle = product?.titulo || 'Produto Digital';
-  const productCover = product?.capa_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&auto=format&fit=crop&q=80';
 
   return (
     <div className="space-y-8 font-sans pb-12">
@@ -210,16 +209,12 @@ export default function ProductContentManagementPage({ params }: ProductContentP
       {/* Main Product Header Card */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          <img
-            src={productCover}
-            alt={productTitle}
-            className="w-20 h-24 object-cover rounded-2xl border border-slate-200 shadow-xs flex-shrink-0"
-          />
+          {product?.capa_url ? <img src={product.capa_url} alt={productTitle} className="w-20 h-24 object-cover rounded-2xl border border-slate-200 shadow-xs flex-shrink-0" /> : <div className="flex h-24 w-20 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-center text-[10px] font-bold text-slate-400">Sem capa</div>}
           <div className="space-y-1.5">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">{productTitle}</h1>
-              <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Produto Ativo
+              <span className={`px-3 py-0.5 rounded-full text-xs font-extrabold border ${product?.status === 'publicado' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                {product?.status === 'publicado' ? 'Produto publicado' : 'Produto em rascunho'}
               </span>
             </div>
             <p className="text-xs text-slate-500 font-medium">

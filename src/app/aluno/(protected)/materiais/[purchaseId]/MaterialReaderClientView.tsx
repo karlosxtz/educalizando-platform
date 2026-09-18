@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen, FileText, Video, Layers, HelpCircle, Boxes, ShieldCheck, Loader2, AlertCircle, FolderCheck, Download, ExternalLink } from 'lucide-react';
 
 import { getCurrentStudentSession, getStudentPurchaseById } from '@/lib/student-service';
-import { getContentByProductId, authorizeStudentContentAccess, ContentItem } from '@/lib/content-delivery-service';
+import { getContentByProductId, ContentItem } from '@/lib/content-delivery-service';
 import { Purchase, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
 
@@ -186,26 +186,17 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
       return;
     }
 
-    const grant = await authorizeStudentContentAccess({
-      storeId: purchase.store_id,
-      studentEmail: studentSession.email,
-      contentId: item.id,
-      productId: item.productId || undefined
-    });
-
-    if (!grant.authorized) {
+    try {
+      const productId = item.productId || purchase.product_id;
+      const response = await fetch(`/api/aluno/conteudos/${item.id}/acessar?productId=${encodeURIComponent(productId || '')}`);
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Acesso não autorizado ao conteúdo.');
+      window.open(payload.url, '_blank', 'noopener,noreferrer');
+      setAccessNotice({ type: 'success', message: 'Acesso ao link externo liberado!' });
+    } catch (error: any) {
       setAccessNotice({
         type: 'error',
-        message: grant.errorMessage || 'Acesso não autorizado ao conteúdo.'
-      });
-      return;
-    }
-
-    if (grant.url) {
-      window.open(grant.url, '_blank');
-      setAccessNotice({
-        type: 'success',
-        message: 'Acesso ao link externo liberado!'
+        message: error?.message || 'Acesso não autorizado ao conteúdo.'
       });
     }
   };
