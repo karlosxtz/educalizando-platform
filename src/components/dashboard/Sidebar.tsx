@@ -242,9 +242,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
           {/* Current Store Badge */}
           <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-brand-navy text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+            {store?.logo_url ? <img src={store.logo_url} alt={`Logo ${storeName}`} className="h-9 w-9 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5 shadow-xs" /> : <div className="w-9 h-9 rounded-lg bg-brand-navy text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
               {storeName.charAt(0).toUpperCase()}
-            </div>
+            </div>}
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sua Loja Ativa:</span>
               <span className="text-xs font-bold text-slate-900 truncate block">{storeName}</span>
