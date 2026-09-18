@@ -48,7 +48,20 @@ export async function POST(request: Request) {
 
     const payload = object(await request.json());
     const event = String(payload.event || '');
-    if (event && !event.toLowerCase().includes('messages.upsert')) {
+    const eventName = event.toLowerCase();
+    const eventData = object(payload.data);
+    const connectionInstance = typeof payload.instance === 'string' ? payload.instance : typeof eventData.instance === 'string' ? eventData.instance : '';
+    if (eventName.includes('connection.update')) {
+      const state = String(object(eventData.instance).state || eventData.state || '').toLowerCase();
+      if (connectionInstance && state === 'open') {
+        await supabaseAdmin.from('whatsapp_store_subscriptions').update({ whatsapp_connected: true, updated_at: new Date().toISOString() }).eq('instance_name', connectionInstance);
+      }
+      if (connectionInstance && ['close', 'closed', 'connecting'].includes(state)) {
+        await supabaseAdmin.from('whatsapp_store_subscriptions').update({ whatsapp_connected: false, updated_at: new Date().toISOString() }).eq('instance_name', connectionInstance);
+      }
+      return NextResponse.json({ received: true, connection: state || 'unknown' });
+    }
+    if (event && !eventName.includes('messages.upsert')) {
       return NextResponse.json({ received: true, ignored: 'event' });
     }
 

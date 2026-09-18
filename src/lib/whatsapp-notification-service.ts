@@ -146,6 +146,7 @@ export type EvolutionQrCode = {
   connected: boolean;
   created: boolean;
   qrCode: string | null;
+  webhookConfigured?: boolean;
   error?: string;
 };
 
@@ -216,13 +217,26 @@ export async function restartEvolutionInstance(): Promise<{ restarted: boolean; 
 export async function getEvolutionConnectionQrCode(force = false): Promise<EvolutionQrCode> {
   const { apiKey, baseUrl, instanceName } = evolutionConfig();
   if (!apiKey || !instanceName) return { connected: false, created: false, qrCode: null, error: 'A Evolution não está configurada.' };
+  return getEvolutionConnectionQrCodeForInstance(instanceName, force);
+}
+
+/** Cria/conecta uma instância exclusiva de loja. O webhook é configurado antes do QR ser exibido. */
+export async function getEvolutionConnectionQrCodeForInstance(instanceName: string, force = false, webhookUrl?: string): Promise<EvolutionQrCode> {
+  const { apiKey, baseUrl } = evolutionConfig();
+  if (!apiKey || !instanceName) return { connected: false, created: false, qrCode: null, error: 'A Evolution não está configurada.' };
 
   const headers = { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey };
   try {
     const stateResponse = await fetch(`${baseUrl}/instance/connectionState/${encodeURIComponent(instanceName)}`, { headers, cache: 'no-store' });
     const stateData = await stateResponse.json().catch(() => ({}));
     const state = String(stateData?.instance?.state || stateData?.instance?.status || '').toLowerCase();
-    if (stateResponse.ok && state === 'open' && !force) return { connected: true, created: false, qrCode: null };
+    if (stateResponse.ok && state === 'open' && !force) {
+      if (webhookUrl) {
+        const configured = await configureEvolutionWebhook(baseUrl, apiKey, instanceName, webhookUrl);
+        if (!configured) return { connected: true, created: false, qrCode: null, webhookConfigured: false, error: 'O WhatsApp está conectado, mas não foi possível registrar a automação.' };
+      }
+      return { connected: true, created: false, qrCode: null, webhookConfigured: Boolean(webhookUrl) };
+    }
 
     if (force && stateResponse.ok) {
       const logoutResponse = await fetch(`${baseUrl}/instance/logout/${encodeURIComponent(instanceName)}`, {
@@ -252,8 +266,29 @@ export async function getEvolutionConnectionQrCode(force = false): Promise<Evolu
       return { connected: false, created, qrCode: null, error: `A Evolution não gerou o QR Code (status ${connectResponse.status}).` };
     }
 
-    return { connected: false, created, qrCode: extractQrCode(data), error: extractQrCode(data) ? undefined : 'O QR Code está sendo preparado. Atualize em alguns segundos.' };
+    const qrCode = extractQrCode(data);
+    if (webhookUrl) {
+      const configured = await configureEvolutionWebhook(baseUrl, apiKey, instanceName, webhookUrl);
+      if (!configured) return { connected: false, created, qrCode: null, webhookConfigured: false, error: 'Não foi possível ativar o recebimento de mensagens desta loja. Tente gerar o QR Code novamente.' };
+    }
+    return { connected: false, created, qrCode, webhookConfigured: Boolean(webhookUrl), error: qrCode ? undefined : 'O QR Code está sendo preparado. Atualize em alguns segundos.' };
   } catch {
     return { connected: false, created: false, qrCode: null, error: 'Não foi possível gerar o QR Code da instância.' };
+  }
+}
+
+async function configureEvolutionWebhook(baseUrl: string, apiKey: string, instanceName: string, webhookUrl: string) {
+  try {
+    const response = await fetch(`${baseUrl}/webhook/set/${encodeURIComponent(instanceName)}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
+      body: JSON.stringify({ webhook: { enabled: true, url: webhookUrl, webhook_by_events: false, events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'] } }),
+      cache: 'no-store',
+    });
+    if (!response.ok) console.error(`[WhatsApp] A Evolution recusou configurar webhook da instância ${instanceName} (${response.status}).`);
+    return response.ok;
+  } catch (error) {
+    console.error('[WhatsApp] Não foi possível configurar webhook da instância.', error);
+    return false;
   }
 }
