@@ -870,6 +870,7 @@ function ProductWizardContent() {
                 label="Capa e Galeria do Produto"
                 helperText="Selecione ou arraste arquivos PNG, JPG ou WEBP (máx 3MB/cada)."
                 maxItems={10}
+                cropCover={true}
               />
             </motion.div>
           )}

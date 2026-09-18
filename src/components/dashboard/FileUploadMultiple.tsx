@@ -15,6 +15,7 @@ interface FileUploadMultipleProps {
   value?: string[];
   onChange: (urls: string[]) => void;
   maxItems?: number;
+  cropCover?: boolean;
 }
 
 const ABSOLUTE_MAX_SIZE_MB = 15;
@@ -35,13 +36,19 @@ export default function FileUploadMultiple({
   maxSizeMB = 15,
   value = [],
   onChange,
-  maxItems = 10
+  maxItems = 10,
+  cropCover = false
 }: FileUploadMultipleProps) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropPreview, setCropPreview] = useState('');
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
 
   const effectiveMaxSizeMB = Math.min(maxSizeMB, ABSOLUTE_MAX_SIZE_MB);
 
@@ -141,10 +148,45 @@ export default function FileUploadMultiple({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      processFileUpload(e.target.files);
+      const firstFile = e.target.files[0];
+      if (cropCover && value.length === 0 && firstFile.type.startsWith('image/')) {
+        setCropFile(firstFile);
+        setCropPreview(URL.createObjectURL(firstFile));
+        setCropZoom(1);
+        setCropX(0);
+        setCropY(0);
+      } else {
+        processFileUpload(e.target.files);
+      }
     }
     // Reset input value to allow re-upload of the same file if needed
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const applyCoverCrop = async () => {
+    if (!cropFile || !cropPreview) return;
+    const image = new window.Image();
+    image.onload = async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 900;
+      canvas.height = 1200;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      const baseScale = Math.max(canvas.width / image.width, canvas.height / image.height);
+      const scale = baseScale * cropZoom;
+      const width = image.width * scale;
+      const height = image.height * scale;
+      context.drawImage(image, (canvas.width - width) / 2 + cropX, (canvas.height - height) / 2 + cropY, width, height);
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.92));
+      if (blob) {
+        const file = new window.File([blob], `${cropFile.name.replace(/\.[^/.]+$/, '')}.webp`, { type: 'image/webp' });
+        URL.revokeObjectURL(cropPreview);
+        setCropFile(null);
+        setCropPreview('');
+        await processFileUpload([file]);
+      }
+    };
+    image.src = cropPreview;
   };
 
   const removeFile = (indexToRemove: number) => {
@@ -306,6 +348,26 @@ export default function FileUploadMultiple({
             <p className="text-[11px] font-medium text-rose-700/80 leading-relaxed">
               {error.message}
             </p>
+          </div>
+        </div>
+      )}
+
+      {cropFile && cropPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div><h3 className="text-lg font-black text-slate-900">Ajustar capa do produto</h3><p className="mt-1 text-xs leading-relaxed text-slate-500">Posicione a imagem dentro da área 3:4. O que aparecer no quadro será a capa da vitrine.</p></div>
+              <button type="button" onClick={() => { URL.revokeObjectURL(cropPreview); setCropFile(null); setCropPreview(''); }} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Fechar editor"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="mx-auto mt-5 aspect-[3/4] w-full max-w-[300px] overflow-hidden rounded-2xl bg-slate-100 shadow-inner">
+              <img src={cropPreview} alt="Ajuste da capa" className="h-full w-full object-cover" style={{ transform: `translate(${cropX / 3}px, ${cropY / 3}px) scale(${cropZoom})`, transformOrigin: 'center' }} />
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              <label className="text-xs font-bold text-slate-700">Zoom<input type="range" min="1" max="2.5" step="0.05" value={cropZoom} onChange={(event) => setCropZoom(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
+              <label className="text-xs font-bold text-slate-700">Mover horizontal<input type="range" min="-180" max="180" step="2" value={cropX} onChange={(event) => setCropX(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
+              <label className="text-xs font-bold text-slate-700">Mover vertical<input type="range" min="-220" max="220" step="2" value={cropY} onChange={(event) => setCropY(Number(event.target.value))} className="mt-2 w-full accent-blue-600" /></label>
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" onClick={() => { URL.revokeObjectURL(cropPreview); setCropFile(null); setCropPreview(''); }} className="min-h-11 rounded-xl border border-slate-200 px-4 text-xs font-black text-slate-700">Cancelar</button><button type="button" onClick={applyCoverCrop} className="min-h-11 rounded-xl bg-brand-navy px-5 text-xs font-black text-white hover:bg-blue-800">Usar esta capa</button></div>
           </div>
         </div>
       )}
