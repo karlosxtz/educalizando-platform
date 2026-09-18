@@ -625,6 +625,7 @@ export async function updateOrderStatus(
           buyerName: order.buyerName,
           orderId: order.id,
           productTitles,
+          products: order.items.map(it => ({ id: it.productId, title: it.productTitle || 'Material digital' })),
           creatorWhatsapp
         });
       } catch (mailErr) {

@@ -1,8 +1,8 @@
 import 'server-only';
 import { Resend } from 'resend';
 
-type MailResult = { sent: boolean; error?: string };
-type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; creatorWhatsapp?: string | null };
+type MailResult = { sent: boolean; id?: string; error?: string };
+type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string }>; creatorWhatsapp?: string | null };
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
 const from = process.env.RESEND_FROM_EMAIL || 'Educalizando <onboarding@resend.dev>';
@@ -28,9 +28,9 @@ export async function getMailConfiguration() {
 async function send(to: string, subject: string, html: string): Promise<MailResult> {
   if (!resend) return { sent: false, error: 'RESEND_API_KEY não configurada no servidor.' };
   if (!to?.includes('@')) return { sent: false, error: 'E-mail do destinatário inválido.' };
-  const { error } = await resend.emails.send({ from, to, subject, html });
+  const { data, error } = await resend.emails.send({ from, to, subject, html });
   if (error) { console.error('[Resend]', error); return { sent: false, error: error.message || 'A Resend recusou o envio.' }; }
-  return { sent: true };
+  return { sent: true, id: data?.id };
 }
 
 export async function sendWelcomeStudentEmail({ buyerEmail, buyerName }: { buyerEmail: string; buyerName: string }) {
@@ -43,14 +43,19 @@ export async function sendWelcomeAffiliateEmail({ affiliateEmail, affiliateName 
   return send(affiliateEmail, 'Boas-vindas ao programa de afiliados', layout('💸 Bem-vindo(a) ao programa de afiliados!', `<p>Olá, ${firstName(affiliateName)}!</p><p>Sua conta está pronta para você criar links e acompanhar as comissões.</p>${button(`${appUrl}/afiliados/painel`, 'Abrir painel de afiliado', '#7c3aed')}`));
 }
 
-const productsBox = (titles: string) => `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>Materiais:</strong><br>${escapeHtml(titles)}</div>`;
+const productsBox = (titles: string, products?: BuyerMailParams['products']) => {
+  const items = products?.length
+    ? `<ul style="margin:10px 0 0;padding-left:20px">${products.map(item => `<li style="margin:5px 0">${escapeHtml(item.title)}</li>`).join('')}</ul>`
+    : `<br>${escapeHtml(titles)}`;
+  return `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>Materiais da compra:</strong>${items}</div>`;
+};
 export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
-  return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
+  return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles, params.products)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
 }
 export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   const phone = params.creatorWhatsapp?.replace(/\D/g, '');
   const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
-  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Use o botão abaixo para abrir seus materiais.</p>${productsBox(params.productTitles)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}${help}`));
+  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Para materiais em PDF, o download gera uma cópia licenciada vinculada à sua compra.</p>${help}`));
 }
 export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
   const [payment, delivery] = await Promise.all([sendPaymentConfirmedEmail(params), sendMaterialDeliveryEmail(params)]);
