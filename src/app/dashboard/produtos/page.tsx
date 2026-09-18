@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -46,6 +46,7 @@ export default function ProductsManagementPage() {
   const [marketingProduct, setMarketingProduct] = useState<Product | null>(null);
   const [campaignData, setCampaignData] = useState<string>('');
   const [isGeneratingCampaign, setIsGeneratingCampaign] = useState(false);
+  const [showSeo, setShowSeo] = useState(false);
 
   const loadData = async () => {
     try {
@@ -150,6 +151,20 @@ export default function ProductsManagementPage() {
     return educationLevels.find(e => e.id === edId)?.nome || null;
   };
 
+  const seoReports = useMemo(() => products.map(product => {
+    const checks = [
+      { label: 'Título claro (30–65 caracteres)', ok: product.titulo.trim().length >= 30 && product.titulo.trim().length <= 65 },
+      { label: 'Descrição preenchida (120+ caracteres)', ok: Boolean(product.descricao && product.descricao.trim().length >= 120) },
+      { label: 'Capa otimizada', ok: Boolean(product.capa_url) },
+      { label: 'Categoria definida', ok: Boolean(product.category_id) },
+      { label: 'Nível de ensino definido', ok: Boolean(product.education_level_id) },
+    ];
+    const score = Math.round((checks.filter(check => check.ok).length / checks.length) * 100);
+    return { product, score, checks, suggestions: checks.filter(check => !check.ok).map(check => check.label) };
+  }), [products]);
+  const seoAverage = seoReports.length ? Math.round(seoReports.reduce((sum, report) => sum + report.score, 0) / seoReports.length) : 0;
+  const seoNeedsWork = seoReports.filter(report => report.score < 90);
+
   // Build Options for CustomSelect Filter Component
   const categoryFilterOptions: CustomSelectOption[] = [
     { value: 'all', label: 'Todas as Categorias' },
@@ -208,7 +223,7 @@ export default function ProductsManagementPage() {
             <span>Gerenciar Minhas Categorias</span>
           </button>
 
-          <Link
+          <button onClick={() => setShowSeo(value => !value)} className="px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-2 min-h-[44px]"><Sparkles className="w-4 h-4" /> {showSeo ? 'Ocultar SEO' : 'Verificar SEO'}</button><Link
             href="/dashboard/produtos/novo"
             className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px]"
           >
@@ -224,6 +239,8 @@ export default function ProductsManagementPage() {
           <span>{actionError}</span>
         </div>
       )}
+
+      {showSeo && <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Verificador SEO da loja</p><h2 className="mt-1 text-xl font-black text-slate-900">Média atual: {seoAverage}/100</h2><p className="mt-1 text-sm text-slate-600">Análise automática baseada nos dados reais dos produtos. Uma nota alta ajuda a organização e a relevância, mas não garante posição no Google.</p></div><div className={`rounded-xl px-4 py-3 text-center text-sm font-black ${seoNeedsWork.length ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>{seoNeedsWork.length} produto(s) para melhorar</div></div>{seoReports.length > 0 && <div className="mt-4 space-y-2">{seoReports.map(report => <details key={report.product.id} className="rounded-xl border border-blue-100 bg-white p-3"><summary className="flex cursor-pointer list-none items-center justify-between gap-3"><span className="min-w-0 truncate text-sm font-bold text-slate-800">{report.product.titulo}</span><span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-black ${report.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>SEO bom · {report.score}</span></summary>{report.suggestions.length > 0 ? <div className="mt-3 space-y-1 text-xs text-slate-600">{report.suggestions.map(suggestion => <p key={suggestion}>• {suggestion}</p>)}<Link href={`/dashboard/produtos/novo?edit=${report.product.id}`} className="mt-2 inline-flex text-xs font-black text-blue-700">Editar produto para corrigir →</Link></div> : <p className="mt-3 text-xs font-semibold text-emerald-700">Tudo certo nos critérios básicos.</p>}</details>)}</div>}</section>}
 
       {/* Styled Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
