@@ -77,8 +77,6 @@ export default function StoreSettingsPage() {
       website: '',
       button_style: 'rounded',
       welcome_message: '',
-      meta_pixel_id: '',
-      google_analytics_id: '',
       bulk_discount_enabled: false,
       bulk_discount_minimum: 50,
       bulk_discount_percentage: 10
@@ -121,8 +119,6 @@ export default function StoreSettingsPage() {
           website: store.website || '',
           button_style: (store.button_style as "rounded" | "pill" | "square" | "soft" | "sharp") || 'rounded',
           welcome_message: store.welcome_message || '',
-          meta_pixel_id: store.meta_pixel_id || '',
-          google_analytics_id: store.google_analytics_id || '',
           bulk_discount_enabled: Boolean(store.bulk_discount_enabled),
           bulk_discount_minimum: Number(store.bulk_discount_minimum || 50),
           bulk_discount_percentage: Number(store.bulk_discount_percentage || 10)
@@ -167,8 +163,6 @@ export default function StoreSettingsPage() {
         website: values.website,
         button_style: values.button_style,
         welcome_message: values.welcome_message,
-        meta_pixel_id: values.meta_pixel_id?.trim() || null,
-        google_analytics_id: values.google_analytics_id?.trim().toUpperCase() || null,
         bulk_discount_enabled: values.bulk_discount_enabled,
         bulk_discount_minimum: values.bulk_discount_minimum,
         bulk_discount_percentage: values.bulk_discount_percentage
@@ -270,11 +264,6 @@ export default function StoreSettingsPage() {
                 <p className="text-xs text-rose-500 mt-1 font-medium">{errors.nome_loja.message}</p>
               )}
             </div>
-
-            <section className="space-y-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5">
-              <div><p className="text-xs font-black uppercase tracking-wider text-indigo-700">Métricas e anúncios</p><h3 className="mt-1 text-sm font-black text-slate-900">Pixel do Meta e Google Analytics</h3><p className="mt-1 text-xs leading-relaxed text-slate-600">Os códigos serão carregados somente na vitrine pública, após o visitante aceitar métricas. Não cole código JavaScript aqui.</p></div>
-              <div className="grid gap-4 sm:grid-cols-2"><label className="text-xs font-bold text-slate-700">Meta Pixel ID<input type="text" inputMode="numeric" {...register('meta_pixel_id')} placeholder="123456789012345" className="mt-1.5 w-full rounded-xl border border-indigo-100 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500" />{errors.meta_pixel_id && <span className="mt-1 block text-xs text-rose-600">{errors.meta_pixel_id.message}</span>}</label><label className="text-xs font-bold text-slate-700">Google Analytics 4<input type="text" {...register('google_analytics_id')} placeholder="G-ABC123DEF" className="mt-1.5 w-full rounded-xl border border-indigo-100 bg-white px-3 py-2.5 text-sm font-semibold uppercase outline-none focus:border-indigo-500" />{errors.google_analytics_id && <span className="mt-1 block text-xs text-rose-600">{errors.google_analytics_id.message}</span>}</label></div>
-            </section>
 
             {/* Slug Exclusivo */}
             <div className="space-y-1.5">
