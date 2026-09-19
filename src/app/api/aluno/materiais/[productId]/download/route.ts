@@ -230,6 +230,15 @@ export async function GET(
       }
 
       if (activeUrl.startsWith('https://')) {
+        // Links cadastrados pelo criador (ex.: Google Drive) não são arquivos
+        // binários da Educalizando. O Drive responde com uma página HTML e não
+        // pode passar pelo gerador de PDF licenciado. Redirecionamos o aluno
+        // diretamente para o link original, preservando a intenção do criador.
+        const isExternalCreatorLink = !/supabase\.co\//i.test(activeUrl);
+        if (isExternalCreatorLink) {
+          return NextResponse.redirect(activeUrl);
+        }
+
         if (fileExt === 'pdf') {
           try {
             const originalResponse = await fetch(activeUrl, { cache: 'no-store' });
