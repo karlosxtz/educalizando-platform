@@ -11,6 +11,7 @@ const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, char => ({ '&': 
 const firstName = (name: string) => escapeHtml(name.trim().split(/\s+/)[0] || 'cliente');
 const button = (href: string, label: string, color = '#0f766e') => `<p style="margin:28px 0"><a href="${href}" style="display:inline-block;border-radius:8px;background:${color};padding:13px 20px;color:#fff;font-weight:700;text-decoration:none">${label}</a></p>`;
 const layout = (title: string, content: string) => `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.55"><h2 style="color:#0f766e">${title}</h2>${content}<hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0"><p style="font-size:12px;color:#64748b">Educalizando · Materiais didáticos digitais com acesso seguro.</p></div>`;
+const isCreatorExternalLink = (url?: string | null) => /^https:\/\//i.test(url || '') && !/supabase\.co\//i.test(url || '');
 
 export async function getMailConfiguration() {
   const domain = from.match(/@([^>\s]+)/)?.[1]?.toLowerCase() || null;
@@ -25,12 +26,10 @@ export async function getMailConfiguration() {
   }
 }
 
-async function send(to: string, subject: string, html: string, attachments?: Array<{ path: string; filename: string }>): Promise<MailResult> {
+async function send(to: string, subject: string, html: string): Promise<MailResult> {
   if (!resend) return { sent: false, error: 'RESEND_API_KEY não configurada no servidor.' };
   if (!to?.includes('@')) return { sent: false, error: 'E-mail do destinatário inválido.' };
-  let { data, error } = await resend.emails.send({ from, to, subject, html, ...(attachments?.length ? { attachments } : {}) });
-  // Um arquivo remoto indisponível não pode impedir a confirmação da compra.
-  if (error && attachments?.length) ({ data, error } = await resend.emails.send({ from, to, subject, html }));
+  const { data, error } = await resend.emails.send({ from, to, subject, html });
   if (error) { console.error('[Resend]', error); return { sent: false, error: error.message || 'A Resend recusou o envio.' }; }
   return { sent: true, id: data?.id };
 }
@@ -51,14 +50,22 @@ const productsBox = (titles: string, products?: BuyerMailParams['products']) => 
     : `<br>${escapeHtml(titles)}`;
   return `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>Materiais da compra:</strong>${items}</div>`;
 };
+const creatorLinksBox = (products?: BuyerMailParams['products']) => {
+  const links = (products || []).filter(item => isCreatorExternalLink(item.fileUrl));
+  if (!links.length) return '';
+  return `<div style="margin-top:16px;background:#eff6ff;border:1px solid #bfdbfe;padding:16px;border-radius:10px"><strong>Links liberados pelo criador:</strong>${links.map(item => `<p style="margin:12px 0 0"><a href="${escapeHtml(item.fileUrl!)}" style="color:#1d4ed8;font-weight:700">Abrir ${escapeHtml(item.title)} ↗</a></p>`).join('')}</div>`;
+};
 export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
   return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles, params.products)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
 }
 export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   const phone = params.creatorWhatsapp?.replace(/\D/g, '');
   const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
-  const attachments = (params.products || []).filter(item => /^https:\/\//i.test(item.fileUrl || '')).slice(0, 5).map(item => ({ path: item.fileUrl!, filename: item.fileName || `${item.title}.pdf` }));
-  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Quando o arquivo permitir anexo remoto, ele segue anexado a este e-mail. A biblioteca sempre mantém o acesso seguro.</p>${help}`), attachments);
+  // Não anexe URLs cadastradas pelo criador diretamente. Uma URL pode apontar
+  // para uma página HTML de login/compartilhamento (Drive, Storage privado etc.)
+  // e chegar ao comprador como "arquivo" inválido. A biblioteca valida o acesso,
+  // resolve a URL correta e prepara o download licenciado do material real.
+  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${creatorLinksBox(params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Links externos cadastrados pelo criador são enviados como link. Arquivos hospedados na Educalizando continuam protegidos pela biblioteca.</p>${help}`));
 }
 export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
   const [payment, delivery] = await Promise.all([sendPaymentConfirmedEmail(params), sendMaterialDeliveryEmail(params)]);

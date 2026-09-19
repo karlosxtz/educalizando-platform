@@ -139,6 +139,11 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
     if (!studentSession || !purchase) return;
 
     if (item.tipo === 'ARQUIVO') {
+      if (/^https:\/\//i.test(item.url) && !item.url.includes('supabase.co/')) {
+        window.open(item.url, '_blank', 'noopener,noreferrer');
+        setAccessNotice({ type: 'success', message: 'Abrindo o link liberado pelo criador.' });
+        return;
+      }
       const prodId = item.productId || purchase.product_id || purchase.id;
       const downloadUrl = item.orderIndex === -1 
         ? `/api/aluno/materiais/${prodId}/download`

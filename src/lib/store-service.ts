@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { allowsLocalDevelopmentFallback, supabase } from './supabase';
 import { Store, Product } from './types';
 import { generateSlug } from './string-utils';
 
@@ -116,7 +116,9 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
     }
   }
 
-  // Fallback Local
+  if (!allowsLocalDevelopmentFallback()) return null;
+
+  // Fallback local somente para desenvolvimento explicitamente habilitado.
   const stores = getLocalStores();
   const found = stores.find(s => s.slug === slug);
   if (found) return found;
@@ -151,7 +153,9 @@ export async function getStoreById(storeId: string): Promise<Store | null> {
     }
   }
 
-  // Fallback Local
+  if (!allowsLocalDevelopmentFallback()) return null;
+
+  // Fallback local somente para desenvolvimento explicitamente habilitado.
   const stores = getLocalStores();
   const found = stores.find(s => s.id === storeId || s.id === cleanId);
   if (found) return found;

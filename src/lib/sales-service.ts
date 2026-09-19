@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
 import { PeriodFilter, SalesDataPoint, TopProductStat, RecentOrder, Product } from './types';
 
 // Helper to retrieve real orders from LocalStorage when offline
@@ -77,8 +77,10 @@ export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter
     }
   }
 
-  // Fallback to local storage real orders if Supabase returned 0
-  if (realOrders.length === 0) {
+  // Dados locais existem apenas para desenvolvimento explicitamente habilitado.
+  // Em produção, uma consulta vazia significa zero pedidos — não use o navegador
+  // como fonte de verdade financeira.
+  if (realOrders.length === 0 && allowsLocalDevelopmentFallback()) {
     const local = getLocalOrders();
     const filteredLocal = local.filter(o => o.dataCompra >= startDate && o.dataCompra <= endDate);
     realOrders = filteredLocal;
@@ -221,7 +223,7 @@ export async function getTopProductsReport(storeId: string, products: Product[],
     }
   }
 
-  if (!loadedFromOrderItems) {
+  if (!loadedFromOrderItems && allowsLocalDevelopmentFallback()) {
     const local = getLocalOrders();
     const filteredLocal = local.filter(o => o.dataCompra >= startDate && o.dataCompra <= endDate);
     realOrders = filteredLocal.filter(o => o.statusPagamento === 'pago');
@@ -298,6 +300,5 @@ export async function getRecentOrdersFeed(storeId: string): Promise<RecentOrder[
     }
   }
 
-  // Fallback to real local storage orders
-  return getLocalOrders().slice(0, 10);
+  return allowsLocalDevelopmentFallback() ? getLocalOrders().slice(0, 10) : [];
 }

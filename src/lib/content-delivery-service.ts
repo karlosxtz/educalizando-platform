@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
 
 /**
@@ -198,6 +198,7 @@ export async function getContentByStoreId(storeId: string): Promise<ContentItem[
     return (data || []).map((item, idx) => mapContentRow(item, storeId, idx));
   }
 
+  if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
   return getLocalContents().filter(c => c.storeId === storeId).sort((a, b) => a.orderIndex - b.orderIndex);
 }
 

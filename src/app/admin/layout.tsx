@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/avaliacoes', label: 'Avaliações', icon: MessageSquare },
     { href: '/admin/whatsapp', label: 'Automações WhatsApp', icon: Bot },
     { href: '/admin/emails', label: 'Automações de E-mail', icon: Mail },
+    { href: '/admin/entregas', label: 'Entregas transacionais', icon: Mail },
     { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
   ];
 
@@ -125,6 +126,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/emails" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-violet-500/10 hover:text-violet-400 transition-colors">
               <Mail className="w-4 h-4" />
               Automações de E-mail
+            </Link>
+            <Link href="/admin/entregas" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-violet-500/10 hover:text-violet-400 transition-colors">
+              <Mail className="w-4 h-4" />
+              Entregas transacionais
             </Link>
             <Link href="/admin/configuracoes" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Settings className="w-4 h-4" />

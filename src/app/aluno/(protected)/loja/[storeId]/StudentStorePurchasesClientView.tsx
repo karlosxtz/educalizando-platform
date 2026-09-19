@@ -82,7 +82,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     setDownloadingId(downloadActionId);
 
     try {
-      if (pur.product_id) {
+      if (!type && pur.product?.arquivo_url && /^https:\/\//i.test(pur.product.arquivo_url) && !pur.product.arquivo_url.includes('supabase.co/')) {
+        window.open(pur.product.arquivo_url, '_blank', 'noopener,noreferrer');
+      } else if (pur.product_id) {
         await downloadSingleProduct(pur.product_id, pur.product?.titulo || 'Material_Didatico', type);
       } else if (pur.kit?.products && pur.kit.products.length > 0) {
         for (const prod of pur.kit.products) {

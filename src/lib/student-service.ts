@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured, signOutUser } from './supabase';
+import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase, isRealSupabaseConfigured, signOutUser } from './supabase';
 import { Purchase, Product, Kit, Store } from './types';
 import { getPublicProductsByStoreId } from './store-service';
 import { getPublicKitsByStoreId } from './kit-service';
@@ -98,6 +98,10 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
       console.warn('[getAuthenticatedUserRole] Supabase error:', e);
     }
   }
+
+  // Uma sessão salva no navegador só é aceita no ambiente local habilitado.
+  // Em produção, a identidade vem exclusivamente do Supabase Auth.
+  if (!allowsLocalDevelopmentFallback()) return { isAuthenticated: false, role: null };
 
   // Fallback para sessão gravada no navegador
   if (typeof window !== 'undefined') {
@@ -205,6 +209,7 @@ export async function registerStudentInSupabase({
 
     return { user: authData.user, session: authData.session };
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     await new Promise(resolve => setTimeout(resolve, 600));
     const mockUser = {
       id: `student_${Date.now()}`,
@@ -257,6 +262,7 @@ export async function signInStudent({ email, password }: { email: string; passwo
 
     return data;
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     await new Promise(resolve => setTimeout(resolve, 600));
     const mockUser = {
       id: 'student-demo',
@@ -314,6 +320,7 @@ export async function updateStudentProfile(fullName: string, avatarUrl: string |
     }
     return data;
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     // Fallback
     await new Promise(resolve => setTimeout(resolve, 600));
     if (typeof window !== 'undefined') {
@@ -378,11 +385,13 @@ export async function grantStudentProductAccess(data: {
     }
   }
 
-  const local = getLocalStudentAccess();
-  const exists = local.some(l => l.studentId === data.studentId && l.productId === data.productId && l.status === 'ACTIVE');
-  if (!exists) {
-    local.unshift(newRecord);
-    saveLocalStudentAccess(local);
+  if (allowsLocalDevelopmentFallback()) {
+    const local = getLocalStudentAccess();
+    const exists = local.some(l => l.studentId === data.studentId && l.productId === data.productId && l.status === 'ACTIVE');
+    if (!exists) {
+      local.unshift(newRecord);
+      saveLocalStudentAccess(local);
+    }
   }
 
   return newRecord;
@@ -436,13 +445,14 @@ export async function checkStudentProductAccess({
     }
   }
 
-  // Fallback para local access ou modo dev
-  const local = getLocalStudentAccess();
-  const hasLocal = local.some(l => 
-    (l.studentId === studentId || l.studentId.includes(studentId)) && 
-    l.productId === productId
-  );
-  if (hasLocal) return true;
+  if (allowsLocalDevelopmentFallback()) {
+    const local = getLocalStudentAccess();
+    const hasLocal = local.some(l =>
+      (l.studentId === studentId || l.studentId.includes(studentId)) &&
+      l.productId === productId
+    );
+    if (hasLocal) return true;
+  }
 
   // Se o produto está na lista de compras do aluno, autoriza
   try {
@@ -516,6 +526,13 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
           }
 
           if (prodData) {
+            const { data: originalDelivery } = await supabase
+              .from('product_deliveries')
+              .select('arquivo_url')
+              .eq('product_id', prodData.id)
+              .maybeSingle();
+            const originalUrl = originalDelivery?.arquivo_url || null;
+            const isCreatorExternalLink = /^https:\/\//i.test(originalUrl || '') && !/supabase\.co\//i.test(originalUrl || '');
             realPurchases.push({
               id: acc.id,
               student_id: acc.student_id,
@@ -535,7 +552,7 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
                 is_plr: prodData.is_plr,
                 plr_license_url: prodData.has_plr_delivery ? `/api/aluno/materiais/${prodData.id}/download?type=plr` : null,
                 capa_url: prodData.capa_url,
-                arquivo_url: prodData.has_original_delivery ? `/api/aluno/materiais/${prodData.id}/download` : null,
+                arquivo_url: prodData.has_original_delivery ? (isCreatorExternalLink ? originalUrl : `/api/aluno/materiais/${prodData.id}/download`) : null,
                 created_at: prodData.created_at
               },
               store: storeData ? {

@@ -36,6 +36,19 @@ export function isRealSupabaseConfigured(): boolean {
   );
 }
 
+/**
+ * Dados no navegador só podem ser usados em um ambiente local e quando a
+ * equipe habilita isso de propósito. Nunca use esta chave em produção: pedidos,
+ * clientes e acessos precisam vir exclusivamente do banco.
+ */
+export function allowsLocalDevelopmentFallback(): boolean {
+  return process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ENABLE_LOCAL_DEVELOPMENT_DATA === 'true';
+}
+
+export function getSupabaseConfigurationError(): Error {
+  return new Error('A conexão com o banco de dados não está configurada. Verifique as variáveis do Supabase antes de continuar.');
+}
+
 // 1. Cadastro Completo com Validação Estrita do Insert em stores
 export async function registerCreatorInSupabase({
   email,
@@ -191,6 +204,7 @@ export async function registerCreatorInSupabase({
 
     return { user: authData.user, storeSlug: storeData.slug };
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     // Fallback de Simulação Local
     await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -267,6 +281,7 @@ export async function signInUser({ email, password }: { email: string; password:
 
     return data;
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     // Fallback de Simulação Local
     await new Promise((resolve) => setTimeout(resolve, 800));
     
@@ -381,6 +396,7 @@ export async function registerAffiliateInSupabase({
 
     return { user: authData.user };
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     await new Promise((resolve) => setTimeout(resolve, 800));
     return { user: { email, id: `affiliate_${Math.random().toString(36).substring(2, 9)}` } };
   }
@@ -395,6 +411,7 @@ export async function resetPasswordForEmail(email: string) {
     });
     if (error) throw new Error(error.message);
   } else {
+    if (!allowsLocalDevelopmentFallback()) throw getSupabaseConfigurationError();
     await new Promise((resolve) => setTimeout(resolve, 600));
   }
   return true;
@@ -406,6 +423,7 @@ export async function getCurrentUserSession() {
     const { data } = await supabase.auth.getSession();
     return data.session;
   } else {
+    if (!allowsLocalDevelopmentFallback()) return null;
     if (typeof window !== 'undefined') {
       const sess = localStorage.getItem('educalizando_session');
       return sess ? JSON.parse(sess) : { email: 'prof.ricardo@gmail.com' };

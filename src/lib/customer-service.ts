@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
 import { ProductType } from './types';
 import { getCustomerAccessLogs } from './content-delivery-service';
@@ -145,8 +145,9 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
     }
   }
 
-  // Fallback to local storage real orders if Supabase returned 0 records
-  if (rawOrders.length === 0) {
+  // Um navegador não é fonte de verdade para CRM. O fallback só existe em
+  // desenvolvimento quando foi habilitado explicitamente.
+  if (rawOrders.length === 0 && allowsLocalDevelopmentFallback()) {
     const localOrders = getLocalOrders();
     rawOrders = localOrders.map(o => ({
       id: o.id,

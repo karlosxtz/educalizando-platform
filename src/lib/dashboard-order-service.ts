@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
 
 export interface DashboardOrderItem {
@@ -80,7 +80,9 @@ export async function getCreatorOrders(storeId: string): Promise<DashboardOrder[
     }
   }
 
-  // Fallback Local
+  if (!allowsLocalDevelopmentFallback()) return [];
+
+  // Fallback local somente para desenvolvimento explicitamente habilitado.
   const localOrders = getLocalOrders();
   return localOrders.map(o => ({
     id: o.id,

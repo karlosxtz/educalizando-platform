@@ -606,8 +606,23 @@ export async function updateOrderStatus(
         });
       }
 
-      // 📧 Disparar e-mail via Resend para o Aluno
-      if (statusTransitioned) try {
+      // 📧 Disparar e-mail via Resend para o aluno. A reserva no banco evita
+      // duplicidade em webhooks repetidos e mantém falhas disponíveis para retry.
+      let deliveryAttemptId: string | null = null;
+      try {
+        const { claimTransactionalDelivery, completeTransactionalDelivery } = await import('./transactional-delivery-service');
+        deliveryAttemptId = await claimTransactionalDelivery(order.id, 'EMAIL', 'MATERIAL_DELIVERY');
+        if (!deliveryAttemptId) {
+          console.log(`[updateOrderStatus] E-mail de entrega do pedido ${order.id} já está em processamento ou já foi enviado.`);
+          return {
+            ...order,
+            status: newStatus,
+            paidAt: nowPaidAt,
+            asaasFeeAmount: updatedAsaasFee,
+            creatorNetAmount: updatedCreatorNet
+          };
+        }
+
         let creatorWhatsapp: string | null = null;
         if (isRealSupabaseConfigured()) {
           const { supabaseAdmin } = await import('./supabase');
@@ -626,7 +641,7 @@ export async function updateOrderStatus(
           ? order.items.map(it => it.productTitle || 'Infoproduto Digital').join(', ')
           : 'Kit Combo Digital';
           
-        await sendSaleConfirmationToBuyer({
+        const mailResult = await sendSaleConfirmationToBuyer({
           buyerEmail: studentEmail,
           buyerName: order.buyerName,
           orderId: order.id,
@@ -637,7 +652,15 @@ export async function updateOrderStatus(
           }),
           creatorWhatsapp
         });
+        if (!mailResult.sent) throw new Error(mailResult.error || 'A Resend não confirmou o envio.');
+        await completeTransactionalDelivery(deliveryAttemptId);
       } catch (mailErr) {
+        try {
+          const { failTransactionalDelivery } = await import('./transactional-delivery-service');
+          if (deliveryAttemptId) await failTransactionalDelivery(deliveryAttemptId, mailErr instanceof Error ? mailErr.message : String(mailErr));
+        } catch (trackingErr) {
+          console.error('[updateOrderStatus] Erro ao registrar falha de e-mail:', trackingErr);
+        }
         console.error('[updateOrderStatus] Erro ao disparar e-mail pro aluno:', mailErr);
       }
     } catch (e) {

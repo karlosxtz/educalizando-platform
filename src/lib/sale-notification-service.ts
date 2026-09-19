@@ -2,9 +2,10 @@ import type { OrderRecord } from './order-service';
 import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
 import { supabaseAdmin } from './supabase';
-import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionDocument, sendEvolutionText } from './whatsapp-notification-service';
+import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord) {
+  const libraryUrl = `${(process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '')}/cliente/dashboard`;
   const { data: store } = await supabaseAdmin
     .from('stores')
     .select('creator_id, nome_loja, whatsapp')
@@ -72,6 +73,15 @@ export async function notifyConfirmedSale(order: OrderRecord) {
     const buyerPhone = order.buyerPhone || buyer?.user?.user_metadata?.whatsapp || buyer?.user?.user_metadata?.phone || null;
     const creatorTemplate = await getWhatsAppTemplate('creatorSale');
     const buyerTemplate = await getWhatsAppTemplate('buyerSale');
+    const { data: deliveries } = order.items.length
+      ? await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url').in('product_id', order.items.map(item => item.productId))
+      : { data: [] as Array<{ product_id: string; arquivo_url: string | null }> };
+    const creatorLinks = (deliveries || [])
+      .filter(delivery => /^https:\/\//i.test(delivery.arquivo_url || '') && !/supabase\.co\//i.test(delivery.arquivo_url || ''))
+      .map(delivery => {
+        const item = order.items.find(candidate => candidate.productId === delivery.product_id);
+        return `🔗 ${item?.productTitle || 'Material'}: ${delivery.arquivo_url}`;
+      });
 
     // O envio ocorre somente após a inserção idempotente da notificação acima.
     // Assim, chamadas repetidas do webhook não geram mensagens duplicadas.
@@ -82,32 +92,15 @@ export async function notifyConfirmedSale(order: OrderRecord) {
         produto: productTitles,
         valor: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.creatorNetAmount),
         pedido: order.id,
-      })),
+      }) + `\n\n📱 Contato do comprador: ${buyerPhone || 'não informado'}`),
       sendEvolutionText(buyerPhone, renderWhatsAppTemplate(buyerTemplate, {
         nome: firstName(order.buyerName, 'Cliente'),
         comprador: order.buyerName || 'Cliente',
         produto: productTitles,
         valor: currency,
         pedido: order.id,
-      })),
+      }) + `${creatorLinks.length ? `\n\n${creatorLinks.join('\n')}` : ''}\n\n📚 Acesse seus materiais com segurança: ${libraryUrl}`),
     ]);
-
-    // Envia os documentos diretamente no WhatsApp quando o criador forneceu
-    // uma URL pública. O texto acima sempre mantém a biblioteca como fallback.
-    if (buyerPhone && order.items.length) {
-      const productIds = order.items.map(item => item.productId).filter(Boolean);
-      const { data: deliveries } = await supabaseAdmin
-        .from('product_deliveries')
-        .select('product_id, arquivo_url, arquivo_nome')
-        .in('product_id', productIds);
-      await Promise.allSettled((deliveries || [])
-        .filter(delivery => typeof delivery.arquivo_url === 'string' && /^https:\/\//i.test(delivery.arquivo_url))
-        .slice(0, 5)
-        .map(delivery => {
-          const item = order.items.find(candidate => candidate.productId === delivery.product_id);
-          return sendEvolutionDocument(buyerPhone, delivery.arquivo_url, delivery.arquivo_nome || `${item?.productTitle || 'material'}.pdf`, `📎 ${item?.productTitle || 'Material comprado'}`);
-        }));
-    }
   } catch (error) {
     console.error('[Sale Notification] Falha ao enviar alertas da venda:', error);
   }
