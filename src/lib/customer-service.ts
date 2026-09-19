@@ -31,6 +31,7 @@ export interface CustomerOrderItem {
 
 export interface CustomerProductItem {
   id: string;
+  produtoId?: string | null;
   titulo: string;
   tipo: ProductType | 'combo';
   preco: number;
@@ -103,6 +104,7 @@ interface RawOrderRecord {
   metodo_pagamento?: string;
   status: string;
   created_at: string;
+  items?: Array<{ product_id: string; product_title?: string | null; unit_price?: number | null; quantity?: number | null }>;
 }
 
 // Helper to check if an order status is a valid paid purchase
@@ -126,6 +128,21 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
+        const orderIds = data.map((o: any) => o.id);
+        const { data: orderItems } = orderIds.length
+          ? await supabase.from('order_items').select('order_id, product_id, unit_price, quantity').in('order_id', orderIds)
+          : { data: [] as any[] };
+        const productIds = [...new Set((orderItems || []).map((item: any) => item.product_id).filter(Boolean))];
+        const { data: products } = productIds.length
+          ? await supabase.from('products').select('id, titulo').in('id', productIds)
+          : { data: [] as any[] };
+        const titleByProduct = new Map((products || []).map((product: any) => [product.id, product.titulo]));
+        const itemsByOrder = new Map<string, Array<{ product_id: string; product_title?: string | null; unit_price?: number | null; quantity?: number | null }>>();
+        for (const item of orderItems || []) {
+          const items = itemsByOrder.get(item.order_id) || [];
+          items.push({ ...item, product_title: titleByProduct.get(item.product_id) || null });
+          itemsByOrder.set(item.order_id, items);
+        }
         rawOrders = data.map((o: any) => ({
           id: o.id,
           store_id: o.store_id || storeId,
@@ -137,7 +154,8 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           valor_total: Number(o.total_amount || o.valor_total || o.amount || 0),
           metodo_pagamento: o.metodo_pagamento || o.payment_method || 'PIX Instantâneo',
           status: o.status === 'paid' || o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : o.status === 'cancelado' ? 'cancelado' : 'pendente_pix',
-          created_at: o.created_at
+          created_at: o.created_at,
+          items: itemsByOrder.get(o.id) || []
         }));
       }
     } catch (err) {
@@ -221,22 +239,25 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
       status: o.status as any,
       valorTotal: o.valor_total,
       metodoPagamento: o.metodo_pagamento || 'PIX Instantâneo',
-      produtosTitulos: [o.produto_titulo]
+      produtosTitulos: o.items?.length ? o.items.map(item => item.product_title || o.produto_titulo) : [o.produto_titulo]
     };
     customer.pedidos.push(orderItem);
 
     // Product Item (for paid orders)
     if (isValidPurchase) {
-      const productItem: CustomerProductItem = {
-        id: `prod_${o.id}`,
-        titulo: o.produto_titulo,
-        tipo: o.tipo_produto || 'pdf',
-        preco: o.valor_total,
-        quantidade: 1,
-        dataCompra: o.created_at,
-        pedidoId: o.id
-      };
-      customer.produtos.push(productItem);
+      const purchasedItems = o.items?.length ? o.items : [{ product_id: '', product_title: o.produto_titulo, unit_price: o.valor_total, quantity: 1 }];
+      purchasedItems.forEach((item, index) => {
+        customer.produtos.push({
+          id: item.product_id ? `prod_${o.id}_${item.product_id}` : `prod_${o.id}_${index}`,
+          produtoId: item.product_id || null,
+          titulo: item.product_title || o.produto_titulo,
+          tipo: o.tipo_produto || 'pdf',
+          preco: Number(item.unit_price ?? o.valor_total),
+          quantidade: Number(item.quantity || 1),
+          dataCompra: o.created_at,
+          pedidoId: o.id
+        });
+      });
     }
 
     // Payment Item

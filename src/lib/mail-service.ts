@@ -67,6 +67,19 @@ export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   // resolve a URL correta e prepara o download licenciado do material real.
   return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para a sua conta. Abra a sua biblioteca para baixar cada material com segurança.</p>${productsBox(params.productTitles, params.products)}${creatorLinksBox(params.products)}${button(`${appUrl}/cliente/dashboard`, 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Links externos cadastrados pelo criador são enviados como link. Arquivos hospedados na Educalizando continuam protegidos pela biblioteca.</p>${help}`));
 }
+/** Reenvio manual solicitado pelo criador para materiais já comprados. */
+export async function sendAccessResendEmail(params: BuyerMailParams) {
+  const phone = params.creatorWhatsapp?.replace(/\D/g, '');
+  const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
+  return send(
+    params.buyerEmail,
+    'Reenvio de acesso — seus materiais Educalizando',
+    layout(
+      '📚 Seu acesso foi reenviado',
+      `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos uma solicitação de reenvio de acesso para os materiais abaixo. Eles continuam liberados na sua biblioteca.</p>${productsBox(params.productTitles, params.products)}${creatorLinksBox(params.products)}${button(`${appUrl}/cliente/dashboard`, 'Abrir minha biblioteca', '#2563eb')}<p style="font-size:13px;color:#475569">Se o criador cadastrou um link externo, ele está disponível acima. Materiais protegidos pela Educalizando ficam disponíveis pela biblioteca.</p>${help}`
+    )
+  );
+}
 export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
   const [payment, delivery] = await Promise.all([sendPaymentConfirmedEmail(params), sendMaterialDeliveryEmail(params)]);
   return { sent: payment.sent && delivery.sent, error: payment.error || delivery.error };

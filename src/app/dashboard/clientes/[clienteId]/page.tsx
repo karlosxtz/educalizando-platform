@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Users, Mail, Phone, Calendar, ShieldCheck, 
   ShoppingBag, DollarSign, TrendingUp, Clock, FileText, 
-  CheckCircle2, AlertCircle, ExternalLink, Download, Lock, Package, Layers 
+  CheckCircle2, AlertCircle, ExternalLink, Download, Lock, Package, Layers, Send, Loader2
 } from 'lucide-react';
 import { getCustomerById, Customer } from '@/lib/customer-service';
 import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
@@ -23,6 +23,8 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [activeTab, setActiveTab] = useState<'visao_geral' | 'compras' | 'produtos' | 'pagamentos' | 'acessos'>('visao_geral');
+  const [resendingProductId, setResendingProductId] = useState<string | null>(null);
+  const [resendNotice, setResendNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     async function initStore() {
@@ -94,6 +96,27 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   }
 
   const ticketMedio = customer.totalCompras > 0 ? customer.valorTotalGasto / customer.totalCompras : 0;
+
+  const handleResendAccess = async (product: Customer['produtos'][number]) => {
+    if (!storeId) return;
+    setResendingProductId(product.id);
+    setResendNotice(null);
+    try {
+      const response = await fetch('/api/dashboard/clientes/reenvio-acesso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId, orderId: product.pedidoId, productId: product.produtoId || undefined })
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível reenviar o acesso.');
+      const channels = [payload?.emailSent ? 'e-mail' : null, payload?.whatsappSent ? 'WhatsApp' : null].filter(Boolean).join(' e ');
+      setResendNotice({ type: 'success', message: `Acesso reenviado para ${customer.email}${channels ? ` por ${channels}` : ''}.` });
+    } catch (error) {
+      setResendNotice({ type: 'error', message: error instanceof Error ? error.message : 'Não foi possível reenviar o acesso.' });
+    } finally {
+      setResendingProductId(null);
+    }
+  };
 
   return (
     <div className="space-y-8 font-sans pb-12">
@@ -371,8 +394,14 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       {/* Tab 3: Produtos */}
       {activeTab === 'produtos' && (
         <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-          <div className="p-6 border-b border-slate-100">
+          <div className="p-6 border-b border-slate-100 space-y-3">
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Produtos Adquiridos pelo Cliente</h3>
+            <p className="text-xs text-slate-600">Use <strong>Reenviar acesso</strong> para enviar novamente a mensagem com a biblioteca e os links dos materiais deste pedido. Nenhuma cobrança será criada.</p>
+            {resendNotice && (
+              <div className={`rounded-xl border px-4 py-3 text-xs font-bold ${resendNotice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+                {resendNotice.message}
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -383,14 +412,14 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                   <th className="py-4 px-6">Data da Compra</th>
                   <th className="py-4 px-6">Pedido</th>
                   <th className="py-4 px-6 text-right">Preço</th>
+                  <th className="py-4 px-6 text-right">Acesso</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {customer.produtos.map(prod => (
                   <tr 
                     key={prod.id} 
-                    onClick={() => router.push('/dashboard/produtos')}
-                    className="hover:bg-slate-50/80 cursor-pointer transition-colors"
+                    className="hover:bg-slate-50/80 transition-colors"
                   >
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
@@ -405,6 +434,17 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                     <td className="py-4 px-6 font-mono text-slate-600">#{prod.pedidoId.slice(-6).toUpperCase()}</td>
                     <td className="py-4 px-6 text-right font-mono font-bold text-emerald-700">
                       R$ {prod.preco.toFixed(2).replace('.', ',')}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        type="button"
+                        onClick={() => void handleResendAccess(prod)}
+                        disabled={resendingProductId === prod.id}
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand-navy px-3 py-2 text-[11px] font-black text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {resendingProductId === prod.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                        Reenviar acesso
+                      </button>
                     </td>
                   </tr>
                 ))}
