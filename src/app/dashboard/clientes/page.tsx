@@ -116,7 +116,7 @@ export default function CustomersPage() {
             <span className="p-2 rounded-xl bg-brand-navy/10 text-brand-navy">
               <Users className="w-5 h-5 text-brand-navy" />
             </span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clientes</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clientes e Acessos</h1>
           </div>
           <p className="text-xs text-slate-600 font-medium">
             Abra um cliente para ver os materiais comprados e reenviar o acesso por e-mail e WhatsApp.

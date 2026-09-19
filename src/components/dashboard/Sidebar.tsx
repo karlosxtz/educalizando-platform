@@ -129,10 +129,10 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
-      label: 'Clientes',
+      label: 'Clientes e Acessos',
       href: '/dashboard/clientes',
       icon: Users,
-      badge: null
+      badge: 'NOVO'
     },
     {
       label: 'Atendimento Guiado',
