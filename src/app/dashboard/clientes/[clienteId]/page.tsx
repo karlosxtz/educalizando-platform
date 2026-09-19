@@ -22,7 +22,9 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   const [storeId, setStoreId] = useState('');
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [activeTab, setActiveTab] = useState<'visao_geral' | 'compras' | 'produtos' | 'pagamentos' | 'acessos'>('visao_geral');
+  // O objetivo principal deste perfil é consultar os materiais adquiridos e
+  // reenviar o acesso; por isso essa é a primeira aba ao abrir um cliente.
+  const [activeTab, setActiveTab] = useState<'visao_geral' | 'compras' | 'produtos' | 'pagamentos' | 'acessos'>('produtos');
   const [resendingProductId, setResendingProductId] = useState<string | null>(null);
   const [resendNotice, setResendNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 

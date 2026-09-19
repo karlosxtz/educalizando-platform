@@ -119,7 +119,7 @@ export default function CustomersPage() {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clientes</h1>
           </div>
           <p className="text-xs text-slate-600 font-medium">
-            Gerencie os clientes que compraram em sua loja e acompanhe o histórico de compras.
+            Abra um cliente para ver os materiais comprados e reenviar o acesso por e-mail e WhatsApp.
           </p>
         </div>
 
@@ -375,10 +375,10 @@ export default function CustomersPage() {
                         <Link
                           href={`/dashboard/clientes/${cust.id}`}
                           className="p-2 rounded-lg text-brand-navy hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all inline-flex items-center gap-1 text-xs font-bold"
-                          title="Visualizar Perfil do Cliente"
+                          title="Ver perfil, materiais e reenviar acesso"
                         >
                           <Eye className="w-4 h-4 text-brand-navy" />
-                          <span>Detalhes</span>
+                          <span>Materiais e acesso</span>
                         </Link>
                       </td>
                     </tr>
@@ -431,7 +431,7 @@ export default function CustomersPage() {
                   className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-brand-navy border border-slate-200 flex items-center justify-center gap-2 transition-all"
                 >
                   <Eye className="w-4 h-4 text-brand-navy" />
-                  <span>Ver Histórico Completo</span>
+                  <span>Ver materiais e reenviar acesso</span>
                 </Link>
               </div>
             ))}
