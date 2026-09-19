@@ -318,14 +318,30 @@ export default function CustomersPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                   {filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(cust => (
-                    <tr key={cust.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr
+                      key={cust.id}
+                      onClick={() => window.location.assign(`/dashboard/clientes/${cust.id}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          window.location.assign(`/dashboard/clientes/${cust.id}`);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="link"
+                      aria-label={`Abrir materiais e acessos de ${cust.nome}`}
+                      className="cursor-pointer hover:bg-blue-50/70 transition-colors focus-visible:outline-none focus-visible:bg-blue-50"
+                    >
                       {/* Customer Name & Avatar */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-brand-navy text-white font-extrabold flex items-center justify-center text-xs shadow-2xs">
                             {cust.nome.charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-bold text-slate-900 text-sm">{cust.nome}</span>
+                          <div>
+                            <span className="font-bold text-slate-900 text-sm block">{cust.nome}</span>
+                            {cust.totalCompras > 0 && <span className="text-[10px] font-bold text-brand-navy">Abrir materiais e reenviar acesso →</span>}
+                          </div>
                         </div>
                       </td>
 
