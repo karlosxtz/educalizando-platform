@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Check, CheckCheck, ShoppingBag, X, TrendingUp } from 'lucide-react';
 import {
   getNotifications,
@@ -25,6 +26,8 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
   const [hasMore, setHasMore]         = useState(false);
   const dropdownRef                   = useRef<HTMLDivElement>(null);
   const bellRef                       = useRef<HTMLButtonElement>(null);
+  const panelRef                      = useRef<HTMLDivElement>(null);
+  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0 });
 
   // ── Carregar notificações ──────────────────────────────────────────────────
   const loadNotifications = useCallback(async (pageNum = 1, append = false) => {
@@ -69,7 +72,12 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
   // ── Fechar ao clicar fora ──────────────────────────────────────────────────
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -103,7 +111,17 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
   // ── Abrir/fechar dropdown ──────────────────────────────────────────────────
   const toggleOpen = () => {
     setOpen(prev => {
-      if (!prev) loadNotifications(1); // refresh ao abrir
+      if (!prev) {
+        loadNotifications(1); // refresh ao abrir
+        const rect = bellRef.current?.getBoundingClientRect();
+        if (rect) {
+          const panelWidth = window.innerWidth >= 640 ? 384 : Math.min(320, window.innerWidth - 24);
+          setPanelPosition({
+            top: rect.bottom + 8,
+            left: Math.max(12, Math.min(rect.left, window.innerWidth - panelWidth - 12))
+          });
+        }
+      }
       return !prev;
     });
   };
@@ -129,8 +147,12 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
       </button>
 
       {/* ── Dropdown ── */}
-      {open && (
-        <div className="absolute left-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/80 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+      {open && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={panelRef}
+          style={{ top: panelPosition.top, left: panelPosition.left }}
+          className="fixed w-[calc(100vw-24px)] max-w-80 sm:max-w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/80 z-[100] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200"
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
             <div className="flex items-center gap-2">
@@ -247,7 +269,8 @@ export default function NotificationCenter({ storeId }: NotificationCenterProps)
               </button>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

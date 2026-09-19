@@ -77,6 +77,15 @@ export interface ContentDeliveryMetrics {
   totalAcessos: number;
 }
 
+/** Entrega principal cadastrada no produto (fora da lista opcional de conteúdos). */
+export interface ProductDeliverySummary {
+  productId: string;
+  productTitle: string;
+  url: string;
+  fileName?: string | null;
+  updatedAt?: string | null;
+}
+
 export interface FileValidationResult {
   valid: boolean;
   errorTitle?: string;
@@ -206,6 +215,23 @@ export async function getContentByStoreId(storeId: string): Promise<ContentItem[
 export async function getContentByProductId(storeId: string, productId: string): Promise<ContentItem[]> {
   const all = await getContentByStoreId(storeId);
   return all.filter(c => c.productId === productId);
+}
+
+/**
+ * Busca as entregas principais dos produtos usando uma rota autenticada.
+ * product_deliveries é privado por design e não deve ser lido diretamente do browser.
+ */
+export async function getProductDeliverySummaries(storeId: string): Promise<ProductDeliverySummary[]> {
+  if (!storeId || !isRealSupabaseConfigured()) return [];
+  const response = await fetch(`/api/dashboard/conteudo/entregas?storeId=${encodeURIComponent(storeId)}`, {
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || 'Não foi possível carregar as entregas cadastradas nos produtos.');
+  }
+  const payload = await response.json();
+  return Array.isArray(payload?.deliveries) ? payload.deliveries : [];
 }
 
 // 4. Obter Métricas da Tela Principal do Módulo

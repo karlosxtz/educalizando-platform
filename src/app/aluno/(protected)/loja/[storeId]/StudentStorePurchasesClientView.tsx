@@ -61,12 +61,10 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const downloadSingleProduct = async (productId: string, title: string, type?: 'plr') => {
-    // Usar navegação direta para aproveitar o redirect do backend e evitar proxy em memória
+    // O material deve abrir fora da biblioteca para o aluno não perder a tela atual.
+    // A rota mantém a autorização e pode devolver tanto um arquivo quanto um redirect.
     const downloadUrl = `/api/aluno/materiais/${productId}/download${type === 'plr' ? '?type=plr' : ''}`;
-    
-    // window.location.assign evita bloqueadores de popup (já que a chamada é async)
-    // e permite que o browser resolva o Content-Disposition: attachment nativamente
-    window.location.assign(downloadUrl);
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent, type?: 'plr') => {

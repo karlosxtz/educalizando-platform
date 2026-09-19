@@ -11,6 +11,7 @@ import {
 import { 
   getContentByStoreId, 
   getContentDeliveryMetrics, 
+  getProductDeliverySummaries,
   ContentItem, 
   ContentDeliveryMetrics 
 } from '@/lib/content-delivery-service';
@@ -58,14 +59,43 @@ export default function ContentDeliveryDashboardPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const [prodsData, contsData, metData] = await Promise.all([
+      const [prodsData, contsData, metData, deliveryData] = await Promise.all([
         getProductsByStoreId(storeId),
         getContentByStoreId(storeId),
-        getContentDeliveryMetrics(storeId)
+        getContentDeliveryMetrics(storeId),
+        getProductDeliverySummaries(storeId)
       ]);
+      const productTitles = new Map(prodsData.map(product => [product.id, product.titulo]));
+      const registeredContentUrls = new Set(contsData.map(content => `${content.productId || ''}:${content.url}`));
+      const mainDeliveries: ContentItem[] = deliveryData
+        .filter(delivery => delivery.url && !registeredContentUrls.has(`${delivery.productId}:${delivery.url}`))
+        .map((delivery, index) => ({
+          id: `main-delivery-${delivery.productId}`,
+          storeId,
+          productId: delivery.productId,
+          productTitle: delivery.productTitle || productTitles.get(delivery.productId) || 'Produto',
+          titulo: delivery.fileName || `Material principal — ${delivery.productTitle || productTitles.get(delivery.productId) || 'Produto'}`,
+          tipo: 'ARQUIVO' as const,
+          url: delivery.url,
+          fileName: delivery.fileName || null,
+          downloadsCount: 0,
+          externalAccessCount: 0,
+          active: true,
+          orderIndex: -1000 + index,
+          createdAt: delivery.updatedAt || new Date().toISOString(),
+          updatedAt: delivery.updatedAt || new Date().toISOString()
+        }));
+      const allContents = [...mainDeliveries, ...contsData];
+      const productIdsWithContent = new Set(allContents.map(content => content.productId).filter(Boolean));
       setProducts(prodsData);
-      setContents(contsData);
-      setMetrics(metData);
+      setContents(allContents);
+      setMetrics({
+        ...metData,
+        totalProdutosComConteudo: productIdsWithContent.size,
+        totalConteudos: allContents.length,
+        totalArquivos: allContents.filter(content => content.tipo === 'ARQUIVO').length,
+        totalLinksExternos: allContents.filter(content => content.tipo === 'LINK_EXTERNO').length
+      });
     } catch (err) {
       console.error('Erro ao carregar módulo Conteúdo & Entregas:', err);
       setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar os dados reais da sua loja.');

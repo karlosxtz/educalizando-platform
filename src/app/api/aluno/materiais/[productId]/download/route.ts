@@ -137,7 +137,7 @@ export async function GET(
       if (!fileUrl) {
         const { data: productData } = await supabaseAdmin
           .from('products')
-          .select('titulo')
+          .select('titulo, store_id')
           .eq('id', productId)
           .is('excluido_em', null)
           .maybeSingle();
@@ -156,6 +156,14 @@ export async function GET(
             fileUrl = delivery?.plr_license_url || null;
           } else if (delivery?.arquivo_url) {
             fileUrl = delivery.arquivo_url;
+            // A entrega principal também é um acesso real, embora não exista
+            // como linha em digital_contents. Registramos o evento usando um
+            // identificador estável para os indicadores do criador.
+            deliveredContent = {
+              id: `main-delivery:${productId}`,
+              storeId: productData.store_id,
+              title: productData.titulo || productTitle
+            };
           }
         }
       }
