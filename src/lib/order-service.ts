@@ -305,16 +305,24 @@ export async function createOrderRecord(data: {
       if (orderInsertError) throw orderInsertError;
 
       if (formattedItems.length > 0) {
-        const { error: itemInsertError } = await supabaseAdmin.from('order_items').insert(formattedItems.map(it => ({
+        const itemRows = formattedItems.map(it => ({
           id: it.id,
           order_id: it.orderId,
           product_id: it.productId,
+          product_title: it.productTitle || null,
           store_id: it.storeId,
           unit_price: it.unitPrice,
           quantity: it.quantity,
           subtotal_amount: it.subtotalAmount,
           created_at: now
-        })));
+        }));
+        let { error: itemInsertError } = await supabaseAdmin.from('order_items').insert(itemRows);
+
+        // Mantém o checkout disponível caso o deploy aconteça antes da migration.
+        if (itemInsertError && /product_title|column/i.test(itemInsertError.message || '')) {
+          const legacyRows = itemRows.map(({ product_title: _productTitle, ...legacyItem }) => legacyItem);
+          ({ error: itemInsertError } = await supabaseAdmin.from('order_items').insert(legacyRows));
+        }
         if (itemInsertError) throw itemInsertError;
       }
     } catch (err) {
@@ -334,7 +342,7 @@ export async function createOrderRecord(data: {
     id: newOrder.id,
     clienteNome: newOrder.buyerName,
     clienteEmail: newOrder.buyerEmail,
-    produtoTitulo: data.items[0]?.productTitle || 'Infoproduto Digital',
+    produtoTitulo: data.items[0]?.productTitle || 'Material digital',
     tipoProduto: 'pdf',
     valorTotal: newOrder.totalAmount,
     statusPagamento: 'pendente_pix',
@@ -364,11 +372,17 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           .select('*')
           .eq('order_id', orderId);
 
+        const productIds = [...new Set((itemsData || []).map((item: any) => item.product_id).filter(Boolean))];
+        const { data: productsData } = productIds.length
+          ? await supabaseAdmin.from('products').select('id, titulo').in('id', productIds)
+          : { data: [] };
+        const titlesByProductId = new Map((productsData || []).map((product: any) => [String(product.id), product.titulo]));
+
         const mappedItems: OrderItemRecord[] = (itemsData || []).map((it: any) => ({
           id: it.id,
           orderId: it.order_id,
           productId: it.product_id,
-          productTitle: it.product_title || 'Infoproduto Digital',
+          productTitle: it.product_title || titlesByProductId.get(String(it.product_id)) || 'Material digital',
           storeId: it.store_id,
           unitPrice: Number(it.unit_price || 0),
           quantity: Number(it.quantity || 1),
@@ -519,7 +533,7 @@ export async function updateOrderStatus(
         storeId: order.storeId,
         orderId: order.id,
         buyerName: order.buyerName,
-        productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+        productTitle: order.items[0]?.productTitle || 'Material digital',
         type: 'SALE',
         grossAmount: order.totalAmount,
         platformFixedFeeAmount: order.platformFixedFeeAmount,
@@ -548,7 +562,7 @@ export async function updateOrderStatus(
           creatorId: affiliateUserId, // Identificador de quem é o dono do dinheiro (o afiliado)
           orderId: order.id,
           buyerName: order.buyerName,
-          productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+          productTitle: order.items[0]?.productTitle || 'Material digital',
           type: 'AFFILIATE_COMMISSION',
           grossAmount: affComission,
           platformFixedFeeAmount: 0,
@@ -573,7 +587,7 @@ export async function updateOrderStatus(
                 affiliateEmail: affEmail,
                 affiliateName: affName,
                 amount: affComission,
-                productTitle: order.items[0]?.productTitle || 'Infoproduto Digital'
+                productTitle: order.items[0]?.productTitle || 'Material digital'
               });
             }
           }
@@ -638,7 +652,7 @@ export async function updateOrderStatus(
           deliveryByProduct = new Map((deliveries || []).map(item => [item.product_id, item]));
         }
         const productTitles = order.items.length > 0 
-          ? order.items.map(it => it.productTitle || 'Infoproduto Digital').join(', ')
+          ? order.items.map(it => it.productTitle || 'Material digital').join(', ')
           : 'Kit Combo Digital';
           
         const mailResult = await sendSaleConfirmationToBuyer({
@@ -674,7 +688,7 @@ export async function updateOrderStatus(
         storeId: order.storeId,
         orderId: order.id,
         buyerName: order.buyerName,
-        productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+        productTitle: order.items[0]?.productTitle || 'Material digital',
         type: 'REFUND',
         grossAmount: -order.totalAmount,
         platformFixedFeeAmount: -order.platformFixedFeeAmount,
@@ -703,7 +717,7 @@ export async function updateOrderStatus(
           creatorId: affiliateUserId,
           orderId: order.id,
           buyerName: order.buyerName,
-          productTitle: order.items[0]?.productTitle || 'Infoproduto Digital',
+          productTitle: order.items[0]?.productTitle || 'Material digital',
           type: 'REFUND', // Or maybe 'AFFILIATE_COMMISSION_REFUND'? Let's stick to REFUND but the description makes it clear, and creatorId points to affiliate
           grossAmount: -affComission,
           platformFixedFeeAmount: 0,

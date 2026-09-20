@@ -641,35 +641,37 @@ export default function ThemeDefault(props: StoreThemeProps) {
                     </div>
 
                     {/* Price & Buy Action */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
-                      <div>
+                    <div className="pt-3 border-t border-slate-100 mt-auto shrink-0">
+                      <div className="flex items-end justify-between gap-3">
+                      <div className="min-w-0">
                         <span className={`text-[10px] uppercase tracking-wider block font-bold ${prod.listing_mode === 'plr' ? 'text-purple-600' : 'text-slate-400'}`}>{prod.listing_mode === 'plr' ? 'Licença PLR' : 'Produto final'}</span>
                         <span className="text-xl font-black tracking-tight text-slate-900">
                           R$ {prod.preco.toFixed(2).replace('.', ',')}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
                       <button
                         onClick={() => addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 })}
-                        className="px-3 py-2 rounded-xl text-xs font-extrabold border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition-all"
+                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-extrabold border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition-all"
                         title="Adicionar ao carrinho"
                       >
                         <ShoppingBag className="w-3.5 h-3.5" />
                       </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
                       <button
                         onClick={() => { addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 }); window.location.assign(`/loja/${store.slug}/checkout`); }}
-                        className="px-3 py-2 rounded-xl text-xs font-extrabold text-white shadow-sm transition-all"
+                        className="min-w-0 px-2 py-2 rounded-xl text-xs font-extrabold text-white shadow-sm transition-all"
                         style={{ backgroundColor: primaryColor }}
                       >
                         Comprar
                       </button>
                       <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`}
-                        className={`px-3.5 py-2 ${btnRadius} text-xs font-extrabold text-white shadow-md group-hover:shadow-lg group-hover:brightness-110 transition-all flex items-center gap-1.5`}
+                        className={`min-w-0 px-2 py-2 ${btnRadius} text-xs font-extrabold text-white shadow-md group-hover:shadow-lg group-hover:brightness-110 transition-all flex items-center justify-center gap-1`}
                         style={{ backgroundColor: primaryColor }}
                       >
-                        <Zap className="w-3.5 h-3.5 fill-white" />
-                        <span>Ver Detalhes</span>
+                        <Zap className="w-3.5 h-3.5 fill-white shrink-0" />
+                        <span className="truncate">Ver detalhes</span>
                       </Link>
                       </div>
                     </div>
