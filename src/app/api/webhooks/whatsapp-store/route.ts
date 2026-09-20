@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { formatCatalogSearchReply, searchStoreCatalog } from '@/lib/whatsapp-catalog-search';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { cancelLatestWithdrawalByWhatsApp } from '@/lib/withdrawal-cancellation-service';
 
 export const runtime = 'nodejs';
 
@@ -70,6 +71,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, ignored: 'not_an_incoming_text' });
     }
 
+    const platformInstance = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
+    const normalized = incoming.text.toLocaleLowerCase('pt-BR').trim();
+    if (incoming.instanceName === platformInstance) {
+      if (normalized !== 'cancelar pagamento') {
+        return NextResponse.json({ received: true, ignored: 'platform_message' });
+      }
+
+      const cancellation = await cancelLatestWithdrawalByWhatsApp(incoming.phone);
+      const reply = cancellation.cancelled
+        ? '✅ Solicitação de saque cancelada com segurança. O saldo reservado retornará para a sua carteira. Nenhum pagamento será realizado para este pedido.'
+        : 'Não localizamos uma solicitação de saque pendente vinculada a este número, ou ela já foi analisada. Acesse o painel financeiro se precisar de ajuda.';
+      await sendEvolutionText(incoming.phone, reply);
+      return NextResponse.json({ received: true, cancellation: cancellation.cancelled });
+    }
+
     const { data: subscription, error } = await supabaseAdmin
       .from('whatsapp_store_subscriptions')
       .select('instance_name, expires_at, stores(id, nome_loja, slug)')
@@ -85,7 +101,6 @@ export async function POST(request: Request) {
     const store = Array.isArray(subscription.stores) ? subscription.stores[0] : subscription.stores;
     if (!store?.id) return NextResponse.json({ received: true, ignored: 'store_not_found' });
 
-    const normalized = incoming.text.toLocaleLowerCase('pt-BR').trim();
     const response = /^(oi|ola|olá|menu|inicio|início|catalogo|catálogo)$/i.test(normalized)
       ? menuReply(store.nome_loja || 'esta loja')
       : formatCatalogSearchReply(incoming.text, await searchStoreCatalog(store.id, incoming.text), store.slug);

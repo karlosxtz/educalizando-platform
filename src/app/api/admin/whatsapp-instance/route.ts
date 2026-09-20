@@ -37,7 +37,8 @@ export async function POST(request: Request) {
   }
 
   if (body.action === 'qrcode') {
-    const result = await getEvolutionConnectionQrCode(Boolean(body.force));
+    const origin = new URL(request.url).origin;
+    const result = await getEvolutionConnectionQrCode(Boolean(body.force), `${origin}/api/webhooks/whatsapp-store`);
     if (result.error && !result.qrCode) return NextResponse.json({ error: result.error, connection: result }, { status: 503 });
     return NextResponse.json({ success: true, connection: result });
   }

@@ -214,10 +214,10 @@ export async function restartEvolutionInstance(): Promise<{ restarted: boolean; 
   }
 }
 
-export async function getEvolutionConnectionQrCode(force = false): Promise<EvolutionQrCode> {
+export async function getEvolutionConnectionQrCode(force = false, webhookUrl?: string): Promise<EvolutionQrCode> {
   const { apiKey, baseUrl, instanceName } = evolutionConfig();
   if (!apiKey || !instanceName) return { connected: false, created: false, qrCode: null, error: 'A Evolution não está configurada.' };
-  return getEvolutionConnectionQrCodeForInstance(instanceName, force);
+  return getEvolutionConnectionQrCodeForInstance(instanceName, force, webhookUrl);
 }
 
 /** Cria/conecta uma instância exclusiva de loja. O webhook é configurado antes do QR ser exibido. */

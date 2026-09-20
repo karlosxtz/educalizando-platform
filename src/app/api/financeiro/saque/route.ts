@@ -3,6 +3,7 @@ import { requestCreatorWithdrawal, getWithdrawalsHistory } from '@/lib/withdrawa
 import { supabaseAdmin } from '@/lib/supabase';
 import { verifyClientPayloadSignature, verifySignedNonce } from '@/lib/crypto-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { notifyWithdrawalRequested } from '@/lib/withdrawal-notification-service';
 
 export async function GET(request: Request) {
   try {
@@ -97,6 +98,16 @@ export async function POST(request: Request) {
       creatorId: user.id,
       amount: Number(amount),
       creatorProfileCpf
+    });
+
+    await notifyWithdrawalRequested({
+      withdrawalId: withdrawal.id,
+      creatorId: user.id,
+      storeId,
+      amount: withdrawal.amount,
+      pixKeyId: withdrawal.pixKeyId,
+      pixKeyMasked: withdrawal.pixKeyMasked,
+      recipientType: 'creator'
     });
 
     return NextResponse.json({

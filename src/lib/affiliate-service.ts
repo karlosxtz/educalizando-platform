@@ -384,7 +384,10 @@ export async function getAffiliateAvailableBalance(userId: string): Promise<numb
           (tx.type === 'AFFILIATE_COMMISSION' && new Date(tx.created_at).getTime() <= sevenDaysAgo)
           || (['REFUND', 'AFFILIATE_COMMISSION_REFUND'].includes(tx.type) && String(tx.description || '').startsWith('Estorno de Comissão -'))
           || (tx.type === 'WITHDRAWAL' && String(tx.description || '').startsWith('Reserva para Saque PIX (Afiliado)'))
-          || (tx.type === 'ADJUSTMENT' && String(tx.description || '').startsWith('Devolução de saldo do saque rejeitado'))
+          || (tx.type === 'ADJUSTMENT' && (
+            String(tx.description || '').startsWith('Devolução de saldo do saque rejeitado')
+            || String(tx.description || '').startsWith('Devolução de saldo do saque cancelado')
+          ))
         ))
         .reduce((sum, tx) => sum + Number(tx.net_amount), 0);
     }
@@ -459,5 +462,13 @@ export async function requestAffiliateWithdrawal(data: {
   }
 
   // A administração fará o PIX manualmente e concluirá a solicitação no painel.
-  return { success: true, withdrawalId, status: 'PENDING' };
+  return {
+    success: true,
+    withdrawalId,
+    status: 'PENDING',
+    storeId: affiliateStoreId,
+    amount: Number(data.amount.toFixed(2)),
+    pixKeyId: activeKey.id,
+    pixKeyMasked: activeKey.pixKeyMasked,
+  };
 }
