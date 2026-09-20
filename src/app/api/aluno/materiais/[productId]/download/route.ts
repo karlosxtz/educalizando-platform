@@ -74,6 +74,7 @@ export async function GET(
       return NextResponse.json({ error: 'Autenticação obrigatória para baixar materiais.' }, { status: 401 });
     }
     const studentId = user.id;
+    const requestedType = new URL(request.url).searchParams.get('type');
     let isPlrPurchase = false;
     let licenseData = { buyerName: user.user_metadata?.full_name || user.email || 'Comprador', buyerEmail: user.email || '', buyerPhone: null as string | null, orderId: '', storeName: 'Loja parceira Educalizando', sellerEmail: 'Não informado' };
 
@@ -90,7 +91,7 @@ export async function GET(
     // always create a student_product_access row. Confirm the paid order and
     // its line item as a fallback, while keeping the product-level check.
     let accessOrderId = access?.order_id || null;
-    if (!accessOrderId) {
+    if (!accessOrderId || requestedType === 'plr') {
       const { data: plrOrders } = await supabaseAdmin
         .from('orders')
         .select('id, is_plr_purchase, status, buyer_name, buyer_email, buyer_phone, store_id')
@@ -105,7 +106,8 @@ export async function GET(
           .in('order_id', orderIds)
           .eq('product_id', productId)
           .limit(1);
-        accessOrderId = matchingItems?.[0]?.order_id || null;
+        const plrOrderId = matchingItems?.[0]?.order_id || null;
+        if (plrOrderId) accessOrderId = plrOrderId;
       }
     }
     if (!access && !accessOrderId) {
