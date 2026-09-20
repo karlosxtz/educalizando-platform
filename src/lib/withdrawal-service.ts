@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin, isRealSupabaseConfigured } from './supabase';
+import { supabase, supabaseAdmin, allowsLocalDevelopmentFallback, isRealSupabaseConfigured } from './supabase';
 import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
 import { isValidCPF } from './infinitepay-service';
 
@@ -131,7 +131,10 @@ export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: strin
   const found = local.find(k => k.storeId === storeId && k.isActive);
   if (found) return found;
 
-  if (creatorCpf && creatorCpf.replace(/\D/g, '').length === 11) {
+  // Nunca invente uma chave válida em produção. Isso fazia a tela financeira
+  // mostrar uma chave de exemplo e falhar quando o saque era validado no
+  // servidor. O atalho existe somente para o modo local explicitamente ativado.
+  if (allowsLocalDevelopmentFallback() && creatorCpf && creatorCpf.replace(/\D/g, '').length === 11) {
     const cleanCpf = creatorCpf.replace(/\D/g, '');
     const defaultKey: CreatorPixKey = {
       id: `pix_${storeId.substring(0, 6)}_${cleanCpf.substring(7)}`,

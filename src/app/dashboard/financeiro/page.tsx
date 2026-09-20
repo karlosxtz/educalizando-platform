@@ -13,13 +13,7 @@ import {
   WalletTransaction 
 } from '@/lib/wallet-service';
 import { supabase } from '@/lib/supabase';
-import { 
-  getActiveCreatorPixKey, 
-  getWithdrawalsHistory, 
-  MIN_WITHDRAWAL_AMOUNT, 
-  CreatorPixKey, 
-  WithdrawalRecord 
-} from '@/lib/withdrawal-service';
+import { MIN_WITHDRAWAL_AMOUNT, type CreatorPixKey, type WithdrawalRecord } from '@/lib/withdrawal-service';
 import CustomSelect from '@/components/ui/CustomSelect';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import Link from 'next/link';
@@ -103,6 +97,38 @@ export default function FinancialWalletDashboardPage() {
     }
   }, [storeId, periodFilter, statusFilter, searchQuery, page]);
 
+  async function loadActivePixKey(activeStoreId: string): Promise<CreatorPixKey | null> {
+    const response = await fetch(`/api/financeiro/pix-key?storeId=${encodeURIComponent(activeStoreId)}`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.error || 'Não foi possível consultar a chave PIX cadastrada.');
+    }
+    if (!payload.hasKey || !payload.pixKey) return null;
+    return {
+      id: payload.pixKey.id,
+      creatorId: '',
+      storeId: activeStoreId,
+      pixKeyType: 'CPF',
+      pixKey: '',
+      pixKeyMasked: payload.pixKey.pixKeyMasked,
+      holderName: payload.pixKey.holderName || null,
+      validationStatus: payload.pixKey.validationStatus,
+      validatedAt: payload.pixKey.validatedAt || '',
+      isActive: true,
+      createdAt: '',
+      updatedAt: ''
+    };
+  }
+
+  async function loadWithdrawals(activeStoreId: string): Promise<WithdrawalRecord[]> {
+    const response = await fetch(`/api/financeiro/saque?storeId=${encodeURIComponent(activeStoreId)}`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.error || 'Não foi possível consultar o histórico de saques.');
+    }
+    return payload.withdrawals || [];
+  }
+
   async function loadData() {
     setLoading(true);
     try {
@@ -116,8 +142,8 @@ export default function FinancialWalletDashboardPage() {
           page,
           limit: 15
         }),
-        getActiveCreatorPixKey(storeId, creatorProfileCpf),
-        getWithdrawalsHistory(storeId)
+        loadActivePixKey(storeId),
+        loadWithdrawals(storeId)
       ]);
 
       setSummary(sumData);
