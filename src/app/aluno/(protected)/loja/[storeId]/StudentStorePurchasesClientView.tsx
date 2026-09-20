@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, ShieldAlert
+  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, X
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -41,6 +41,8 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [refundByProductId, setRefundByProductId] = useState<Record<string, RefundEligibility>>({});
   const [refundsLoaded, setRefundsLoaded] = useState(false);
   const [requestingRefundOrderId, setRequestingRefundOrderId] = useState<string | null>(null);
+  const [refundModal, setRefundModal] = useState<{ orderId: string; eligibility: RefundEligibility } | null>(null);
+  const [refundReason, setRefundReason] = useState('');
   
   const [reviewTarget, setReviewTarget] = useState<{ productId: string; storeId: string; } | null>(null);
 
@@ -171,7 +173,10 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     });
   };
 
-  const handleRefundRequest = async (orderId: string, eligibility?: RefundEligibility) => {
+  const handleRefundRequest = async () => {
+    const selectedRefund = refundModal;
+    if (!selectedRefund) return;
+    const { orderId, eligibility } = selectedRefund;
     if (!orderId || requestingRefundOrderId) return;
     if (eligibility?.accessed) {
       toast.error('Este pedido já teve material acessado ou baixado e não pode solicitar reembolso.');
@@ -182,8 +187,11 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       return;
     }
 
-    const reason = window.prompt('Explique o motivo da solicitação de reembolso (mínimo de 10 caracteres):');
-    if (!reason?.trim()) return;
+    const reason = refundReason.trim();
+    if (reason.length < 10) {
+      toast.error('Explique o motivo do reembolso com pelo menos 10 caracteres.');
+      return;
+    }
     setRequestingRefundOrderId(orderId);
     try {
       const response = await fetch('/api/aluno/reembolsos', {
@@ -200,6 +208,8 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
         pendingEligibility.productIds.forEach((productId) => { next[productId] = pendingEligibility; });
         return next;
       });
+      setRefundModal(null);
+      setRefundReason('');
       toast.success('Solicitação enviada para análise. Você será avisado após a decisão.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a solicitação.');
@@ -298,14 +308,6 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
             </Link>
           </div>
         </div>
-
-        <section className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-          <div>
-            <p className="font-black">Regra de solicitação de reembolso</p>
-            <p className="mt-1 text-xs font-medium leading-relaxed text-amber-800">O reembolso só pode ser solicitado antes de qualquer acesso ao material: abrir link externo, visualizar conteúdo ou baixar arquivo. Depois de enviado, o pedido passa por análise da Educalizando; a solicitação não garante aprovação automática.</p>
-          </div>
-        </section>
 
         {/* Store's Purchased Products & Kits Grid */}
         {purchases.length === 0 ? (
@@ -460,11 +462,14 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                           ) : isResolved ? (
                             <p className={`rounded-lg px-2 py-2 text-center text-[10px] font-bold ${requestStatus === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>Solicitação {requestStatus === 'APPROVED' ? 'aprovada' : 'analisada'}</p>
                           ) : isAccessed ? (
-                            <p className="rounded-lg bg-slate-100 px-2 py-2 text-center text-[10px] font-bold text-slate-500">Reembolso indisponível: material já acessado ou baixado.</p>
+                            <p className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-center text-[10px] font-bold text-slate-400"><ShieldCheck className="h-3.5 w-3.5" /> Acesso ao material registrado</p>
                           ) : (
                             <button
                               type="button"
-                              onClick={() => handleRefundRequest(eligibility.orderId, eligibility)}
+                              onClick={() => {
+                                setRefundReason('');
+                                setRefundModal({ orderId: eligibility.orderId, eligibility });
+                              }}
                               disabled={requestingRefundOrderId !== null}
                               className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
                             >
@@ -482,6 +487,55 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           </div>
         )}
       </main>
+
+      {refundModal && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="refund-modal-title">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-7"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                  <RotateCcw className="h-5 w-5" />
+                </div>
+                <h2 id="refund-modal-title" className="text-xl font-black tracking-tight text-slate-900">Solicitar reembolso</h2>
+                <p className="mt-1 text-sm font-medium leading-relaxed text-slate-500">Conte o que aconteceu para a equipe analisar seu pedido.</p>
+              </div>
+              <button type="button" onClick={() => setRefundModal(null)} disabled={requestingRefundOrderId !== null} className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50" aria-label="Fechar solicitação de reembolso">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="flex items-center gap-2 text-sm font-black text-amber-900"><AlertCircle className="h-4 w-4" /> Antes de enviar</p>
+              <p className="mt-1.5 text-xs font-medium leading-relaxed text-amber-800">O reembolso só pode ser solicitado antes de abrir, visualizar ou baixar o material. A solicitação será analisada pela Educalizando e não garante aprovação automática.</p>
+            </div>
+
+            <label className="mt-5 block text-sm font-bold text-slate-800" htmlFor="refund-reason">Motivo da solicitação</label>
+            <textarea
+              id="refund-reason"
+              value={refundReason}
+              onChange={(event) => setRefundReason(event.target.value)}
+              placeholder="Ex.: comprei o material por engano..."
+              maxLength={1000}
+              rows={4}
+              disabled={requestingRefundOrderId !== null}
+              className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-100 disabled:opacity-60"
+            />
+            <p className="mt-1.5 text-right text-[11px] font-medium text-slate-400">{refundReason.trim().length}/1000 · mínimo de 10 caracteres</p>
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setRefundModal(null)} disabled={requestingRefundOrderId !== null} className="rounded-xl px-4 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50">Cancelar</button>
+              <button type="button" onClick={handleRefundRequest} disabled={requestingRefundOrderId !== null || refundReason.trim().length < 10} className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50">
+                {requestingRefundOrderId ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                Enviar para análise
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {reviewTarget && studentSession && (
         <StudentReviewModal
