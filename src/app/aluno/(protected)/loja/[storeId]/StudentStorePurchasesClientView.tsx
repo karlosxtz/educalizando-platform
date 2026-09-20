@@ -24,6 +24,7 @@ interface StudentStorePurchasesClientViewProps {
 
 interface RefundEligibility {
   orderId: string;
+  productIds: string[];
   accessed: boolean;
   request: { id: string; status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'; review_note?: string | null } | null;
 }
@@ -37,6 +38,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [refundByOrderId, setRefundByOrderId] = useState<Record<string, RefundEligibility>>({});
+  const [refundByProductId, setRefundByProductId] = useState<Record<string, RefundEligibility>>({});
   const [refundsLoaded, setRefundsLoaded] = useState(false);
   const [requestingRefundOrderId, setRequestingRefundOrderId] = useState<string | null>(null);
   
@@ -67,6 +69,11 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
             return result;
           }, {});
           setRefundByOrderId(mapped);
+          const mappedByProduct = (refundPayload.eligibility as RefundEligibility[]).reduce<Record<string, RefundEligibility>>((result, item) => {
+            item.productIds.forEach((productId) => { result[productId] = item; });
+            return result;
+          }, {});
+          setRefundByProductId(mappedByProduct);
           setRefundsLoaded(true);
         } else {
           console.warn('[Refund eligibility]', refundPayload.error || 'Não foi possível consultar reembolsos.');
@@ -186,10 +193,13 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível enviar a solicitação.');
-      setRefundByOrderId((previous) => ({
-        ...previous,
-        [orderId]: { orderId, accessed: false, request: { id: `pending-${orderId}`, status: 'PENDING' } }
-      }));
+      const pendingEligibility: RefundEligibility = { orderId, productIds: eligibility?.productIds || [], accessed: false, request: { id: `pending-${orderId}`, status: 'PENDING' } };
+      setRefundByOrderId((previous) => ({ ...previous, [orderId]: pendingEligibility }));
+      setRefundByProductId((previous) => {
+        const next = { ...previous };
+        pendingEligibility.productIds.forEach((productId) => { next[productId] = pendingEligibility; });
+        return next;
+      });
       toast.success('Solicitação enviada para análise. Você será avisado após a decisão.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a solicitação.');
@@ -431,8 +441,14 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                       }
                     </div>
 
-                    {!pur.is_plr_purchase && pur.order_id && refundsLoaded && (() => {
-                      const eligibility = refundByOrderId[pur.order_id];
+                    {!pur.is_plr_purchase && refundsLoaded && (() => {
+                      // Pedidos mais antigos podem ter acesso ativo sem order_id.
+                      // Nestes casos, a elegibilidade retornada pelo servidor é
+                      // associada ao produto para o botão não desaparecer.
+                      const eligibility = pur.order_id
+                        ? refundByOrderId[pur.order_id]
+                        : (pur.product_id ? refundByProductId[pur.product_id] : undefined);
+                      if (!eligibility) return null;
                       const requestStatus = eligibility?.request?.status;
                       const isAccessed = eligibility?.accessed;
                       const isPending = requestStatus === 'PENDING';
@@ -448,11 +464,11 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                           ) : (
                             <button
                               type="button"
-                              onClick={() => handleRefundRequest(pur.order_id!, eligibility)}
+                              onClick={() => handleRefundRequest(eligibility.orderId, eligibility)}
                               disabled={requestingRefundOrderId !== null}
                               className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
                             >
-                              {requestingRefundOrderId === pur.order_id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                              {requestingRefundOrderId === eligibility.orderId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
                               Solicitar reembolso
                             </button>
                           )}

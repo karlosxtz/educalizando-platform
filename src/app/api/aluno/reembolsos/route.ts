@@ -51,6 +51,7 @@ export async function GET(request: Request) {
       const access = await getOrderAccessState(user.id, order.id);
       return {
         orderId: order.id,
+        productIds: access.productIds,
         accessed: access.accessed,
         request: requestByOrderId.get(order.id) || null,
       };
