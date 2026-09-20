@@ -103,6 +103,9 @@ export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: strin
         .select('*')
         .eq('store_id', storeId)
         .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (!error && data) {
@@ -121,6 +124,9 @@ export async function getActiveCreatorPixKey(storeId: string, creatorCpf?: strin
           createdAt: data.created_at,
           updatedAt: data.updated_at
         };
+      }
+      if (error) {
+        console.error('[getActiveCreatorPixKey] Falha ao consultar chave PIX:', error.message);
       }
     } catch (e) {
       console.error('[getActiveCreatorPixKey] Erro Supabase:', e);
