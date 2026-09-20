@@ -180,9 +180,9 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
       {/* Visual Breadcrumb */}
       <div className="hidden sm:block bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm text-slate-500 overflow-x-auto whitespace-nowrap hide-scrollbar">
+          <nav className="flex min-w-0 flex-wrap items-center gap-y-1 text-sm text-slate-500 overflow-hidden">
             {breadcrumbItems.map((item, index) => (
-              <div key={index} className="flex items-center">
+              <div key={index} className="flex min-w-0 items-center">
                 {index > 0 && <ChevronRight className="w-4 h-4 mx-2 text-slate-400 flex-shrink-0" />}
                 {item.icon ? (
                   <Link href={item.href} className="hover:text-blue-600 transition-colors flex items-center gap-1">
@@ -190,11 +190,11 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
                     <span className={index === 0 ? "sr-only" : ""}>{item.label}</span>
                   </Link>
                 ) : index === breadcrumbItems.length - 1 ? (
-                  <span className="font-medium text-slate-900 truncate max-w-[200px] sm:max-w-[400px]">
+                  <span className="min-w-0 max-w-[52vw] break-words font-medium text-slate-900 line-clamp-2 sm:max-w-[400px]">
                     {item.label}
                   </span>
                 ) : (
-                  <Link href={item.href} className="hover:text-blue-600 transition-colors">
+                  <Link href={item.href} className="max-w-[28vw] truncate hover:text-blue-600 transition-colors sm:max-w-none">
                     {item.label}
                   </Link>
                 )}

@@ -160,9 +160,9 @@ function MarketplaceHeaderInner() {
               <Link href="/lojas" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-600">Lojas</Link>
               <Link href="/ofertas" className="flex h-full items-center justify-center text-xs font-extrabold text-orange-600">Ofertas</Link>
             </div>
-            <nav className="overflow-x-auto overscroll-x-contain py-2" aria-label="Categorias em destaque">
-              <div className="flex w-max items-center gap-2 px-1">
-                {quickCategories.map((category) => <Link key={category.href} href={category.href} aria-current={category.active ? 'page' : undefined} className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
+            <nav className="marketplace-category-rail relative h-[60px] overflow-hidden py-2" aria-label="Categorias em destaque">
+              <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
+                {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} aria-current={category.active ? 'page' : undefined} className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
               </div>
             </nav>
           </div>
