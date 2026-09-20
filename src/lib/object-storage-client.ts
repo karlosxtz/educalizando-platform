@@ -2,7 +2,6 @@ import { supabase } from '@/lib/supabase';
 
 export type UploadBucket = 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars' | 'main-banners';
 
-type UploadTicket = { uploadUrl: string; value: string };
 type ImageUploadResult = { value: string };
 
 export async function uploadToObjectStorage(bucket: UploadBucket, file: File): Promise<string> {
@@ -32,34 +31,33 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
     return payload.value;
   }
 
-  const response = await fetch('/api/storage/presign-upload', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({
-      bucket,
-      fileName: file.name,
-      contentType: file.type || 'application/octet-stream',
-      size: file.size,
-    }),
-  });
-  const payload = await response.json().catch(() => ({})) as Partial<UploadTicket> & { error?: string };
-  if (!response.ok || !payload.uploadUrl || !payload.value) {
-    throw new Error(payload.error || 'Não foi possível preparar o envio do arquivo.');
+  // Each request stays below Vercel's body limit, including for 15 MB files.
+  const send = async (fields: Record<string, string | Blob>) => {
+    const form = new FormData();
+    Object.entries(fields).forEach(([key, value]) => form.append(key, value));
+    let response: Response;
+    try {
+      response = await fetch('/api/storage/upload-file', {
+        method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body: form,
+      });
+    } catch {
+      throw new Error('A conexão com a plataforma foi interrompida durante o envio. Tente novamente.');
+    }
+    const result = await response.json().catch(() => ({})) as { id?: string; chunkSize?: number; value?: string; error?: string };
+    if (!response.ok) throw new Error(result.error || `Falha no envio do material (HTTP ${response.status}).`);
+    return result;
+  };
+  const ticket = await send({ action: 'init', name: file.name, size: String(file.size), contentType: file.type || 'application/octet-stream' });
+  if (!ticket.id || !ticket.chunkSize) throw new Error('Não foi possível iniciar o envio.');
+  try {
+    for (let offset = 0, index = 0; offset < file.size; offset += ticket.chunkSize, index++) {
+      await send({ action: 'chunk', id: ticket.id, index: String(index), file: file.slice(offset, offset + ticket.chunkSize) });
+    }
+    const result = await send({ action: 'complete', id: ticket.id });
+    if (!result.value) throw new Error('O armazenamento não confirmou o arquivo.');
+    return result.value;
+  } catch (error) {
+    await send({ action: 'cancel', id: ticket.id }).catch(() => undefined);
+    throw error;
   }
-
-  const upload = await fetch(payload.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type || 'application/octet-stream' },
-    body: file,
-  });
-  if (!upload.ok) {
-    const detail = (await upload.text()).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    throw new Error(detail
-      ? `O armazenamento recusou o envio (${upload.status}): ${detail.slice(0, 180)}`
-      : `O armazenamento recusou o envio (HTTP ${upload.status}).`);
-  }
-  return payload.value;
 }

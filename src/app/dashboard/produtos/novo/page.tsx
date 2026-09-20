@@ -20,6 +20,7 @@ import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 import { toast } from 'sonner';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { isUploadedMaterial, normalizeDeliveryLink } from '@/lib/delivery-link';
 
 function ProductWizardContent() {
   const router = useRouter();
@@ -134,6 +135,7 @@ function ProductWizardContent() {
             
             setArquivoUrl(existing.arquivo_url);
             setArquivoNome(existing.arquivo_nome || '');
+            setDeliveryMethod(isUploadedMaterial(existing.arquivo_url) ? 'upload' : 'link');
             setDriveLinkDraft(existing.arquivo_url || '');
             if (existing.arquivo_url && (existing.arquivo_url.startsWith('http://') || existing.arquivo_url.startsWith('https://'))) {
               if (!existing.arquivo_url.includes('supabase.co')) {
@@ -150,6 +152,7 @@ function ProductWizardContent() {
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             
             setPlrLicenseUrl(existing.plr_license_url || null);
+            setPlrDeliveryMethod(isUploadedMaterial(existing.plr_license_url) ? 'upload' : 'link');
             if (existing.plr_license_url && (existing.plr_license_url.startsWith('http://') || existing.plr_license_url.startsWith('https://'))) {
               if (!existing.plr_license_url.includes('supabase.co')) {
                 setPlrDeliveryMethod('link');
@@ -316,7 +319,15 @@ function ProductWizardContent() {
           return;
         }
       }
-      if (!arquivoUrl) {
+      if (deliveryMethod === 'link') {
+        try {
+          setArquivoUrl(normalizeDeliveryLink(driveLinkDraft));
+        } catch {
+          setErrorMsg('Informe um link de entrega válido iniciado por https://.');
+          return;
+        }
+      }
+      if (deliveryMethod === 'upload' && !isUploadedMaterial(arquivoUrl)) {
         setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
         return;
       }
@@ -329,6 +340,10 @@ function ProductWizardContent() {
         if (!plrLicenseUrl) {
           setErrorMsg('Envie o arquivo ou informe o link de entrega da Licença PLR.');
           return;
+        }
+        if (plrDeliveryMethod === 'link') {
+          try { setPlrLicenseUrl(normalizeDeliveryLink(plrLicenseUrl)); }
+          catch { setErrorMsg('Informe um link válido para a licença PLR.'); return; }
         }
       }
     }
@@ -1012,7 +1027,7 @@ function ProductWizardContent() {
                       type="button"
                       onClick={() => {
                         setDeliveryMethod('link');
-                        if (arquivoUrl?.includes('supabase.co')) setArquivoUrl(null);
+                        if (isUploadedMaterial(arquivoUrl)) setArquivoUrl(null);
                       }}
                       className={`rounded-2xl border p-4 text-left transition-all ${
                         deliveryMethod === 'link' ? 'border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-200' : 'border-slate-200 bg-white hover:border-emerald-300'
@@ -1027,7 +1042,7 @@ function ProductWizardContent() {
                       type="button"
                       onClick={() => {
                         setDeliveryMethod('upload');
-                        if (arquivoUrl && !arquivoUrl.includes('supabase.co')) setArquivoUrl(null);
+                        if (!isUploadedMaterial(arquivoUrl)) setArquivoUrl(null);
                         setDriveLinkDraft('');
                         setArquivoNome('');
                       }}
@@ -1074,11 +1089,10 @@ function ProductWizardContent() {
                         className="w-full px-4 py-3 bg-white border border-emerald-200 focus:border-emerald-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none shadow-sm"
                       />
                       <button type="button" onClick={() => {
-                        const normalizedLink = driveLinkDraft.trim();
+                        let normalizedLink: string;
                         if (!arquivoNome.trim()) { toast.error('Informe o nome do material antes de salvar o link.'); return; }
                         try {
-                          const parsed = new URL(normalizedLink);
-                          if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protocol');
+                          normalizedLink = normalizeDeliveryLink(driveLinkDraft);
                         } catch { toast.error('Informe um link válido iniciado por https://.'); return; }
                         setArquivoUrl(normalizedLink);
                         toast.success('Link de entrega salvo.');
@@ -1141,7 +1155,7 @@ function ProductWizardContent() {
                           type="button"
                           onClick={() => {
                             setPlrDeliveryMethod('upload');
-                            if (plrLicenseUrl && !plrLicenseUrl.includes('supabase.co')) setPlrLicenseUrl(null);
+                            if (!isUploadedMaterial(plrLicenseUrl)) setPlrLicenseUrl(null);
                           }}
                           className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
                             plrDeliveryMethod === 'upload' ? 'bg-white shadow-sm text-blue-700' : 'text-blue-700/70 hover:text-blue-900'
@@ -1153,7 +1167,10 @@ function ProductWizardContent() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setPlrDeliveryMethod('link')}
+                          onClick={() => {
+                            setPlrDeliveryMethod('link');
+                            if (isUploadedMaterial(plrLicenseUrl)) setPlrLicenseUrl(null);
+                          }}
                           className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
                             plrDeliveryMethod === 'link' ? 'bg-white shadow-sm text-blue-700' : 'text-blue-700/70 hover:text-blue-900'
                           }`}

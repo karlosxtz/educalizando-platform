@@ -246,7 +246,7 @@ export async function GET(
         }
       }
 
-      if (activeUrl.startsWith('https://')) {
+      if (activeUrl.startsWith('https://') || activeUrl.startsWith('http://')) {
         // Links cadastrados pelo criador (ex.: Google Drive) não são arquivos
         // binários da Educalizando. O Drive responde com uma página HTML e não
         // pode passar pelo gerador de PDF licenciado. Redirecionamos o aluno
