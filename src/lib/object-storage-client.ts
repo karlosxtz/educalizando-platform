@@ -1,11 +1,24 @@
+import { supabase } from '@/lib/supabase';
+
 export type UploadBucket = 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars' | 'main-banners';
 
 type UploadTicket = { uploadUrl: string; value: string };
 
 export async function uploadToObjectStorage(bucket: UploadBucket, file: File): Promise<string> {
+  // O app mantém a sessão do Supabase no armazenamento do navegador. A rota de
+  // presign precisa receber explicitamente o token para identificar quem está
+  // enviando o arquivo; cookies SSR não estão disponíveis neste fluxo legado.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Sua sessão expirou. Entre novamente para enviar arquivos.');
+  }
+
   const response = await fetch('/api/storage/presign-upload', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify({
       bucket,
       fileName: file.name,
