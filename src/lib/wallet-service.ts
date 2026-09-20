@@ -1,4 +1,4 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
+import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase, isRealSupabaseConfigured } from './supabase';
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
 
@@ -81,6 +81,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   };
 
   if (!storeId) return empty;
+  const canUseLocalFallback = allowsLocalDevelopmentFallback();
 
   // CLIENT-SIDE: Chamar API server-side que tem acesso ao supabaseAdmin
   if (typeof window !== 'undefined') {
@@ -93,7 +94,10 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     } catch (e) {
       console.error('[calculateCreatorWallet] Erro ao chamar API server-side:', e);
     }
-    // Fallback para cálculo local se a API falhar
+    // Em produção, saldo nunca pode ser calculado com dados do navegador.
+    // A API é a fonte de verdade e uma falha deve resultar em estado vazio,
+    // não em números antigos ou simulados no localStorage.
+    if (!canUseLocalFallback) return empty;
   }
 
   let orders: any[] = [];
@@ -141,13 +145,13 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     }
   }
 
-  // Fallback Local se vazio
-  if (orders.length === 0) {
+  // Fallback local é exclusivo do desenvolvimento habilitado explicitamente.
+  if (orders.length === 0 && canUseLocalFallback) {
     const rawLocalAsaas = typeof window !== 'undefined' ? localStorage.getItem('educalizando_asaas_orders_v2') : null;
     orders = rawLocalAsaas ? JSON.parse(rawLocalAsaas).filter((o: any) => o.storeId === storeId) : [];
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && canUseLocalFallback) {
     transactions = getLocalWalletTransactions().filter(t => t.storeId === storeId);
   }
 
@@ -258,6 +262,10 @@ export async function recordWalletTransaction(data: {
   netAmount: number;
   description: string;
 }): Promise<WalletTransaction> {
+  const canUseLocalFallback = allowsLocalDevelopmentFallback();
+  if (!isRealSupabaseConfigured() && !canUseLocalFallback) {
+    throw getSupabaseConfigurationError();
+  }
 
   // A. IDEMPOTÊNCIA: Se for venda ou estorno de um pedido já registrado no ledger, ignora duplicação
   // Primeiro verificar no Supabase (para chamadas server-side como webhooks onde localStorage não existe)
@@ -280,8 +288,8 @@ export async function recordWalletTransaction(data: {
     }
   }
 
-  // Fallback: verificar localStorage (para chamadas client-side)
-  const allLocal = getLocalWalletTransactions();
+  // O ledger local existe somente para o ambiente de desenvolvimento.
+  const allLocal = canUseLocalFallback ? getLocalWalletTransactions() : [];
   if (data.orderId) {
     const existing = allLocal.find(t => t.orderId === data.orderId && t.type === data.type);
     if (existing) {
@@ -349,8 +357,10 @@ export async function recordWalletTransaction(data: {
     }
   }
 
-  allLocal.unshift(newTx);
-  saveLocalWalletTransactions(allLocal);
+  if (canUseLocalFallback) {
+    allLocal.unshift(newTx);
+    saveLocalWalletTransactions(allLocal);
+  }
 
   return newTx;
 }
@@ -358,6 +368,7 @@ export async function recordWalletTransaction(data: {
 // 3. Obter Extrato Financeiro Paginado com Filtros e Pesquisa
 export async function getWalletTransactionsStatement(params: StatementFilterParams) {
   const { storeId, period = 'all', status = 'all', search = '', page = 1, limit = 20 } = params;
+  const canUseLocalFallback = allowsLocalDevelopmentFallback();
 
   // CLIENT-SIDE: Chamar API server-side que tem acesso ao supabaseAdmin
   if (typeof window !== 'undefined') {
@@ -377,6 +388,9 @@ export async function getWalletTransactionsStatement(params: StatementFilterPara
       }
     } catch (e) {
       console.error('[getWalletTransactionsStatement] Erro ao chamar API server-side:', e);
+    }
+    if (!canUseLocalFallback) {
+      return { transactions: [], totalCount: 0, page: 1, totalPages: 1 };
     }
   }
 
@@ -417,13 +431,13 @@ export async function getWalletTransactionsStatement(params: StatementFilterPara
     }
   }
 
-  // B. Fallback: localStorage
-  if (allTx.length === 0) {
+  // B. Fallback: localStorage somente no desenvolvimento opt-in.
+  if (allTx.length === 0 && canUseLocalFallback) {
     allTx = getLocalWalletTransactions().filter(t => t.storeId === storeId);
   }
 
-  // C. Fallback extremo: construir a partir dos pedidos locais
-  if (allTx.length === 0) {
+  // C. Fallback extremo: construir a partir dos pedidos locais somente em dev.
+  if (allTx.length === 0 && canUseLocalFallback) {
     const rawLocalAsaas = typeof window !== 'undefined' ? localStorage.getItem('educalizando_asaas_orders_v2') : null;
     const orders = rawLocalAsaas ? JSON.parse(rawLocalAsaas).filter((o: any) => o.storeId === storeId) : [];
 
