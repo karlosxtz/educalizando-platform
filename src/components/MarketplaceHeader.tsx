@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ShoppingCart, UserRound } from 'lucide-react';
+import { ShoppingCart, UserRound, Menu, X } from 'lucide-react';
 import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
 import { useCart } from '@/components/store/CartContext';
@@ -22,6 +22,8 @@ function MarketplaceHeaderInner() {
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
   const [accountAreaHref, setAccountAreaHref] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   const currentCategoria = searchParams?.get('categoria');
   const currentSort = searchParams?.get('sort');
@@ -34,7 +36,7 @@ function MarketplaceHeaderInner() {
   ];
 
   useEffect(() => {
-    setIsMounted(true);
+    const mountTimer = window.setTimeout(() => setIsMounted(true), 0);
     const resolveArea = (user?: { user_metadata?: Record<string, unknown> } | null) => {
       const role = typeof user?.user_metadata?.role === 'string' ? user.user_metadata.role : localStorage.getItem('educalizando_active_role');
       if (role === 'affiliate') return '/dashboard/afiliacoes';
@@ -48,8 +50,28 @@ function MarketplaceHeaderInner() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setAccountAreaHref(session?.user ? resolveArea(session.user) : null);
     });
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      window.clearTimeout(mountTimer);
+      listener.subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        mobileMenuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
@@ -77,6 +99,17 @@ function MarketplaceHeaderInner() {
             </Link>
             
             <div className="flex md:hidden items-center gap-1">
+              <button
+                ref={mobileMenuButtonRef}
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="marketplace-mobile-menu"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-50 hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
               <Link
                 href={accountAreaHref || '/entrar'}
                 aria-label={accountAreaHref ? 'Acessar minha área' : 'Entrar ou criar conta'}
@@ -154,12 +187,27 @@ function MarketplaceHeaderInner() {
           </div>
 
           <div className="xl:hidden">
-            <div className="grid h-12 grid-cols-4 items-center border-b border-slate-100">
-              <Link href="/" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-900">Início</Link>
-              <div className="flex h-full items-center justify-center"><CategoryDropdown /></div>
-              <Link href="/lojas" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-600">Lojas</Link>
-              <Link href="/ofertas" className="flex h-full items-center justify-center text-xs font-extrabold text-orange-600">Ofertas</Link>
+            <div className="flex min-h-12 items-center gap-1 overflow-hidden border-b border-slate-100 px-1">
+              <Link href="/" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-slate-900">Início</Link>
+              <div className="flex min-w-0 flex-[1.8] items-center justify-center overflow-hidden"><CategoryDropdown /></div>
+              <Link href="/lojas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-slate-600">Lojas</Link>
+              <Link href="/ofertas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-orange-600">Ofertas</Link>
             </div>
+            {mobileMenuOpen && (
+              <div id="marketplace-mobile-menu" role="dialog" aria-label="Menu principal" className="fixed inset-x-0 top-0 z-[60] flex max-h-[100dvh] flex-col overflow-y-auto bg-white px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 shadow-2xl">
+                <div className="flex min-h-11 items-center justify-between border-b border-slate-100 pb-3">
+                  <span className="text-sm font-bold text-slate-800">Menu principal</span>
+                  <button type="button" onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }} aria-label="Fechar menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><X className="h-5 w-5" /></button>
+                </div>
+                <nav className="grid gap-1 py-3" aria-label="Links principais">
+                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/materiais-gratis','Materiais gratuitos'],['/vender','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+                </nav>
+                <div className="border-t border-slate-100 pt-3">
+                  <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Categorias rápidas</p>
+                  <div className="grid gap-1">{quickCategories.map((category) => <Link key={category.href} href={category.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{category.label}</Link>)}</div>
+                </div>
+              </div>
+            )}
             <nav className="marketplace-category-rail relative h-[60px] overflow-hidden py-2" aria-label="Categorias em destaque">
               <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
                 {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} aria-current={category.active ? 'page' : undefined} className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}

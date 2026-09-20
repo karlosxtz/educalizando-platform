@@ -185,6 +185,12 @@ html {
   animation: marketplace-category-scroll 18s linear infinite;
 }
 
+.marketplace-category-rail:hover .marketplace-category-track,
+.marketplace-category-rail:focus-within .marketplace-category-track,
+.marketplace-category-rail:active .marketplace-category-track {
+  animation-play-state: paused;
+}
+
 .marketplace-category-rail::before,
 .marketplace-category-rail::after {
   content: '';

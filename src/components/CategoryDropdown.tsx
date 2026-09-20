@@ -38,16 +38,21 @@ export default function CategoryDropdown() {
     >
       <button 
         type="button"
-        className="flex items-center gap-1 whitespace-nowrap text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors py-2 cursor-pointer focus:outline-none"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls="marketplace-category-menu"
+        className="flex max-w-full items-center gap-1 overflow-hidden py-2 text-center text-xs font-bold text-slate-600 transition-colors hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:text-sm"
         onClick={() => setIsOpen(!isOpen)}
       >
-        Todas as categorias
+        <span className="truncate">Todas as categorias</span>
         <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
       </button>
 
       {/* Dropdown Menu */}
       <div 
-        className={`absolute top-full left-0 mt-2 w-64 bg-white shadow-2xl rounded-xl z-[9999] border border-slate-200 p-2 flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-left ${
+        id="marketplace-category-menu"
+        role="menu"
+        className={`absolute top-full left-1/2 mt-2 w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 bg-white shadow-2xl rounded-xl z-[9999] border border-slate-200 p-2 flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-center sm:left-0 sm:w-64 sm:translate-x-0 sm:origin-top-left ${
           isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
         }`}
       >
