@@ -68,6 +68,23 @@ export async function createUploadUrl({ bucket, key, contentType }: { bucket: st
   }), { expiresIn: 15 * 60 });
 }
 
+export async function uploadObject({ bucket, key, body, contentType }: {
+  bucket: string;
+  key: string;
+  body: Uint8Array;
+  contentType: string;
+}) {
+  return client().send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+    CacheControl: bucket === (process.env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images')
+      ? 'public, max-age=31536000, immutable'
+      : 'private, no-store',
+  }));
+}
+
 export async function createDownloadUrl(bucket: string, key: string, filename?: string) {
   return getSignedUrl(client(), new GetObjectCommand({
     Bucket: bucket,
