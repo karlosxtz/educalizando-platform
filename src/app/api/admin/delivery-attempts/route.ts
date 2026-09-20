@@ -3,6 +3,7 @@ import { isSuperAdmin } from '@/lib/api-auth';
 import { completeTransactionalDelivery, failTransactionalDelivery } from '@/lib/transactional-delivery-service';
 import { getOrderRecordById } from '@/lib/order-service';
 import { sendSaleConfirmationToBuyer } from '@/lib/mail-service';
+import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 import { supabaseAdmin } from '@/lib/supabase';
 
 async function getDeliveryData(orderId: string) {
@@ -30,19 +31,33 @@ export async function POST(request: Request) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
   const body = await request.json().catch(() => null) as { id?: string; action?: string } | null;
   if (body?.action !== 'retry' || !body.id) return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });
-  const { data: attempt, error } = await supabaseAdmin.from('transactional_delivery_attempts').update({ status: 'PROCESSING', last_attempt_at: new Date().toISOString() }).eq('id', body.id).eq('status', 'FAILED').select('id, order_id, channel, event_type').maybeSingle();
+  const { data: attempt, error } = await supabaseAdmin.from('transactional_delivery_attempts').select('id, order_id, channel, event_type, attempts').eq('id', body.id).eq('status', 'FAILED').maybeSingle();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!attempt) return NextResponse.json({ error: 'Este envio já foi processado ou está sendo tratado por outra execução.' }, { status: 409 });
-  if (attempt.channel !== 'EMAIL' || attempt.event_type !== 'MATERIAL_DELIVERY') { await failTransactionalDelivery(attempt.id, 'Este tipo de envio ainda não pode ser reenviado manualmente.'); return NextResponse.json({ error: 'Reenvio disponível somente para a entrega de e-mail.' }, { status: 422 }); }
+  if (attempt.channel === 'WHATSAPP' && (attempt.event_type === 'MATERIAL_DELIVERY' || attempt.event_type === 'CREATOR_SALE_ALERT')) {
+    try {
+      const order = await getOrderRecordById(attempt.order_id);
+      if (!order) throw new Error('Pedido não encontrado.');
+      await notifyConfirmedSale(order, { retryWhatsApp: true });
+      return NextResponse.json({ success: true });
+    } catch (retryError) {
+      const message = retryError instanceof Error ? retryError.message : 'Falha inesperada ao reenviar WhatsApp.';
+      return NextResponse.json({ error: message }, { status: 422 });
+    }
+  }
+  if (attempt.channel !== 'EMAIL' || attempt.event_type !== 'MATERIAL_DELIVERY') return NextResponse.json({ error: 'Este tipo de envio ainda não pode ser reenviado manualmente.' }, { status: 422 });
+  const { data: claimedAttempt, error: claimError } = await supabaseAdmin.from('transactional_delivery_attempts').update({ status: 'PROCESSING', attempts: attempt.attempts + 1, last_attempt_at: new Date().toISOString() }).eq('id', attempt.id).eq('status', 'FAILED').select('id, order_id, channel, event_type').maybeSingle();
+  if (claimError) return NextResponse.json({ error: claimError.message }, { status: 500 });
+  if (!claimedAttempt) return NextResponse.json({ error: 'Este envio já foi reservado por outra execução.' }, { status: 409 });
   try {
-    const { order, creatorWhatsapp, products } = await getDeliveryData(attempt.order_id);
+    const { order, creatorWhatsapp, products } = await getDeliveryData(claimedAttempt.order_id);
     const result = await sendSaleConfirmationToBuyer({ buyerEmail: order.buyerEmail, buyerName: order.buyerName, orderId: order.id, productTitles: order.items.map(item => item.productTitle || 'Material digital').join(', ') || 'Material digital', products, creatorWhatsapp, isPlrPurchase: order.is_plr_purchase === true });
     if (!result.sent) throw new Error(result.error || 'A Resend não confirmou o envio.');
-    await completeTransactionalDelivery(attempt.id);
+    await completeTransactionalDelivery(claimedAttempt.id);
     return NextResponse.json({ success: true });
   } catch (retryError) {
     const message = retryError instanceof Error ? retryError.message : 'Falha inesperada ao reenviar.';
-    await failTransactionalDelivery(attempt.id, message);
+    await failTransactionalDelivery(claimedAttempt.id, message);
     return NextResponse.json({ error: message }, { status: 422 });
   }
 }

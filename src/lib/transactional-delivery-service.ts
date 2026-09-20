@@ -23,15 +23,23 @@ export async function claimTransactionalDelivery(
     last_attempt_at: new Date().toISOString(),
   };
 
-  const retry = await supabaseAdmin
+  const failedAttempt = await supabaseAdmin
     .from('transactional_delivery_attempts')
-    .update(processing)
+    .select('id, attempts')
     .eq('order_id', orderId)
     .eq('channel', channel)
     .eq('event_type', eventType)
     .eq('status', 'FAILED')
-    .select('id')
     .maybeSingle();
+  if (failedAttempt.error) throw failedAttempt.error;
+
+  const retry = failedAttempt.data ? await supabaseAdmin
+    .from('transactional_delivery_attempts')
+    .update({ ...processing, attempts: failedAttempt.data.attempts + 1 })
+    .eq('id', failedAttempt.data.id)
+    .eq('status', 'FAILED')
+    .select('id')
+    .maybeSingle() : { data: null, error: null };
 
   if (retry.error) throw retry.error;
   if (retry.data?.id) return retry.data.id;

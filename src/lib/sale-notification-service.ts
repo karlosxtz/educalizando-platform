@@ -3,9 +3,10 @@ import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
 import { getPurchaseAccess } from './purchase-access';
 import { supabaseAdmin } from './supabase';
+import { claimTransactionalDelivery, completeTransactionalDelivery, failTransactionalDelivery } from './transactional-delivery-service';
 import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
 
-export async function notifyConfirmedSale(order: OrderRecord) {
+export async function notifyConfirmedSale(order: OrderRecord, options: { retryWhatsApp?: boolean } = {}) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
   const isPlrPurchase = order.is_plr_purchase === true;
   const purchaseAccess = getPurchaseAccess(isPlrPurchase, appUrl);
@@ -27,26 +28,26 @@ export async function notifyConfirmedSale(order: OrderRecord) {
     .contains('metadata', { orderId: order.id })
     .limit(1)
     .maybeSingle();
-  if (existingNotification) return;
+  if (existingNotification && !options.retryWhatsApp) return;
 
   const productTitle = order.items[0]?.productTitle || 'Produto Digital';
   const formattedAmount = new Intl.NumberFormat('pt-BR', {
     style: 'currency', currency: 'BRL'
   }).format(order.totalAmount);
 
-  const notificationId = await createNotification({
-    storeId: order.storeId,
-    creatorId,
-    type: 'SALE_CONFIRMED',
-    title: `Nova venda: ${formattedAmount}!`,
-    body: `${order.buyerName || 'Um aluno'} comprou "${productTitle}". Pagamento confirmado pela InfinitePay.`,
-    metadata: {
-      orderId: order.id,
-      amount: order.totalAmount,
-      productTitle,
-      buyerName: order.buyerName
-    }
-  });
+  const notificationId = options.retryWhatsApp ? 'whatsapp-retry' : await createNotification({
+      storeId: order.storeId,
+      creatorId,
+      type: 'SALE_CONFIRMED',
+      title: `Nova venda: ${formattedAmount}!`,
+      body: `${order.buyerName || 'Um aluno'} comprou "${productTitle}". Pagamento confirmado pela InfinitePay.`,
+      metadata: {
+        orderId: order.id,
+        amount: order.totalAmount,
+        productTitle,
+        buyerName: order.buyerName
+      }
+    });
 
   // Outra confirmação concorrente venceu a inserção protegida pelo índice
   // único. Somente quem criou a notificação envia o e-mail ao vendedor.
@@ -60,7 +61,7 @@ export async function notifyConfirmedSale(order: OrderRecord) {
     const creator = creatorResult.data;
     const buyer = buyerResult.data;
 
-    if (creator?.user?.email) {
+    if (!options.retryWhatsApp && creator?.user?.email) {
       await sendSaleNotificationToCreator({
         producerEmail: creator.user.email,
         producerName: creator.user.user_metadata?.full_name || 'Produtor',
@@ -100,15 +101,30 @@ export async function notifyConfirmedSale(order: OrderRecord) {
       acesso: accessUrl,
     }).replace(/https?:\/\/[^\s]+\/cliente\/dashboard/gi, accessUrl);
 
-    await Promise.allSettled([
-      sendEvolutionText(store.whatsapp, renderWhatsAppTemplate(creatorTemplate, {
+    const creatorAttempt = await claimTransactionalDelivery(order.id, 'WHATSAPP', 'CREATOR_SALE_ALERT');
+    const buyerAttempt = await claimTransactionalDelivery(order.id, 'WHATSAPP', 'MATERIAL_DELIVERY');
+    const sendTracked = async (attemptId: string | null, send: () => ReturnType<typeof sendEvolutionText>) => {
+      if (!attemptId) return;
+      try {
+        const result = await send();
+        if (!result.sent) throw new Error(result.error || 'A Evolution não confirmou o envio.');
+        await completeTransactionalDelivery(attemptId);
+      } catch (deliveryError) {
+        await failTransactionalDelivery(attemptId, deliveryError instanceof Error ? deliveryError.message : String(deliveryError));
+      }
+    };
+
+    // A tabela possui chave única por pedido/canal/evento. Isso evita mensagens
+    // duplicadas quando o gateway de pagamento repete o mesmo webhook.
+    await Promise.all([
+      sendTracked(creatorAttempt, () => sendEvolutionText(store.whatsapp, renderWhatsAppTemplate(creatorTemplate, {
         nome: firstName(creatorName),
         comprador: order.buyerName || 'Um cliente',
         produto: productTitles,
         valor: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.creatorNetAmount),
         pedido: order.id,
-      }) + `\n\n📱 Contato do comprador: ${buyerPhone || 'não informado'}`),
-      sendEvolutionText(buyerPhone, buyerMessage + `${creatorLinks.length ? `\n\n${creatorLinks.join('\n')}` : ''}\n\n${accessLabel}: ${accessUrl}`),
+      }) + `\n\n📱 Contato do comprador: ${buyerPhone || 'não informado'}`)),
+      sendTracked(buyerAttempt, () => sendEvolutionText(buyerPhone, buyerMessage + `${creatorLinks.length ? `\n\n${creatorLinks.join('\n')}` : ''}\n\n${accessLabel}: ${accessUrl}`)),
     ]);
   } catch (error) {
     console.error('[Sale Notification] Falha ao enviar alertas da venda:', error);
