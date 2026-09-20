@@ -212,8 +212,8 @@ export default function PLRsCompradosPage() {
           <button type="button" className="absolute inset-0 cursor-default" aria-label="Fechar detalhes" onClick={() => setSelectedItem(null)} />
           <section className="relative z-10 max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
             <div className="grid sm:grid-cols-[220px_1fr]">
-              <div className="relative aspect-[16/9] bg-slate-100 sm:aspect-auto sm:min-h-full">
-                <img src={selectedItem.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=80'} alt={selectedItem.productTitle} className="h-full w-full object-cover" />
+              <div className="relative flex aspect-[4/3] items-center justify-center bg-slate-100 p-3 sm:aspect-auto sm:min-h-full sm:p-4">
+                <img src={selectedItem.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=80'} alt={selectedItem.productTitle} className="max-h-full max-w-full rounded-xl object-contain shadow-sm" />
                 <span className="absolute left-4 top-4 rounded-full bg-slate-950/80 px-3 py-1 text-[10px] font-black uppercase text-white">Licença PLR</span>
               </div>
               <div className="p-5 sm:p-7">
