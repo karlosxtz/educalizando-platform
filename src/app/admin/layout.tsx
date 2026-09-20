@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot, Mail } from 'lucide-react';
+import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot, Mail, Activity } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -32,6 +32,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/admin', label: 'Visão Geral', icon: Home },
+    { href: '/admin/operacao', label: 'Integridade', icon: Activity, badge: 'Monitor' },
     { href: '/admin/lojas', label: 'Lojas & Criadores', icon: Store },
     { href: '/admin/produtos', label: 'Catálogo Global', icon: Package },
     { href: '/admin/transacoes', label: 'Transações', icon: DollarSign },
@@ -70,6 +71,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Home className="w-4 h-4" />
               Visão Geral
+            </Link>
+            <Link href="/admin/operacao" className="flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-cyan-500/10 hover:text-cyan-300 transition-colors">
+              <span className="flex items-center gap-3"><Activity className="w-4 h-4" /> Integridade</span>
+              <span className="text-[9px] font-black uppercase tracking-wide text-cyan-300 bg-cyan-400/10 px-1.5 py-0.5 rounded">Monitor</span>
             </Link>
             <Link href="/admin/lojas" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-blue-500/10 hover:text-blue-400 transition-colors">
               <Store className="w-4 h-4" />
