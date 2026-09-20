@@ -156,7 +156,7 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
       {/* Corpo do Card */}
       <div className="p-2.5 sm:p-5 flex flex-col flex-1">
         <Link href={productLink} className="block flex-1">
-          <h3 className="font-bold text-slate-900 text-[12px] sm:text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors mb-1.5 sm:mb-2">
+          <h3 title={itemTitle} className="font-bold text-slate-900 text-[12px] sm:text-base line-clamp-2 min-h-[2.75em] break-words leading-snug group-hover:text-blue-600 transition-colors mb-1.5 sm:mb-2">
             {itemTitle}
           </h3>
           

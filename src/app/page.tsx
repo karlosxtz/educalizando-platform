@@ -27,12 +27,8 @@ export const metadata: Metadata = {
 
 // 1. Nova Identidade Visual (Navegação Rápida)
 const QUICK_CATEGORIES = [
-  { name: 'Top Materiais', href: '/buscar?sort=popular' },
   { name: 'Kits Escolares', href: '/buscar?q=kit' },
-  { name: 'Jogos e Dinâmicas', href: '/buscar?categoria=jogos' },
-  { name: 'Licenças PLR', href: '/buscar?filter=plr' },
-  { name: 'Educação Básica', href: '/buscar?categoria=fundamental' },
-  { name: 'Educação Infantil', href: '/buscar?categoria=infantil' },
+  { name: 'Educação Infantil', href: '/buscar?categoria=educacao-infantil' },
   { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },
   { name: 'Matemática', href: '/buscar?categoria=matematica' },
 ];

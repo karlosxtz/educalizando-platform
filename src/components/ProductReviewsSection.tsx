@@ -17,6 +17,20 @@ export default function ProductReviewsSection({
   const stats: ReviewStats = calculateReviewStats(reviews);
   const [filterRating, setFilterRating] = useState<number | 'all'>('all');
 
+  if (stats.totalReviews === 0) {
+    return (
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
+        <div className="flex items-start gap-4">
+          <MessageSquare className="mt-1 h-6 w-6 shrink-0 text-slate-400" aria-hidden="true" />
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Ainda não há avaliações</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">Após a compra, compartilhe sua experiência com este material e ajude outros educadores a escolher.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const filteredReviews = reviews.filter(r => {
     if (filterRating === 'all') return true;
     return Math.round(r.nota) === filterRating;

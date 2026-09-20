@@ -10,6 +10,14 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
+  useEffect(() => {
+    if (isHovered || !banners || banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners, isHovered]);
+
   // Se não houver banners, renderiza o Hero original como fallback
   if (!banners || banners.length === 0) {
     return (
@@ -34,25 +42,14 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
     );
   }
 
-  // Auto-play do carrossel (avança a cada 5 segundos)
-  useEffect(() => {
-    if (isHovered || banners.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [banners.length, isHovered]);
-
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % banners.length);
   const handlePrev = () => setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
 
-  const activeBanner = banners[currentIndex];
+  const activeBanner = banners[currentIndex % banners.length];
 
   return (
     <section 
-      className="w-full relative overflow-hidden aspect-[21/9] sm:min-h-[300px] sm:max-h-[500px]"
+      className="w-full relative overflow-hidden aspect-[21/9] bg-slate-50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -74,7 +71,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
                 <img 
                   src={activeBanner.image_desktop_url} 
                   alt={activeBanner.title || 'Banner principal'} 
-                  className="w-full h-full object-contain object-center sm:object-cover"
+                  className="w-full h-full object-contain object-center"
                 />
               </picture>
             </Link>
@@ -86,7 +83,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
               <img 
                 src={activeBanner.image_desktop_url} 
                 alt={activeBanner.title || 'Banner principal'} 
-                className="w-full h-full object-contain object-center sm:object-cover"
+                className="w-full h-full object-contain object-center"
               />
             </picture>
           )}
@@ -98,6 +95,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
         <>
           <button 
             onClick={handlePrev}
+            aria-label="Banner anterior"
             className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center text-white transition-all opacity-0 md:opacity-100 focus:opacity-100 group-hover/section:opacity-100 z-10 shadow-sm"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -105,6 +103,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
           
           <button 
             onClick={handleNext}
+            aria-label="Próximo banner"
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center text-white transition-all opacity-0 md:opacity-100 focus:opacity-100 group-hover/section:opacity-100 z-10 shadow-sm"
           >
             <ChevronRight className="w-6 h-6" />

@@ -585,8 +585,12 @@ function ProductWizardContent() {
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: Apostila Ilustrada de História do Brasil - ENEM & Concursos"
+                    aria-describedby="product-title-guidance"
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                   />
+                  <p id="product-title-guidance" className={`mt-2 text-xs leading-relaxed ${titulo.length > 100 ? 'text-amber-700' : 'text-slate-500'}`}>
+                    {titulo.length > 100 ? 'Seu título está longo. ' : ''}Prefira até 100 caracteres: nome do material, tema e ano escolar. Coloque preços, benefícios e detalhes na descrição.
+                  </p>
                 </div>
 
                 <div>
