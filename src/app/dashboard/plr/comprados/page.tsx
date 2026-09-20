@@ -19,6 +19,7 @@ interface PLRItem {
   paidAt: string;
   amount: number;
   coverUrl: string | null;
+  galleryUrls: string[];
   storeName: string;
   hasPlrFile: boolean;
 }
@@ -29,6 +30,15 @@ export default function PLRsCompradosPage() {
   const [items, setItems] = useState<PLRItem[]>([]);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState<PLRItem | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const openDetails = (item: PLRItem) => {
+    setSelectedItem(item);
+    setSelectedImageIndex(0);
+  };
+  const selectedImages = selectedItem
+    ? Array.from(new Set([selectedItem.coverUrl, ...(selectedItem.galleryUrls || [])].filter((url): url is string => Boolean(url))))
+    : [];
+  const selectedImage = selectedImages[selectedImageIndex] || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=80';
 
   useEffect(() => {
     async function fetchPLRs() {
@@ -116,7 +126,7 @@ export default function PLRsCompradosPage() {
               <div key={item.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col group hover:shadow-md transition-all">
                 <button
                   type="button"
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => openDetails(item)}
                   className="aspect-[4/3] bg-slate-100 relative overflow-hidden text-left focus:outline-none focus:ring-4 focus:ring-blue-200"
                   aria-label={`Ver detalhes de ${item.productTitle}`}
                 >
@@ -143,10 +153,10 @@ export default function PLRsCompradosPage() {
                       Pago
                     </span>
                   </div>
-                  <button type="button" onClick={() => setSelectedItem(item)} className="mb-2 text-left text-sm font-bold leading-snug text-slate-900 line-clamp-2 hover:text-blue-700">
+                  <button type="button" onClick={() => openDetails(item)} className="mb-2 text-left text-sm font-bold leading-snug text-slate-900 line-clamp-2 hover:text-blue-700">
                     {item.productTitle}
                   </button>
-                  <button type="button" onClick={() => setSelectedItem(item)} className="mb-4 inline-flex w-fit items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900">
+                  <button type="button" onClick={() => openDetails(item)} className="mb-4 inline-flex w-fit items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900">
                     <Eye className="h-3.5 w-3.5" /> Ver informações do material
                   </button>
                   
@@ -212,8 +222,25 @@ export default function PLRsCompradosPage() {
           <button type="button" className="absolute inset-0 cursor-default" aria-label="Fechar detalhes" onClick={() => setSelectedItem(null)} />
           <section className="relative z-10 max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
             <div className="grid sm:grid-cols-[220px_1fr]">
-              <div className="relative flex aspect-[4/3] items-center justify-center bg-slate-100 p-3 sm:aspect-auto sm:min-h-full sm:p-4">
-                <img src={selectedItem.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=80'} alt={selectedItem.productTitle} className="max-h-full max-w-full rounded-xl object-contain shadow-sm" />
+              <div className="relative flex aspect-[4/3] flex-col bg-slate-100 p-3 sm:aspect-auto sm:min-h-full sm:p-4">
+                <div className="flex min-h-0 flex-1 items-center justify-center">
+                  <img src={selectedImage} alt={selectedItem.productTitle} className="max-h-full max-w-full rounded-xl object-contain shadow-sm" />
+                </div>
+                {selectedImages.length > 1 && (
+                  <div className="mt-3 grid grid-cols-4 gap-2" aria-label="Outras imagens do material">
+                    {selectedImages.map((imageUrl, index) => (
+                      <button
+                        key={imageUrl}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`aspect-square overflow-hidden rounded-lg border-2 bg-white transition ${index === selectedImageIndex ? 'border-blue-600 ring-2 ring-blue-200' : 'border-transparent hover:border-slate-300'}`}
+                        aria-label={`Ver imagem ${index + 1} de ${selectedImages.length}`}
+                      >
+                        <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <span className="absolute left-4 top-4 rounded-full bg-slate-950/80 px-3 py-1 text-[10px] font-black uppercase text-white">Licença PLR</span>
               </div>
               <div className="p-5 sm:p-7">

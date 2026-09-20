@@ -34,6 +34,20 @@ export async function GET(request: Request) {
       .in('id', productIds);
     if (productsError) throw productsError;
 
+    const { data: productImages, error: imagesError } = await supabaseAdmin
+      .from('product_images')
+      .select('product_id, url, ordem')
+      .in('product_id', productIds)
+      .order('ordem', { ascending: true });
+    if (imagesError) throw imagesError;
+    const galleryByProductId = new Map<string, string[]>();
+    (productImages || []).forEach((image) => {
+      if (!image.product_id || !image.url) return;
+      const gallery = galleryByProductId.get(image.product_id) || [];
+      gallery.push(image.url);
+      galleryByProductId.set(image.product_id, gallery);
+    });
+
     const items = (orderItems || []).flatMap(item => {
       const order = orders.find(candidate => candidate.id === item.order_id);
       const product = (products || []).find(candidate => candidate.id === item.product_id);
@@ -52,6 +66,7 @@ export async function GET(request: Request) {
         paidAt: order.paid_at || '',
         amount: Number(item.unit_price || 0),
         coverUrl: product.capa_url || null,
+        galleryUrls: galleryByProductId.get(product.id) || [],
         storeName: store?.nome_loja || 'Loja Educalizando',
         hasPlrFile: Boolean(product.has_plr_delivery)
       }];
