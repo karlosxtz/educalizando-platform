@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Info, Eye, X, FileText, GraduationCap } from 'lucide-react';
+import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Eye, X, FileText, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import Sidebar from '@/components/dashboard/Sidebar';
 
@@ -189,12 +189,6 @@ export default function PLRsCompradosPage() {
                         <div className="flex items-center gap-2">
                           <span className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">2</span>
                           Revender
-                        </div>
-                        <div className="group relative cursor-help">
-                          <Info className="w-4 h-4 text-blue-400" />
-                          <div className="absolute bottom-full right-0 mb-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center leading-relaxed">
-                            Lembre-se de personalizar o título e a capa!
-                          </div>
                         </div>
                       </div>
 
