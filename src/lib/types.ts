@@ -192,6 +192,7 @@ export interface RecentOrder {
 
 export interface Purchase {
   id: string;
+  order_id?: string | null;
   student_id: string;
   product_id?: string | null;
   kit_id?: string | null;

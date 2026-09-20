@@ -18,14 +18,27 @@ interface TransactionData {
   };
 }
 
+interface RefundRequestData {
+  id: string;
+  order_id: string;
+  requester_email: string;
+  reason: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  review_note?: string | null;
+  created_at: string;
+}
+
 export default function SuperAdminTransacoes() {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundRequests, setRefundRequests] = useState<RefundRequestData[]>([]);
+  const [refundRequestsError, setRefundRequestsError] = useState('');
 
   useEffect(() => {
     fetchTransactions();
+    fetchRefundRequests();
   }, []);
 
   async function fetchTransactions() {
@@ -40,6 +53,18 @@ export default function SuperAdminTransacoes() {
       setError(e instanceof Error ? e.message : 'Erro ao carregar transações.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchRefundRequests() {
+    setRefundRequestsError('');
+    try {
+      const res = await fetch('/api/admin/refund-requests');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível carregar solicitações de reembolso.');
+      setRefundRequests(Array.isArray(data.requests) ? data.requests : []);
+    } catch (requestError) {
+      setRefundRequestsError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar solicitações de reembolso.');
     }
   }
 
@@ -58,7 +83,7 @@ export default function SuperAdminTransacoes() {
     downloadCSV(csvData, "educalizando_transacoes_contabil");
   }
 
-  async function handleRefund(transaction: TransactionData) {
+  async function handleRefund(transaction: TransactionData, fromCustomerRequest = false) {
     if (transaction.status !== 'paid' || refundingId) return;
 
     const orderSuffix = transaction.id.slice(-6).toUpperCase();
@@ -75,16 +100,36 @@ export default function SuperAdminTransacoes() {
       const res = await fetch(`/api/admin/transactions/${encodeURIComponent(transaction.id)}/refund`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: reason.trim(), confirmation: confirmation.trim() })
+        body: JSON.stringify({ reason: reason.trim(), confirmation: confirmation.trim(), fromCustomerRequest })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível registrar o estorno.');
       alert(data.message || 'Estorno administrativo registrado com sucesso.');
       await fetchTransactions();
+      await fetchRefundRequests();
     } catch (refundError) {
       alert(refundError instanceof Error ? refundError.message : 'Erro ao registrar o estorno.');
     } finally {
       setRefundingId(null);
+    }
+  }
+
+  async function handleRejectRefundRequest(refundRequest: RefundRequestData) {
+    if (refundRequest.status !== 'PENDING') return;
+    const reviewNote = window.prompt('Informe a justificativa da recusa para o comprador:');
+    if (!reviewNote?.trim()) return;
+    try {
+      const res = await fetch('/api/admin/refund-requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: refundRequest.id, reviewNote: reviewNote.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível recusar a solicitação.');
+      alert('Solicitação recusada e registrada.');
+      await fetchRefundRequests();
+    } catch (requestError) {
+      alert(requestError instanceof Error ? requestError.message : 'Não foi possível recusar a solicitação.');
     }
   }
 
@@ -192,6 +237,59 @@ export default function SuperAdminTransacoes() {
           </table>
         </div>
       </div>
+
+      <section className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="flex flex-col gap-1 border-b border-slate-800 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-white">Solicitações de reembolso</h2>
+            <p className="text-sm text-slate-400">Pedidos enviados pelos clientes e aguardando análise manual.</p>
+          </div>
+          <button type="button" onClick={fetchRefundRequests} className="text-xs font-bold text-blue-300 hover:text-blue-200">Atualizar solicitações</button>
+        </div>
+        {refundRequestsError ? (
+          <p className="px-6 py-5 text-sm text-amber-300">{refundRequestsError}</p>
+        ) : refundRequests.length === 0 ? (
+          <p className="px-6 py-8 text-center text-sm text-slate-500">Nenhuma solicitação de reembolso até o momento.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-400">
+              <thead className="bg-slate-900 text-xs uppercase text-slate-500">
+                <tr>
+                  <th className="px-6 py-3">Cliente / pedido</th>
+                  <th className="px-6 py-3">Motivo</th>
+                  <th className="px-6 py-3">Solicitada em</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Análise</th>
+                </tr>
+              </thead>
+              <tbody>
+                {refundRequests.map((refundRequest) => {
+                  const transaction = transactions.find((item) => item.id === refundRequest.order_id);
+                  return (
+                    <tr key={refundRequest.id} className="border-t border-slate-800/70 align-top">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-slate-200">{refundRequest.requester_email}</p>
+                        <p className="mt-1 font-mono text-[10px] text-slate-500">{refundRequest.order_id}</p>
+                      </td>
+                      <td className="max-w-sm px-6 py-4 text-xs leading-relaxed text-slate-300">{refundRequest.reason}</td>
+                      <td className="px-6 py-4 text-xs">{new Date(refundRequest.created_at).toLocaleString('pt-BR')}</td>
+                      <td className="px-6 py-4"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${refundRequest.status === 'PENDING' ? 'bg-amber-500/10 text-amber-300' : refundRequest.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>{refundRequest.status === 'PENDING' ? 'EM ANÁLISE' : refundRequest.status === 'APPROVED' ? 'APROVADA' : 'RECUSADA'}</span></td>
+                      <td className="px-6 py-4 text-right">
+                        {refundRequest.status === 'PENDING' ? (
+                          <div className="flex justify-end gap-3">
+                            <button type="button" onClick={() => transaction ? handleRefund(transaction, true) : alert('Pedido não encontrado na lista de transações. Atualize a página e tente novamente.')} className="text-xs font-bold text-emerald-300 hover:text-emerald-200">Aprovar e estornar</button>
+                            <button type="button" onClick={() => handleRejectRefundRequest(refundRequest)} className="text-xs font-bold text-rose-300 hover:text-rose-200">Recusar</button>
+                          </div>
+                        ) : <span className="text-xs text-slate-600">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

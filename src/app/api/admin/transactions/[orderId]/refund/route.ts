@@ -12,6 +12,26 @@ function messageForDatabaseError(error: { code?: string; message?: string }) {
   return error.message || 'Não foi possível registrar a auditoria do estorno.';
 }
 
+async function hasOrderContentAccess(order: { id: string; studentId?: string | null }) {
+  if (!order.studentId) return false;
+  const { data: items, error: itemsError } = await supabaseAdmin
+    .from('order_items')
+    .select('product_id')
+    .eq('order_id', order.id);
+  if (itemsError) throw itemsError;
+  const productIds = [...new Set((items || []).map((item: any) => String(item.product_id)).filter(Boolean))];
+  if (!productIds.length) return false;
+  const { data: events, error: eventsError } = await supabaseAdmin
+    .from('content_access_events')
+    .select('id')
+    .eq('customer_id', order.studentId)
+    .in('product_id', productIds)
+    .in('event_type', ['FILE_DOWNLOAD', 'EXTERNAL_LINK_ACCESS'])
+    .limit(1);
+  if (eventsError) throw eventsError;
+  return Boolean(events?.length);
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ orderId: string }> }) {
   try {
     if (!(await isSuperAdmin(request))) {
@@ -27,6 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ord
     const body = await request.json().catch(() => null);
     const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
     const confirmation = typeof body?.confirmation === 'string' ? body.confirmation.trim() : '';
+    const fromCustomerRequest = body?.fromCustomerRequest === true;
     const confirmationPhrase = `ESTORNAR ${orderId.slice(-6).toUpperCase()}`;
 
     if (reason.length < 5 || reason.length > 1000) {
@@ -41,6 +62,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ ord
     if (order.status !== 'paid') {
       const detail = order.status === 'refunded' ? 'Este pedido já foi estornado.' : 'Apenas pedidos pagos podem ser estornados.';
       return NextResponse.json({ error: detail }, { status: 409 });
+    }
+    if (fromCustomerRequest && await hasOrderContentAccess(order)) {
+      return NextResponse.json({ error: 'Esta solicitação não pode ser aprovada: o cliente já acessou, abriu link ou baixou material deste pedido.' }, { status: 409 });
     }
 
     const auditPayload = {
@@ -83,6 +107,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ ord
         .update({ status: 'COMPLETED', completed_at: new Date().toISOString(), failure_reason: null })
         .eq('order_id', order.id);
       if (completeAuditError) throw completeAuditError;
+
+      // Caso o estorno tenha começado por uma solicitação do comprador, a
+      // análise é concluída junto com o estorno; o pedido não fica pendente.
+      const { error: approveRequestError } = await supabaseAdmin
+        .from('order_refund_requests')
+        .update({ status: 'APPROVED', reviewed_by: admin.id, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('order_id', order.id)
+        .eq('status', 'PENDING');
+      if (approveRequestError && approveRequestError.code !== '42P01') throw approveRequestError;
 
       return NextResponse.json({
         success: true,

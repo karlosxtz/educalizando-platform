@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download 
+  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, ShieldAlert
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -22,6 +22,12 @@ interface StudentStorePurchasesClientViewProps {
   storeId: string;
 }
 
+interface RefundEligibility {
+  orderId: string;
+  accessed: boolean;
+  request: { id: string; status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'; review_note?: string | null } | null;
+}
+
 export default function StudentStorePurchasesClientView({ storeId }: StudentStorePurchasesClientViewProps) {
   const router = useRouter();
 
@@ -30,6 +36,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [store, setStore] = useState<Store | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [myReviews, setMyReviews] = useState<Review[]>([]);
+  const [refundByOrderId, setRefundByOrderId] = useState<Record<string, RefundEligibility>>({});
+  const [refundsLoaded, setRefundsLoaded] = useState(false);
+  const [requestingRefundOrderId, setRequestingRefundOrderId] = useState<string | null>(null);
   
   const [reviewTarget, setReviewTarget] = useState<{ productId: string; storeId: string; } | null>(null);
 
@@ -49,6 +58,19 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
         
         const revs = await getStudentReviewsByStore(session.id, storeId);
         setMyReviews(revs);
+
+        const refundResponse = await fetch(`/api/aluno/reembolsos?storeId=${encodeURIComponent(storeId)}`);
+        const refundPayload = await refundResponse.json().catch(() => ({}));
+        if (refundResponse.ok && refundPayload.success) {
+          const mapped = (refundPayload.eligibility as RefundEligibility[]).reduce<Record<string, RefundEligibility>>((result, item) => {
+            result[item.orderId] = item;
+            return result;
+          }, {});
+          setRefundByOrderId(mapped);
+          setRefundsLoaded(true);
+        } else {
+          console.warn('[Refund eligibility]', refundPayload.error || 'Não foi possível consultar reembolsos.');
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -80,9 +102,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     setDownloadingId(downloadActionId);
 
     try {
-      if (!type && pur.product?.arquivo_url && /^https:\/\//i.test(pur.product.arquivo_url) && !pur.product.arquivo_url.includes('supabase.co/')) {
-        window.open(pur.product.arquivo_url, '_blank', 'noopener,noreferrer');
-      } else if (pur.product_id) {
+      // Mesmo links externos passam pela API. Assim o acesso fica registrado
+      // antes do redirecionamento e a regra de reembolso não pode ser burlada.
+      if (pur.product_id) {
         await downloadSingleProduct(pur.product_id, pur.product?.titulo || 'Material_Didatico', type);
       } else if (pur.kit?.products && pur.kit.products.length > 0) {
         for (const prod of pur.kit.products) {
@@ -140,6 +162,40 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
         }];
       }
     });
+  };
+
+  const handleRefundRequest = async (orderId: string, eligibility?: RefundEligibility) => {
+    if (!orderId || requestingRefundOrderId) return;
+    if (eligibility?.accessed) {
+      toast.error('Este pedido já teve material acessado ou baixado e não pode solicitar reembolso.');
+      return;
+    }
+    if (eligibility?.request) {
+      toast('Já existe uma solicitação para este pedido.');
+      return;
+    }
+
+    const reason = window.prompt('Explique o motivo da solicitação de reembolso (mínimo de 10 caracteres):');
+    if (!reason?.trim()) return;
+    setRequestingRefundOrderId(orderId);
+    try {
+      const response = await fetch('/api/aluno/reembolsos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, reason: reason.trim() })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível enviar a solicitação.');
+      setRefundByOrderId((previous) => ({
+        ...previous,
+        [orderId]: { orderId, accessed: false, request: { id: `pending-${orderId}`, status: 'PENDING' } }
+      }));
+      toast.success('Solicitação enviada para análise. Você será avisado após a decisão.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a solicitação.');
+    } finally {
+      setRequestingRefundOrderId(null);
+    }
   };
 
   const getTipoIcon = (tipo?: ProductType) => {
@@ -232,6 +288,14 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
             </Link>
           </div>
         </div>
+
+        <section className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <p className="font-black">Regra de solicitação de reembolso</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-amber-800">O reembolso só pode ser solicitado antes de qualquer acesso ao material: abrir link externo, visualizar conteúdo ou baixar arquivo. Depois de enviado, o pedido passa por análise da Educalizando; a solicitação não garante aprovação automática.</p>
+          </div>
+        </section>
 
         {/* Store's Purchased Products & Kits Grid */}
         {purchases.length === 0 ? (
@@ -366,6 +430,35 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                       </button>
                       }
                     </div>
+
+                    {!pur.is_plr_purchase && pur.order_id && refundsLoaded && (() => {
+                      const eligibility = refundByOrderId[pur.order_id];
+                      const requestStatus = eligibility?.request?.status;
+                      const isAccessed = eligibility?.accessed;
+                      const isPending = requestStatus === 'PENDING';
+                      const isResolved = requestStatus === 'APPROVED' || requestStatus === 'REJECTED' || requestStatus === 'CANCELLED';
+                      return (
+                        <div className="border-t border-slate-100 pt-3">
+                          {isPending ? (
+                            <p className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-50 px-2 py-2 text-center text-[10px] font-bold text-amber-800"><Loader2 className="h-3.5 w-3.5" /> Solicitação de reembolso em análise</p>
+                          ) : isResolved ? (
+                            <p className={`rounded-lg px-2 py-2 text-center text-[10px] font-bold ${requestStatus === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>Solicitação {requestStatus === 'APPROVED' ? 'aprovada' : 'analisada'}</p>
+                          ) : isAccessed ? (
+                            <p className="rounded-lg bg-slate-100 px-2 py-2 text-center text-[10px] font-bold text-slate-500">Reembolso indisponível: material já acessado ou baixado.</p>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleRefundRequest(pur.order_id!, eligibility)}
+                              disabled={requestingRefundOrderId !== null}
+                              className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
+                            >
+                              {requestingRefundOrderId === pur.order_id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                              Solicitar reembolso
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </motion.div>
               );

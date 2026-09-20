@@ -562,6 +562,7 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
             const isCreatorExternalLink = /^https:\/\//i.test(originalUrl || '') && !/supabase\.co\//i.test(originalUrl || '');
             realPurchases.push({
               id: acc.id,
+              order_id: acc.order_id || null,
               student_id: acc.student_id,
               store_id: acc.store_id,
               product_id: acc.product_id,
@@ -615,6 +616,7 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
     if (!existsInReal) {
       realPurchases.push({
         id: acc.id,
+        order_id: acc.orderId || null,
         student_id: acc.studentId,
         store_id: acc.storeId,
         product_id: acc.productId,
