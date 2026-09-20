@@ -302,14 +302,19 @@ export default function ProductDetailClientView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: Content */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-8">
-            {context !== 'marketplace' && <div className="lg:hidden space-y-2">
+          <div className="min-w-0 lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
+            <div className="lg:hidden space-y-2">
               <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><Link href="/" className="hover:text-blue-600">Início</Link><span>›</span><Link href={`/loja/${store.slug}`} className="hover:text-blue-600 truncate max-w-[110px]">{store.nome_loja}</Link><span>›</span><span className="truncate">Material</span></div>
-              <h1 className="text-xl font-black leading-tight tracking-tight text-slate-900">{product.titulo}</h1>
-            </div>}
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{isPlrPurchase ? 'Licença PLR para revenda' : 'Material digital'}</p>
+              <h1 className="text-xl font-black leading-tight tracking-tight text-slate-900 [overflow-wrap:anywhere]">{product.titulo}</h1>
+            </div>
 
             {/* Cover Display & Gallery */}
             <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-extrabold text-slate-900">Conheça o material</h2>
+                {galleryMedia.length > 0 && <span className="text-xs text-slate-500" aria-live="polite">Prévia {activeImageIndex + 1} de {galleryMedia.length}</span>}
+              </div>
               <div className="aspect-[3/4] max-w-md mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                 {activeMedia ? (
                   <AnimatePresence mode="wait">
@@ -321,7 +326,7 @@ export default function ProductDetailClientView({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-contain"
                     /> : <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full bg-slate-950">
                       <iframe src={instagramEmbedUrl || activeMedia.url} title={`Vídeo do Instagram: ${product.titulo}`} className="h-full w-full border-0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy" />
                       <a href={store.instagram || activeMedia.url} target="_blank" rel="noopener noreferrer" className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-2 text-xs font-black text-white shadow-lg"><Camera className="h-4 w-4 text-pink-400" /> Ver no Instagram</a>
@@ -336,10 +341,13 @@ export default function ProductDetailClientView({
 
               {/* Gallery Thumbnails */}
               {galleryMedia.length > 1 && (
-                <div className="flex justify-center gap-3 overflow-x-auto pb-2 px-2">
+                <div className="flex flex-wrap justify-center gap-2 pb-2 px-2" aria-label="Prévias do material">
                   {galleryMedia.map((media, idx) => (
                     <button
                       key={idx}
+                      type="button"
+                      aria-label={`Ver ${media.type === 'image' ? 'imagem' : 'vídeo'} ${idx + 1} do material`}
+                      aria-pressed={activeImageIndex === idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
                         activeImageIndex === idx 
@@ -348,11 +356,12 @@ export default function ProductDetailClientView({
                       }`}
                       style={activeImageIndex === idx ? { borderColor: primaryColor } : undefined}
                     >
-                      {media.type === 'image' ? <img src={media.url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-orange-400 text-white"><Camera className="h-5 w-5" /><Play className="h-3.5 w-3.5 fill-current" /></span>}
+                      {media.type === 'image' ? <img src={media.url} alt="" loading="lazy" className="w-full h-full object-contain" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-orange-400 text-white"><Camera className="h-5 w-5" /><Play className="h-3.5 w-3.5 fill-current" /></span>}
                     </button>
                   ))}
                 </div>
               )}
+              {product.preview_url && <a href={product.preview_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100"><ExternalLink className="h-4 w-4 shrink-0" /> Abrir amostra do material <span className="sr-only">em nova aba</span></a>}
             </div>
 
             {/* Mobile product summary: decision information immediately after the gallery */}
@@ -391,12 +400,19 @@ export default function ProductDetailClientView({
 
             {/* Description Box */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+              <dl className="grid grid-cols-1 gap-3 border-b border-slate-100 pb-5 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Formato informado</dt><dd className="mt-1 text-sm font-bold uppercase text-slate-900">{product.tipo}</dd></div>
+                <div className={`rounded-2xl p-4 ${isPlrPurchase ? 'bg-purple-50' : 'bg-blue-50'}`}><dt className="text-xs font-semibold text-slate-500">Sua compra</dt><dd className="mt-1 text-sm font-bold text-slate-900">{isPlrPurchase ? 'Licença PLR para revenda' : 'Produto final para uso'}</dd></div>
+                {educationLevel && <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Etapa escolar</dt><dd className="mt-1 text-sm font-bold text-slate-900">{educationLevel.nome}</dd></div>}
+                {category && <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Categoria</dt><dd className="mt-1 text-sm font-bold text-slate-900">{category.nome}</dd></div>}
+              </dl>
               <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-4">
                 <FileText className="w-5 h-5" style={{ color: primaryColor }} />
-                Descrição Completa do Material Didático
+                {isPlrPurchase ? 'Conheça o conteúdo e a licença' : 'O que você encontra neste material'}
               </h2>
 
-              <div className="text-sm text-slate-700 leading-relaxed space-y-3 font-medium whitespace-pre-line">
+              <p className="text-xs text-slate-500">Descrição informada pelo criador.</p>
+              <div className="text-sm sm:text-base text-slate-700 leading-relaxed space-y-3 whitespace-pre-line [overflow-wrap:anywhere]">
                 {product.descricao || 'O criador ainda não adicionou uma descrição detalhada para este produto.'}
               </div>
             </div>
@@ -442,7 +458,7 @@ export default function ProductDetailClientView({
             {(bnccSkills.length > 0 || product.age_range || product.page_count || product.format_details) && (
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Informações pedagógicas</h3>
+                  <h3 className="text-lg font-black text-slate-900">Para quem é e como usar</h3>
                   <p className="text-xs text-slate-500 mt-1">Detalhes informados pelo criador para facilitar sua escolha.</p>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -497,7 +513,7 @@ export default function ProductDetailClientView({
           </div>
 
           {/* RIGHT COLUMN: Buy Action Card */}
-          <div className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
+          <div className="hidden min-w-0 lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
             <div className="bg-white shadow-[0_10px_40px_rgb(0,0,0,0.06)] rounded-3xl p-6 sm:p-8 flex flex-col space-y-6">
               
               {/* Product Header (Mobile & Desktop in Sidebar) */}
@@ -529,7 +545,7 @@ export default function ProductDetailClientView({
                   )}
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight [overflow-wrap:anywhere]">
                   {product.titulo}
                 </h1>
 
