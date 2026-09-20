@@ -19,9 +19,14 @@ export async function POST(request: Request) {
       remarketingBrowserToken,
       items = [],
       kitId,
-      isPlrPurchase = false,
+      isPlrPurchase: rawIsPlrPurchase = false,
       couponCode
     } = body;
+
+    // O campo vem do navegador e só o booleano literal `true` pode iniciar
+    // uma compra PLR. Strings como "false" não podem contaminar uma compra
+    // comum e fazê-la parecer licença no CRM/na entrega.
+    const isPlrPurchase = rawIsPlrPurchase === true;
 
     // 1. REGRA MANDATÓRIA DE AUTENTICAÇÃO (cookies SSR ou Bearer)
     const user = await getRequestUser(request);

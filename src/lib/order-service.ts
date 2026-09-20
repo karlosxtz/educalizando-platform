@@ -597,28 +597,32 @@ export async function updateOrderStatus(
         }
       }
 
-      // 2. Conceder Acesso Real ao Material (student_product_access) no Supabase e LocalStorage
-      const { grantStudentProductAccess } = await import('./student-service');
       const studentEmail = (order.buyerEmail || '').toLowerCase().trim();
-      const accessStudentId = order.studentId || studentEmail;
 
-      if (order.items && order.items.length > 0) {
-        for (const item of order.items) {
+      // 2. Produtos finais pertencem à biblioteca do aluno. PLR é uma licença
+      // B2B e é lido exclusivamente em /dashboard/plr/comprados pelo pedido;
+      // criar student_product_access para ele misturava as duas áreas.
+      if (!order.is_plr_purchase) {
+        const { grantStudentProductAccess } = await import('./student-service');
+        const accessStudentId = order.studentId || studentEmail;
+        if (order.items && order.items.length > 0) {
+          for (const item of order.items) {
+            await grantStudentProductAccess({
+              studentId: accessStudentId,
+              productId: item.productId,
+              orderId: order.id,
+              storeId: order.storeId
+            });
+          }
+        } else {
+          // Fallback caso seja pedido sem item específico na lista
           await grantStudentProductAccess({
             studentId: accessStudentId,
-            productId: item.productId,
+            productId: 'prod-combo-1',
             orderId: order.id,
             storeId: order.storeId
           });
         }
-      } else {
-        // Fallback caso seja pedido sem item específico na lista
-        await grantStudentProductAccess({
-          studentId: accessStudentId,
-          productId: 'prod-combo-1',
-          orderId: order.id,
-          storeId: order.storeId
-        });
       }
 
       // 📧 Disparar e-mail via Resend para o aluno. A reserva no banco evita

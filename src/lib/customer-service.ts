@@ -130,6 +130,9 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
         .from('orders')
         .select('*')
         .eq('store_id', storeId)
+        // Licença PLR é uma compra B2B, exclusiva do painel do criador.
+        // Ela não pode compor a ficha de um cliente da vitrine pública.
+        .or('is_plr_purchase.is.false,is_plr_purchase.is.null')
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {

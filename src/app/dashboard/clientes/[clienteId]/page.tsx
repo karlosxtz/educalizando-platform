@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Users, Mail, Phone, Calendar, ShieldCheck, 
   ShoppingBag, DollarSign, TrendingUp, Clock, FileText, 
-  CheckCircle2, AlertCircle, ExternalLink, Download, Lock, Package, Layers, Send, Loader2
+  CheckCircle2, AlertCircle, ExternalLink, Download, Package, Layers, Send, Loader2
 } from 'lucide-react';
 import { getCustomerById, Customer } from '@/lib/customer-service';
 import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
@@ -98,8 +98,6 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   }
 
   const ticketMedio = customer.totalCompras > 0 ? customer.valorTotalGasto / customer.totalCompras : 0;
-  const hasPlrPurchases = customer.produtos.some(product => product.isPlrPurchase);
-
   const handleResendAccess = async (product: Customer['produtos'][number]) => {
     if (!storeId) return;
     setResendingProductId(product.id);
@@ -152,11 +150,6 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                 ) : (
                   <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-400" /> Inativo
-                  </span>
-                )}
-                {hasPlrPurchases && (
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5" /> Criador com licença PLR
                   </span>
                 )}
               </div>
@@ -403,8 +396,8 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       {activeTab === 'produtos' && (
         <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
           <div className="p-6 border-b border-slate-100 space-y-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Produtos e licenças adquiridos</h3>
-            <p className="text-xs text-slate-600">Use <strong>Reenviar acesso</strong> para enviar novamente o conteúdo correto deste pedido. Produtos finais vão para a Área do Cliente; licenças PLR vão exclusivamente para o painel do criador.</p>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Produtos adquiridos</h3>
+            <p className="text-xs text-slate-600">Aqui aparecem somente compras de produtos finais desta loja. Use <strong>Reenviar acesso</strong> para enviar novamente o conteúdo correto para a Área do Cliente.</p>
             {resendNotice && (
               <div className={`rounded-xl border px-4 py-3 text-xs font-bold ${resendNotice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
                 {resendNotice.message}
