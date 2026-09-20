@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   Library, Search, Sparkles, Filter, 
-  ExternalLink, ShoppingCart, Loader2, ShieldCheck, FileText
+  ExternalLink, ShoppingCart, Loader2, ShieldCheck, FileText, CheckCircle2, Eye
 } from 'lucide-react';
 import { getPlrMarketplaceProducts } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
@@ -16,12 +16,20 @@ export default function PlrMarketplacePage() {
   const [products, setProducts] = useState<PlrProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [purchasedProductIds, setPurchasedProductIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function loadData() {
       try {
-        const plrData = await getPlrMarketplaceProducts();
+        const [plrData, purchasesResponse] = await Promise.all([
+          getPlrMarketplaceProducts(),
+          fetch('/api/plr/purchases')
+        ]);
         setProducts(plrData || []);
+        if (purchasesResponse.ok) {
+          const purchasesData = await purchasesResponse.json();
+          setPurchasedProductIds(new Set((purchasesData.items || []).map((item: { productId: string }) => item.productId)));
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -87,9 +95,8 @@ export default function PlrMarketplacePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
-            const storeUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}` : '#';
             const productUrl = product.store ? `/loja/${encodeURIComponent(product.store.slug)}/produto/${encodeURIComponent(product.slug || product.id)}?licenca=plr` : '#';
-            
+            const alreadyPurchased = purchasedProductIds.has(product.id);
             const displayPrice = Number(product.preco_plr || 0);
 
             return (
@@ -114,6 +121,11 @@ export default function PlrMarketplacePage() {
                       R$ {displayPrice.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
+                  {alreadyPurchased && (
+                    <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-[10px] font-black uppercase text-white shadow-lg">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Produto adquirido
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -150,14 +162,30 @@ export default function PlrMarketplacePage() {
                     </div>
                   </div>
 
-                  <a 
-                    href={productUrl}
-                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-blue-200"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    Comprar Direitos
-                    <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-70" />
-                  </a>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Link
+                      href={productUrl}
+                      className="min-h-11 rounded-xl border border-blue-200 bg-white px-3 text-xs font-black text-blue-700 hover:bg-blue-50 flex items-center justify-center gap-1.5"
+                    >
+                      <Eye className="h-4 w-4" /> Ver detalhes
+                    </Link>
+                    {alreadyPurchased ? (
+                      <Link
+                        href={`/dashboard/plr/comprados?produto=${encodeURIComponent(product.id)}`}
+                        className="min-h-11 rounded-xl bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-700 flex items-center justify-center gap-1.5"
+                      >
+                        <CheckCircle2 className="h-4 w-4" /> Adquirido
+                      </Link>
+                    ) : (
+                      <Link
+                        href={productUrl}
+                        className="min-h-11 rounded-xl bg-blue-600 px-3 text-xs font-black text-white hover:bg-blue-700 flex items-center justify-center gap-1.5 shadow-sm shadow-blue-200"
+                      >
+                        <ShoppingCart className="h-4 w-4" /> Comprar PLR
+                        <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )
