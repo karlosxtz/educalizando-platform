@@ -422,6 +422,14 @@ export async function authorizeStudentContentAccess(params: {
 }): Promise<StudentContentAccessGrant> {
   const { storeId, studentEmail, contentId, productId } = params;
 
+  // Esta função é mantida apenas para o ambiente local legado. Em produção, a
+  // autorização precisa ocorrer nas rotas server-side, que conferem
+  // student_product_access e o pedido pelo usuário autenticado. Um e-mail e
+  // dados do navegador não são prova suficiente de titularidade.
+  if (isRealSupabaseConfigured() || !allowsLocalDevelopmentFallback()) {
+    throw new Error('A autorização de conteúdo em produção é feita somente pela API segura de materiais.');
+  }
+
   // A. Buscar Conteúdo
   const allContents = await getContentByStoreId(storeId);
   const content = allContents.find(c => c.id === contentId);
