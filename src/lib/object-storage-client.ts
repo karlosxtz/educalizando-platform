@@ -36,6 +36,11 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
     headers: { 'Content-Type': file.type || 'application/octet-stream' },
     body: file,
   });
-  if (!upload.ok) throw new Error('O armazenamento recusou o envio do arquivo. Tente novamente.');
+  if (!upload.ok) {
+    const detail = (await upload.text()).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    throw new Error(detail
+      ? `O armazenamento recusou o envio (${upload.status}): ${detail.slice(0, 180)}`
+      : `O armazenamento recusou o envio (HTTP ${upload.status}).`);
+  }
   return payload.value;
 }

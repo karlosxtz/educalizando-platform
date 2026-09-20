@@ -268,26 +268,27 @@ export default function FileUpload({
             </p>
           </div>
 
-          {error && (
-            <div className="mt-2 bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl text-xs space-y-1 font-medium">
-              <div className="flex items-center gap-1.5 font-bold text-rose-900 text-xs">
-                <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                <span>{error.title}</span>
-              </div>
-              <p className="text-[11px] text-rose-700 pl-5 leading-relaxed">
-                {error.message}
-              </p>
-              <div className="pt-2 pl-5">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-rose-800 underline font-bold text-[11px] flex items-center gap-1 hover:text-rose-950"
-                >
-                  <RefreshCw className="w-3 h-3" /> Selecionar outro arquivo
-                </button>
-              </div>
-            </div>
-          )}
+        </div>
+      )}
+
+      {error && !uploading && (
+        <div className="mt-2 bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl text-xs space-y-1 font-medium">
+          <div className="flex items-center gap-1.5 font-bold text-rose-900 text-xs">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span>{error.title}</span>
+          </div>
+          <p className="text-[11px] text-rose-700 pl-5 leading-relaxed">
+            {error.message}
+          </p>
+          <div className="pt-2 pl-5">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-rose-800 underline font-bold text-[11px] flex items-center gap-1 hover:text-rose-950"
+            >
+              <RefreshCw className="w-3 h-3" /> Selecionar outro arquivo
+            </button>
+          </div>
         </div>
       )}
     </div>
