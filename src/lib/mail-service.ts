@@ -14,7 +14,7 @@ const layout = (title: string, content: string) => `<div style="font-family:Aria
 const isCreatorExternalLink = (url?: string | null) => /^https:\/\//i.test(url || '') && !/supabase\.co\//i.test(url || '');
 const purchaseAccess = (isPlrPurchase?: boolean) => {
   const area = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const login = isPlrPurchase ? '/dashboard/login' : '/cliente/login';
+  const login = isPlrPurchase ? '/login' : '/cliente/login';
   return { areaLabel: isPlrPurchase ? 'suas licenças PLR no painel do criador' : 'seus materiais na Área do Cliente', url: `${appUrl}${login}?returnTo=${encodeURIComponent(area)}` };
 };
 

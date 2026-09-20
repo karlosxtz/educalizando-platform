@@ -427,7 +427,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                   <div className="flex flex-wrap gap-2.5 pt-1">
                     <Link
                       href={isPlrPurchase 
-                        ? `/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
+                        ? `/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
                         : `/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs"
                     >
@@ -436,7 +436,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                     </Link>
                     <Link
                       href={isPlrPurchase 
-                        ? `/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
+                        ? `/cadastro/produtor?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
                         : `/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
                       className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                     >
@@ -549,14 +549,14 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                       {isPlrPurchase ? (
                         <>
                           <Link
-                            href={`/dashboard/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
+                            href={`/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
                             className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
                           >
                             <LogIn className="w-4 h-4" />
                             <span>Fazer Login de Criador</span>
                           </Link>
                           <Link
-                            href={`/dashboard/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
+                            href={`/cadastro/produtor?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
                             className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                           >
                             <UserPlus className="w-4 h-4 text-rose-600" />

@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     .filter(material => isExternalCreatorLink(material.fileUrl))
     .map(material => `🔗 ${material.title}: ${material.fileUrl}`);
   const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const loginArea = isPlrPurchase ? '/dashboard/login' : '/cliente/login';
+  const loginArea = isPlrPurchase ? '/login' : '/cliente/login';
   const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
   const whatsappMessage = isPlrPurchase
     ? `🔐 *Reenvio de licença PLR solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Criador(a)')}! Reenviamos a licença PLR adquirida:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse suas licenças pelo painel do criador: ${accessUrl}`

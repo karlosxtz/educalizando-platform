@@ -8,7 +8,7 @@ export async function notifyConfirmedSale(order: OrderRecord) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
   const isPlrPurchase = order.is_plr_purchase === true;
   const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const loginArea = isPlrPurchase ? '/dashboard/login' : '/cliente/login';
+  const loginArea = isPlrPurchase ? '/login' : '/cliente/login';
   const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
   const accessLabel = isPlrPurchase ? '🔐 Acesse sua licença no painel do criador' : '📚 Acesse seus materiais na Área do Cliente';
   const { data: store } = await supabaseAdmin

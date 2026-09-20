@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -23,10 +23,15 @@ import { signInUser, resetPasswordForEmail } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'login' | 'forgot'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState(false);
+  const returnTo = searchParams.get('returnTo');
+  // O login do criador só aceita rotas internas do próprio painel. Isso mantém
+  // o link de e-mail seguro e devolve o comprador PLR à biblioteca correta.
+  const safeCreatorReturnTo = returnTo?.startsWith('/dashboard') ? returnTo : null;
 
   const {
     register: registerLogin,
@@ -65,7 +70,7 @@ export default function LoginPage() {
         // O painel inicial concentra o resumo da loja e os próximos passos.
         // A configuração da loja permanece acessível pelo menu, sem ser um
         // desvio obrigatório após cada login.
-        window.location.href = '/dashboard';
+        window.location.href = safeCreatorReturnTo || '/dashboard';
       }
       
     } catch (err: any) {
