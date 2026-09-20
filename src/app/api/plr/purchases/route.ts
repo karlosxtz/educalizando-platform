@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const productIds = [...new Set((orderItems || []).map(item => item.product_id).filter(Boolean))];
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
-      .select('id, titulo, capa_url, has_original_delivery, has_plr_delivery, stores(nome_loja)')
+      .select('id, titulo, capa_url, has_plr_delivery, stores(nome_loja)')
       .in('id', productIds);
     if (productsError) throw productsError;
 
@@ -48,7 +48,6 @@ export async function GET(request: Request) {
         amount: Number(item.unit_price || 0),
         coverUrl: product.capa_url || null,
         storeName: store?.nome_loja || 'Loja Educalizando',
-        hasOriginalFile: Boolean(product.has_original_delivery),
         hasPlrFile: Boolean(product.has_plr_delivery)
       }];
     });

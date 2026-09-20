@@ -15,7 +15,6 @@ interface PLRItem {
   amount: number;
   coverUrl: string | null;
   storeName: string;
-  hasOriginalFile: boolean;
   hasPlrFile: boolean;
 }
 
@@ -29,11 +28,15 @@ export default function PLRsCompradosPage() {
     async function fetchPLRs() {
       try {
         const response = await fetch('/api/plr/purchases');
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           router.push('/login');
           return;
         }
         const data = await response.json();
+        if (response.status === 403) {
+          setError(data.error || 'Este módulo é exclusivo para contas de criador.');
+          return;
+        }
         if (!response.ok) throw new Error(data.error);
         setItems(data.items || []);
       } catch (err: any) {
@@ -60,7 +63,7 @@ export default function PLRsCompradosPage() {
               PLRs Comprados
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Todos os produtos com licença de revenda que você adquiriu.
+              Suas licenças PLR pagas no Mercado de PLR. Os arquivos ficam disponíveis somente para a conta criadora que realizou a compra.
             </p>
 
             <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
@@ -90,9 +93,9 @@ export default function PLRsCompradosPage() {
         ) : items.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-xs">
             <Package className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Nenhum PLR comprado ainda</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Você ainda não adquiriu nenhum arquivo PLR</h3>
             <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
-              Você ainda não adquiriu nenhuma licença de revenda no Mercado de PLR.
+              Quando você comprar uma licença no Mercado de PLR, ela aparecerá aqui automaticamente com o acesso aos arquivos.
             </p>
             <Link 
               href="/dashboard/plr"
@@ -118,7 +121,7 @@ export default function PLRsCompradosPage() {
                   </div>
                 </div>
                 <div className="p-5 flex flex-col flex-1">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 gap-2">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Vendido por {item.storeName}
                     </span>
@@ -134,32 +137,18 @@ export default function PLRsCompradosPage() {
                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-3">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
                         <span className="bg-slate-200 text-slate-700 w-5 h-5 rounded-full flex items-center justify-center text-[10px]">1</span>
-                        Baixar Original
+                        Arquivos da licença PLR
                       </div>
-                      
-                      {item.hasOriginalFile ? (
-                        <a 
-                          href={`/api/aluno/materiais/${item.productId}/download`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="w-full flex items-center justify-center gap-2 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-sm"
-                        >
-                          <Download className="w-4 h-4" />
-                          Baixar Produto Final
-                        </a>
-                      ) : (
-                        <button disabled className="w-full flex items-center justify-center gap-2 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-xs font-bold cursor-not-allowed">
-                          Arquivo Indisponível
-                        </button>
-                      )}
 
                       {item.hasPlrFile ? (
                         <a
                           href={`/api/aluno/materiais/${item.productId}/download?type=plr`}
-                          className="w-full flex items-center justify-center gap-2 py-2 bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm"
                         >
                           <Download className="w-4 h-4" />
-                          Baixar Licença / Arquivos PLR
+                          Abrir arquivos PLR
                         </a>
                       ) : (
                         <button disabled className="w-full py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-xs font-bold cursor-not-allowed">
