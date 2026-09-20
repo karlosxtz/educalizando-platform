@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Eye, X, FileText, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
-import Sidebar from '@/components/dashboard/Sidebar';
 
 interface PLRItem {
   id: string;
@@ -29,6 +28,9 @@ export default function PLRsCompradosPage() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<PLRItem[]>([]);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const visibleItems = items.filter(item => normalize(`${item.productTitle} ${item.storeName}`).includes(normalize(search.trim())));
   const [selectedItem, setSelectedItem] = useState<PLRItem | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const openDetails = (item: PLRItem) => {
@@ -68,7 +70,7 @@ export default function PLRsCompradosPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      <main className="flex-1 max-w-7xl mx-auto p-4 sm:p-8">
+      <main className="min-w-0 w-full flex-1 max-w-7xl mx-auto p-4 sm:p-8">
         <header className="mb-8 flex items-center justify-between">
           <div>
             <Link href="/dashboard/plr" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-600 mb-2 transition-colors">
@@ -97,6 +99,16 @@ export default function PLRsCompradosPage() {
           </div>
         </header>
 
+        {!loading && !error && items.length > 0 && <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" aria-label="Buscar nas licenças compradas">
+          <label htmlFor="purchased-plr-search" className="block text-sm font-bold text-slate-800">Buscar por material ou loja</label>
+          <input id="purchased-plr-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Digite o nome do PLR ou do vendedor" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-slate-500" role="status">Exibindo {visibleItems.length} de {items.length} licenças compradas.</p>
+            {search && <button type="button" onClick={() => setSearch('')} className="min-h-11 px-2 text-sm font-bold text-blue-700 hover:underline">Limpar busca</button>}
+          </div>
+          {visibleItems.length === 0 && <p className="mt-3 text-sm text-slate-600">Nenhum PLR encontrado. Tente uma parte do nome ou limpe a busca para ver suas licenças.</p>}
+        </section>}
+
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -122,8 +134,8 @@ export default function PLRsCompradosPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
-              <div key={item.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col group hover:shadow-md transition-all">
+            {visibleItems.map((item) => (
+              <div key={item.id} className="min-w-0 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col group hover:shadow-md transition-all">
                 <button
                   type="button"
                   onClick={() => openDetails(item)}
@@ -133,7 +145,8 @@ export default function PLRsCompradosPage() {
                   <img 
                     src={item.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
                     alt={item.productTitle}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    className="w-full h-full object-contain"
                   />
                   <div className="absolute top-3 left-3">
                     <span className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg border border-white/10">
@@ -145,18 +158,18 @@ export default function PLRsCompradosPage() {
                   </div>
                 </button>
                 <div className="p-5 flex flex-col flex-1">
-                  <div className="flex items-center justify-between mb-2 gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <div className="flex flex-wrap items-center justify-between mb-2 gap-2">
+                    <span className="min-w-0 text-[10px] font-bold text-slate-500 uppercase tracking-wider [overflow-wrap:anywhere]">
                       Vendido por {item.storeName}
                     </span>
                     <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                       Pago
                     </span>
                   </div>
-                  <button type="button" onClick={() => openDetails(item)} className="mb-2 text-left text-sm font-bold leading-snug text-slate-900 line-clamp-2 hover:text-blue-700">
+                  <button type="button" onClick={() => openDetails(item)} className="mb-2 text-left text-base font-bold leading-snug text-slate-900 [overflow-wrap:anywhere] hover:text-blue-700">
                     {item.productTitle}
                   </button>
-                  <button type="button" onClick={() => openDetails(item)} className="mb-4 inline-flex w-fit items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900">
+                  <button type="button" onClick={() => openDetails(item)} className="mb-4 min-h-11 inline-flex w-fit items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900">
                     <Eye className="h-3.5 w-3.5" /> Ver informações do material
                   </button>
                   
@@ -172,7 +185,7 @@ export default function PLRsCompradosPage() {
                           href={`/api/aluno/materiais/${item.productId}/download?type=plr`}
                           target="_blank"
                           rel="noreferrer"
-                          className="w-full flex items-center justify-center gap-2 py-2.5 bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                          className="min-h-12 w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
                         >
                           <Download className="w-4 h-4" />
                           Abrir arquivos PLR
@@ -194,13 +207,13 @@ export default function PLRsCompradosPage() {
 
                       <Link 
                         href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(item.productId)}`}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-600/20"
+                        className="min-h-12 w-full flex items-center justify-center gap-2 px-3 py-2.5 border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 rounded-xl text-sm font-bold transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                         Publicar na Minha Loja
                       </Link>
                     </div>
-                    <p className="text-[10px] text-center text-slate-400 mt-4 font-medium">
+                    <p className="text-[10px] text-center text-slate-500 mt-4 font-medium [overflow-wrap:anywhere]">
                       Pedido #{item.orderId.split('_').pop()?.toUpperCase()} • {new Date(item.paidAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -237,14 +250,14 @@ export default function PLRsCompradosPage() {
                 )}
                 <span className="absolute left-4 top-4 rounded-full bg-slate-950/80 px-3 py-1 text-[10px] font-black uppercase text-white">Licença PLR</span>
               </div>
-              <div className="p-5 sm:p-7">
+              <div className="min-w-0 p-5 sm:p-7 [overflow-wrap:anywhere]">
                 <div className="flex items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wider text-blue-700">Detalhes do material adquirido</p>
                     <h2 className="mt-1 text-xl font-black text-slate-900">{selectedItem.productTitle}</h2>
                     <p className="mt-1 text-sm font-semibold text-slate-500">Vendido por {selectedItem.storeName}</p>
                   </div>
-                  <button type="button" onClick={() => setSelectedItem(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Fechar"><X className="h-5 w-5" /></button>
+                  <button type="button" onClick={() => setSelectedItem(null)} className="min-h-11 min-w-11 shrink-0 rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Fechar"><X className="h-5 w-5" /></button>
                 </div>
                 <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-slate-700">{selectedItem.description || 'O vendedor não adicionou uma descrição para este material.'}</p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -252,8 +265,8 @@ export default function PLRsCompradosPage() {
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><GraduationCap className="mb-1 h-4 w-4 text-blue-600" /><strong>Indicação</strong><br /><span className="text-slate-600">{selectedItem.ageRange || (selectedItem.pageCount ? `${selectedItem.pageCount} páginas` : 'Conforme descrição')}</span></div>
                 </div>
                 <div className="mt-6 grid gap-2 sm:grid-cols-2">
-                  <a href={`/api/aluno/materiais/${selectedItem.productId}/download?type=plr`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 text-sm font-black text-amber-900 hover:bg-amber-200"><Download className="h-4 w-4" /> Abrir arquivos PLR</a>
-                  <Link href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(selectedItem.productId)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white hover:bg-blue-700"><Plus className="h-4 w-4" /> Publicar na minha loja</Link>
+                  {selectedItem.hasPlrFile ? <a href={`/api/aluno/materiais/${selectedItem.productId}/download?type=plr`} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white hover:bg-blue-700"><Download className="h-4 w-4 shrink-0" /> Abrir arquivos PLR</a> : <span className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm text-slate-500">Arquivo PLR indisponível</span>}
+                  <Link href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(selectedItem.productId)}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-black text-blue-700 hover:bg-blue-50"><Plus className="h-4 w-4 shrink-0" /> Publicar na minha loja</Link>
                 </div>
                 <p className="mt-4 text-xs leading-relaxed text-amber-800">Ao publicar, altere título, descrição e capa para criar a sua própria versão e evitar conflito com o material original.</p>
               </div>
