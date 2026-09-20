@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { createDownloadUrl, isPrivateStorageUri, parsePrivateStorageUri } from '@/lib/object-storage';
 
 function sanitizeFilename(title: string, extension = 'pdf'): string {
   const clean = title
@@ -197,6 +198,14 @@ export async function GET(
       }
       let activeUrl = fileUrl;
 
+      // Arquivos privados novos ficam no MinIO como minio://bucket/chave.
+      // A URL assinada só é criada após validar a compra acima.
+      if (isPrivateStorageUri(activeUrl)) {
+        const location = parsePrivateStorageUri(activeUrl);
+        if (!location) return NextResponse.json({ error: 'Referência de arquivo inválida.' }, { status: 400 });
+        activeUrl = await createDownloadUrl(location.bucket, location.key, humanFilename);
+      }
+
       // EXTRAÇÃO CRÍTICA: Se a URL no banco for uma URL pública do próprio Supabase (que falha em buckets privados),
       // extraímos apenas o nome do arquivo para forçar a geração de Signed URL.
       const publicStorageMatch = activeUrl.match(/\/object\/public\/product-files\/(.+)$/);
@@ -242,7 +251,7 @@ export async function GET(
         // binários da Educalizando. O Drive responde com uma página HTML e não
         // pode passar pelo gerador de PDF licenciado. Redirecionamos o aluno
         // diretamente para o link original, preservando a intenção do criador.
-        const isExternalCreatorLink = !/supabase\.co\//i.test(activeUrl);
+        const isExternalCreatorLink = !/supabase\.co\//i.test(activeUrl) && !activeUrl.includes('arquivos.educalizando.com.br');
         if (isExternalCreatorLink) {
           return NextResponse.redirect(activeUrl);
         }

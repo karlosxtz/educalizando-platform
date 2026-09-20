@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, File, CheckCircle2, AlertCircle, X, Image as ImageIcon, Sparkles, VideoOff, Info, MoveLeft, MoveRight } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { supabase } from '@/lib/supabase';
+import { uploadToObjectStorage } from '@/lib/object-storage-client';
 
 interface FileUploadMultipleProps {
   label: string;
@@ -53,11 +53,6 @@ export default function FileUploadMultiple({
 
   const effectiveMaxSizeMB = Math.min(maxSizeMB, ABSOLUTE_MAX_SIZE_MB);
 
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
   const processFileUpload = async (files: FileList | File[]) => {
     setError(null);
     const filesArray = Array.from(files);
@@ -106,25 +101,7 @@ export default function FileUploadMultiple({
           }
         }
 
-        const fileExt = finalFile.name.split('.').pop() || 'png';
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-        
-        if (isRealSupabase) {
-          const { error: uploadError } = await supabase.storage
-            .from(bucket)
-            .upload(fileName, finalFile, { cacheControl: '3600', upsert: true });
-
-          if (uploadError) throw new Error(uploadError.message);
-
-          const { data: publicUrlData } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(fileName);
-
-          newUrls.push(publicUrlData.publicUrl);
-        } else {
-          // Fallback local dev
-          newUrls.push(URL.createObjectURL(finalFile));
-        }
+        newUrls.push(await uploadToObjectStorage(bucket, finalFile));
         setProgress(Math.round(((i + 1) / filesArray.length) * 100));
       }
 

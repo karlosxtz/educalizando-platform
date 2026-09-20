@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, File, CheckCircle2, AlertCircle, RefreshCw, X, Image as ImageIcon, Sparkles, VideoOff, Info } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { supabase } from '@/lib/supabase';
+import { uploadToObjectStorage } from '@/lib/object-storage-client';
 
 interface FileUploadProps {
   label: string;
@@ -52,11 +52,6 @@ export default function FileUpload({
   // Limite efetivo: nunca pode ultrapassar 15 MB
   const effectiveMaxSizeMB = Math.min(maxSizeMB, ABSOLUTE_MAX_SIZE_MB);
 
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
   const processFileUpload = async (file: File) => {
     setError(null);
 
@@ -103,53 +98,18 @@ export default function FileUpload({
     }
 
     try {
-      const fileExt = finalFile.name.split('.').pop() || 'bin';
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-      const filePath = `${fileName}`;
-
       // Simulação de progresso fluído
       const interval = setInterval(() => {
         setProgress((prev) => (prev >= 85 ? prev : prev + 15));
       }, 150);
 
-      if (isRealSupabase) {
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(filePath, finalFile, { cacheControl: '3600', upsert: true });
-
-        clearInterval(interval);
-
-        if (uploadError) {
-          throw new Error(uploadError.message);
-        }
-
-        let finalUrl = '';
-        if (bucket === 'product-files') {
-          // ANTI-PIRATARIA: Arquivos de produtos são privados. Não usar getPublicUrl.
-          // Salvar apenas o caminho relativo para gerar Signed URL na hora do download.
-          finalUrl = filePath;
-        } else {
-          const { data: publicUrlData } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(filePath);
-          finalUrl = publicUrlData.publicUrl;
-        }
-
-        setProgress(100);
-        setTimeout(() => {
-          setUploading(false);
-          onChange(finalUrl);
-        }, 300);
-      } else {
-        // Fallback local dev
-        clearInterval(interval);
-        const localUrl = URL.createObjectURL(finalFile);
-        setProgress(100);
-        setTimeout(() => {
-          setUploading(false);
-          onChange(localUrl);
-        }, 300);
-      }
+      const finalUrl = await uploadToObjectStorage(bucket, finalFile);
+      clearInterval(interval);
+      setProgress(100);
+      setTimeout(() => {
+        setUploading(false);
+        onChange(finalUrl);
+      }, 300);
     } catch (err: any) {
       setUploading(false);
       setError({

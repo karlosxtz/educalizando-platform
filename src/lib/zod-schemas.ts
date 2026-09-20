@@ -122,7 +122,7 @@ export const productFormSchema = z.object({
   }),
   preco: z.coerce.number().min(0, { message: 'O preço não pode ser negativo.' }),
   capa_url: z.string().url({ message: 'URL da capa inválida.' }).or(z.literal('')).optional(),
-  arquivo_url: z.string().url({ message: 'URL do arquivo inválida.' }).or(z.literal('')).optional(),
+  arquivo_url: z.string().url({ message: 'URL do arquivo inválida.' }).or(z.string().regex(/^minio:\/\/[a-z0-9][a-z0-9.-]*\/.+$/, { message: 'Arquivo MinIO inválido.' })).or(z.literal('')).optional(),
   status: z.enum(['rascunho', 'publicado'])
 });
 
