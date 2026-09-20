@@ -62,6 +62,7 @@ export async function GET(request: Request) {
       paidAt: order.paidAt,
       totalAmount: order.totalAmount,
       isPlrPurchase: order.is_plr_purchase === true,
+      purchasedProductIds: order.items.map((item) => item.productId),
       pixCopyPaste: order.pixCopyPaste,
       pixQrCodeBase64: order.pixQrCodeBase64
     });

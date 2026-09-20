@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   CheckCircle2, ShieldCheck, ArrowRight, Loader2, AlertCircle, BookOpen
 } from 'lucide-react';
 import { Store } from '@/lib/types';
+import { useCart } from '@/components/store/CartContext';
 
 interface OrderSuccessClientViewProps {
   store: Store;
@@ -17,6 +18,8 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
   const [status, setStatus] = useState<string>('pending');
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { removeFromCart } = useCart();
+  const clearedOrderRef = useRef<string | null>(null);
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -36,6 +39,13 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
           const data = await res.json();
           if (data.success) {
             setStatus(data.status);
+            if (data.status === 'paid' && clearedOrderRef.current !== orderId) {
+              const isPlrPurchase = data.isPlrPurchase === true;
+              (data.purchasedProductIds || []).forEach((productId: string) => {
+                removeFromCart(`${productId}${isPlrPurchase ? '_plr' : ''}`);
+              });
+              clearedOrderRef.current = orderId;
+            }
             if (data.status === 'paid' && data.isPlrPurchase === true) {
               router.replace(`/dashboard/plr/comprados?pedido=${encodeURIComponent(orderId)}`);
               return;
@@ -58,7 +68,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [orderId, router, searchParams, status]);
+  }, [orderId, removeFromCart, router, searchParams, status]);
 
   return (
     <div 
