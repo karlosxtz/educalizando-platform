@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -21,7 +21,7 @@ import {
 } from '@/lib/zod-schemas';
 import { signInUser, resetPasswordForEmail } from '@/lib/supabase';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'login' | 'forgot'>('login');
@@ -324,5 +324,19 @@ export default function LoginPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-50">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-navy" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }
