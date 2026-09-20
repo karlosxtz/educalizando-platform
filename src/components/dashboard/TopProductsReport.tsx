@@ -41,9 +41,9 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
   };
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-w-0 overflow-hidden bg-white p-5 sm:p-6 md:p-8 rounded-[2rem] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 sm:space-y-6">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="min-w-0">
           <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 mb-1">
             <Award className="w-4 h-4 text-amber-500" /> Mais Vendidos da Sua Loja
           </span>
@@ -54,7 +54,8 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
           href="/dashboard/produtos"
           className="text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
         >
-          <span>Ver Todos</span>
+          <span className="hidden sm:inline">Ver Todos</span>
+          <span className="sm:hidden">Todos</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -72,10 +73,10 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
           {stats.map((item, index) => (
             <div
               key={item.id}
-              className="p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all space-y-3 group"
+              className="min-w-0 p-3 sm:p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all space-y-3 group"
             >
-              <div className="flex items-center gap-4">
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 shadow-sm">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 shadow-sm">
                   {item.capa_url ? (
                     <img src={item.capa_url} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
@@ -88,11 +89,11 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-900 text-sm line-clamp-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="break-words font-bold text-slate-900 text-sm line-clamp-2 sm:line-clamp-1">
                     {item.titulo}
                   </h4>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
                       {getTipoIcon(item.tipo)} {item.tipo}
                     </span>
@@ -102,7 +103,7 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
+                <div className="hidden text-right shrink-0 sm:block">
                   <span className="text-sm font-black text-slate-900 block">
                     R$ {item.faturamentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
@@ -110,6 +111,11 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
                     {item.unidadesVendidas} vendas
                   </span>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 sm:hidden">
+                <span className="text-[10px] font-bold text-emerald-700">{item.unidadesVendidas} {item.unidadesVendidas === 1 ? 'venda' : 'vendas'}</span>
+                <span className="text-xs font-black text-slate-900">R$ {item.faturamentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
 
               {/* Progress Bar Indicator */}
