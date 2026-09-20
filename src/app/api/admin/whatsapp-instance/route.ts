@@ -43,5 +43,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, connection: result });
   }
 
+  if (body.action === 'sync_webhook') {
+    const origin = new URL(request.url).origin;
+    const result = await getEvolutionConnectionQrCode(false, `${origin}/api/webhooks/whatsapp-store`);
+    if (!result.connected || result.webhookConfigured !== true) {
+      return NextResponse.json({ error: result.error || 'A instância precisa estar conectada para ativar o recebimento de comandos.' }, { status: 503 });
+    }
+    return NextResponse.json({ success: true });
+  }
+
   return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });
 }
