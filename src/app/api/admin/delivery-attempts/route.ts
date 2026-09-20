@@ -10,10 +10,10 @@ async function getDeliveryData(orderId: string) {
   if (!order) throw new Error('Pedido não encontrado.');
   const [{ data: store }, { data: deliveries }] = await Promise.all([
     supabaseAdmin.from('stores').select('whatsapp').eq('id', order.storeId).maybeSingle(),
-    order.items.length ? supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome').in('product_id', order.items.map(item => item.productId)) : Promise.resolve({ data: [] as Array<{ product_id: string; arquivo_url: string | null; arquivo_nome: string | null }> }),
+    order.items.length ? supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome, plr_license_url').in('product_id', order.items.map(item => item.productId)) : Promise.resolve({ data: [] as Array<{ product_id: string; arquivo_url: string | null; arquivo_nome: string | null; plr_license_url: string | null }> }),
   ]);
   const byProduct = new Map((deliveries || []).map(item => [item.product_id, item]));
-  return { order, creatorWhatsapp: store?.whatsapp || null, products: order.items.map(item => { const delivery = byProduct.get(item.productId); return { id: item.productId, title: item.productTitle || 'Material digital', fileUrl: delivery?.arquivo_url, fileName: delivery?.arquivo_nome }; }) };
+  return { order, creatorWhatsapp: store?.whatsapp || null, products: order.items.map(item => { const delivery = byProduct.get(item.productId); return { id: item.productId, title: item.productTitle || 'Material digital', fileUrl: order.is_plr_purchase ? delivery?.plr_license_url : delivery?.arquivo_url, fileName: delivery?.arquivo_nome }; }) };
 }
 
 export async function GET(request: Request) {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   if (attempt.channel !== 'EMAIL' || attempt.event_type !== 'MATERIAL_DELIVERY') { await failTransactionalDelivery(attempt.id, 'Este tipo de envio ainda não pode ser reenviado manualmente.'); return NextResponse.json({ error: 'Reenvio disponível somente para a entrega de e-mail.' }, { status: 422 }); }
   try {
     const { order, creatorWhatsapp, products } = await getDeliveryData(attempt.order_id);
-    const result = await sendSaleConfirmationToBuyer({ buyerEmail: order.buyerEmail, buyerName: order.buyerName, orderId: order.id, productTitles: order.items.map(item => item.productTitle || 'Material digital').join(', ') || 'Material digital', products, creatorWhatsapp });
+    const result = await sendSaleConfirmationToBuyer({ buyerEmail: order.buyerEmail, buyerName: order.buyerName, orderId: order.id, productTitles: order.items.map(item => item.productTitle || 'Material digital').join(', ') || 'Material digital', products, creatorWhatsapp, isPlrPurchase: order.is_plr_purchase === true });
     if (!result.sent) throw new Error(result.error || 'A Resend não confirmou o envio.');
     await completeTransactionalDelivery(attempt.id);
     return NextResponse.json({ success: true });

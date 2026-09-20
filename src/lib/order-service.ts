@@ -666,7 +666,8 @@ export async function updateOrderStatus(
             const fileUrl = order.is_plr_purchase ? delivery?.plr_license_url : delivery?.arquivo_url;
             return { id: it.productId, title: it.productTitle || 'Material digital', fileUrl, fileName: delivery?.arquivo_nome };
           }),
-          creatorWhatsapp
+          creatorWhatsapp,
+          isPlrPurchase: order.is_plr_purchase === true
         });
         if (!mailResult.sent) throw new Error(mailResult.error || 'A Resend não confirmou o envio.');
         await completeTransactionalDelivery(deliveryAttemptId);

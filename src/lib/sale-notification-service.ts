@@ -5,7 +5,12 @@ import { supabaseAdmin } from './supabase';
 import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord) {
-  const libraryUrl = `${(process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '')}/cliente/dashboard`;
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+  const isPlrPurchase = order.is_plr_purchase === true;
+  const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
+  const loginArea = isPlrPurchase ? '/dashboard/login' : '/cliente/login';
+  const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
+  const accessLabel = isPlrPurchase ? '🔐 Acesse sua licença no painel do criador' : '📚 Acesse seus materiais na Área do Cliente';
   const { data: store } = await supabaseAdmin
     .from('stores')
     .select('creator_id, nome_loja, whatsapp')
@@ -86,6 +91,15 @@ export async function notifyConfirmedSale(order: OrderRecord) {
 
     // O envio ocorre somente após a inserção idempotente da notificação acima.
     // Assim, chamadas repetidas do webhook não geram mensagens duplicadas.
+    const buyerMessage = renderWhatsAppTemplate(buyerTemplate, {
+      nome: firstName(order.buyerName, 'Cliente'),
+      comprador: order.buyerName || 'Cliente',
+      produto: productTitles,
+      valor: currency,
+      pedido: order.id,
+      acesso: accessUrl,
+    }).replace(/https?:\/\/[^\s]+\/cliente\/dashboard/gi, accessUrl);
+
     await Promise.allSettled([
       sendEvolutionText(store.whatsapp, renderWhatsAppTemplate(creatorTemplate, {
         nome: firstName(creatorName),
@@ -94,13 +108,7 @@ export async function notifyConfirmedSale(order: OrderRecord) {
         valor: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.creatorNetAmount),
         pedido: order.id,
       }) + `\n\n📱 Contato do comprador: ${buyerPhone || 'não informado'}`),
-      sendEvolutionText(buyerPhone, renderWhatsAppTemplate(buyerTemplate, {
-        nome: firstName(order.buyerName, 'Cliente'),
-        comprador: order.buyerName || 'Cliente',
-        produto: productTitles,
-        valor: currency,
-        pedido: order.id,
-      }) + `${creatorLinks.length ? `\n\n${creatorLinks.join('\n')}` : ''}\n\n📚 Acesse seus materiais com segurança: ${libraryUrl}`),
+      sendEvolutionText(buyerPhone, buyerMessage + `${creatorLinks.length ? `\n\n${creatorLinks.join('\n')}` : ''}\n\n${accessLabel}: ${accessUrl}`),
     ]);
   } catch (error) {
     console.error('[Sale Notification] Falha ao enviar alertas da venda:', error);
