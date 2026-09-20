@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   const { data: order } = await supabaseAdmin
     .from('orders')
-    .select('id, store_id, buyer_name, buyer_email, buyer_phone, status')
+    .select('id, store_id, buyer_name, buyer_email, buyer_phone, status, is_plr_purchase')
     .eq('id', body.orderId)
     .eq('store_id', store.id)
     .maybeSingle();
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
   if (!paidStatuses.has(String(order.status || '').toLowerCase())) {
     return NextResponse.json({ error: 'O acesso só pode ser reenviado para pedidos com pagamento aprovado.' }, { status: 422 });
   }
+  const isPlrPurchase = order.is_plr_purchase === true;
 
   const { data: orderItems, error: itemsError } = await supabaseAdmin
     .from('order_items')
@@ -53,17 +54,23 @@ export async function POST(request: Request) {
   if (!productIds.length) return NextResponse.json({ error: 'O material solicitado não pertence a este pedido.' }, { status: 422 });
 
   const [{ data: products, error: productsError }, { data: deliveries, error: deliveriesError }] = await Promise.all([
-    supabaseAdmin.from('products').select('id, titulo').in('id', productIds),
-    supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome').in('product_id', productIds)
+    supabaseAdmin.from('products').select('id, titulo, is_plr').in('id', productIds),
+    supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome, plr_license_url').in('product_id', productIds)
   ]);
   if (productsError || deliveriesError) return NextResponse.json({ error: productsError?.message || deliveriesError?.message || 'Não foi possível preparar os materiais.' }, { status: 500 });
 
   const deliveryByProduct = new Map((deliveries || []).map(delivery => [delivery.product_id, delivery]));
   const materials = (products || []).map(product => {
     const delivery = deliveryByProduct.get(product.id);
-    return { id: product.id, title: product.titulo || 'Material digital', fileUrl: delivery?.arquivo_url || null, fileName: delivery?.arquivo_nome || null };
+    // Uma compra PLR nunca pode cair na entrega do produto final. Se a licença
+    // não existir, interrompemos o reenvio em vez de expor o conteúdo errado.
+    const fileUrl = isPlrPurchase ? delivery?.plr_license_url || null : delivery?.arquivo_url || null;
+    return { id: product.id, title: product.titulo || (isPlrPurchase ? 'Licença PLR' : 'Material digital'), fileUrl, fileName: delivery?.arquivo_nome || null };
   });
   if (!materials.length) return NextResponse.json({ error: 'Os materiais deste pedido não estão mais disponíveis.' }, { status: 422 });
+  if (isPlrPurchase && materials.some(material => !material.fileUrl)) {
+    return NextResponse.json({ error: 'A licença PLR deste pedido não está mais disponível. Cadastre a entrega PLR antes de reenviar o acesso.' }, { status: 422 });
+  }
 
   const productTitles = materials.map(material => material.title).join(', ');
   const emailResult = await sendAccessResendEmail({
@@ -72,13 +79,19 @@ export async function POST(request: Request) {
     orderId: order.id,
     productTitles,
     products: materials,
-    creatorWhatsapp: store.whatsapp || null
+    creatorWhatsapp: store.whatsapp || null,
+    isPlrPurchase
   });
 
   const directLinks = materials
     .filter(material => isExternalCreatorLink(material.fileUrl))
     .map(material => `🔗 ${material.title}: ${material.fileUrl}`);
-  const whatsappMessage = `📚 *Reenvio de acesso solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Cliente')}! Reenviamos o acesso aos materiais abaixo:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse sua biblioteca com segurança: ${appUrl}/cliente/dashboard`;
+  const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
+  const loginArea = isPlrPurchase ? '/dashboard/login' : '/cliente/login';
+  const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
+  const whatsappMessage = isPlrPurchase
+    ? `🔐 *Reenvio de licença PLR solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Criador(a)')}! Reenviamos a licença PLR adquirida:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse suas licenças pelo painel do criador: ${accessUrl}`
+    : `📚 *Reenvio de acesso solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Cliente')}! Reenviamos o acesso aos materiais abaixo:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse sua biblioteca com segurança: ${accessUrl}`;
   const whatsappResult = order.buyer_phone
     ? await sendEvolutionText(order.buyer_phone, whatsappMessage, storeInstance)
     : { sent: false, error: 'Cliente sem WhatsApp cadastrado.' };
@@ -91,6 +104,7 @@ export async function POST(request: Request) {
     success: true,
     emailSent: emailResult.sent,
     whatsappSent: whatsappResult.sent,
-    materials: materials.map(material => material.title)
+    materials: materials.map(material => material.title),
+    isPlrPurchase
   });
 }

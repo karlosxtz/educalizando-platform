@@ -49,19 +49,20 @@ export async function sendWelcomeAffiliateEmail({ affiliateEmail, affiliateName 
   return send(affiliateEmail, 'Boas-vindas ao programa de afiliados', layout('💸 Bem-vindo(a) ao programa de afiliados!', `<p>Olá, ${firstName(affiliateName)}!</p><p>Sua conta está pronta para você criar links e acompanhar as comissões.</p>${button(`${appUrl}/afiliados/painel`, 'Abrir painel de afiliado', '#7c3aed')}`));
 }
 
-const productsBox = (titles: string, products?: BuyerMailParams['products']) => {
+const productsBox = (titles: string, products?: BuyerMailParams['products'], isPlrPurchase?: boolean) => {
   const items = products?.length
     ? `<ul style="margin:10px 0 0;padding-left:20px">${products.map(item => `<li style="margin:5px 0">${escapeHtml(item.title)}</li>`).join('')}</ul>`
     : `<br>${escapeHtml(titles)}`;
-  return `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>Materiais da compra:</strong>${items}</div>`;
+  return `<div style="background:#f0fdfa;border:1px solid #99f6e4;padding:16px;border-radius:10px"><strong>${isPlrPurchase ? 'Licenças PLR da compra:' : 'Materiais da compra:'}</strong>${items}</div>`;
 };
-const creatorLinksBox = (products?: BuyerMailParams['products']) => {
+const creatorLinksBox = (products?: BuyerMailParams['products'], isPlrPurchase?: boolean) => {
   const links = (products || []).filter(item => isCreatorExternalLink(item.fileUrl));
   if (!links.length) return '';
-  return `<div style="margin-top:16px;background:#eff6ff;border:1px solid #bfdbfe;padding:16px;border-radius:10px"><strong>Links liberados pelo criador:</strong>${links.map(item => `<p style="margin:12px 0 0"><a href="${escapeHtml(item.fileUrl!)}" style="color:#1d4ed8;font-weight:700">Abrir ${escapeHtml(item.title)} ↗</a></p>`).join('')}</div>`;
+  const heading = isPlrPurchase ? 'Links da licença PLR:' : 'Links liberados pelo criador:';
+  return `<div style="margin-top:16px;background:#eff6ff;border:1px solid #bfdbfe;padding:16px;border-radius:10px"><strong>${heading}</strong>${links.map(item => `<p style="margin:12px 0 0"><a href="${escapeHtml(item.fileUrl!)}" style="color:#1d4ed8;font-weight:700">Abrir ${escapeHtml(item.title)} ↗</a></p>`).join('')}</div>`;
 };
 export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
-  return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles, params.products)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
+  return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles, params.products, params.isPlrPurchase)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
 }
 export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   const access = purchaseAccess(params.isPlrPurchase);
@@ -71,7 +72,7 @@ export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
   // para uma página HTML de login/compartilhamento (Drive, Storage privado etc.)
   // e chegar ao comprador como "arquivo" inválido. A biblioteca valida o acesso,
   // resolve a URL correta e prepara o download licenciado do material real.
-  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para ${access.areaLabel}.</p>${productsBox(params.productTitles, params.products)}${creatorLinksBox(params.products)}${button(access.url, params.isPlrPurchase ? 'Acessar licenças PLR' : 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Links externos cadastrados pelo criador são enviados como link. Arquivos hospedados na Educalizando continuam protegidos pela biblioteca.</p>${help}`));
+  return send(params.buyerEmail, 'Seus materiais já estão disponíveis para acesso', layout('📚 Seus materiais estão liberados!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>O acesso foi liberado para ${access.areaLabel}.</p>${productsBox(params.productTitles, params.products, params.isPlrPurchase)}${creatorLinksBox(params.products, params.isPlrPurchase)}${button(access.url, params.isPlrPurchase ? 'Acessar licenças PLR' : 'Acessar meus materiais', '#2563eb')}<p style="font-size:13px;color:#475569">Links externos cadastrados pelo criador são enviados como link. Arquivos hospedados na Educalizando continuam protegidos pela biblioteca.</p>${help}`));
 }
 /** Reenvio manual solicitado pelo criador para materiais já comprados. */
 export async function sendAccessResendEmail(params: BuyerMailParams) {
@@ -83,7 +84,7 @@ export async function sendAccessResendEmail(params: BuyerMailParams) {
     'Reenvio de acesso — seus materiais Educalizando',
     layout(
       '📚 Seu acesso foi reenviado',
-      `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos uma solicitação de reenvio de acesso para os materiais abaixo. Eles continuam liberados em ${access.areaLabel}.</p>${productsBox(params.productTitles, params.products)}${creatorLinksBox(params.products)}${button(access.url, params.isPlrPurchase ? 'Abrir licenças PLR' : 'Abrir minha biblioteca', '#2563eb')}<p style="font-size:13px;color:#475569">Se o criador cadastrou um link externo, ele está disponível acima. Materiais protegidos pela Educalizando ficam disponíveis pela biblioteca.</p>${help}`
+      `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos uma solicitação de reenvio de acesso para os materiais abaixo. Eles continuam liberados em ${access.areaLabel}.</p>${productsBox(params.productTitles, params.products, params.isPlrPurchase)}${creatorLinksBox(params.products, params.isPlrPurchase)}${button(access.url, params.isPlrPurchase ? 'Abrir licenças PLR' : 'Abrir minha biblioteca', '#2563eb')}<p style="font-size:13px;color:#475569">Se o criador cadastrou um link externo, ele está disponível acima. Materiais protegidos pela Educalizando ficam disponíveis pela biblioteca.</p>${help}`
     )
   );
 }

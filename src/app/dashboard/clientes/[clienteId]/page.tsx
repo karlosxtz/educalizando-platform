@@ -98,6 +98,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   }
 
   const ticketMedio = customer.totalCompras > 0 ? customer.valorTotalGasto / customer.totalCompras : 0;
+  const hasPlrPurchases = customer.produtos.some(product => product.isPlrPurchase);
 
   const handleResendAccess = async (product: Customer['produtos'][number]) => {
     if (!storeId) return;
@@ -151,6 +152,11 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                 ) : (
                   <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-400" /> Inativo
+                  </span>
+                )}
+                {hasPlrPurchases && (
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5" /> Criador com licença PLR
                   </span>
                 )}
               </div>
@@ -397,8 +403,8 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       {activeTab === 'produtos' && (
         <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
           <div className="p-6 border-b border-slate-100 space-y-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Produtos Adquiridos pelo Cliente</h3>
-            <p className="text-xs text-slate-600">Use <strong>Reenviar acesso</strong> para enviar novamente a mensagem com a biblioteca e os links dos materiais deste pedido. Nenhuma cobrança será criada.</p>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Produtos e licenças adquiridos</h3>
+            <p className="text-xs text-slate-600">Use <strong>Reenviar acesso</strong> para enviar novamente o conteúdo correto deste pedido. Produtos finais vão para a Área do Cliente; licenças PLR vão exclusivamente para o painel do criador.</p>
             {resendNotice && (
               <div className={`rounded-xl border px-4 py-3 text-xs font-bold ${resendNotice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
                 {resendNotice.message}
@@ -428,7 +434,12 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                         <div className="w-8 h-8 rounded-lg bg-blue-50 text-brand-navy flex items-center justify-center font-bold text-xs">
                           {prod.tipo.toUpperCase()}
                         </div>
-                        <span className="font-bold text-slate-900">{prod.titulo}</span>
+                        <div>
+                          <span className="font-bold text-slate-900">{prod.titulo}</span>
+                          {prod.isPlrPurchase && (
+                            <span className="ml-2 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-700">Licença PLR · Criador</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 px-6 text-center font-bold">{prod.quantidade}</td>

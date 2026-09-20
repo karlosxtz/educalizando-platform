@@ -27,6 +27,7 @@ export interface CustomerOrderItem {
   valorTotal: number;
   metodoPagamento: string;
   produtosTitulos: string[];
+  isPlrPurchase?: boolean;
 }
 
 export interface CustomerProductItem {
@@ -39,6 +40,7 @@ export interface CustomerProductItem {
   dataCompra: string;
   pedidoId: string;
   capaUrl?: string | null;
+  isPlrPurchase?: boolean;
 }
 
 export interface CustomerPaymentItem {
@@ -104,6 +106,7 @@ interface RawOrderRecord {
   metodo_pagamento?: string;
   status: string;
   created_at: string;
+  is_plr_purchase?: boolean;
   items?: Array<{ product_id: string; product_title?: string | null; unit_price?: number | null; quantity?: number | null }>;
 }
 
@@ -155,6 +158,7 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           metodo_pagamento: o.metodo_pagamento || o.payment_method || 'PIX Instantâneo',
           status: o.status === 'paid' || o.status === 'pago' ? 'pago' : o.status === 'expirado' ? 'expirado' : o.status === 'estornado' ? 'estornado' : o.status === 'cancelado' ? 'cancelado' : 'pendente_pix',
           created_at: o.created_at,
+          is_plr_purchase: o.is_plr_purchase === true,
           items: itemsByOrder.get(o.id) || []
         }));
       }
@@ -239,7 +243,8 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
       status: o.status as any,
       valorTotal: o.valor_total,
       metodoPagamento: o.metodo_pagamento || 'PIX Instantâneo',
-      produtosTitulos: o.items?.length ? o.items.map(item => item.product_title || o.produto_titulo) : [o.produto_titulo]
+      produtosTitulos: o.items?.length ? o.items.map(item => item.product_title || o.produto_titulo) : [o.produto_titulo],
+      isPlrPurchase: o.is_plr_purchase === true
     };
     customer.pedidos.push(orderItem);
 
@@ -255,7 +260,8 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           preco: Number(item.unit_price ?? o.valor_total),
           quantidade: Number(item.quantity || 1),
           dataCompra: o.created_at,
-          pedidoId: o.id
+          pedidoId: o.id,
+          isPlrPurchase: o.is_plr_purchase === true
         });
       });
     }

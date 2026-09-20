@@ -87,6 +87,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Licenças PLR são B2B: somente uma conta que já possui loja de criador
+    // pode comprá-las. Isso impede que uma compra PLR seja tratada como acesso
+    // de aluno em qualquer etapa posterior de entrega ou reenvio.
+    if (isPlrPurchase) {
+      const { data: creatorStore, error: creatorStoreError } = await supabaseAdmin
+        .from('stores')
+        .select('id')
+        .eq('creator_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      if (creatorStoreError || !creatorStore) {
+        return NextResponse.json({ success: false, error: 'Licenças PLR são exclusivas para contas de criador. Crie sua loja antes de realizar esta compra.' }, { status: 403 });
+      }
+    }
+
     // 3. Buscar Produtos Reais no Banco e Validar (SERVER-SIDE PRICE)
     let kitContext: { id: string; storeId: string; title: string; price: number } | null = null;
     let productIds = items.map((it: any) => it.productId).filter(Boolean);
