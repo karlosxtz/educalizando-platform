@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   Library, Search, Sparkles, Filter, 
-  ExternalLink, ShoppingCart, Loader2 
+  ExternalLink, ShoppingCart, Loader2, ShieldCheck, FileText
 } from 'lucide-react';
 import { getPlrMarketplaceProducts } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
@@ -88,7 +88,7 @@ export default function PlrMarketplacePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
             const storeUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}` : '#';
-            const productUrl = product.store ? `https://educalizando.com.br/loja/${encodeURIComponent(product.store.slug)}/produto/${product.id.replace('prod_', '')}?licenca=plr` : '#';
+            const productUrl = product.store ? `/loja/${encodeURIComponent(product.store.slug)}/produto/${encodeURIComponent(product.slug || product.id)}?licenca=plr` : '#';
             
             const displayPrice = Number(product.preco_plr || 0);
 
@@ -119,9 +119,17 @@ export default function PlrMarketplacePage() {
                 {/* Info */}
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex-1">
+                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Licença de revenda PLR
+                    </div>
                     <h3 className="font-bold text-slate-900 text-base line-clamp-2 mb-2 leading-tight">
                       {product.titulo}
                     </h3>
+                    {product.descricao && (
+                      <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-slate-500">
+                        {product.descricao}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mb-4">
                       {product.store?.logo_url ? (
                         <img src={product.store.logo_url} alt="Logo" className="w-5 h-5 rounded-full object-cover" />
@@ -136,12 +144,14 @@ export default function PlrMarketplacePage() {
                         {product.store?.nome_loja || 'Loja Desconhecida'}
                       </span>
                     </div>
+                    <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-[11px] font-bold text-slate-600">
+                      <span className="flex min-w-0 items-center gap-1.5"><FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" /> {String(product.tipo || 'digital').toUpperCase()}</span>
+                      <span className="text-right text-emerald-700">Entrega PLR inclusa</span>
+                    </div>
                   </div>
 
                   <a 
                     href={productUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors shadow-sm shadow-blue-200"
                   >
                     <ShoppingCart className="w-4 h-4" />

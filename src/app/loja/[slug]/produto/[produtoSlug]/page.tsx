@@ -14,6 +14,7 @@ interface ProductDetailPageProps {
     slug: string;
     produtoSlug: string;
   }>;
+  searchParams: Promise<{ licenca?: string | string[] }>;
 }
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
@@ -57,8 +58,9 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   };
 }
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default async function ProductDetailPage({ params, searchParams }: ProductDetailPageProps) {
   const { slug, produtoSlug } = await params;
+  const query = await searchParams;
 
   const store = await getStoreBySlug(slug);
   if (!store) {
@@ -79,7 +81,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   // Redirecionamento SEO (301) se a URL atual não for o slug oficial
   if (product.slug && produtoSlug !== product.slug) {
-    redirect(`/loja/${store.slug || store.id}/produto/${product.slug}`);
+    const isPlrLink = query.licenca === 'plr' && product.is_plr;
+    redirect(`/loja/${store.slug || store.id}/produto/${product.slug}${isPlrLink ? '?licenca=plr' : ''}`);
   }
 
   if (product.order_bump_id) {
