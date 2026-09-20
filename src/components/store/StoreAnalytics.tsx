@@ -7,7 +7,29 @@ type TrackingProduct = { productId: string; title: string; price: number; curren
 type TrackingDetail = { event: 'AddToCart' | 'InitiateCheckout' | 'Purchase'; storeId: string; product?: TrackingProduct; value?: number; currency?: string; transactionId?: string };
 type Props = { storeId: string; metaPixelId?: string | null; googleAnalyticsId?: string | null; viewContent?: TrackingProduct };
 
-function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detail: Omit<TrackingDetail, 'event' | 'storeId'> & { product?: TrackingProduct }) {
+function currentCampaignParameters(storeId: string) {
+  const params = new URLSearchParams(window.location.search);
+  // Somente parâmetros de campanha: não enviamos formulário, e-mail, telefone
+  // ou outros dados identificáveis aos provedores de anúncios.
+  const campaign = Object.fromEntries(
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+      .map((key) => [key, params.get(key)?.slice(0, 160) || undefined])
+      .filter(([, value]) => Boolean(value)),
+  );
+  const storageKey = `educalizando_campaign_${storeId}`;
+  if (Object.keys(campaign).length) {
+    sessionStorage.setItem(storageKey, JSON.stringify(campaign));
+    return campaign;
+  }
+  try {
+    const persisted = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+    return persisted && typeof persisted === 'object' ? persisted : {};
+  } catch {
+    return {};
+  }
+}
+
+function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detail: Omit<TrackingDetail, 'event' | 'storeId'> & { product?: TrackingProduct }, storeId: string) {
   const product = detail.product;
   const currency = detail.currency || product?.currency || 'BRL';
   const payload = {
@@ -17,6 +39,7 @@ function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detai
     content_name: product?.title,
     content_type: product ? 'product' : undefined,
     transaction_id: detail.transactionId,
+    ...currentCampaignParameters(storeId),
   };
   const browser = window as typeof window & { fbq?: (...args: unknown[]) => void; gtag?: (...args: unknown[]) => void };
   const googleEvent: Record<string, string> = {
@@ -44,7 +67,7 @@ export default function StoreAnalytics({ storeId, metaPixelId, googleAnalyticsId
     const onTrackingEvent = (event: Event) => {
       const detail = (event as CustomEvent<TrackingDetail>).detail;
       if (!detail || detail.storeId !== storeId) return;
-      sendTrackingEvent(detail.event, detail);
+      sendTrackingEvent(detail.event, detail, storeId);
     };
     window.addEventListener('educalizando:tracking', onTrackingEvent);
     return () => window.removeEventListener('educalizando:tracking', onTrackingEvent);
@@ -53,7 +76,7 @@ export default function StoreAnalytics({ storeId, metaPixelId, googleAnalyticsId
   useEffect(() => {
     if (consent !== 'accepted' || !viewContent || viewedProduct.current === viewContent.productId) return;
     viewedProduct.current = viewContent.productId;
-    sendTrackingEvent('ViewContent', { product: viewContent });
+    sendTrackingEvent('ViewContent', { product: viewContent }, storeId);
   }, [consent, viewContent]);
 
   if (!hasTracking) return null;
