@@ -417,6 +417,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           pixCopyPaste: data.pix_copy_paste || null,
           pixQrCodeBase64: data.pix_qr_code_base64 || null,
           items: mappedItems,
+          is_plr_purchase: data.is_plr_purchase === true,
           affiliateId: data.affiliate_id || null,
           affiliateCommissionAmount: Number(data.affiliate_commission_amount || 0),
           couponId: data.coupon_id || null,

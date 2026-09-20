@@ -61,6 +61,7 @@ export async function GET(request: Request) {
       status,
       paidAt: order.paidAt,
       totalAmount: order.totalAmount,
+      isPlrPurchase: order.is_plr_purchase === true,
       pixCopyPaste: order.pixCopyPaste,
       pixQrCodeBase64: order.pixQrCodeBase64
     });

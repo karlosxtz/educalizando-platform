@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   CheckCircle2, ShieldCheck, ArrowRight, Loader2, AlertCircle, BookOpen
 } from 'lucide-react';
@@ -16,6 +16,7 @@ interface OrderSuccessClientViewProps {
 export default function OrderSuccessClientView({ store, orderId }: OrderSuccessClientViewProps) {
   const [status, setStatus] = useState<string>('pending');
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -35,6 +36,10 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
           const data = await res.json();
           if (data.success) {
             setStatus(data.status);
+            if (data.status === 'paid' && data.isPlrPurchase === true) {
+              router.replace(`/dashboard/plr/comprados?pedido=${encodeURIComponent(orderId)}`);
+              return;
+            }
             if (data.status === 'paid' && intervalId) {
               clearInterval(intervalId);
             }
@@ -53,7 +58,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [orderId, searchParams, status]);
+  }, [orderId, router, searchParams, status]);
 
   return (
     <div 

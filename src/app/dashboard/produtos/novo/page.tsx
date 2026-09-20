@@ -177,6 +177,14 @@ function ProductWizardContent() {
           } else if (plrData?.data) {
             const source = plrData.data;
             setPlrSourceTitle(plrData.sourceTitle || 'Material PLR');
+            setTitulo(source.title || '');
+            setDescricao(source.description || '');
+            setGalleryUrls(Array.isArray(source.galleryUrls) && source.galleryUrls.length > 0
+              ? source.galleryUrls
+              : source.coverUrl ? [source.coverUrl] : []);
+            setPreviewUrl(source.previewUrl || '');
+            setInstagramVideoUrl(source.instagramVideoUrl || '');
+            setSeasonalTags(Array.isArray(source.seasonalTags) ? source.seasonalTags : []);
             setTipo(source.tipo || 'pdf');
             setCategoryId(source.categoryId || '');
             setEducationLevelId(source.educationLevelId || '');
@@ -542,7 +550,7 @@ function ProductWizardContent() {
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
                   <p className="font-black">Licença PLR confirmada: {plrSourceTitle}</p>
                   <p className="mt-1 text-xs leading-relaxed text-amber-800">
-                    Preenchemos apenas os filtros pedagógicos autorizados. Personalize o título, a descrição, a capa e envie os arquivos que serão vendidos na sua loja.
+                    Preenchemos título, descrição, capa, galeria e dados pedagógicos para agilizar. Antes de publicar, altere título, descrição e capa para diferenciar sua versão; envie também seus próprios arquivos ou links de entrega.
                   </p>
                 </div>
               )}

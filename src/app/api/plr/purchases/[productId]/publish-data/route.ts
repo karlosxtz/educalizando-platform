@@ -3,9 +3,9 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 /**
- * Retorna somente os metadados pedagógicos de um PLR já pago pelo criador.
- * Arquivos, capa, descrição comercial e URLs de entrega nunca são copiados
- * para a nova publicação: cada revendedor deve personalizar esses elementos.
+ * Retorna os dados comerciais e pedagógicos de um PLR já pago pelo criador.
+ * Arquivos e URLs de entrega nunca são copiados: cada revendedor deve subir
+ * o próprio material de entrega antes de publicar na própria loja.
  */
 export async function GET(
   request: Request,
@@ -46,7 +46,7 @@ export async function GET(
 
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('titulo, tipo, category_id, education_level_id, page_count, age_range, format_details')
+      .select('titulo, descricao, capa_url, preview_url, instagram_video_url, seasonal_tags, tipo, category_id, education_level_id, page_count, age_range, format_details')
       .eq('id', productId)
       .eq('is_plr', true)
       .is('excluido_em', null)
@@ -60,9 +60,23 @@ export async function GET(
       .eq('product_id', productId);
     if (skillsError) throw skillsError;
 
+    const { data: images, error: imagesError } = await supabaseAdmin
+      .from('product_images')
+      .select('url, ordem')
+      .eq('product_id', productId)
+      .order('ordem', { ascending: true });
+    if (imagesError) throw imagesError;
+
     return NextResponse.json({
       sourceTitle: product.titulo,
       data: {
+        title: product.titulo,
+        description: product.descricao || '',
+        coverUrl: product.capa_url || null,
+        galleryUrls: (images || []).map((image) => image.url).filter(Boolean),
+        previewUrl: product.preview_url || '',
+        instagramVideoUrl: product.instagram_video_url || '',
+        seasonalTags: product.seasonal_tags || [],
         tipo: product.tipo,
         categoryId: product.category_id,
         educationLevelId: product.education_level_id,
