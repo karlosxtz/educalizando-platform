@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -88,6 +88,31 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
     : kit ? `/loja/${store.slug}/kit/${kit.id}` : `/loja/${store.slug}/checkout`;
 
   const primaryColor = store.cor_primaria || '#093b6c';
+  const checkoutTracked = useRef<string | null>(null);
+
+  useEffect(() => {
+    const trackingItems = product
+      ? [{ productId: product.id, title: product.titulo, price: Number(isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco || 0), quantity: 1 }]
+      : kit
+        ? [{ productId: kit.id, title: kit.titulo, price: Number(kit.preco_kit || 0), quantity: 1 }]
+        : cartItems;
+    if (!trackingItems.length) return;
+    const signature = trackingItems.map((item) => `${item.productId}:${item.quantity}`).join('|');
+    if (checkoutTracked.current === signature) return;
+    checkoutTracked.current = signature;
+    // Aguarda o componente de consentimento/Pixel montar na mesma página.
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('educalizando:tracking', {
+        detail: {
+          event: 'InitiateCheckout',
+          storeId: store.id,
+          value: trackingItems.reduce((total, item) => total + Number(item.price || 0) * Number(item.quantity || 1), 0),
+          currency: 'BRL',
+        },
+      }));
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [cartItems, isPlrPurchase, kit, product, store.id]);
 
   useEffect(() => {
     if (!remarketingConsent || buyerPhone.replace(/\D/g, '').length < 10) return;

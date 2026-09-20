@@ -214,7 +214,12 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
         bnccSkills={bnccSkills}
         storeCategories={categories.filter((item) => storeProducts.some((storeProduct) => storeProduct.category_id === item.id))}
       />
-      <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
+      <StoreAnalytics
+        storeId={store.id}
+        metaPixelId={store.meta_pixel_id}
+        googleAnalyticsId={store.google_analytics_id}
+        viewContent={{ productId: product.id, title: product.titulo, price: Number(product.preco || 0), currency: 'BRL' }}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getStoreBySlug, getProductById } from '@/lib/store-service';
 import { getKitById } from '@/lib/kit-service';
 import CheckoutClientView from './CheckoutClientView';
+import StoreAnalytics from '@/components/store/StoreAnalytics';
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>;
@@ -40,11 +41,14 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
   // Só joga 404 se a loja não existir (já validado acima)
 
   return (
-    <CheckoutClientView
-      store={store}
-      product={product}
-      kit={kit}
-      initialCouponCode={cupom}
-    />
+    <>
+      <CheckoutClientView
+        store={store}
+        product={product}
+        kit={kit}
+        initialCouponCode={cupom}
+      />
+      <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
+    </>
   );
 }

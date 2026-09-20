@@ -61,6 +61,15 @@ export function CartProvider({ children, storeId }: { children: ReactNode; store
 
   const addToCart = (item: Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }) => {
     _addToCart(item);
+    window.dispatchEvent(new CustomEvent('educalizando:tracking', {
+      detail: {
+        event: 'AddToCart',
+        storeId: item.storeId,
+        product: { productId: item.productId, title: item.title, price: Number(item.price || 0), currency: 'BRL' },
+        value: Number(item.price || 0) * Number(item.quantity || 1),
+        currency: 'BRL',
+      },
+    }));
     syncCart();
     setIsOpen(true); // Abre a sidebar ao adicionar
   };
