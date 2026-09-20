@@ -55,7 +55,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             Desempenho de Vendas
           </h2>
-          <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe a receita e volume do seu negócio</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe as vendas brutas confirmadas e o volume do seu negócio</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -67,7 +67,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
                 viewMode === 'revenue' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <LineChart className="w-4 h-4" /> Receita
+              <LineChart className="w-4 h-4" /> Receita bruta
             </button>
             <button
               onClick={() => setViewMode('volume')}
@@ -123,7 +123,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
                   contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', borderRadius: '16px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', padding: '12px 16px' }}
                   itemStyle={{ color: '#2563eb', fontSize: '15px', fontWeight: 700 }}
                   labelStyle={{ color: '#64748b', marginBottom: '4px', fontWeight: 600, fontSize: '13px' }}
-                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Receita']}
+                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Receita bruta']}
                   labelFormatter={(label, payload) => {
                     if (payload && payload.length > 0) {
                       return `${label} (${payload[0].payload.date})`;

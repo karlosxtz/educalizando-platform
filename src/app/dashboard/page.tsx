@@ -1,51 +1,72 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
-  Store, Package, DollarSign, TrendingUp, Sparkles, 
-  ArrowRight, ExternalLink, Plus, CheckCircle2, ShoppingBag, Percent
+  Store, Package, DollarSign, TrendingUp, Sparkles,
+  ArrowRight, ExternalLink, Plus, CheckCircle2, Percent, Wallet,
+  Landmark, ReceiptText, CircleDollarSign
 } from 'lucide-react';
 import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
+import { calculateCreatorWallet, CreatorWalletSummary } from '@/lib/wallet-service';
 import { motion } from 'framer-motion';
 import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
 import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
 
+const emptyWallet: CreatorWalletSummary = {
+  totalVendido: 0,
+  saldoPendente: 0,
+  saldoDisponivel: 0,
+  totalRecebido: 0,
+  taxasEducalizando: 0,
+  taxasAsaas: 0,
+  totalTaxas: 0,
+};
+
+const formatCurrency = (value: number) => `R$ ${Number(value || 0).toLocaleString('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}`;
+
 export default function DashboardOverviewPage() {
   const [store, setStore] = useState<StoreType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [chartTotalRevenue, setChartTotalRevenue] = useState<number>(0);
+  const [wallet, setWallet] = useState<CreatorWalletSummary>(emptyWallet);
   const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(0);
   const [chartConversionRate, setChartConversionRate] = useState<number>(0);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       const s = await getCurrentCreatorStore();
       setStore(s);
       if (s) {
-        const prods = await getProductsByStoreId(s.id);
+        const [prods, walletSummary] = await Promise.all([
+          getProductsByStoreId(s.id),
+          calculateCreatorWallet(s.id),
+        ]);
         setProducts(prods);
+        setWallet(walletSummary);
       }
     }
     loadData();
-
-    // Check if it's the user's first visit
-    const hasSeenOnboarding = localStorage.getItem('educalizando_onboarding_completed');
-    if (!hasSeenOnboarding) {
-      setIsFirstVisit(true);
-    }
   }, []);
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
 
-  const handleChartDataLoaded = (rev: number, count: number, conversionRate: number) => {
-    setChartTotalRevenue(rev);
+  const handleChartDataLoaded = useCallback((_rev: number, count: number, conversionRate: number) => {
     setChartTotalSalesCount(count);
     setChartConversionRate(conversionRate);
-  };
+  }, []);
+
+  const netGenerated = Math.max(0, wallet.totalVendido - wallet.totalTaxas);
+  const financialDistributionTotal = wallet.saldoDisponivel + wallet.totalRecebido + wallet.saldoPendente;
+  const financialDistribution = [
+    { label: 'Disponível para saque', value: wallet.saldoDisponivel, className: 'bg-emerald-500' },
+    { label: 'Já recebido', value: wallet.totalRecebido, className: 'bg-blue-500' },
+    { label: 'Em processamento', value: wallet.saldoPendente, className: 'bg-amber-400' },
+  ];
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-4 sm:p-8 -m-4 sm:-m-8">
@@ -178,16 +199,14 @@ export default function DashboardOverviewPage() {
           className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-slate-500 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Vendas via PIX</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Vendas brutas</span>
             <div className="p-2.5 rounded-full bg-emerald-50 text-emerald-600">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black text-slate-900">{chartTotalSalesCount}</span>
-            <span className="text-xs font-medium text-emerald-600 block mt-1">
-              {chartTotalSalesCount > 0 ? 'Vendas confirmadas via PIX' : 'Aguardando primeiras vendas'}
-            </span>
+            <span className="text-3xl font-black text-slate-900">{formatCurrency(wallet.totalVendido)}</span>
+            <span className="text-xs font-medium text-emerald-600 block mt-1">Somente pedidos confirmados</span>
           </div>
         </motion.div>
 
@@ -199,19 +218,19 @@ export default function DashboardOverviewPage() {
           className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md transition-all relative group"
         >
           <div className="flex items-center justify-between text-slate-500 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Receita Líquida</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Disponível para saque</span>
             <div className="p-2.5 rounded-full bg-indigo-50 text-indigo-600">
-              <DollarSign className="w-5 h-5" />
+              <Wallet className="w-5 h-5" />
             </div>
           </div>
           <div>
             <span className="text-3xl font-black text-slate-900">
-              R$ {chartTotalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(wallet.saldoDisponivel)}
             </span>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-xs font-medium text-slate-400">Repasse sem mensalidade</span>
+              <span className="text-xs font-medium text-slate-400">Valor líquido liberado</span>
               <Link href="/dashboard/financeiro" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded-md transition-colors opacity-0 group-hover:opacity-100 flex items-center gap-1">
-                Sacar <ArrowRight className="w-3 h-3"/>
+                Ver carteira <ArrowRight className="w-3 h-3"/>
               </Link>
             </div>
           </div>
@@ -225,19 +244,105 @@ export default function DashboardOverviewPage() {
           className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-slate-500 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Conversão</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Já recebido</span>
             <div className="p-2.5 rounded-full bg-purple-50 text-purple-600">
-              <Percent className="w-5 h-5" />
+              <Landmark className="w-5 h-5" />
             </div>
           </div>
           <div>
             <span className="text-3xl font-black text-slate-900">
-              {chartTotalSalesCount > 0 ? `${chartConversionRate.toFixed(1)}%` : '0.0%'}
+              {formatCurrency(wallet.totalRecebido)}
             </span>
-            <span className="text-xs font-medium text-slate-400 block mt-1">Visitas convertidas em compras</span>
+            <span className="text-xs font-medium text-slate-400 block mt-1">Saques concluídos para você</span>
           </div>
         </motion.div>
       </div>
+
+      {/* Financial snapshot - all values originate from paid orders, wallet ledger and completed withdrawals */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-600">
+              <CircleDollarSign className="h-4 w-4" /> Resumo financeiro real
+            </div>
+            <h2 className="mt-2 text-xl font-black text-slate-900">Entenda o dinheiro da sua loja</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Os valores consideram pedidos confirmados, taxas registradas, saldo da carteira e saques concluídos.
+            </p>
+          </div>
+          <Link href="/dashboard/financeiro" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-slate-700">
+            Abrir financeiro <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-700"><DollarSign className="h-4 w-4" /> Receita bruta</div>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(wallet.totalVendido)}</p>
+            <p className="mt-1 text-xs text-slate-500">Total dos pagamentos aprovados</p>
+          </div>
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-rose-700"><ReceiptText className="h-4 w-4" /> Taxas aplicadas</div>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(wallet.totalTaxas)}</p>
+            <p className="mt-1 text-xs text-slate-500">Educalizando + meio de pagamento</p>
+          </div>
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-violet-700"><TrendingUp className="h-4 w-4" /> Receita líquida gerada</div>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(netGenerated)}</p>
+            <p className="mt-1 text-xs text-slate-500">Bruto menos as taxas aplicadas</p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-700"><Percent className="h-4 w-4" /> Em processamento</div>
+            <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(wallet.saldoPendente)}</p>
+            <p className="mt-1 text-xs text-slate-500">Pedidos aguardando confirmação</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-slate-900">Distribuição do seu saldo líquido</h3>
+                <p className="mt-1 text-xs text-slate-500">Acompanhe o que pode sacar, o que já foi pago e o que ainda está em processamento.</p>
+              </div>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">{formatCurrency(financialDistributionTotal)}</span>
+            </div>
+            <div className="mt-5 space-y-4">
+              {financialDistribution.map((item) => {
+                const percentage = financialDistributionTotal > 0 ? (item.value / financialDistributionTotal) * 100 : 0;
+                return (
+                  <div key={item.label}>
+                    <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                      <span className="font-semibold text-slate-600">{item.label}</span>
+                      <span className="font-black text-slate-800">{formatCurrency(item.value)}</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div className={`h-full rounded-full transition-all ${item.className}`} style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-gradient-to-br from-indigo-50 to-white p-5">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-600"><TrendingUp className="h-4 w-4" /> Indicadores do período</div>
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-2xl font-black text-slate-900">{chartTotalSalesCount}</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">Vendas no período selecionado</p>
+              </div>
+              <div>
+                <p className="text-2xl font-black text-slate-900">{chartConversionRate.toFixed(1)}%</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">Conversão de visitas</p>
+              </div>
+            </div>
+            <p className="mt-5 border-t border-indigo-100 pt-4 text-xs leading-relaxed text-slate-600">
+              Use o gráfico abaixo para comparar receita bruta e quantidade de vendas em 7, 30 dias, mês ou ano.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Interactive Sales Chart Component */}
       <SalesOverviewChart storeId={store?.id} onDataLoaded={handleChartDataLoaded} />
