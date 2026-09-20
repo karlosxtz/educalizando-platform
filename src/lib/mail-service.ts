@@ -1,5 +1,6 @@
 import 'server-only';
 import { Resend } from 'resend';
+import { getPurchaseAccess } from './purchase-access';
 
 type MailResult = { sent: boolean; id?: string; error?: string };
 type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string; fileUrl?: string | null; fileName?: string | null }>; creatorWhatsapp?: string | null; isPlrPurchase?: boolean };
@@ -12,12 +13,6 @@ const firstName = (name: string) => escapeHtml(name.trim().split(/\s+/)[0] || 'c
 const button = (href: string, label: string, color = '#0f766e') => `<p style="margin:28px 0"><a href="${href}" style="display:inline-block;border-radius:8px;background:${color};padding:13px 20px;color:#fff;font-weight:700;text-decoration:none">${label}</a></p>`;
 const layout = (title: string, content: string) => `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.55"><h2 style="color:#0f766e">${title}</h2>${content}<hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0"><p style="font-size:12px;color:#64748b">Educalizando · Materiais didáticos digitais com acesso seguro.</p></div>`;
 const isCreatorExternalLink = (url?: string | null) => /^https:\/\//i.test(url || '') && !/supabase\.co\//i.test(url || '');
-const purchaseAccess = (isPlrPurchase?: boolean) => {
-  const area = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const login = isPlrPurchase ? '/login' : '/cliente/login';
-  return { areaLabel: isPlrPurchase ? 'suas licenças PLR no painel do criador' : 'seus materiais na Área do Cliente', url: `${appUrl}${login}?returnTo=${encodeURIComponent(area)}` };
-};
-
 export async function getMailConfiguration() {
   const domain = from.match(/@([^>\s]+)/)?.[1]?.toLowerCase() || null;
   if (!resend || !domain) return { configured: false, from, appUrl, domain, domainStatus: 'not_configured' };
@@ -65,7 +60,7 @@ export async function sendPaymentConfirmedEmail(params: BuyerMailParams) {
   return send(params.buyerEmail, 'Pagamento aprovado — sua compra foi confirmada', layout('✅ Pagamento aprovado!', `<p>Olá, ${firstName(params.buyerName)}!</p><p>Recebemos a confirmação do pagamento do pedido <strong>#${escapeHtml(params.orderId)}</strong>.</p>${productsBox(params.productTitles, params.products, params.isPlrPurchase)}<p>Em seguida, você receberá o e-mail com o acesso aos materiais.</p>`));
 }
 export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
-  const access = purchaseAccess(params.isPlrPurchase);
+  const access = getPurchaseAccess(params.isPlrPurchase, appUrl);
   const phone = params.creatorWhatsapp?.replace(/\D/g, '');
   const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
   // Não anexe URLs cadastradas pelo criador diretamente. Uma URL pode apontar
@@ -76,7 +71,7 @@ export async function sendMaterialDeliveryEmail(params: BuyerMailParams) {
 }
 /** Reenvio manual solicitado pelo criador para materiais já comprados. */
 export async function sendAccessResendEmail(params: BuyerMailParams) {
-  const access = purchaseAccess(params.isPlrPurchase);
+  const access = getPurchaseAccess(params.isPlrPurchase, appUrl);
   const phone = params.creatorWhatsapp?.replace(/\D/g, '');
   const help = phone ? `<p>Precisa de ajuda? <a href="https://wa.me/55${phone}">Fale com o criador pelo WhatsApp</a>.</p>` : '';
   return send(

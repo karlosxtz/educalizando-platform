@@ -1,16 +1,16 @@
 import type { OrderRecord } from './order-service';
 import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
+import { getPurchaseAccess } from './purchase-access';
 import { supabaseAdmin } from './supabase';
 import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
   const isPlrPurchase = order.is_plr_purchase === true;
-  const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const loginArea = isPlrPurchase ? '/login' : '/cliente/login';
-  const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
-  const accessLabel = isPlrPurchase ? '🔐 Acesse sua licença no painel do criador' : '📚 Acesse seus materiais na Área do Cliente';
+  const purchaseAccess = getPurchaseAccess(isPlrPurchase, appUrl);
+  const accessUrl = purchaseAccess.url;
+  const accessLabel = `${isPlrPurchase ? '🔐' : '📚'} ${purchaseAccess.actionLabel}`;
   const { data: store } = await supabaseAdmin
     .from('stores')
     .select('creator_id, nome_loja, whatsapp')

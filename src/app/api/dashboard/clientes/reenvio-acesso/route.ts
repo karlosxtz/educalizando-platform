@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendAccessResendEmail } from '@/lib/mail-service';
+import { getPurchaseAccess } from '@/lib/purchase-access';
 import { firstName, sendEvolutionText } from '@/lib/whatsapp-notification-service';
 
 const paidStatuses = new Set(['paid', 'pago', 'liberado', 'aprovado', 'concluido']);
@@ -86,9 +87,7 @@ export async function POST(request: Request) {
   const directLinks = materials
     .filter(material => isExternalCreatorLink(material.fileUrl))
     .map(material => `🔗 ${material.title}: ${material.fileUrl}`);
-  const accessArea = isPlrPurchase ? '/dashboard/plr/comprados' : '/cliente/dashboard';
-  const loginArea = isPlrPurchase ? '/login' : '/cliente/login';
-  const accessUrl = `${appUrl}${loginArea}?returnTo=${encodeURIComponent(accessArea)}`;
+  const accessUrl = getPurchaseAccess(isPlrPurchase, appUrl).url;
   const whatsappMessage = isPlrPurchase
     ? `🔐 *Reenvio de licença PLR solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Criador(a)')}! Reenviamos a licença PLR adquirida:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse suas licenças pelo painel do criador: ${accessUrl}`
     : `📚 *Reenvio de acesso solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Cliente')}! Reenviamos o acesso aos materiais abaixo:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse sua biblioteca com segurança: ${accessUrl}`;
