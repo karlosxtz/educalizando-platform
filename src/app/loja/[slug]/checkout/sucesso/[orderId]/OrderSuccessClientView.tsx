@@ -20,6 +20,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
   const router = useRouter();
   const { removeFromCart } = useCart();
   const clearedOrderRef = useRef<string | null>(null);
+  const purchaseTrackedRef = useRef<string | null>(null);
 
   const primaryColor = store.cor_primaria || '#093b6c';
 
@@ -46,6 +47,17 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
               });
               clearedOrderRef.current = orderId;
             }
+            if (data.status === 'paid' && purchaseTrackedRef.current !== orderId) {
+              purchaseTrackedRef.current = orderId;
+              window.dispatchEvent(new CustomEvent('educalizando:tracking', {
+                detail: {
+                  event: 'Purchase',
+                  storeId: store.id,
+                  value: Number(data.totalAmount || 0),
+                  currency: 'BRL',
+                },
+              }));
+            }
             if (data.status === 'paid' && data.isPlrPurchase === true) {
               router.replace(`/dashboard/plr/comprados?pedido=${encodeURIComponent(orderId)}`);
               return;
@@ -68,7 +80,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [orderId, removeFromCart, router, searchParams, status]);
+  }, [orderId, removeFromCart, router, searchParams, status, store.id]);
 
   return (
     <div 
