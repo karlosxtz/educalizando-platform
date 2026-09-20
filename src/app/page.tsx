@@ -2,9 +2,8 @@ export const revalidate = 60; // Atualiza a página estática a cada 60 segundos
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { Search, ShoppingCart, TrendingUp, BookOpen, Baby, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Star, Calendar, Calculator, Puzzle, HeartHandshake, Microscope, Palette, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, BadgePercent, Sparkles } from 'lucide-react';
+import { TrendingUp, BookOpen, Gift, Rocket, ChevronRight, Store as StoreIcon, Boxes, Calendar, CheckCircle2, Download, Lock, Headset, ShieldCheck, Users, Banknote, Sparkles, HeartHandshake } from 'lucide-react';
 import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
-import { Product, Store } from '@/lib/types';
 import { getActiveBanners } from '@/lib/banners-service';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
@@ -13,6 +12,7 @@ import RecentlyViewed from '@/components/RecentlyViewed';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import { getSchoolCalendarTagsForMonth, getUpcomingSchoolEvents } from '@/lib/school-calendar';
 import PartnerStoresMarquee from '@/components/PartnerStoresMarquee';
+import SearchBar from '@/components/SearchBar';
 
 export const metadata: Metadata = {
   title: 'Materiais Didáticos Digitais para Professores | Educalizando',
@@ -61,12 +61,36 @@ export default async function Home() {
 
       <main className="flex-1 pb-20">
         <h1 className="sr-only">Materiais didáticos digitais para professores e educadores</h1>
+
+        <section className="mx-auto max-w-7xl px-4 pb-6 pt-6 sm:px-6 sm:pt-10 lg:px-8" aria-labelledby="home-proposta">
+          <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 shadow-sm sm:p-8">
+            <div className="max-w-3xl">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-blue-700">Educalizando</p>
+              <h2 id="home-proposta" className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl">Materiais didáticos prontos para ensinar melhor</h2>
+              <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-600 sm:text-base">Encontre atividades, apostilas, jogos e recursos digitais criados para professores e educadores.</p>
+              <div className="mt-5 max-w-2xl" aria-label="Buscar materiais didáticos"><SearchBar /></div>
+              <Link href="/buscar" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Explorar materiais <ChevronRight className="ml-1 h-4 w-4" /></Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8" aria-labelledby="home-categorias">
+          <div className="mb-3 flex items-center justify-between"><h2 id="home-categorias" className="text-lg font-black text-slate-900 sm:text-2xl">Encontre por categoria</h2><Link href="/buscar" className="text-sm font-bold text-blue-700">Ver todas</Link></div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            {[['/buscar?categoria=alfabetizacao','Alfabetização'],['/buscar?categoria=educacao-infantil','Educação Infantil'],['/buscar?categoria=ensino-fundamental','Ensino Fundamental'],['/buscar?categoria=jogos','Jogos e atividades']].map(([href,label]) => <Link key={href} href={href} className="flex min-h-12 items-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="home-destaques">
+          <div className="mb-5 flex items-end justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Para começar</p><h2 id="home-destaques" className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Em destaque</h2></div><Link href="/buscar?sort=popular" className="text-sm font-bold text-blue-700">Ver todos</Link></div>
+          {produtosEmAlta.length > 0 ? <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">{produtosEmAlta.slice(0, 4).map((produto) => <ProductCard key={produto.id} product={produto} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">Nenhum material publicado ainda.</div>}
+        </section>
         
         {/* HERO BANNER CAROUSEL */}
         <MainBannersCarousel banners={activeBanners} />
 
         {/* CARROSSEL DE LOJAS EM MOVIMENTO (BOLINHAS) */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-b border-slate-200">
+        <section className="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-b border-slate-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <StoreIcon className="w-6 h-6 text-blue-600" />
@@ -80,7 +104,7 @@ export default async function Home() {
           <PartnerStoresMarquee stores={topStores} />
         </section>
 
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <section className="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-5 shadow-sm sm:p-8">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -103,7 +127,7 @@ export default async function Home() {
         {/* Vistos Recentemente (Histórico Local) */}
         <RecentlyViewed />
 
-        {featuredOffers.length > 0 && (
+        {false && featuredOffers.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <div className="overflow-hidden rounded-[2rem] border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-rose-50 p-5 shadow-sm sm:p-8">
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -126,7 +150,7 @@ export default async function Home() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <TrendingUp className="w-8 h-8 text-orange-500" />
-              Em Alta na Plataforma
+              Em destaque na plataforma
             </h2>
             <Link href="/buscar?sort=popular" className="hidden sm:flex text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors items-center gap-1">
               Ver Todos <ChevronRight className="w-4 h-4" />
@@ -273,7 +297,7 @@ export default async function Home() {
                   Transforme seu conhecimento em <span className="text-yellow-300">renda extra</span>
                 </h2>
                 <p className="text-blue-100 text-lg md:text-xl font-medium">
-                  Crie sua loja, publique seus materiais didáticos e venda para milhares de educadores todos os dias. Nós cuidamos da tecnologia.
+                  Crie sua loja, publique seus materiais didáticos e alcance educadores. Nós cuidamos da tecnologia para você.
                 </p>
                 <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                   <Link href="/cadastro/produtor" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black rounded-full shadow-lg transition-transform hover:scale-105 w-full sm:w-auto text-center">
@@ -284,18 +308,18 @@ export default async function Home() {
 
               <div className="relative z-10 grid grid-cols-2 gap-4 lg:w-5/12 w-full">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
-                  <div className="text-3xl font-black text-white mb-1">+30</div>
-                  <div className="text-sm font-medium text-blue-200">Lojas Parceiras</div>
+                  <div className="text-3xl font-black text-white mb-1"><StoreIcon className="mx-auto h-8 w-8" /></div>
+                  <div className="text-sm font-medium text-blue-200">Publique sua loja</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
-                  <div className="text-3xl font-black text-white mb-1">R$ 6 Mil+</div>
-                  <div className="text-sm font-medium text-blue-200">Em comissões geradas</div>
+                  <div className="text-3xl font-black text-white mb-1"><TrendingUp className="mx-auto h-8 w-8" /></div>
+                  <div className="text-sm font-medium text-blue-200">Acompanhe suas vendas</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center col-span-2">
                   <div className="text-3xl font-black text-white mb-1 flex justify-center items-center gap-2">
-                    4.9 <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                    <Users className="h-8 w-8" />
                   </div>
-                  <div className="text-sm font-medium text-blue-200">Avaliação Média dos Compradores</div>
+                  <div className="text-sm font-medium text-blue-200">Conecte-se a educadores</div>
                 </div>
               </div>
             </div>
@@ -308,7 +332,7 @@ export default async function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4 tracking-tight">O que é o Educalizando?</h2>
             <p className="text-lg text-slate-600 font-medium max-w-2xl mx-auto mb-16">
-              O maior ecossistema de recursos educacionais do Brasil. Conectamos criadores de conteúdos incríveis a educadores que buscam praticidade e qualidade.
+              Conectamos criadores de conteúdos a educadores que buscam praticidade e qualidade.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -349,7 +373,7 @@ export default async function Home() {
                   <HeartHandshake className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">Comunidade Ativa</h3>
-                <p className="text-slate-600 font-medium">Foco na troca de experiências e crescimento contínuo entre milhares de educadores de todo o Brasil.</p>
+                <p className="text-slate-600 font-medium">Foco na troca de experiências e crescimento contínuo entre educadores de todo o Brasil.</p>
               </div>
 
               <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col items-center text-center">
