@@ -6,7 +6,7 @@ import StoreAnalytics from '@/components/store/StoreAnalytics';
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ produtoId?: string; kitId?: string; cupom?: string }>;
+  searchParams: Promise<{ produtoId?: string; kitId?: string; cupom?: string; licenca?: string }>;
 }
 
 export default async function StoreCheckoutPage({ params, searchParams }: CheckoutPageProps) {
@@ -22,6 +22,9 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
   let kit = null;
   if (produtoId) {
     product = await getProductById(produtoId);
+    if (!product || product.store_id !== store.id || product.status !== 'publicado' || product.excluido_em) {
+      notFound();
+    }
     if (product?.order_bump_id) {
       const orderBump = await getProductById(product.order_bump_id);
       if (orderBump && orderBump.store_id === store.id && orderBump.status === 'publicado' && !orderBump.excluido_em) {

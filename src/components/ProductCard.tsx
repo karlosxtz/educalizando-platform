@@ -116,7 +116,9 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
       imageUrl: product.capa_url || undefined,
       quantity: 1
     });
-    router.push(`/loja/${storeSlug}/checkout${isPlrMode ? '?licenca=plr' : ''}`);
+    const checkoutParams = new URLSearchParams({ produtoId: product.id });
+    if (isPlrMode) checkoutParams.set('licenca', 'plr');
+    router.push(`/loja/${storeSlug}/checkout?${checkoutParams.toString()}`);
   };
 
   return (

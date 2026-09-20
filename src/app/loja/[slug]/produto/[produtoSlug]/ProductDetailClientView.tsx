@@ -230,8 +230,10 @@ export default function ProductDetailClientView({
         quantity: 1
       });
 
-      // Redireciona imediatamente para a página de checkout da loja
-      router.push(`/loja/${store.slug}/checkout`);
+      // Preserva produto e modalidade para o servidor recalcular o valor correto.
+      const checkoutParams = new URLSearchParams({ produtoId: product.id });
+      if (isPlrPurchase) checkoutParams.set('licenca', 'plr');
+      router.push(`/loja/${store.slug}/checkout?${checkoutParams.toString()}`);
     } catch (error) {
       setIsBuying(false);
     }
