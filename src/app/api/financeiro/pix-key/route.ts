@@ -3,6 +3,10 @@ import { registerCreatorPixKey, getActiveCreatorPixKey } from '@/lib/withdrawal-
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// A chave PIX muda durante a sessão. Nunca reutilize uma resposta antiga nesta rota.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function userOwnsStore(storeId: string, userId: string) {
   const { data } = await supabaseAdmin
     .from('stores')
@@ -41,7 +45,7 @@ export async function GET(request: Request) {
         validationStatus: activeKey.validationStatus,
         validatedAt: activeKey.validatedAt
       } : null
-    });
+    }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -90,13 +94,20 @@ export async function POST(request: Request) {
       await supabaseAdmin.from('creator_pix_keys').update({ bank_name: String(bankName).trim() }).eq('id', registeredKey.id);
     }
 
+    // A confirmação exibida ao criador só pode acontecer após uma nova leitura
+    // do banco. Isso evita sucesso visual com chave apenas em memória/localStorage.
+    const persistedKey = await getActiveCreatorPixKey(storeId);
+    if (!persistedKey || persistedKey.id !== registeredKey.id || persistedKey.validationStatus !== 'VALID') {
+      throw new Error('A chave PIX não foi confirmada no banco de dados. Verifique a integração do Supabase e tente novamente.');
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Chave PIX CPF validada e cadastrada com sucesso!',
       pixKey: {
-        id: registeredKey.id,
-        pixKeyMasked: registeredKey.pixKeyMasked,
-        holderName: registeredKey.holderName,
+        id: persistedKey.id,
+        pixKeyMasked: persistedKey.pixKeyMasked,
+        holderName: persistedKey.holderName,
         bankName: bankName?.trim() || null,
         validationStatus: registeredKey.validationStatus,
         validatedAt: registeredKey.validatedAt

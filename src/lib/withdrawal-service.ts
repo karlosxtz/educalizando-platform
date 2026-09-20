@@ -166,6 +166,13 @@ export async function registerCreatorPixKey(data: {
   holderName?: string;
   bankName?: string;
 }): Promise<CreatorPixKey> {
+  // Em produção, uma chave não pode existir somente no estado local. Falhamos
+  // explicitamente para não informar ao criador que o cadastro foi salvo quando
+  // as variáveis/integração do Supabase não estão disponíveis.
+  if (!isRealSupabaseConfigured()) {
+    throw new Error('A integração segura com o banco de dados não está configurada para cadastrar chaves PIX.');
+  }
+
   const cleanInputCpf = data.inputPixKey.replace(/\D/g, '');
   const cleanProfileCpf = data.creatorProfileCpf.replace(/\D/g, '');
 
@@ -203,20 +210,18 @@ export async function registerCreatorPixKey(data: {
   };
 
   // Desativar chaves antigas se existirem (Item 8 da Especificação)
-  if (isRealSupabaseConfigured()) {
-    const { data: saved, error } = await supabaseAdmin.rpc('register_creator_pix_key_safe', {
-      p_id: newKey.id,
-      p_creator_id: newKey.creatorId,
-      p_store_id: newKey.storeId,
-      p_pix_key: newKey.pixKey,
-      p_pix_key_masked: newKey.pixKeyMasked,
-      p_holder_name: newKey.holderName || null,
-      p_holder_cpf: newKey.holderCpf || null,
-      p_validated_at: newKey.validatedAt
-    });
-    if (error || saved !== true) {
-      throw new Error(`Não foi possível cadastrar a chave PIX: ${error?.message || 'operação não confirmada'}`);
-    }
+  const { data: saved, error } = await supabaseAdmin.rpc('register_creator_pix_key_safe', {
+    p_id: newKey.id,
+    p_creator_id: newKey.creatorId,
+    p_store_id: newKey.storeId,
+    p_pix_key: newKey.pixKey,
+    p_pix_key_masked: newKey.pixKeyMasked,
+    p_holder_name: newKey.holderName || null,
+    p_holder_cpf: newKey.holderCpf || null,
+    p_validated_at: newKey.validatedAt
+  });
+  if (error || saved !== true) {
+    throw new Error(`Não foi possível cadastrar a chave PIX: ${error?.message || 'operação não confirmada'}`);
   }
 
   const local = getLocalPixKeys().map(k => k.storeId === data.storeId ? { ...k, isActive: false } : k);

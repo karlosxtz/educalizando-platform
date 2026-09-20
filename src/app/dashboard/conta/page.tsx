@@ -110,18 +110,29 @@ export default function AccountSettingsPage() {
     }
   }, [storeId]);
 
-  async function fetchPixKey(activeStoreId: string) {
+  async function fetchPixKey(activeStoreId: string): Promise<boolean> {
     try {
-      const res = await fetch(`/api/financeiro/pix-key?storeId=${activeStoreId}`);
+      const res = await fetch(`/api/financeiro/pix-key?storeId=${encodeURIComponent(activeStoreId)}&at=${Date.now()}`, {
+        cache: 'no-store'
+      });
       const data = await res.json();
-      if (data.success && data.hasKey && data.pixKey) {
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Não foi possível consultar a chave PIX cadastrada.');
+      }
+      if (data.hasKey && data.pixKey) {
         setHasPixKey(true);
         setPixKeyMasked(data.pixKey.pixKeyMasked);
-        setPixHolderName(data.pixKey.holderName);
+        setPixHolderName(data.pixKey.holderName || '');
         setPixBankName(data.pixKey.bankName || '');
+        return true;
       }
+      setHasPixKey(false);
+      setPixKeyMasked('');
+      return false;
     } catch (e) {
       console.error('Erro ao buscar chave PIX:', e);
+      setHasPixKey(false);
+      return false;
     }
   }
 
@@ -171,9 +182,10 @@ export default function AccountSettingsPage() {
         throw new Error(data.error || 'Erro ao validar chave PIX.');
       }
 
-      setHasPixKey(true);
-      setPixKeyMasked(data.pixKey.pixKeyMasked);
-      setPixHolderName(data.pixKey.holderName);
+      const persisted = await fetchPixKey(storeId);
+      if (!persisted) {
+        throw new Error('A chave PIX não foi encontrada após o cadastro. Tente novamente.');
+      }
       setPixSuccess('Chave PIX CPF validada e cadastrada com sucesso!');
       setEditingPix(false);
       setPixInputKey('');

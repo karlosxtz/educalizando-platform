@@ -97,8 +97,16 @@ export default function FinancialWalletDashboardPage() {
     }
   }, [storeId, periodFilter, statusFilter, searchQuery, page]);
 
+  useEffect(() => {
+    if (storeId) {
+      void refreshPixKey(storeId);
+    }
+  }, [storeId]);
+
   async function loadActivePixKey(activeStoreId: string): Promise<CreatorPixKey | null> {
-    const response = await fetch(`/api/financeiro/pix-key?storeId=${encodeURIComponent(activeStoreId)}`);
+    const response = await fetch(`/api/financeiro/pix-key?storeId=${encodeURIComponent(activeStoreId)}&at=${Date.now()}`, {
+      cache: 'no-store'
+    });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload.success) {
       throw new Error(payload.error || 'Não foi possível consultar a chave PIX cadastrada.');
@@ -121,7 +129,7 @@ export default function FinancialWalletDashboardPage() {
   }
 
   async function loadWithdrawals(activeStoreId: string): Promise<WithdrawalRecord[]> {
-    const response = await fetch(`/api/financeiro/saque?storeId=${encodeURIComponent(activeStoreId)}`);
+    const response = await fetch(`/api/financeiro/saque?storeId=${encodeURIComponent(activeStoreId)}`, { cache: 'no-store' });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload.success) {
       throw new Error(payload.error || 'Não foi possível consultar o histórico de saques.');
@@ -129,10 +137,23 @@ export default function FinancialWalletDashboardPage() {
     return payload.withdrawals || [];
   }
 
+  async function refreshPixKey(activeStoreId = storeId) {
+    if (!activeStoreId) return null;
+    try {
+      const pixKey = await loadActivePixKey(activeStoreId);
+      setActivePixKey(pixKey);
+      return pixKey;
+    } catch (error) {
+      console.error('Erro ao recarregar a chave PIX:', error);
+      setActivePixKey(null);
+      throw error;
+    }
+  }
+
   async function loadData() {
     setLoading(true);
     try {
-      const [sumData, stmtData, pixData, wtdData] = await Promise.all([
+      const [sumData, stmtData, wtdData] = await Promise.all([
         calculateCreatorWallet(storeId),
         getWalletTransactionsStatement({
           storeId,
@@ -142,7 +163,6 @@ export default function FinancialWalletDashboardPage() {
           page,
           limit: 15
         }),
-        loadActivePixKey(storeId),
         loadWithdrawals(storeId)
       ]);
 
@@ -150,7 +170,6 @@ export default function FinancialWalletDashboardPage() {
       setTransactions(stmtData.transactions);
       setTotalPages(stmtData.totalPages);
       setTotalCount(stmtData.totalCount);
-      setActivePixKey(pixData);
       setWithdrawals(wtdData);
 
       // Calcular total recebido real a partir dos saques concluídos
@@ -171,12 +190,17 @@ export default function FinancialWalletDashboardPage() {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const handleOpenWithdrawModal = () => {
+  const handleOpenWithdrawModal = async () => {
     setWithdrawError(null);
     setWithdrawSuccess(null);
     const maxTransfer = Math.max(0, summary.saldoDisponivel - withdrawalFee);
     setWithdrawAmountInput(maxTransfer > 0 ? maxTransfer.toFixed(2) : '1.00');
     setShowWithdrawModal(true);
+    try {
+      await refreshPixKey();
+    } catch {
+      setWithdrawError('Não foi possível confirmar a chave PIX agora. Atualize a página ou cadastre a chave novamente.');
+    }
   };
 
   const handleExecuteWithdrawal = async (e: React.FormEvent) => {
