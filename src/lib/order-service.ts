@@ -684,6 +684,14 @@ export async function updateOrderStatus(
       console.error('[updateOrderStatus] Erro ao liberar acesso ou registrar lançamento no ledger:', e);
     }
   } else if (newStatus === 'refunded') {
+    // O reembolso encerra o direito de acesso deste pedido, mas não toca em
+    // acessos de outra compra válida do mesmo material pelo mesmo usuário.
+    try {
+      const { revokeStudentProductAccessByOrder } = await import('./student-service');
+      await revokeStudentProductAccessByOrder(order.id);
+    } catch (accessError) {
+      console.error('[updateOrderStatus] Erro ao revogar acesso após estorno:', accessError);
+    }
     try {
       // Registrar ajuste negativo de reembolso no ledger da carteira do criador
       const { recordWalletTransaction } = await import('./wallet-service');

@@ -397,6 +397,33 @@ export async function grantStudentProductAccess(data: {
   return newRecord;
 }
 
+/** Revoga somente os acessos concedidos por um pedido estornado. */
+export async function revokeStudentProductAccessByOrder(orderId: string): Promise<void> {
+  if (!orderId) return;
+
+  if (isRealSupabaseConfigured()) {
+    const { supabaseAdmin } = await import('./supabase');
+    const { error } = await supabaseAdmin
+      .from('student_product_access')
+      .update({ status: 'REVOKED' })
+      .eq('order_id', orderId)
+      .eq('status', 'ACTIVE');
+    if (error) throw error;
+  }
+
+  if (allowsLocalDevelopmentFallback()) {
+    const local = getLocalStudentAccess();
+    let changed = false;
+    for (const access of local) {
+      if (access.orderId === orderId && access.status === 'ACTIVE') {
+        access.status = 'REVOKED';
+        changed = true;
+      }
+    }
+    if (changed) saveLocalStudentAccess(local);
+  }
+}
+
 // 7. Verificar se o Aluno possui Acesso Ativo ao Material (Entitlement Check)
 export async function checkStudentProductAccess({
   studentId,
