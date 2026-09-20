@@ -712,6 +712,18 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                 </div>
               )}
 
+              <div className={`rounded-2xl border p-4 ${isPlrPurchase ? 'border-purple-200 bg-purple-50' : 'border-blue-100 bg-blue-50'}`}>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Modalidade da compra</p>
+                <p className="mt-1 text-sm font-extrabold text-slate-900">
+                  {isPlrPurchase ? 'Licença PLR para revenda' : 'Material para uso próprio'}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+                  {isPlrPurchase
+                    ? 'A licença segue as condições definidas pelo autor. Consulte a descrição do produto antes de concluir.'
+                    : 'Esta compra não inclui autorização para revender ou redistribuir o arquivo.'}
+                </p>
+              </div>
+
               {/* Cupom de Desconto Form */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
