@@ -48,15 +48,22 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
               clearedOrderRef.current = orderId;
             }
             if (data.status === 'paid' && purchaseTrackedRef.current !== orderId) {
-              purchaseTrackedRef.current = orderId;
-              window.dispatchEvent(new CustomEvent('educalizando:tracking', {
-                detail: {
-                  event: 'Purchase',
-                  storeId: store.id,
-                  value: Number(data.totalAmount || 0),
-                  currency: 'BRL',
-                },
-              }));
+              const trackingKey = `educalizando_purchase_tracked_${orderId}`;
+              if (sessionStorage.getItem(trackingKey)) {
+                purchaseTrackedRef.current = orderId;
+              } else {
+                sessionStorage.setItem(trackingKey, '1');
+                purchaseTrackedRef.current = orderId;
+                window.dispatchEvent(new CustomEvent('educalizando:tracking', {
+                  detail: {
+                    event: 'Purchase',
+                    storeId: store.id,
+                    value: Number(data.totalAmount || 0),
+                    currency: 'BRL',
+                    transactionId: orderId,
+                  },
+                }));
+              }
             }
             if (data.status === 'paid' && data.isPlrPurchase === true) {
               router.replace(`/dashboard/plr/comprados?pedido=${encodeURIComponent(orderId)}`);

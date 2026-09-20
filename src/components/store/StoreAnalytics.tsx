@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
 type TrackingProduct = { productId: string; title: string; price: number; currency?: string };
-type TrackingDetail = { event: 'AddToCart' | 'InitiateCheckout' | 'Purchase'; storeId: string; product?: TrackingProduct; value?: number; currency?: string };
+type TrackingDetail = { event: 'AddToCart' | 'InitiateCheckout' | 'Purchase'; storeId: string; product?: TrackingProduct; value?: number; currency?: string; transactionId?: string };
 type Props = { storeId: string; metaPixelId?: string | null; googleAnalyticsId?: string | null; viewContent?: TrackingProduct };
 
 function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detail: Omit<TrackingDetail, 'event' | 'storeId'> & { product?: TrackingProduct }) {
@@ -16,6 +16,7 @@ function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detai
     content_ids: product ? [product.productId] : undefined,
     content_name: product?.title,
     content_type: product ? 'product' : undefined,
+    transaction_id: detail.transactionId,
   };
   const browser = window as typeof window & { fbq?: (...args: unknown[]) => void; gtag?: (...args: unknown[]) => void };
   const googleEvent: Record<string, string> = {
@@ -24,7 +25,7 @@ function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detai
     InitiateCheckout: 'begin_checkout',
     Purchase: 'purchase',
   };
-  browser.fbq?.('track', event, payload);
+  browser.fbq?.('track', event, payload, detail.transactionId ? { eventID: detail.transactionId } : undefined);
   browser.gtag?.('event', googleEvent[event], payload);
 }
 
