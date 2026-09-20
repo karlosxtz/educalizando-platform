@@ -45,6 +45,9 @@ export default function ProductDetailClientView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
+  const fromPlrMarketplace = isPlrPurchase && searchParams.get('origem') === 'mercado-plr';
+  const backHref = fromPlrMarketplace ? '/dashboard/plr' : `/loja/${store.slug}`;
+  const backLabel = fromPlrMarketplace ? 'Voltar ao Mercado de PLR' : <>Voltar para a vitrine de <strong>{store.nome_loja}</strong></>;
 
   const [isBuying, setIsBuying] = useState(false);
   const autoClaimAttempted = useRef(false);
@@ -241,7 +244,7 @@ export default function ProductDetailClientView({
       {/* Mobile marketplace header: one short navigation instead of stacked bars */}
       {context !== 'marketplace' && <header className="lg:hidden relative bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
         <div className="flex items-center justify-between gap-3">
-          <Link href={`/loja/${store.slug}`} aria-label={`Ir para a loja ${store.nome_loja}`} className="shrink-0">
+          <Link href={backHref} aria-label={fromPlrMarketplace ? 'Voltar ao Mercado de PLR' : `Ir para a loja ${store.nome_loja}`} className="shrink-0">
             <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
           </Link>
           <button type="button" onClick={() => setShowMobileCategories((open) => !open)} className="flex flex-col items-center text-[9px] font-bold text-slate-700" aria-expanded={showMobileCategories}><Grid2X2 className="h-4 w-4" />Categorias</button>
@@ -268,14 +271,20 @@ export default function ProductDetailClientView({
           <header className="hidden sm:block bg-white border-b border-slate-200 py-3.5 px-8">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <Link
-                href={`/loja/${store.slug}`}
+                href={backHref}
                 className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                   <span className="truncate max-w-[220px] sm:max-w-none">
-                  Voltar para a vitrine de <strong>{store.nome_loja}</strong>
+                  {backLabel}
                 </span>
               </Link>
+
+              {fromPlrMarketplace && (
+                <Link href={`/loja/${store.slug}`} className="text-[11px] font-bold text-blue-700 hover:text-blue-900">
+                  Visitar loja do criador
+                </Link>
+              )}
 
               <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hidden sm:inline-flex items-center gap-1">
                 <Lock className="w-3 h-3" /> Transação Criptografada (SSL)

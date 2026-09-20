@@ -95,7 +95,7 @@ export default function PlrMarketplacePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
-            const productUrl = product.store ? `/loja/${encodeURIComponent(product.store.slug)}/produto/${encodeURIComponent(product.slug || product.id)}?licenca=plr` : '#';
+            const productUrl = product.store ? `/loja/${encodeURIComponent(product.store.slug)}/produto/${encodeURIComponent(product.slug || product.id)}?licenca=plr&origem=mercado-plr` : '#';
             const alreadyPurchased = purchasedProductIds.has(product.id);
             const displayPrice = Number(product.preco_plr || 0);
 
