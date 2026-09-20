@@ -25,14 +25,6 @@ export const metadata: Metadata = {
   },
 };
 
-// 1. Nova Identidade Visual (Navegação Rápida)
-const QUICK_CATEGORIES = [
-  { name: 'Kits Escolares', href: '/buscar?q=kit' },
-  { name: 'Educação Infantil', href: '/buscar?categoria=educacao-infantil' },
-  { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },
-  { name: 'Matemática', href: '/buscar?categoria=matematica' },
-];
-
 export default async function Home() {
   // Buscar dados no lado do servidor
   const allProducts = await getAllPublicMarketplaceProducts(100);
@@ -66,29 +58,6 @@ export default async function Home() {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       
       <MarketplaceHeader />
-
-      {/* Estilo local para esconder a scrollbar nas pills e carrosseis */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .hide-scroll-bar::-webkit-scrollbar { display: none; }
-        .hide-scroll-bar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
-
-      {/* Barra de Navegação Rápida (Pills/Badges) */}
-      <nav className="bg-white border-b border-slate-200 sticky top-[72px] z-30 shadow-sm hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 overflow-x-auto hide-scroll-bar py-3">
-            {QUICK_CATEGORIES.map((cat, index) => (
-              <Link 
-                key={index} 
-                href={cat.href}
-                className="whitespace-nowrap px-4 py-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-600 hover:text-blue-700 text-sm font-bold rounded-full transition-colors"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </nav>
 
       <main className="flex-1 pb-20">
         <h1 className="sr-only">Materiais didáticos digitais para professores e educadores</h1>

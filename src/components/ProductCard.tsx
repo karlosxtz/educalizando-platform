@@ -181,6 +181,11 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
                 <Sparkles className="w-3 h-3" /> Novo
               </span>
             )}
+            {product.is_plr && !isPlrMode && (
+              <span className="hidden sm:flex bg-purple-50 text-purple-700 border border-purple-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide">
+                <Rocket className="w-3 h-3" /> PLR disponível
+              </span>
+            )}
           </div>
 
           <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wide sm:tracking-wider flex items-center gap-1 mb-2 sm:mb-4">
@@ -230,6 +235,7 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
             </button>
             <button 
               onClick={handleBuy}
+              aria-label={isFree ? `Resgatar material: ${itemTitle}` : `Comprar ${isPlrMode ? 'licença PLR de ' : ''}${itemTitle}`}
               className="flex-[2] min-h-9 bg-blue-600 text-white px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 active:scale-95"
             >
               {isFree ? <Gift className="w-4 h-4" /> : <Zap className="w-4 h-4 fill-transparent" />}
