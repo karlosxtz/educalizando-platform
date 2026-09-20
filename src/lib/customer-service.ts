@@ -41,6 +41,7 @@ export interface CustomerProductItem {
   pedidoId: string;
   capaUrl?: string | null;
   isPlrPurchase?: boolean;
+  totalAcessos: number;
 }
 
 export interface CustomerPaymentItem {
@@ -67,6 +68,7 @@ export interface CustomerAccessLog {
   tipo: string;
   data: string;
   ip?: string;
+  produtoId?: string | null;
 }
 
 export interface Customer {
@@ -261,7 +263,8 @@ export async function getCustomersByStoreId(storeId: string): Promise<Customer[]
           quantidade: Number(item.quantity || 1),
           dataCompra: o.created_at,
           pedidoId: o.id,
-          isPlrPurchase: o.is_plr_purchase === true
+          isPlrPurchase: o.is_plr_purchase === true,
+          totalAcessos: 0
         });
       });
     }
@@ -351,7 +354,17 @@ export async function getCustomerById(storeId: string, customerId: string): Prom
       id: l.id,
       recurso: l.contentTitle,
       tipo: l.tipoEvento === 'FILE_DOWNLOAD' ? 'Download' : 'Acesso externo',
-      data: l.data
+      data: l.data,
+      produtoId: l.productId || null
+    }));
+    const accessesByProductId = new Map<string, number>();
+    found.acessos.forEach((access) => {
+      if (!access.produtoId) return;
+      accessesByProductId.set(access.produtoId, (accessesByProductId.get(access.produtoId) || 0) + 1);
+    });
+    found.produtos = found.produtos.map((product) => ({
+      ...product,
+      totalAcessos: product.produtoId ? accessesByProductId.get(product.produtoId) || 0 : 0
     }));
   } catch (e) {
     // Non-critical

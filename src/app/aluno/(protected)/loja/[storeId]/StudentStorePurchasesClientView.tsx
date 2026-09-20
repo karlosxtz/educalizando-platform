@@ -98,6 +98,21 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
     window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const markMaterialAccessed = (pur: Purchase) => {
+    const eligibility = pur.order_id
+      ? refundByOrderId[pur.order_id]
+      : (pur.product_id ? refundByProductId[pur.product_id] : undefined);
+    if (!eligibility || eligibility.accessed) return;
+
+    const accessedEligibility = { ...eligibility, accessed: true };
+    setRefundByOrderId((previous) => ({ ...previous, [eligibility.orderId]: accessedEligibility }));
+    setRefundByProductId((previous) => {
+      const next = { ...previous };
+      accessedEligibility.productIds.forEach((productId) => { next[productId] = accessedEligibility; });
+      return next;
+    });
+  };
+
   const handleDownloadPurchase = async (pur: Purchase, e: React.MouseEvent, type?: 'plr') => {
     e.preventDefault();
     e.stopPropagation();
@@ -122,6 +137,11 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
       } else {
         await downloadSingleProduct(pur.id, pur.kit?.titulo || 'Material_Didatico', type);
       }
+
+      // O endpoint registra o evento antes de redirecionar/entregar o arquivo.
+      // Atualizamos a própria biblioteca no mesmo clique para que não exista uma
+      // janela visual em que o material foi aberto, mas o reembolso ainda apareça.
+      if (type !== 'plr') markMaterialAccessed(pur);
       
       const targetProductId = pur.product_id || pur.id;
       const existingReview = myReviews.find(r => r.product_id === targetProductId);

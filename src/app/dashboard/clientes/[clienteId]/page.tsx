@@ -420,6 +420,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                   <th className="py-4 px-6">Data da Compra</th>
                   <th className="py-4 px-6">Pedido</th>
                   <th className="py-4 px-6 text-right">Preço</th>
+                  <th className="py-4 px-6 text-center">Acessos</th>
                   <th className="py-4 px-6 text-right">Acesso</th>
                 </tr>
               </thead>
@@ -447,6 +448,11 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                     <td className="py-4 px-6 font-mono text-slate-600">#{prod.pedidoId.slice(-6).toUpperCase()}</td>
                     <td className="py-4 px-6 text-right font-mono font-bold text-emerald-700">
                       R$ {prod.preco.toFixed(2).replace('.', ',')}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <span className={`inline-flex min-w-20 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black ${prod.totalAcessos > 0 ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                        <Download className="h-3 w-3" /> {prod.totalAcessos} {prod.totalAcessos === 1 ? 'clique' : 'cliques'}
+                      </span>
                     </td>
                     <td className="py-4 px-6 text-right">
                       <button
