@@ -18,6 +18,9 @@ export default function StudentDashboardStoresPage() {
   const [loading, setLoading] = useState(true);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [groupedStores, setGroupedStores] = useState<GroupedStudentStore[]>([]);
+  const [search, setSearch] = useState('');
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const visibleStores = groupedStores.filter(({ store }) => normalize(store.nome_loja).includes(normalize(search.trim())));
 
   useEffect(() => {
     async function loadStudentData() {
@@ -67,7 +70,7 @@ export default function StudentDashboardStoresPage() {
               <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> Área de Membros do Cliente
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Minhas Lojas ({groupedStores.length})
+              Minhas compras
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
               Bem-vindo(a), <strong>{studentSession?.fullName}</strong>! Selecione abaixo a loja do criador para ver os seus materiais adquiridos naquela loja.
@@ -81,6 +84,13 @@ export default function StudentDashboardStoresPage() {
           </div>
         </div>
 
+        {groupedStores.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <label htmlFor="purchase-store-search" className="block text-sm font-bold text-slate-800">Buscar por loja</label>
+          <input id="purchase-store-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Digite o nome da loja" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:ring-2 focus:ring-blue-100" />
+          <p className="mt-3 text-xs text-slate-500" role="status">{visibleStores.length} de {groupedStores.length} lojas</p>
+          {search && <button type="button" onClick={() => setSearch('')} className="min-h-11 text-sm font-bold text-blue-700">Limpar busca</button>}
+          {visibleStores.length === 0 && <p className="text-sm text-slate-600">Nenhuma loja encontrada. Tente outro nome ou limpe a busca.</p>}
+        </section>}
         {/* Grouped Stores Grid */}
         {groupedStores.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
@@ -99,7 +109,7 @@ export default function StudentDashboardStoresPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groupedStores.map(({ store, purchasesCount }) => {
+            {visibleStores.map(({ store, purchasesCount }) => {
               const primaryColor = store.cor_primaria || '#2563eb';
 
               return (
@@ -131,7 +141,7 @@ export default function StudentDashboardStoresPage() {
                         <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
                           Loja de Infoprodutos
                         </span>
-                        <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition-colors truncate">
+                        <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition-colors [overflow-wrap:anywhere]">
                           {store.nome_loja}
                         </h3>
                         <span 
@@ -153,7 +163,7 @@ export default function StudentDashboardStoresPage() {
                   </div>
 
                   {/* Access Store Materials Action Footer */}
-                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs text-slate-500 font-bold flex items-center gap-1">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" /> Acesso Seguro
                     </span>
@@ -163,7 +173,7 @@ export default function StudentDashboardStoresPage() {
                       className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md group-hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      <span>Acessar Espaço da Loja</span>
+                      <span>Ver meus materiais</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>

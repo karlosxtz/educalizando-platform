@@ -36,6 +36,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [materialSearch, setMaterialSearch] = useState('');
+  const normalizeSearch = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const visiblePurchases = purchases.filter(purchase => normalizeSearch(purchase.product?.titulo || purchase.kit?.titulo || 'Material Didático').includes(normalizeSearch(materialSearch.trim())));
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [refundByOrderId, setRefundByOrderId] = useState<Record<string, RefundEligibility>>({});
   const [refundByProductId, setRefundByProductId] = useState<Record<string, RefundEligibility>>({});
@@ -312,7 +315,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                 Meus Materiais — {storeName}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Aqui estão todos os materiais didáticos que você adquiriu. Baixe quando precisar.
+                Encontre sua compra e use o botão Abrir material para acessar o arquivo ou link em uma nova aba.
               </p>
             </div>
           </div>
@@ -329,6 +332,13 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           </div>
         </div>
 
+        {purchases.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <label htmlFor="purchased-material-search" className="block text-sm font-bold text-slate-800">Buscar nos meus materiais</label>
+          <input id="purchased-material-search" type="search" value={materialSearch} onChange={event => setMaterialSearch(event.target.value)} placeholder="Digite o nome do material ou combo" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:ring-2 focus:ring-blue-100" />
+          <p className="mt-3 text-xs text-slate-500" role="status">Exibindo {visiblePurchases.length} de {purchases.length} compras nesta loja.</p>
+          {materialSearch && <button type="button" onClick={() => setMaterialSearch('')} className="min-h-11 text-sm font-bold text-blue-700">Limpar busca</button>}
+          {visiblePurchases.length === 0 && <p className="text-sm text-slate-600">Nenhum material encontrado. Tente uma parte do nome ou limpe a busca.</p>}
+        </section>}
         {/* Store's Purchased Products & Kits Grid */}
         {purchases.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
@@ -356,7 +366,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {purchases.map((pur) => {
+            {visiblePurchases.map((pur) => {
               const itemTitle = pur.product?.titulo || pur.kit?.titulo || 'Material Didático';
               const itemCover = pur.product?.capa_url || pur.kit?.capa_url || null;
               const isKit = Boolean(pur.kit_id);
@@ -370,9 +380,9 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                 >
                   <div className="flex flex-col">
                     {/* Item Cover */}
-                    <div className="aspect-[3/4] w-full bg-slate-100 relative overflow-hidden">
+                    <div className="aspect-square w-full bg-slate-100 relative overflow-hidden">
                       {itemCover ? (
-                        <img src={itemCover} alt={itemTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={itemCover} alt={itemTitle} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-br from-slate-50 to-slate-100">
                           {isKit ? <Boxes className="w-10 h-10 text-slate-300 mb-2" /> : <BookOpen className="w-10 h-10 text-slate-300 mb-2" />}
@@ -396,7 +406,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                     </div>
 
                     <div className="p-4 space-y-1">
-                      <h3 className="font-bold text-slate-800 text-base line-clamp-2 leading-snug">
+                      <h3 className="font-bold text-slate-800 text-base leading-snug [overflow-wrap:anywhere]">
                         {itemTitle}
                       </h3>
                       <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
@@ -418,7 +428,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                             e.stopPropagation();
                             setReviewTarget({ productId: pur.product_id || pur.id, storeId });
                           }}
-                          className={`w-full py-1.5 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                          className={`order-1 min-h-11 w-full py-1.5 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1.5 ${
                             existingReview 
                               ? 'text-amber-600 hover:bg-amber-50' 
                               : 'text-slate-400 hover:bg-slate-50'
@@ -458,7 +468,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                         ) : (
                           <Download className="w-4 h-4" />
                         )}
-                        <span>{downloadingId === pur.id ? 'Baixando...' : 'Baixar Arquivo'}</span>
+                        <span>{downloadingId === pur.id ? 'Abrindo...' : isKit ? 'Abrir materiais do combo' : 'Abrir material'}</span>
                       </button>
                       }
                     </div>
@@ -476,7 +486,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                       const isPending = requestStatus === 'PENDING';
                       const isResolved = requestStatus === 'APPROVED' || requestStatus === 'REJECTED' || requestStatus === 'CANCELLED';
                       return (
-                        <div className="border-t border-slate-100 pt-3">
+                        <div className="order-2 border-t border-slate-100 pt-3">
                           {isPending ? (
                             <p className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-50 px-2 py-2 text-center text-[10px] font-bold text-amber-800"><Loader2 className="h-3.5 w-3.5" /> Solicitação de reembolso em análise</p>
                           ) : isResolved ? (
