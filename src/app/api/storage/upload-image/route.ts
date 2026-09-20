@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { getRequestUser } from '@/lib/api-auth';
-import { publicObjectUrl, resolveBucket, uploadObject, type LegacyUploadBucket } from '@/lib/object-storage';
+import { platformPublicImageUrl, resolveBucket, uploadObject, type LegacyUploadBucket } from '@/lib/object-storage';
 
 export const runtime = 'nodejs';
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       contentType: fileValue.type,
     });
 
-    return NextResponse.json({ value: publicObjectUrl(bucket, key) });
+    return NextResponse.json({ value: platformPublicImageUrl(bucket, key) });
   } catch (error) {
     console.error('[Storage] Erro ao enviar imagem:', error);
     return NextResponse.json({ error: 'Não foi possível gravar a imagem no armazenamento.' }, { status: 503 });

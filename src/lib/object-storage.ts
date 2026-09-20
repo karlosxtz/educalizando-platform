@@ -57,6 +57,12 @@ export function publicObjectUrl(bucket: string, key: string) {
   return `${config().endpoint}/${encodeURIComponent(bucket)}/${encodedKey(key)}`;
 }
 
+export function platformPublicImageUrl(bucket: string, key: string) {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br').replace(/\/+$/, '');
+  const params = new URLSearchParams({ bucket, key });
+  return `${origin}/api/storage/public-image?${params.toString()}`;
+}
+
 export async function createUploadUrl({ bucket, key, contentType }: { bucket: string; key: string; contentType: string }) {
   return getSignedUrl(client(), new PutObjectCommand({
     Bucket: bucket,
@@ -83,6 +89,10 @@ export async function uploadObject({ bucket, key, body, contentType }: {
       ? 'public, max-age=31536000, immutable'
       : 'private, no-store',
   }));
+}
+
+export async function getObject(bucket: string, key: string) {
+  return client().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 }
 
 export async function createDownloadUrl(bucket: string, key: string, filename?: string) {
