@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser, isSuperAdmin } from '@/lib/api-auth';
 import { createNotification } from '@/lib/notification-service';
+import { notifyWithdrawalPaid } from '@/lib/withdrawal-notification-service';
 
 export async function GET(request: Request) {
   try {
@@ -66,7 +67,7 @@ export async function PATCH(request: Request) {
 
     const { data: withdrawal } = await supabaseAdmin
       .from('withdrawals')
-      .select('id, creator_id, store_id, amount')
+      .select('id, creator_id, store_id, amount, pix_key_id, pix_key_masked')
       .eq('id', id)
       .maybeSingle();
 
@@ -87,7 +88,22 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: result?.error || 'Não foi possível analisar o saque.' }, { status: 400 });
     }
 
-    if (withdrawal.store_id && withdrawal.creator_id && action !== 'reopen') {
+    if (action === 'complete') {
+      await notifyWithdrawalPaid({
+        withdrawalId: withdrawal.id,
+        creatorId: withdrawal.creator_id,
+        storeId: withdrawal.store_id,
+        amount: Number(withdrawal.amount),
+        pixKeyId: withdrawal.pix_key_id,
+        pixKeyMasked: withdrawal.pix_key_masked,
+        recipientType: 'creator',
+        paidAt: new Date(),
+      });
+    }
+
+    // A conclusão já cria uma notificação detalhada e envia WhatsApp em
+    // notifyWithdrawalPaid. Os demais desfechos continuam com o aviso interno.
+    if (withdrawal.store_id && withdrawal.creator_id && action !== 'reopen' && action !== 'complete') {
       const approved = action === 'complete';
       await createNotification({
         storeId: withdrawal.store_id,
