@@ -52,10 +52,10 @@ export default function TopProductsReport({ products, storeId }: TopProductsRepo
 
         <Link
           href="/dashboard/produtos"
-          className="text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+          aria-label="Ver todos os produtos"
+          className="shrink-0 rounded-lg p-2 text-xs font-bold text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600 sm:flex sm:items-center sm:gap-1 sm:p-0"
         >
           <span className="hidden sm:inline">Ver Todos</span>
-          <span className="sm:hidden">Todos</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

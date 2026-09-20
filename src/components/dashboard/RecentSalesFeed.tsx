@@ -53,9 +53,9 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-w-0 overflow-hidden bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="min-w-0">
           <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 mb-0.5">
             <QrCode className="w-4 h-4" /> Vendas & Entregas PIX
           </span>
@@ -64,9 +64,10 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
 
         <Link
           href="/dashboard/pedidos"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          aria-label="Ver histórico completo de pedidos"
+          className="shrink-0 rounded-lg p-2 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 sm:flex sm:items-center sm:gap-1 sm:p-0"
         >
-          <span>Ver Histórico Completo</span>
+          <span className="hidden sm:inline">Ver Histórico Completo</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -82,30 +83,30 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
       ) : (
         <div className="divide-y divide-slate-100">
           {orders.map((ord) => (
-            <div key={ord.id} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+            <div key={ord.id} className="min-w-0 py-3.5 first:pt-0 last:pb-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 shrink-0">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
                     <span className="font-bold text-slate-900 text-xs truncate">
                       {ord.clienteNome}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="hidden min-w-0 truncate text-[10px] text-slate-400 font-mono sm:inline">
                       ({ord.id})
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 truncate font-medium mt-0.5">
                     {ord.produtoTitulo}
                   </p>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                  <span className="block truncate text-[10px] text-slate-400 mt-0.5">
                     {ord.dataCompra} • {ord.clienteEmail}
                   </span>
                 </div>
               </div>
 
-              <div className="text-right shrink-0 space-y-1">
+              <div className="mt-2 flex items-center justify-between gap-2 pl-11 sm:pl-0 sm:mt-0 sm:justify-end sm:text-right sm:space-y-1">
                 <span className="text-xs font-black text-slate-900 block">
                   R$ {ord.valorTotal.toFixed(2).replace('.', ',')}
                 </span>
