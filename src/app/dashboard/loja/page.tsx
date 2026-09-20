@@ -444,11 +444,11 @@ export default function StoreSettingsPage() {
             {/* Upload do Logo da Loja (Reutiliza FileUpload) */}
             <FileUpload
               label="Foto / Logo da Loja"
-              helperText="Upload do avatar da marca (JPG, PNG ou WEBP, máx. 2MB)."
+              helperText="Upload do avatar da marca (JPG, PNG ou WEBP, até 10MB)."
               recommendationText="Recomendado: imagem quadrada (proporção 1:1, mínimo 400x400px)"
               bucket="store-assets"
               accept="image/jpeg,image/png,image/webp"
-              maxSizeMB={2}
+              maxSizeMB={10}
               value={watchedLogoUrl}
               onChange={(url) => setValue('logo_url', url || '')}
               isImage={true}
@@ -458,11 +458,11 @@ export default function StoreSettingsPage() {
             {/* Upload da Foto do Autor (Opcional) */}
             <FileUpload
               label="Sua Foto de Perfil (Opcional)"
-              helperText="Se enviada, aparecerá na seção 'Sobre o Autor'."
+              helperText="Se enviada, aparecerá na seção 'Sobre o Autor'. Até 10MB."
               recommendationText="Recomendado: foto de rosto bem iluminada (1:1)"
               bucket="store-assets"
               accept="image/jpeg,image/png,image/webp"
-              maxSizeMB={2}
+              maxSizeMB={10}
               value={watchedAuthorImageUrl}
               onChange={(url) => setValue('author_image_url', url || '')}
               isImage={true}
@@ -485,11 +485,11 @@ export default function StoreSettingsPage() {
             {/* Upload do Banner da Loja (Reutiliza FileUpload) */}
             <FileUpload
               label="Imagem do Banner Principal"
-              helperText="Upload da imagem de capa de topo da vitrine (JPG, PNG ou WEBP, máx. 5MB)."
+              helperText="Upload da imagem de capa de topo da vitrine (JPG, PNG ou WEBP, até 15MB)."
               recommendationText="Recomendado: proporção 3:1 (ex: 1200x400px)"
               bucket="store-assets"
               accept="image/jpeg,image/png,image/webp"
-              maxSizeMB={5}
+              maxSizeMB={15}
               value={watchedBannerUrl}
               onChange={(url) => setValue('banner_url', url || '')}
               isImage={true}

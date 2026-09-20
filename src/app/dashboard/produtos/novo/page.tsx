@@ -898,11 +898,11 @@ function ProductWizardContent() {
               <FileUploadMultiple
                 bucket="product-covers"
                 accept="image/*"
-                maxSizeMB={3}
+                maxSizeMB={15}
                 value={galleryUrls}
                 onChange={setGalleryUrls}
                 label="Capa e Galeria do Produto"
-                helperText="Selecione ou arraste arquivos PNG, JPG ou WEBP (máx 3MB/cada)."
+                helperText="Selecione ou arraste arquivos PNG, JPG ou WEBP (até 15MB/cada)."
                 maxItems={10}
                 cropCover={true}
               />

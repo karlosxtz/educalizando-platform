@@ -6,7 +6,7 @@ import { publicObjectUrl, resolveBucket, uploadObject, type LegacyUploadBucket }
 export const runtime = 'nodejs';
 
 const imageBuckets = new Set<LegacyUploadBucket>(['product-covers', 'store-assets', 'student-avatars', 'main-banners']);
-const maxImageBytes = 2 * 1024 * 1024;
+const maxImageBytes = 15 * 1024 * 1024;
 
 function extension(fileName: string) {
   const match = fileName.toLowerCase().match(/\.([a-z0-9]{1,10})$/);
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Dados da imagem inválidos.' }, { status: 400 });
     }
     if (!fileValue.type.startsWith('image/') || fileValue.size <= 0 || fileValue.size > maxImageBytes) {
-      return NextResponse.json({ error: 'A imagem deve ter no máximo 2 MB.' }, { status: 400 });
+      return NextResponse.json({ error: 'A imagem deve ter no máximo 15 MB.' }, { status: 400 });
     }
 
     const bucket = resolveBucket(bucketValue as LegacyUploadBucket);

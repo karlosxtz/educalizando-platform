@@ -149,11 +149,11 @@ export default function StudentAccountSettingsPage() {
                   <FileUpload
                     bucket="student-avatars"
                     accept="image/png, image/jpeg, image/webp"
-                    maxSizeMB={2}
+                    maxSizeMB={10}
                     value={avatarUrl}
                     onChange={(url) => setAvatarUrl(url)}
                     label="Fazer Upload"
-                    helperText="Formato JPG, PNG ou WEBP. Máx: 2MB. Imagem circular."
+                    helperText="Formato JPG, PNG ou WEBP. Até 10MB. Imagem circular."
                     isImage={true}
                     aspectRatio="1:1"
                   />
