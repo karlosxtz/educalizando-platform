@@ -5,8 +5,11 @@ import ProductCard from '@/components/ProductCard';
 import StoreCard from '@/components/StoreCard';
 import { searchProducts } from '@/lib/search-service';
 import { getTopMarketplaceStores } from '@/lib/store-service';
-import { INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
-import { Store as StoreIcon, Frown, Sparkles } from 'lucide-react';
+import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from '@/lib/category-service';
+import { Frown, Sparkles } from 'lucide-react';
+import { getDisciplines } from '@/lib/discipline-service';
+import { searchHref, searchPage } from '@/lib/search-navigation';
+import SearchSort from '@/components/SearchSort';
 import Link from 'next/link';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
@@ -15,21 +18,33 @@ export const revalidate = 0;
 export default async function BuscarPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, formato?: string, sort?: string, filter?: string, data?: string, page?: string }>
+  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, disciplina?: string, formato?: string, sort?: string, filter?: string, data?: string, page?: string }>
 }) {
   const resolvedParams = await searchParams;
-  const { q, categoria, preco, ano_escolar, formato, sort, filter, data } = resolvedParams;
+  const { q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data } = resolvedParams;
   const isPlrMarketplace = filter === 'plr';
-  const page = resolvedParams.page ? parseInt(resolvedParams.page, 10) : 1;
+  const page = searchPage(resolvedParams.page);
+  const query = new URLSearchParams(Object.entries(resolvedParams).filter((entry): entry is [string, string] => typeof entry[1] === 'string')).toString();
+  const disciplines = await getDisciplines();
+  const activeFilters = [
+    { key: 'q', value: q, label: `Busca: ${q}` },
+    { key: 'categoria', value: categoria, label: INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === categoria)?.nome || categoria },
+    { key: 'ano_escolar', value: ano_escolar, label: INITIAL_EDUCATION_LEVELS.find(e => e.slug === ano_escolar)?.nome || ano_escolar },
+    { key: 'disciplina', value: disciplina, label: disciplina },
+    { key: 'formato', value: formato, label: formato?.toUpperCase() },
+    { key: 'preco', value: preco, label: preco === 'gratis' ? 'Grátis' : 'Pago' },
+    { key: 'filter', value: filter, label: filter === 'plr' ? 'Licença PLR' : filter },
+    { key: 'data', value: data, label: data },
+  ].filter(item => item.value);
 
   // Realiza a busca no service
   const { data: products, count, totalPages } = await searchProducts({
-    q, categoria, preco, ano_escolar, formato, sort, filter, data, page
+    q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data, page
   });
 
   // Resolve título dinâmico da página
   let pageTitle = "Todos os Materiais";
-  let pageSubtitle = "Explore o maior catálogo de materiais didáticos do Brasil.";
+  let pageSubtitle = "Encontre materiais por categoria, etapa escolar, disciplina e formato.";
 
   if (isPlrMarketplace) {
     pageTitle = 'Licenças PLR (Direitos de Revenda)';
@@ -77,17 +92,21 @@ export default async function BuscarPage({
         {/* Layout com Sidebar e Grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-            {SCHOOL_CALENDAR_TAGS.map((tag) => <Link key={tag} href={`/buscar?data=${encodeURIComponent(tag)}`} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold ${data === tag ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</Link>)}
+            {SCHOOL_CALENDAR_TAGS.map((tag) => <Link key={tag} href={searchHref(query, { data: data === tag ? null : tag })} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold ${data === tag ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</Link>)}
           </div>
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             
             {/* Sidebar Esquerda (Filtros) */}
             <div className="w-full lg:w-auto">
-              <SearchSidebar />
+              <SearchSidebar disciplines={disciplines} />
             </div>
 
             {/* Conteúdo Principal (Resultados) */}
             <div className="flex-1 w-full">
+              {activeFilters.length > 0 && <nav aria-label="Filtros ativos" className="mb-5 flex flex-wrap items-center gap-2">
+                {activeFilters.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-800">{item.label}<span aria-hidden="true">×</span></Link>)}
+                <Link href="/buscar" className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-blue-700 underline">Limpar tudo</Link>
+              </nav>}
               
               {/* Barra de Ordenação */}
               {count > 0 && (
@@ -96,15 +115,7 @@ export default async function BuscarPage({
                     {count} {count === 1 ? 'resultado' : 'resultados'}
                   </span>
                   
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">Ordenar por:</span>
-                    <select className="text-sm border-none bg-slate-50 font-bold text-slate-900 rounded-lg focus:ring-0 cursor-pointer py-1.5 px-3">
-                      <option value="relevancia">Relevância</option>
-                      <option value="menor-preco">Menor Preço</option>
-                      <option value="maior-preco">Maior Preço</option>
-                      <option value="recentes">Mais Recentes</option>
-                    </select>
-                  </div>
+                  <SearchSort />
                 </div>
               )}
 
@@ -120,17 +131,17 @@ export default async function BuscarPage({
                   {/* Paginação */}
                   {totalPages > 1 && (
                     <div className="mt-12 flex items-center justify-center gap-2">
-                      <button disabled={page === 1} className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold hover:bg-slate-50 disabled:opacity-50">Anterior</button>
+                      {page > 1 && <Link href={searchHref(query, { page: String(page - 1) })} className="px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold">Anterior</Link>}
                       <span className="px-4 py-2 text-sm font-bold text-slate-900">
                         Página {page} de {totalPages}
                       </span>
-                      <button disabled={page === totalPages} className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold hover:bg-slate-50 disabled:opacity-50">Próxima</button>
+                      {page < totalPages && <Link href={searchHref(query, { page: String(page + 1) })} className="px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold">Próxima</Link>}
                     </div>
                   )}
                 </>
               ) : (
                 /* Empty State Premium */
-                <div className="flex flex-col items-center justify-center bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm">
+                <div className="flex flex-col items-center justify-center bg-white border border-slate-200 rounded-3xl p-5 sm:p-12 text-center shadow-sm">
                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
                     <Frown className="w-10 h-10 text-slate-300" />
                   </div>
@@ -138,6 +149,11 @@ export default async function BuscarPage({
                   <p className="text-slate-500 max-w-md mx-auto mb-8">
                     Tente remover alguns filtros ou pesquisar por termos mais amplos (ex: "Alfabetização" em vez de "Alfabetização sílabas complexas pdf").
                   </p>
+                  <Link href={q ? searchHref('', { q }) : '/buscar'} className="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">{q ? 'Buscar este termo sem filtros' : 'Ver todos os materiais'}</Link>
+                  <p className="mt-6 mb-3 text-sm text-slate-500">Ou explore outro tema:</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {['Alfabetização', 'Matemática', 'Jogos'].map(term => <Link key={term} href={searchHref('', { q: term, filter: isPlrMarketplace ? 'plr' : null })} className="inline-flex min-h-11 items-center rounded-full border border-slate-200 px-4 text-sm font-semibold text-blue-700">{term}</Link>)}
+                  </div>
                   
                   {/* Recuperação de Vendas: Produtores Top */}
                   {topStores.length > 0 && (

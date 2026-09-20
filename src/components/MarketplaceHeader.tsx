@@ -80,7 +80,7 @@ function MarketplaceHeaderInner() {
               <Link
                 href={accountAreaHref || '/entrar'}
                 aria-label={accountAreaHref ? 'Acessar minha área' : 'Entrar ou criar conta'}
-                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors"
+                className="flex min-h-11 min-w-11 items-center justify-center p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors"
               >
                 <UserRound className="w-5 h-5" />
               </Link>
@@ -113,7 +113,7 @@ function MarketplaceHeaderInner() {
             
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
 
-            <button onClick={toggleCart} className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors relative group">
+            <button onClick={toggleCart} aria-label="Abrir carrinho" className="min-h-11 min-w-11 p-2.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors relative group">
               <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
               {cartItemsCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">
@@ -130,7 +130,7 @@ function MarketplaceHeaderInner() {
       {/* 2. Navegação Secundária */}
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="hidden sm:flex sm:items-center justify-between py-3 gap-4">
+          <div className="hidden xl:flex xl:items-center justify-between py-3 gap-4">
             
             {/* Esquerda: Links Simples */}
             <div className="flex items-center gap-5">
@@ -153,18 +153,18 @@ function MarketplaceHeaderInner() {
             
           </div>
 
-          <div className="sm:hidden">
+          <div className="xl:hidden">
             <div className="grid h-12 grid-cols-4 items-center border-b border-slate-100">
               <Link href="/" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-900">Início</Link>
               <div className="flex h-full items-center justify-center"><CategoryDropdown /></div>
               <Link href="/lojas" className="flex h-full items-center justify-center text-xs font-extrabold text-slate-600">Lojas</Link>
               <Link href="/ofertas" className="flex h-full items-center justify-center text-xs font-extrabold text-orange-600">Ofertas</Link>
             </div>
-            <div className="marketplace-category-rail relative h-[52px] overflow-hidden py-1.5" aria-label="Categorias em destaque">
-              <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
-                {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
+            <nav className="overflow-x-auto overscroll-x-contain py-2" aria-label="Categorias em destaque">
+              <div className="flex w-max items-center gap-2 px-1">
+                {quickCategories.map((category) => <Link key={category.href} href={category.href} aria-current={category.active ? 'page' : undefined} className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
               </div>
-            </div>
+            </nav>
           </div>
         </div>
       </div>

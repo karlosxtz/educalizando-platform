@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
 import { useCallback, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
+import type { Discipline } from '@/lib/discipline-service';
 
 const PRECOS = [
   { id: 'gratis', label: 'Grátis' },
@@ -24,7 +25,7 @@ const FORMATOS = [
   { id: 'planilha', label: 'Planilha' }
 ];
 
-export default function SearchSidebar() {
+export default function SearchSidebar({ disciplines = [] }: { disciplines?: Discipline[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -49,7 +50,6 @@ export default function SearchSidebar() {
   );
 
   const handleFilterClick = (name: string, value: string) => {
-    setMobileFiltersOpen(false);
     router.push(`/buscar?${createQueryString(name, value)}`);
   };
 
@@ -117,7 +117,7 @@ export default function SearchSidebar() {
 
       {/* Ano Escolar */}
       <div className="mb-8">
-        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Ano Escolar</h3>
+        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Etapa escolar</h3>
         <div className="space-y-2">
           {ANOS_ESCOLARES.map(ano => (
             <label key={ano.id} className="flex items-center gap-3 cursor-pointer group">
@@ -138,6 +138,22 @@ export default function SearchSidebar() {
       <hr className="border-slate-100 my-6" />
 
       {/* Formato */}
+      <div className="mb-8">
+        <label htmlFor="search-discipline" className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Disciplina</label>
+        <select id="search-discipline" value={searchParams.get('disciplina') || ''}
+          onChange={(event) => {
+            const params = new URLSearchParams(searchParams.toString());
+            if (event.target.value) params.set('disciplina', event.target.value);
+            else params.delete('disciplina');
+            params.delete('page');
+            router.push(`/buscar?${params.toString()}`);
+          }}
+          className="w-full min-h-11 rounded-xl border border-slate-200 bg-white px-2 text-sm">
+          <option value="">Todas as disciplinas</option>
+          {disciplines.map((discipline) => <option key={discipline.slug} value={discipline.name}>{discipline.name}</option>)}
+        </select>
+        <p className="mt-2 text-xs text-slate-500">Conforme as habilidades BNCC cadastradas pelo autor.</p>
+      </div>
       <div>
         <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Formato</h3>
         <div className="space-y-2">

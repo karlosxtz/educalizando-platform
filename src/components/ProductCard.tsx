@@ -127,6 +127,8 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
           <img 
             src={itemCover} 
             alt={itemTitle} 
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" 
             onError={() => setImageError(true)}
           />
@@ -138,7 +140,7 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
         {/* Badge PLR ou Grátis */}
         {isPlrMode && (
           <div className="absolute left-2 top-2 bg-purple-600 text-white text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
-            <Rocket className="w-3 h-3" /> Revenda
+            <Rocket className="w-3 h-3" /> Licença PLR
           </div>
         )}
         {!product.is_plr && isFree && (
@@ -221,7 +223,8 @@ export default function ProductCard({ product, purchaseMode = 'standard' }: Prod
             <button 
               onClick={handleAdd}
               className="flex-1 min-h-9 bg-slate-100 text-slate-700 p-2 rounded-lg sm:rounded-xl text-xs font-bold shadow-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
-              title="Adicionar ao Carrinho"
+              title={isFree ? 'Ver material gratuito' : 'Adicionar ao carrinho'}
+              aria-label={isFree ? `Ver material gratuito: ${itemTitle}` : `Adicionar ao carrinho: ${itemTitle}`}
             >
               <ShoppingBag className="w-4 h-4" />
             </button>

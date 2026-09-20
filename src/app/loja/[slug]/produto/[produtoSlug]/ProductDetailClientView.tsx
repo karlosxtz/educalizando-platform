@@ -15,6 +15,7 @@ import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
+import PurchaseLicenseSummary from '@/components/PurchaseLicenseSummary';
 import { addRecentView } from '@/lib/recent-views';
 import { incrementProductViews } from '@/lib/store-service';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
@@ -379,6 +380,7 @@ export default function ProductDetailClientView({
                   <span className="rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">Acesso vitalício</span>
                 </div>
               </div>
+              <PurchaseLicenseSummary isPlr={!!isPlrPurchase} />
               <div className="grid grid-cols-2 gap-2">
                 {product.preview_url ? <a href={product.preview_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700"><ExternalLink className="h-4 w-4" /> Ver prévia</a> : <button type="button" onClick={handleAddOnly} className="min-h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700">Adicionar ao carrinho</button>}
                 {store.whatsapp && <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre o material ${product.titulo}.`)} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-black text-white" style={{ backgroundColor: primaryColor }}><MessageCircle className="h-4 w-4" /> Falar com a loja</a>}
@@ -401,7 +403,7 @@ export default function ProductDetailClientView({
             <div className="bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-900 p-6 sm:p-8 rounded-3xl text-white shadow-xl space-y-6 relative overflow-hidden">
               <div className="relative z-10 space-y-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-300 bg-white/10 px-3 py-1 rounded-full border border-white/15 inline-flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" /> CONTEÚDO EXCLUSIVO INCLUÍDO
+                  <Sparkles className="w-3.5 h-3.5 text-blue-400" /> SOBRE A ENTREGA
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black tracking-tight">
                   O que você vai receber ao garantir seu material:
@@ -413,9 +415,11 @@ export default function ProductDetailClientView({
                   <div className="w-8 h-8 rounded-xl bg-blue-500/30 flex items-center justify-center text-blue-300">
                     <FileText className="w-4 h-4" />
                   </div>
-                  <h4 className="font-bold text-sm">Arquivo Digital Completo</h4>
+                  <h4 className="font-bold text-sm">{isPlrPurchase ? 'Material da licença PLR' : 'Material digital'}</h4>
                   <p className="text-xs text-blue-100 leading-normal">
-                    Formato {product.tipo.toUpperCase()} pronto para impressão ou leitura em telas.
+                    {isPlrPurchase
+                      ? 'Arquivos ou links disponibilizados pelo autor para esta licença. Confira o conteúdo e as condições na descrição.'
+                      : `Formato informado: ${product.tipo.toUpperCase()}. Confira na descrição o conteúdo e os requisitos para usar o material.`}
                   </p>
                 </div>
 
@@ -423,9 +427,11 @@ export default function ProductDetailClientView({
                   <div className="w-8 h-8 rounded-xl bg-emerald-500/30 flex items-center justify-center text-emerald-300">
                     <Zap className="w-4 h-4" />
                   </div>
-                  <h4 className="font-bold text-sm">Acesso Imediato no PIX</h4>
+                  <h4 className="font-bold text-sm">Acesso após a confirmação do pagamento</h4>
                   <p className="text-xs text-blue-100 leading-normal">
-                    Receba o link de download no e-mail em menos de 10 segundos.
+                    {isPlrPurchase
+                      ? 'Depois da confirmação, acesse PLRs comprados na sua conta para abrir os arquivos ou links da licença.'
+                      : 'Depois da confirmação, acesse suas compras na sua conta para abrir os arquivos ou links do material.'}
                   </p>
                 </div>
               </div>
@@ -574,6 +580,8 @@ export default function ProductDetailClientView({
                   Pagamento único com acesso vitalício ao arquivo.
                 </p>
               </div>
+
+              <PurchaseLicenseSummary isPlr={!!isPlrPurchase} />
 
               {product.preview_url && (
                 <a
