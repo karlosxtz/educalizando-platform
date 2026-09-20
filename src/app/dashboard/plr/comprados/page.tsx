@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Info } from 'lucide-react';
+import { Package, Download, AlertCircle, Loader2, ArrowLeft, Sparkles, Plus, Info, Eye, X, FileText, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import Sidebar from '@/components/dashboard/Sidebar';
 
@@ -10,6 +10,11 @@ interface PLRItem {
   id: string;
   orderId: string;
   productTitle: string;
+  description: string;
+  productType: string;
+  pageCount: number | null;
+  ageRange: string | null;
+  formatDetails: string | null;
   productId: string;
   paidAt: string;
   amount: number;
@@ -23,6 +28,7 @@ export default function PLRsCompradosPage() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<PLRItem[]>([]);
   const [error, setError] = useState('');
+  const [selectedItem, setSelectedItem] = useState<PLRItem | null>(null);
 
   useEffect(() => {
     async function fetchPLRs() {
@@ -108,7 +114,12 @@ export default function PLRsCompradosPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
               <div key={item.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col group hover:shadow-md transition-all">
-                <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedItem(item)}
+                  className="aspect-[4/3] bg-slate-100 relative overflow-hidden text-left focus:outline-none focus:ring-4 focus:ring-blue-200"
+                  aria-label={`Ver detalhes de ${item.productTitle}`}
+                >
                   <img 
                     src={item.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
                     alt={item.productTitle}
@@ -119,7 +130,10 @@ export default function PLRsCompradosPage() {
                       Licença PLR
                     </span>
                   </div>
-                </div>
+                  <div className="absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-center gap-2 bg-slate-950/75 px-4 py-3 text-xs font-black text-white transition-transform duration-200 group-hover:translate-y-0">
+                    <Eye className="h-4 w-4" /> Ver detalhes do PLR
+                  </div>
+                </button>
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-2 gap-2">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -129,9 +143,12 @@ export default function PLRsCompradosPage() {
                       Pago
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 line-clamp-2 mb-4 leading-snug">
+                  <button type="button" onClick={() => setSelectedItem(item)} className="mb-2 text-left text-sm font-bold leading-snug text-slate-900 line-clamp-2 hover:text-blue-700">
                     {item.productTitle}
-                  </h3>
+                  </button>
+                  <button type="button" onClick={() => setSelectedItem(item)} className="mb-4 inline-flex w-fit items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900">
+                    <Eye className="h-3.5 w-3.5" /> Ver informações do material
+                  </button>
                   
                   <div className="mt-auto">
                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-3">
@@ -189,6 +206,40 @@ export default function PLRsCompradosPage() {
           </div>
         )}
       </main>
+
+      {selectedItem && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Detalhes do PLR">
+          <button type="button" className="absolute inset-0 cursor-default" aria-label="Fechar detalhes" onClick={() => setSelectedItem(null)} />
+          <section className="relative z-10 max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+            <div className="grid sm:grid-cols-[220px_1fr]">
+              <div className="relative aspect-[16/9] bg-slate-100 sm:aspect-auto sm:min-h-full">
+                <img src={selectedItem.coverUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=500&auto=format&fit=crop&q=80'} alt={selectedItem.productTitle} className="h-full w-full object-cover" />
+                <span className="absolute left-4 top-4 rounded-full bg-slate-950/80 px-3 py-1 text-[10px] font-black uppercase text-white">Licença PLR</span>
+              </div>
+              <div className="p-5 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-blue-700">Detalhes do material adquirido</p>
+                    <h2 className="mt-1 text-xl font-black text-slate-900">{selectedItem.productTitle}</h2>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">Vendido por {selectedItem.storeName}</p>
+                  </div>
+                  <button type="button" onClick={() => setSelectedItem(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Fechar"><X className="h-5 w-5" /></button>
+                </div>
+                <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-slate-700">{selectedItem.description || 'O vendedor não adicionou uma descrição para este material.'}</p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><FileText className="mb-1 h-4 w-4 text-blue-600" /><strong>Formato</strong><br /><span className="text-slate-600">{selectedItem.formatDetails || selectedItem.productType.toUpperCase()}</span></div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><GraduationCap className="mb-1 h-4 w-4 text-blue-600" /><strong>Indicação</strong><br /><span className="text-slate-600">{selectedItem.ageRange || (selectedItem.pageCount ? `${selectedItem.pageCount} páginas` : 'Conforme descrição')}</span></div>
+                </div>
+                <div className="mt-6 grid gap-2 sm:grid-cols-2">
+                  <a href={`/api/aluno/materiais/${selectedItem.productId}/download?type=plr`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 text-sm font-black text-amber-900 hover:bg-amber-200"><Download className="h-4 w-4" /> Abrir arquivos PLR</a>
+                  <Link href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(selectedItem.productId)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white hover:bg-blue-700"><Plus className="h-4 w-4" /> Publicar na minha loja</Link>
+                </div>
+                <p className="mt-4 text-xs leading-relaxed text-amber-800">Ao publicar, altere título, descrição e capa para criar a sua própria versão e evitar conflito com o material original.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

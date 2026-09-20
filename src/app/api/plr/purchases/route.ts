@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const productIds = [...new Set((orderItems || []).map(item => item.product_id).filter(Boolean))];
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
-      .select('id, titulo, capa_url, has_plr_delivery, stores(nome_loja)')
+      .select('id, titulo, descricao, tipo, page_count, age_range, format_details, capa_url, has_plr_delivery, stores(nome_loja)')
       .in('id', productIds);
     if (productsError) throw productsError;
 
@@ -44,6 +44,11 @@ export async function GET(request: Request) {
         orderId: order.id,
         productId: product.id,
         productTitle: product.titulo || 'Produto',
+        description: product.descricao || '',
+        productType: product.tipo || 'digital',
+        pageCount: product.page_count || null,
+        ageRange: product.age_range || null,
+        formatDetails: product.format_details || null,
         paidAt: order.paid_at || '',
         amount: Number(item.unit_price || 0),
         coverUrl: product.capa_url || null,
