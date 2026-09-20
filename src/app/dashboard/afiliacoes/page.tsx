@@ -480,7 +480,7 @@ export default function AffiliateDashboardPage() {
                 </tr>
               )}
               {recentTransactions.map((tx) => {
-                const isRefund = tx.type === 'REFUND';
+                const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
                 const isNegative = Number(tx.amount) < 0;
                 
                 return (

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       .from('wallet_transactions')
       .select('*, store:stores(nome_loja)')
       .eq('creator_id', userId)
-      .in('type', ['AFFILIATE_COMMISSION', 'REFUND'])
+      .in('type', ['AFFILIATE_COMMISSION', 'REFUND', 'AFFILIATE_COMMISSION_REFUND'])
       .order('created_at', { ascending: false });
 
     if (startDate) txQuery = txQuery.gte('created_at', startDate);

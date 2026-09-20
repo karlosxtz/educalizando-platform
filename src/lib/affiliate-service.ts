@@ -382,7 +382,7 @@ export async function getAffiliateAvailableBalance(userId: string): Promise<numb
       availableBalance = data
         .filter((tx) => (
           (tx.type === 'AFFILIATE_COMMISSION' && new Date(tx.created_at).getTime() <= sevenDaysAgo)
-          || (tx.type === 'REFUND' && String(tx.description || '').startsWith('Estorno de Comissão -'))
+          || (['REFUND', 'AFFILIATE_COMMISSION_REFUND'].includes(tx.type) && String(tx.description || '').startsWith('Estorno de Comissão -'))
           || (tx.type === 'WITHDRAWAL' && String(tx.description || '').startsWith('Reserva para Saque PIX (Afiliado)'))
           || (tx.type === 'ADJUSTMENT' && String(tx.description || '').startsWith('Devolução de saldo do saque rejeitado'))
         ))

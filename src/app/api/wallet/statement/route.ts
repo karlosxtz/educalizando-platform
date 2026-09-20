@@ -90,9 +90,9 @@ export async function GET(request: Request) {
     // Filtro de status
     if (status !== 'all') {
       if (status === 'REFUND') {
-        allTx = allTx.filter((t: any) => t.type === 'REFUND');
+        allTx = allTx.filter((t: any) => t.type === 'REFUND' || t.type === 'AFFILIATE_COMMISSION_REFUND');
       } else {
-        allTx = allTx.filter((t: any) => t.status === status && t.type !== 'REFUND');
+        allTx = allTx.filter((t: any) => t.status === status && t.type !== 'REFUND' && t.type !== 'AFFILIATE_COMMISSION_REFUND');
       }
     }
 

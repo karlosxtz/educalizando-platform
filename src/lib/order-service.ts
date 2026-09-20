@@ -729,7 +729,9 @@ export async function updateOrderStatus(
           orderId: order.id,
           buyerName: order.buyerName,
           productTitle: order.items[0]?.productTitle || 'Material digital',
-          type: 'REFUND', // Or maybe 'AFFILIATE_COMMISSION_REFUND'? Let's stick to REFUND but the description makes it clear, and creatorId points to affiliate
+          // Tipo próprio para não colidir com o estorno da carteira da loja
+          // no índice idempotente do mesmo pedido.
+          type: 'AFFILIATE_COMMISSION_REFUND',
           grossAmount: -affComission,
           platformFixedFeeAmount: 0,
           platformPercentageFeeAmount: 0,

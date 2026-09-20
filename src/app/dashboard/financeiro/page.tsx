@@ -633,7 +633,7 @@ export default function FinancialWalletDashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {transactions.map(tx => {
-                  const isRefund = tx.type === 'REFUND';
+                  const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
                   const isWithdrawal = tx.type === 'WITHDRAWAL';
                   const isPending = tx.status === 'PENDING';
 

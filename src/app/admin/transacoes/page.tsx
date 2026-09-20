@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { DollarSign, Download } from 'lucide-react';
+import { DollarSign, Download, Loader2, RotateCcw, ShieldAlert } from 'lucide-react';
 import { downloadCSV } from '@/lib/csv-utils';
 
 interface TransactionData {
@@ -22,6 +22,7 @@ export default function SuperAdminTransacoes() {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refundingId, setRefundingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTransactions();
@@ -57,12 +58,42 @@ export default function SuperAdminTransacoes() {
     downloadCSV(csvData, "educalizando_transacoes_contabil");
   }
 
+  async function handleRefund(transaction: TransactionData) {
+    if (transaction.status !== 'paid' || refundingId) return;
+
+    const orderSuffix = transaction.id.slice(-6).toUpperCase();
+    const reason = window.prompt('Informe o motivo do estorno administrativo (será registrado na auditoria):');
+    if (!reason?.trim()) return;
+
+    const confirmation = window.prompt(
+      `Atenção: esta ação revoga o acesso do pedido e ajusta os saldos internos. Ela não faz o reembolso no gateway automaticamente.\n\nPara confirmar, digite exatamente: ESTORNAR ${orderSuffix}`
+    );
+    if (!confirmation) return;
+
+    setRefundingId(transaction.id);
+    try {
+      const res = await fetch(`/api/admin/transactions/${encodeURIComponent(transaction.id)}/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim(), confirmation: confirmation.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível registrar o estorno.');
+      alert(data.message || 'Estorno administrativo registrado com sucesso.');
+      await fetchTransactions();
+    } catch (refundError) {
+      alert(refundError instanceof Error ? refundError.message : 'Erro ao registrar o estorno.');
+    } finally {
+      setRefundingId(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Auditoria de Transações</h1>
-          <p className="text-slate-400 mt-1">Histórico completo financeiro das vendas geradas na plataforma.</p>
+          <p className="text-slate-400 mt-1">Histórico financeiro das vendas, com estorno administrativo rastreável.</p>
         </div>
         <button
           onClick={handleExportCSV}
@@ -72,6 +103,11 @@ export default function SuperAdminTransacoes() {
           <Download className="w-4 h-4" />
           Exportar CSV
         </button>
+      </div>
+
+      <div className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-100">
+        <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+        <p><strong>Antes de estornar:</strong> devolva o valor ao comprador pelo gateway quando aplicável. Esta ação da Educalizando revoga o acesso e registra os ajustes financeiros internos; ela não envia um PIX nem solicita reembolso automaticamente ao gateway.</p>
       </div>
 
       <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
@@ -84,20 +120,21 @@ export default function SuperAdminTransacoes() {
                 <th scope="col" className="px-6 py-4 text-right">Valor Bruto</th>
                 <th scope="col" className="px-6 py-4 text-right">Taxa Plat.</th>
                 <th scope="col" className="px-6 py-4">Status</th>
+                <th scope="col" className="px-6 py-4 text-right">Ação</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     Carregando transações...
                   </td>
                 </tr>
               ) : error ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-rose-400">{error}<button onClick={fetchTransactions} className="ml-3 underline">Tentar novamente</button></td></tr>
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-rose-400">{error}<button onClick={fetchTransactions} className="ml-3 underline">Tentar novamente</button></td></tr>
               ) : transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     Nenhuma transação registrada.
                   </td>
                 </tr>
@@ -132,6 +169,21 @@ export default function SuperAdminTransacoes() {
                       }`}>
                         {t.status === 'paid' ? 'pago' : t.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {t.status === 'paid' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRefund(t)}
+                          disabled={refundingId !== null}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 px-3 py-2 text-xs font-bold text-rose-300 transition-colors hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {refundingId === t.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                          {refundingId === t.id ? 'Estornando...' : 'Estornar'}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-600">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
