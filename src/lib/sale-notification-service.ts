@@ -74,13 +74,14 @@ export async function notifyConfirmedSale(order: OrderRecord) {
     const creatorTemplate = await getWhatsAppTemplate('creatorSale');
     const buyerTemplate = await getWhatsAppTemplate('buyerSale');
     const { data: deliveries } = order.items.length
-      ? await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url').in('product_id', order.items.map(item => item.productId))
-      : { data: [] as Array<{ product_id: string; arquivo_url: string | null }> };
+      ? await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, plr_license_url').in('product_id', order.items.map(item => item.productId))
+      : { data: [] as Array<{ product_id: string; arquivo_url: string | null; plr_license_url: string | null }> };
     const creatorLinks = (deliveries || [])
-      .filter(delivery => /^https:\/\//i.test(delivery.arquivo_url || '') && !/supabase\.co\//i.test(delivery.arquivo_url || ''))
+      .map(delivery => ({ ...delivery, accessUrl: order.is_plr_purchase ? delivery.plr_license_url : delivery.arquivo_url }))
+      .filter(delivery => /^https:\/\//i.test(delivery.accessUrl || '') && !/supabase\.co\//i.test(delivery.accessUrl || ''))
       .map(delivery => {
         const item = order.items.find(candidate => candidate.productId === delivery.product_id);
-        return `🔗 ${item?.productTitle || 'Material'}: ${delivery.arquivo_url}`;
+        return `🔗 ${item?.productTitle || 'Material'}: ${delivery.accessUrl}`;
       });
 
     // O envio ocorre somente após a inserção idempotente da notificação acima.

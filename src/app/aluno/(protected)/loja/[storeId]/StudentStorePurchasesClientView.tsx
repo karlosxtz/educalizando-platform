@@ -336,22 +336,21 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
 
                     {/* Download Action */}
                     <div className="flex gap-2">
-                      {pur.is_plr_purchase && pur.product?.plr_license_url && (
+                      {pur.is_plr_purchase && pur.product?.plr_license_url ? (
                         <button
                           type="button"
                           onClick={(e) => handleDownloadPurchase(pur, e, 'plr')}
                           disabled={downloadingId === `${pur.id}-plr`}
-                          className="w-1/3 py-3 rounded-xl font-bold text-xs text-amber-700 bg-amber-100 transition-all flex justify-center items-center gap-1.5 hover:bg-amber-200 active:scale-95 disabled:opacity-50"
+                          className="w-full py-3 rounded-xl font-bold text-sm text-amber-900 bg-amber-100 transition-all flex justify-center items-center gap-2 hover:bg-amber-200 active:scale-95 disabled:opacity-50"
                         >
                           {downloadingId === `${pur.id}-plr` ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
                             <FileText className="w-4 h-4" />
                           )}
+                          <span>{downloadingId === `${pur.id}-plr` ? 'Abrindo licença...' : 'Acessar licença PLR'}</span>
                         </button>
-                      )}
-                      
-                      <button
+                      ) : <button
                         type="button"
                         onClick={(e) => handleDownloadPurchase(pur, e)}
                         disabled={downloadingId === pur.id}
@@ -365,6 +364,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
                         )}
                         <span>{downloadingId === pur.id ? 'Baixando...' : 'Baixar Arquivo'}</span>
                       </button>
+                      }
                     </div>
                   </div>
                 </motion.div>

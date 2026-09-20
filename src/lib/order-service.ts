@@ -645,10 +645,10 @@ export async function updateOrderStatus(
         }
 
         const { sendSaleConfirmationToBuyer } = await import('./mail-service');
-        let deliveryByProduct = new Map<string, { arquivo_url: string | null; arquivo_nome: string | null }>();
+        let deliveryByProduct = new Map<string, { arquivo_url: string | null; arquivo_nome: string | null; plr_license_url: string | null }>();
         if (isRealSupabaseConfigured() && order.items.length) {
           const { supabaseAdmin } = await import('./supabase');
-          const { data: deliveries } = await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome').in('product_id', order.items.map(item => item.productId));
+          const { data: deliveries } = await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome, plr_license_url').in('product_id', order.items.map(item => item.productId));
           deliveryByProduct = new Map((deliveries || []).map(item => [item.product_id, item]));
         }
         const productTitles = order.items.length > 0 
@@ -662,7 +662,8 @@ export async function updateOrderStatus(
           productTitles,
           products: order.items.map(it => {
             const delivery = deliveryByProduct.get(it.productId);
-            return { id: it.productId, title: it.productTitle || 'Material digital', fileUrl: delivery?.arquivo_url, fileName: delivery?.arquivo_nome };
+            const fileUrl = order.is_plr_purchase ? delivery?.plr_license_url : delivery?.arquivo_url;
+            return { id: it.productId, title: it.productTitle || 'Material digital', fileUrl, fileName: delivery?.arquivo_nome };
           }),
           creatorWhatsapp
         });
