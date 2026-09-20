@@ -86,20 +86,42 @@ export async function GET(
       .eq('status', 'ACTIVE')
       .limit(1)
       .maybeSingle();
-    if (!access) {
+    // PLR purchases are creator-to-creator purchases and historically did not
+    // always create a student_product_access row. Confirm the paid order and
+    // its line item as a fallback, while keeping the product-level check.
+    let accessOrderId = access?.order_id || null;
+    if (!accessOrderId) {
+      const { data: plrOrders } = await supabaseAdmin
+        .from('orders')
+        .select('id, is_plr_purchase, status, buyer_name, buyer_email, buyer_phone, store_id')
+        .eq('student_id', studentId)
+        .eq('is_plr_purchase', true)
+        .eq('status', 'paid');
+      const orderIds = (plrOrders || []).map(order => order.id);
+      if (orderIds.length) {
+        const { data: matchingItems } = await supabaseAdmin
+          .from('order_items')
+          .select('order_id')
+          .in('order_id', orderIds)
+          .eq('product_id', productId)
+          .limit(1);
+        accessOrderId = matchingItems?.[0]?.order_id || null;
+      }
+    }
+    if (!access && !accessOrderId) {
       console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
       return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
     }
-    if (access?.order_id) {
+    if (accessOrderId) {
       const { data: accessOrder } = await supabaseAdmin
         .from('orders')
         .select('id, is_plr_purchase, status, buyer_name, buyer_email, buyer_phone, store_id')
-        .eq('id', access.order_id)
+        .eq('id', accessOrderId)
         .eq('student_id', studentId)
         .maybeSingle();
       isPlrPurchase = accessOrder?.status === 'paid' && accessOrder?.is_plr_purchase === true;
       if (accessOrder) {
-        licenseData = { ...licenseData, buyerName: accessOrder.buyer_name || licenseData.buyerName, buyerEmail: accessOrder.buyer_email || licenseData.buyerEmail, buyerPhone: accessOrder.buyer_phone || null, orderId: accessOrder.id || access.order_id };
+        licenseData = { ...licenseData, buyerName: accessOrder.buyer_name || licenseData.buyerName, buyerEmail: accessOrder.buyer_email || licenseData.buyerEmail, buyerPhone: accessOrder.buyer_phone || null, orderId: accessOrder.id || accessOrderId };
         const { data: store } = await supabaseAdmin.from('stores').select('nome_loja, creator_id').eq('id', accessOrder.store_id).maybeSingle();
         if (store) {
           licenseData.storeName = store.nome_loja || licenseData.storeName;
@@ -267,7 +289,7 @@ export async function GET(
               buyerName: licenseData.buyerName,
               buyerEmail: licenseData.buyerEmail,
               buyerPhone: licenseData.buyerPhone,
-              orderId: licenseData.orderId || access.order_id,
+              orderId: licenseData.orderId || accessOrderId || '',
             });
             const licensedFilename = humanFilename.replace(/\.pdf$/i, '') + '-licenciado.pdf';
             return new NextResponse(personalized.slice().buffer as ArrayBuffer, {
