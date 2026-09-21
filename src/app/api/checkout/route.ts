@@ -6,10 +6,25 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { getStorePromotion } from '@/lib/store-promotion';
+import { assertCheckoutFinancialConfiguration, getFinancialConfiguration } from '@/lib/financial-configuration';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    try {
+      assertCheckoutFinancialConfiguration();
+    } catch {
+      const configuration = getFinancialConfiguration();
+      console.error('[Checkout] Configuração financeira indisponível.', {
+        environment: configuration.environment,
+        infinitePay: configuration.infinitePay.state,
+        cryptography: configuration.cryptography.state,
+      });
+      return NextResponse.json(
+        { success: false, error: 'O checkout está temporariamente indisponível. Tente novamente em instantes.' },
+        { status: 503 },
+      );
+    }
     const { 
       storeId, 
       buyerName: rawBuyerName,

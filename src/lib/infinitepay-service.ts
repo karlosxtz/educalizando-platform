@@ -1,8 +1,6 @@
-const INFINITEPAY_API_URL = 'https://api.checkout.infinitepay.io';
+import { getConfiguredInfinitePayHandle } from './financial-configuration';
 
-export const INFINITEPAY_HANDLE = (process.env.INFINITEPAY_HANDLE || 'carlos-eduardo-a4j')
-  .trim()
-  .replace(/^\$/, '');
+const INFINITEPAY_API_URL = 'https://api.checkout.infinitepay.io';
 
 export interface InfinitePayCheckoutItem {
   quantity: number;
@@ -32,15 +30,13 @@ export async function createInfinitePayCheckout(params: {
   items: InfinitePayCheckoutItem[];
   customer?: { name: string; email: string; phoneNumber?: string };
 }) {
-  if (!INFINITEPAY_HANDLE) {
-    throw new Error('A InfiniteTag da conta recebedora não foi configurada.');
-  }
+  const handle = getConfiguredInfinitePayHandle();
 
   const response = await fetch(`${INFINITEPAY_API_URL}/links`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      handle: INFINITEPAY_HANDLE,
+      handle,
       order_nsu: params.orderNsu,
       redirect_url: params.redirectUrl,
       webhook_url: params.webhookUrl,
@@ -64,11 +60,12 @@ export async function createInfinitePayCheckout(params: {
 }
 
 export async function checkInfinitePayPayment(reference: InfinitePayPaymentReference) {
+  const handle = getConfiguredInfinitePayHandle();
   const response = await fetch(`${INFINITEPAY_API_URL}/payment_check`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      handle: INFINITEPAY_HANDLE,
+      handle,
       order_nsu: reference.orderNsu,
       transaction_nsu: reference.transactionNsu,
       slug: reference.slug

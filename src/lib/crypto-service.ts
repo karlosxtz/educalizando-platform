@@ -1,19 +1,18 @@
 import crypto from 'crypto';
-
-// Chave secreta interna do servidor (fallback)
-const SERVER_SECRET = process.env.SERVER_CRYPTO_SECRET || 'fallback_educalizando_super_secret_key_9999';
+import { getConfiguredCryptoSecret } from './financial-configuration';
 
 /**
  * Gera um Nonce criptográfico assinado pelo servidor.
  * Este ticket tem vida útil de 60 segundos e serve para evitar Replay Attacks.
  */
 export function generateSignedNonce(): { nonce: string; expiresAt: number; signature: string } {
+  const serverSecret = getConfiguredCryptoSecret();
   const expiresAt = Date.now() + 60000; // 60 segundos
   const nonce = crypto.randomBytes(16).toString('hex');
   const payload = `${nonce}:${expiresAt}`;
   
   const signature = crypto
-    .createHmac('sha256', SERVER_SECRET)
+    .createHmac('sha256', serverSecret)
     .update(payload)
     .digest('hex');
 
@@ -28,16 +27,17 @@ export function verifySignedNonce(nonce: string, expiresAt: number, signature: s
     return false; // Expirou
   }
   
+  const serverSecret = getConfiguredCryptoSecret();
   const payload = `${nonce}:${expiresAt}`;
   const expectedSignature = crypto
-    .createHmac('sha256', SERVER_SECRET)
+    .createHmac('sha256', serverSecret)
     .update(payload)
     .digest('hex');
 
   // Time-safe compare
   try {
     return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
-  } catch (e) {
+  } catch {
     return signature === expectedSignature;
   }
 }

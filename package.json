@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:financial": "ts-node -P tsconfig.test.json scripts/verify-financial-calculations.ts",
+    "test:financial-config": "ts-node -P tsconfig.test.json scripts/verify-financial-configuration.ts",
     "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts"
   },
   "dependencies": {
