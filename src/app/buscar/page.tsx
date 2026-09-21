@@ -10,6 +10,7 @@ import { Frown, Sparkles } from 'lucide-react';
 import { getDisciplines } from '@/lib/discipline-service';
 import { searchHref, searchPage } from '@/lib/search-navigation';
 import SearchSort from '@/components/SearchSort';
+import SearchQuery from './SearchQuery';
 import Link from 'next/link';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
@@ -32,7 +33,7 @@ export default async function BuscarPage({
     { key: 'ano_escolar', value: ano_escolar, label: INITIAL_EDUCATION_LEVELS.find(e => e.slug === ano_escolar)?.nome || ano_escolar },
     { key: 'disciplina', value: disciplina, label: disciplina },
     { key: 'formato', value: formato, label: formato?.toUpperCase() },
-    { key: 'preco', value: preco, label: preco === 'gratis' ? 'Grátis' : 'Pago' },
+    { key: 'preco', value: preco, label: preco === 'gratis' ? 'Produto final grátis' : 'Produto final pago' },
     { key: 'filter', value: filter, label: filter === 'plr' ? 'Licença PLR' : filter },
     { key: 'data', value: data, label: data },
   ].filter(item => item.value);
@@ -60,7 +61,7 @@ export default async function BuscarPage({
     pageTitle = `Explorando: ${catName}`;
     pageSubtitle = `Encontramos ${count} material(is) nesta categoria.`;
   }
-  if (sort === 'popular') {
+  if (sort === 'popular' && !q && !categoria && !isPlrMarketplace) {
     pageTitle = 'Materiais mais acessados';
     pageSubtitle = 'Uma seleção dos materiais que mais despertam interesse na plataforma.';
   }
@@ -80,36 +81,37 @@ export default async function BuscarPage({
         {/* Cabeçalho de Resultados */}
         <div className="bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-            <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-2 tracking-tight">
+            <h1 className="break-words [overflow-wrap:anywhere] text-2xl md:text-4xl font-black text-slate-900 mb-2 tracking-tight">
               {pageTitle}
             </h1>
             <p className="text-slate-500 font-medium text-sm md:text-base">
               {pageSubtitle}
             </p>
+            <SearchQuery />
           </div>
         </div>
 
         {/* Layout com Sidebar e Grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          <details className="mb-6 rounded-xl border border-slate-200 bg-white p-3"><summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-slate-700 focus-visible:outline-2 focus-visible:outline-blue-600">Explorar datas e campanhas</summary><div className="flex flex-wrap gap-2 pt-2">
             {SCHOOL_CALENDAR_TAGS.map((tag) => <Link key={tag} href={searchHref(query, { data: data === tag ? null : tag })} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold ${data === tag ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</Link>)}
-          </div>
+          </div></details>
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             
             {/* Sidebar Esquerda (Filtros) */}
-            <div className="w-full lg:w-auto">
+            <div className="w-full min-w-0 lg:w-64 lg:shrink-0">
               <SearchSidebar disciplines={disciplines} />
             </div>
 
             {/* Conteúdo Principal (Resultados) */}
-            <div className="flex-1 w-full">
+            <div className="min-w-0 flex-1 w-full">
               {activeFilters.length > 0 && <nav aria-label="Filtros ativos" className="mb-5 flex flex-wrap items-center gap-2">
-                {activeFilters.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-800">{item.label}<span aria-hidden="true">×</span></Link>)}
+                {activeFilters.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex max-w-full min-h-11 items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 focus-visible:outline-2 focus-visible:outline-blue-600"><span className="min-w-0 [overflow-wrap:anywhere]">{item.label}</span><span aria-hidden="true">×</span></Link>)}
                 <Link href="/buscar" className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-blue-700 underline">Limpar tudo</Link>
               </nav>}
               
               {/* Barra de Ordenação */}
-              {count > 0 && (
+              {(
                 <div className="flex flex-wrap items-center justify-between bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm gap-4">
                   <span className="text-sm font-bold text-slate-600">
                     {count} {count === 1 ? 'resultado' : 'resultados'}
@@ -130,7 +132,7 @@ export default async function BuscarPage({
 
                   {/* Paginação */}
                   {totalPages > 1 && (
-                    <div className="mt-12 flex items-center justify-center gap-2">
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
                       {page > 1 && <Link href={searchHref(query, { page: String(page - 1) })} className="px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold">Anterior</Link>}
                       <span className="px-4 py-2 text-sm font-bold text-slate-900">
                         Página {page} de {totalPages}
@@ -147,7 +149,7 @@ export default async function BuscarPage({
                   </div>
                   <h2 className="text-2xl font-black text-slate-900 mb-2">Poxa, não encontramos materiais exatos.</h2>
                   <p className="text-slate-500 max-w-md mx-auto mb-8">
-                    Tente remover alguns filtros ou pesquisar por termos mais amplos (ex: "Alfabetização" em vez de "Alfabetização sílabas complexas pdf").
+                    Tente remover alguns filtros ou pesquisar por termos mais amplos, como alfabetização ou jogos.
                   </p>
                   <Link href={q ? searchHref('', { q }) : '/buscar'} className="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">{q ? 'Buscar este termo sem filtros' : 'Ver todos os materiais'}</Link>
                   <p className="mt-6 mb-3 text-sm text-slate-500">Ou explore outro tema:</p>

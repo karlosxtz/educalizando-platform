@@ -1,179 +1,90 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
-import { useCallback, useState } from 'react';
+import { useId, useRef, useState, useTransition, useEffect } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from '@/lib/category-service';
 import type { Discipline } from '@/lib/discipline-service';
+import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { searchHref } from '@/lib/search-navigation';
 
-const PRECOS = [
-  { id: 'gratis', label: 'Grátis' },
-  { id: 'pago', label: 'Pago' }
-];
-
-const ANOS_ESCOLARES = [
-  { id: 'educacao-infantil', label: 'Educação Infantil' },
-  { id: 'ensino-fundamental-1', label: 'Ensino Fundamental I' },
-  { id: 'ensino-fundamental-2', label: 'Ensino Fundamental II' },
-  { id: 'ensino-medio', label: 'Ensino Médio' }
-];
-
-const FORMATOS = [
-  { id: 'pdf', label: 'PDF' },
-  { id: 'word', label: 'Word' },
-  { id: 'ppt', label: 'Apresentação (PPT)' },
-  { id: 'planilha', label: 'Planilha' }
-];
+const keys = ['categoria', 'ano_escolar', 'preco', 'disciplina', 'formato', 'filter', 'data'];
 
 export default function SearchSidebar({ disciplines = [] }: { disciplines?: Discipline[] }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      
-      // If toggling same value, remove it (checkbox behavior)
-      if (params.get(name) === value) {
-        params.delete(name);
-      } else {
-        params.set(name, value);
-      }
-      
-      // Reset page when filter changes
-      params.delete('page');
-      
-      return params.toString();
-    },
-    [searchParams]
-  );
-
-  const handleFilterClick = (name: string, value: string) => {
-    router.push(`/buscar?${createQueryString(name, value)}`);
+  const params = useSearchParams();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const previousOverflow = useRef('');
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(params.toString());
+  const [pending, startTransition] = useTransition();
+  const count = keys.filter(key => params.has(key)).length;
+  const close = () => dialog.current?.close();
+  useEffect(() => {
+    if (!open) return;
+    previousOverflow.current = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow.current; };
+  }, [open]);
+  const groups = [
+    { key: 'categoria', label: 'Categoria', options: INITIAL_GLOBAL_CATEGORIES.map(c => [c.slug, c.nome]) },
+    { key: 'ano_escolar', label: 'Nível de ensino', options: INITIAL_EDUCATION_LEVELS.map(c => [c.slug, c.nome]) },
+    { key: 'preco', label: 'Preço do produto final', options: [['gratis', 'Grátis'], ['pago', 'Pago']] },
+    { key: 'disciplina', label: 'Disciplina (BNCC)', options: disciplines.map(d => [d.name, d.name]) },
+    { key: 'formato', label: 'Formato', options: [['pdf', 'PDF'], ['word', 'Word'], ['ppt', 'Apresentação (PPT)'], ['planilha', 'Planilha']] },
+    { key: 'filter', label: 'Licença', options: [['plr', 'Com licença PLR para revenda']] },
+    { key: 'data', label: 'Data ou campanha', options: SCHOOL_CALENDAR_TAGS.map(tag => [tag, tag]) },
+  ];
+  const form = (mobile: boolean) => {
+    const values = new URLSearchParams(mobile ? draft : params.toString());
+    return <form key={mobile ? 'mobile' : params.toString()} onSubmit={event => {
+      event.preventDefault();
+      if (pending) return;
+      const data = new FormData(event.currentTarget);
+      const changes = Object.fromEntries(keys.map(key => [key, String(data.get(key) || '') || null]));
+      startTransition(() => router.push(searchHref(params.toString(), changes), { scroll: false }));
+      if (mobile) close();
+    }} className="space-y-4">
+      {groups.map(group => <label key={group.key} className="block text-sm font-semibold text-slate-700">
+        {group.label}
+        <select name={group.key} defaultValue={values.get(group.key) || ''} className="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-base focus-visible:outline-2 focus-visible:outline-blue-600">
+          <option value="">Todas as opções</option>
+          {values.get(group.key) && !group.options.some(([value]) => value === values.get(group.key)) && <option value={values.get(group.key)!}>{values.get(group.key)}</option>}
+          {group.options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
+      </label>)}
+      <p className="text-xs leading-5 text-slate-600">Disciplina considera as habilidades BNCC cadastradas. Em PLR, Grátis/Pago filtra o produto final; a licença possui seu próprio valor.</p>
+      <div className="grid gap-2 pb-2">
+        <button disabled={pending} className="min-h-11 rounded-xl bg-blue-600 px-3 py-3 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60">{pending ? 'Atualizando…' : 'Aplicar filtros'}</button>
+        <button type="button" disabled={pending} onClick={() => {
+          startTransition(() => router.push(searchHref(params.toString(), Object.fromEntries(keys.map(key => [key, null]))), { scroll: false }));
+          if (mobile) close();
+        }} className="min-h-11 rounded-xl border border-slate-300 px-3 py-3 font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-blue-600">Limpar filtros</button>
+      </div>
+    </form>;
   };
 
-  const currentCategoria = searchParams.get('categoria');
-  const currentPreco = searchParams.get('preco');
-  const currentAnoEscolar = searchParams.get('ano_escolar');
-  const currentFormato = searchParams.get('formato');
-
-  return (
-    <aside className="w-full lg:w-64 shrink-0 bg-white border border-slate-200 rounded-2xl shadow-sm h-fit">
-      <button
-        type="button"
-        onClick={() => setMobileFiltersOpen((open) => !open)}
-        className="lg:hidden flex min-h-12 w-full items-center justify-between px-4 text-sm font-black text-slate-900"
-        aria-expanded={mobileFiltersOpen}
-      >
-        <span className="flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-blue-600" /> Filtros do catálogo</span>
-        {mobileFiltersOpen ? <X className="h-4 w-4 text-slate-500" /> : <span className="text-xs text-blue-600">Abrir</span>}
-      </button>
-      <div className={`${mobileFiltersOpen ? 'block' : 'hidden'} lg:block p-5 lg:p-6`}>
-      
-      {/* Categorias */}
-      <div className="mb-8">
-        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Categorias</h3>
-        <div className="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
-          {INITIAL_GLOBAL_CATEGORIES.map(cat => (
-            <label key={cat.slug} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={currentCategoria === cat.slug}
-                onChange={() => handleFilterClick('categoria', cat.slug)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
-              />
-              <span className={`text-sm transition-colors ${currentCategoria === cat.slug ? 'text-blue-700 font-bold' : 'text-slate-600 group-hover:text-slate-900'}`}>
-                {cat.nome}
-              </span>
-            </label>
-          ))}
-        </div>
+  return <aside className="w-full min-w-0 lg:w-64">
+    <button ref={trigger} type="button" aria-disabled={pending} aria-expanded={open} aria-controls={id} onClick={() => {
+      if (pending) return;
+      setDraft(params.toString());
+      dialog.current?.showModal();
+      setOpen(true);
+    }} className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600 lg:hidden">
+      <span className="flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" /> Filtros{count > 0 ? ' (' + count + ')' : ''}</span><span>{pending ? 'Atualizando…' : 'Abrir'}</span>
+    </button>
+    <p role="status" className="sr-only">{pending ? 'Atualizando resultados. Aguarde.' : ''}</p>
+    <div className="hidden rounded-2xl border border-slate-200 bg-white p-5 lg:block"><h2 className="mb-4 text-lg font-bold">Filtrar materiais</h2>{form(false)}</div>
+    <dialog ref={dialog} id={id} aria-labelledby={id + '-title'} onCancel={event => { event.preventDefault(); close(); }} onClose={() => {
+      setOpen(false);
+      trigger.current?.focus();
+    }} onClick={event => { if (event.target === event.currentTarget) close(); }} className="fixed inset-0 m-auto max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-md overflow-y-auto overscroll-contain rounded-2xl bg-white p-0 shadow-xl backdrop:bg-slate-950/50">
+      <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+        <div className="mb-4 flex items-center justify-between gap-2"><h2 id={id + '-title'} className="text-xl font-bold">Filtrar materiais</h2><button type="button" autoFocus onClick={close} aria-label="Fechar filtros" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-blue-600"><X /></button></div>
+        {open && form(true)}
       </div>
-
-      <hr className="border-slate-100 my-6" />
-
-      {/* Preço */}
-      <div className="mb-8">
-        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Preço</h3>
-        <div className="space-y-2">
-          {PRECOS.map(p => (
-            <label key={p.id} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={currentPreco === p.id}
-                onChange={() => handleFilterClick('preco', p.id)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
-              />
-              <span className={`text-sm transition-colors ${currentPreco === p.id ? 'text-blue-700 font-bold' : 'text-slate-600 group-hover:text-slate-900'}`}>
-                {p.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <hr className="border-slate-100 my-6" />
-
-      {/* Ano Escolar */}
-      <div className="mb-8">
-        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Etapa escolar</h3>
-        <div className="space-y-2">
-          {ANOS_ESCOLARES.map(ano => (
-            <label key={ano.id} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={currentAnoEscolar === ano.id}
-                onChange={() => handleFilterClick('ano_escolar', ano.id)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
-              />
-              <span className={`text-sm transition-colors ${currentAnoEscolar === ano.id ? 'text-blue-700 font-bold' : 'text-slate-600 group-hover:text-slate-900'}`}>
-                {ano.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <hr className="border-slate-100 my-6" />
-
-      {/* Formato */}
-      <div className="mb-8">
-        <label htmlFor="search-discipline" className="block text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Disciplina</label>
-        <select id="search-discipline" value={searchParams.get('disciplina') || ''}
-          onChange={(event) => {
-            const params = new URLSearchParams(searchParams.toString());
-            if (event.target.value) params.set('disciplina', event.target.value);
-            else params.delete('disciplina');
-            params.delete('page');
-            router.push(`/buscar?${params.toString()}`);
-          }}
-          className="w-full min-h-11 rounded-xl border border-slate-200 bg-white px-2 text-sm">
-          <option value="">Todas as disciplinas</option>
-          {disciplines.map((discipline) => <option key={discipline.slug} value={discipline.name}>{discipline.name}</option>)}
-        </select>
-        <p className="mt-2 text-xs text-slate-500">Conforme as habilidades BNCC cadastradas pelo autor.</p>
-      </div>
-      <div>
-        <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Formato</h3>
-        <div className="space-y-2">
-          {FORMATOS.map(formato => (
-            <label key={formato.id} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={currentFormato === formato.id}
-                onChange={() => handleFilterClick('formato', formato.id)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
-              />
-              <span className={`text-sm transition-colors ${currentFormato === formato.id ? 'text-blue-700 font-bold' : 'text-slate-600 group-hover:text-slate-900'}`}>
-                {formato.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-      
-      </div>
-    </aside>
-  );
+    </dialog>
+  </aside>;
 }
