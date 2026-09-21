@@ -83,7 +83,11 @@ export async function checkInfinitePayPayment(reference: InfinitePayPaymentRefer
     amountInCents: Number(data.amount || 0),
     paidAmountInCents: Number(data.paid_amount || 0),
     installments: Number(data.installments || 1),
-    captureMethod: String(data.capture_method || '')
+    captureMethod: String(data.capture_method || ''),
+    currency: typeof data.currency === 'string' ? data.currency : undefined,
+    orderNsu: typeof data.order_nsu === 'string' ? data.order_nsu : undefined,
+    transactionNsu: typeof data.transaction_nsu === 'string' ? data.transaction_nsu : undefined,
+    invoiceSlug: typeof (data.invoice_slug || data.slug) === 'string' ? String(data.invoice_slug || data.slug) : undefined,
   };
 }
 

@@ -10,6 +10,7 @@
     "test:financial": "ts-node -P tsconfig.test.json scripts/verify-financial-calculations.ts",
     "test:financial-config": "ts-node -P tsconfig.test.json scripts/verify-financial-configuration.ts",
     "test:checkout-idempotency": "ts-node -P tsconfig.test.json scripts/verify-checkout-idempotency.ts",
+    "test:infinitepay-webhook": "ts-node -P tsconfig.test.json scripts/verify-infinitepay-webhook.ts",
     "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts"
   },
   "dependencies": {

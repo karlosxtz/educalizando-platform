@@ -56,6 +56,7 @@ export interface OrderRecord {
   couponId?: string | null;
   createdAt: string;
   paidAt?: string | null;
+  statusTransitioned?: boolean;
 }
 
 export interface OrderItemInput {
@@ -450,7 +451,8 @@ export async function updateOrderStatus(
   orderId: string, 
   newStatus: OrderStatusType, 
   asaasPaymentId?: string,
-  realAsaasFee?: number
+  realAsaasFee?: number,
+  options: { onlyIfPending?: boolean } = {},
 ): Promise<OrderRecord | null> {
   let order = await getOrderRecordById(orderId);
   if (!order && asaasPaymentId) {
@@ -459,6 +461,9 @@ export async function updateOrderStatus(
   }
 
   if (!order) return null;
+  if (options.onlyIfPending && order.status !== 'pending') {
+    return { ...order, statusTransitioned: false };
+  }
 
   // Uma repetição válida deve conferir novamente os efeitos idempotentes (ledger e acesso).
   // Isso permite reparar automaticamente uma confirmação anterior parcialmente processada.
@@ -491,7 +496,7 @@ export async function updateOrderStatus(
         creator_net_amount: updatedCreatorNet
       })
       .eq('id', order.id)
-      .neq('status', newStatus) // A MÁGICA: Impede que a 2ª thread atualize.
+      .eq('status', options.onlyIfPending ? 'pending' : newStatus === 'paid' ? 'pending' : order.status)
       .select()
       .maybeSingle();
 
@@ -647,6 +652,7 @@ export async function updateOrderStatus(
           return {
             ...order,
             status: newStatus,
+            statusTransitioned,
             paidAt: nowPaidAt,
             asaasFeeAmount: updatedAsaasFee,
             creatorNetAmount: updatedCreatorNet
@@ -764,6 +770,7 @@ export async function updateOrderStatus(
   return {
     ...order,
     status: newStatus,
+    statusTransitioned,
     paidAt: nowPaidAt,
     asaasFeeAmount: updatedAsaasFee,
     creatorNetAmount: updatedCreatorNet
