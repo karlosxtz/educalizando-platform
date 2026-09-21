@@ -2,14 +2,14 @@
 
 import { useSyncExternalStore } from 'react';
 import { Eye } from 'lucide-react';
-import { getRecentViews, RecentProduct } from '@/lib/recent-views';
+import { getRecentViews, RecentProduct, subscribeToRecentViews } from '@/lib/recent-views';
 import ProductCard from './ProductCard';
 
 const EMPTY_RECENT_PRODUCTS: RecentProduct[] = [];
 
 export default function RecentlyViewed() {
   const recentProducts = useSyncExternalStore(
-    () => () => {},
+    subscribeToRecentViews,
     getRecentViews,
     () => EMPTY_RECENT_PRODUCTS,
   );
