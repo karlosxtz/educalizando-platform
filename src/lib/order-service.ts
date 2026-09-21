@@ -4,6 +4,13 @@ import { getLocalOrders, saveLocalOrders } from './sales-service';
 export type PaymentMethodType = 'pix' | 'credit_card' | 'boleto';
 export type OrderStatusType = 'pending' | 'paid' | 'failed' | 'refunded';
 
+export class OrderAlreadyExistsError extends Error {
+  constructor() {
+    super('Já existe um pedido para esta tentativa de checkout.');
+    this.name = 'OrderAlreadyExistsError';
+  }
+}
+
 export interface OrderItemRecord {
   id: string;
   orderId: string;
@@ -302,7 +309,10 @@ export async function createOrderRecord(data: {
         created_at: newOrder.createdAt
       }]);
 
-      if (orderInsertError) throw orderInsertError;
+      if (orderInsertError) {
+        if (orderInsertError.code === '23505') throw new OrderAlreadyExistsError();
+        throw orderInsertError;
+      }
 
       if (formattedItems.length > 0) {
         const itemRows = formattedItems.map(it => ({
@@ -326,6 +336,7 @@ export async function createOrderRecord(data: {
         if (itemInsertError) throw itemInsertError;
       }
     } catch (err) {
+      if (err instanceof OrderAlreadyExistsError) throw err;
       console.error('[createOrderRecord] Erro Supabase:', err);
       throw new Error('Não foi possível registrar o pedido com segurança.');
     }

@@ -1,16 +1,51 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createInfinitePayCheckout, isValidCPF } from '@/lib/infinitepay-service';
-import { createOrderRecord, PaymentMethodType } from '@/lib/order-service';
+import { createOrderRecord, getOrderRecordById, OrderAlreadyExistsError, PaymentMethodType } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { getStorePromotion } from '@/lib/store-promotion';
-import { assertCheckoutFinancialConfiguration, getFinancialConfiguration } from '@/lib/financial-configuration';
+import { assertCheckoutFinancialConfiguration, getConfiguredCryptoSecret, getFinancialConfiguration } from '@/lib/financial-configuration';
+import { checkoutAttemptMatches, createCheckoutOrderId, isValidCheckoutIdempotencyKey, type CheckoutAttempt } from '@/lib/checkout-idempotency';
+
+const CHECKOUT_CONFIGURATION_ERROR = 'O checkout está temporariamente indisponível. Tente novamente em instantes.';
+const CHECKOUT_ATTEMPT_ERROR = 'Não foi possível retomar esta tentativa de compra. Atualize a página e tente novamente.';
+
+function checkoutResponse(order: Awaited<ReturnType<typeof getOrderRecordById>>, reused = false) {
+  if (!order) return null;
+  return NextResponse.json({
+    success: true,
+    reused,
+    orderId: order.id,
+    studentId: order.studentId,
+    status: order.status,
+    paymentProvider: order.paymentProvider,
+    paymentMethod: order.paymentMethod,
+    subtotalAmount: order.subtotalAmount,
+    totalAmount: order.totalAmount,
+    platformFeeAmount: order.platformFeeAmount,
+    creatorNetAmount: order.creatorNetAmount,
+    checkoutUrl: order.checkoutUrl,
+  });
+}
+
+async function loadReservedAttempt(orderId: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const order = await getOrderRecordById(orderId);
+    if (order?.items.length) return order;
+    await new Promise((resolve) => setTimeout(resolve, 75));
+  }
+  return getOrderRecordById(orderId);
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const idempotencyKey = request.headers.get('idempotency-key') || '';
+    if (!isValidCheckoutIdempotencyKey(idempotencyKey)) {
+      return NextResponse.json({ success: false, error: CHECKOUT_ATTEMPT_ERROR }, { status: 400 });
+    }
     try {
       assertCheckoutFinancialConfiguration();
     } catch {
@@ -21,7 +56,7 @@ export async function POST(request: Request) {
         cryptography: configuration.cryptography.state,
       });
       return NextResponse.json(
-        { success: false, error: 'O checkout está temporariamente indisponível. Tente novamente em instantes.' },
+        { success: false, error: CHECKOUT_CONFIGURATION_ERROR },
         { status: 503 },
       );
     }
@@ -360,29 +395,63 @@ export async function POST(request: Request) {
       affiliateCommissionAmount = commissionResult.affiliateCommissionAmount;
     }
 
-    const tempOrderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const attempt: CheckoutAttempt = {
+      studentId,
+      storeId: effectiveStoreId,
+      isPlrPurchase,
+      couponId: appliedCouponId,
+      items: realItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+    };
+    const tempOrderId = createCheckoutOrderId(idempotencyKey, getConfiguredCryptoSecret());
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, '');
 
     // 6. Persistir primeiro o pedido. Assim nunca existe cobrança válida sem um
     // pedido correspondente para o webhook confirmar e liberar os acessos.
-    const orderRecord = await createOrderRecord({
-      id: tempOrderId,
-      studentId,
-      storeId: effectiveStoreId,
-      buyerName: buyerName,
-      buyerEmail,
-      buyerCpf,
-      buyerPhone: buyerPhoneDigits || undefined,
-      paymentMethod: normalizedMethod,
-      items: realItems,
-      asaasFeeAmount: gatewayFeeAmount,
-      paymentProvider: 'infinitepay',
-      isPlrPurchase,
-      affiliateId: affiliateId || undefined,
-      affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined,
-      couponId: appliedCouponId || undefined,
-      platformSettings: platformSettings || undefined
-    });
+    let orderRecord;
+    try {
+      orderRecord = await createOrderRecord({
+        id: tempOrderId,
+        studentId,
+        storeId: effectiveStoreId,
+        buyerName: buyerName,
+        buyerEmail,
+        buyerCpf,
+        buyerPhone: buyerPhoneDigits || undefined,
+        paymentMethod: normalizedMethod,
+        items: realItems,
+        asaasFeeAmount: gatewayFeeAmount,
+        paymentProvider: 'infinitepay',
+        isPlrPurchase,
+        affiliateId: affiliateId || undefined,
+        affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined,
+        couponId: appliedCouponId || undefined,
+        platformSettings: platformSettings || undefined
+      });
+    } catch (error) {
+      if (!(error instanceof OrderAlreadyExistsError)) throw error;
+
+      const existingOrder = await loadReservedAttempt(tempOrderId);
+      if (!existingOrder || !checkoutAttemptMatches({
+        studentId: existingOrder.studentId || '',
+        storeId: existingOrder.storeId,
+        isPlrPurchase: existingOrder.is_plr_purchase === true,
+        couponId: existingOrder.couponId || null,
+        items: existingOrder.items,
+      }, attempt)) {
+        return NextResponse.json({ success: false, error: CHECKOUT_ATTEMPT_ERROR }, { status: 409 });
+      }
+      if (existingOrder.status === 'paid') {
+        return NextResponse.json({ success: false, error: 'Esta compra já foi processada.' }, { status: 409 });
+      }
+      if (existingOrder.status === 'pending' && existingOrder.checkoutUrl) {
+        return checkoutResponse(existingOrder, true)!;
+      }
+      return NextResponse.json({ success: false, error: CHECKOUT_ATTEMPT_ERROR }, { status: 409 });
+    }
 
     if (remarketingBrowserToken) {
       await supabaseAdmin.from('abandoned_cart_reminders')
@@ -435,7 +504,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[API Checkout Error]:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Erro ao processar o checkout.' },
+      { success: false, error: 'Não foi possível processar o checkout com segurança. Tente novamente em instantes.' },
       { status: 500 }
     );
   }

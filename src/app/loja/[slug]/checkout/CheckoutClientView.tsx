@@ -90,6 +90,21 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
   const primaryColor = store.cor_primaria || '#093b6c';
   const checkoutTracked = useRef<string | null>(null);
+  const checkoutAttemptKey = useRef<{ signature: string; key: string } | null>(null);
+
+  const getCheckoutIdempotencyKey = (signature: string) => {
+    const storageKey = `@educalizando:checkout-attempt:${signature}`;
+    if (checkoutAttemptKey.current?.signature === signature) return checkoutAttemptKey.current.key;
+    const existing = localStorage.getItem(storageKey);
+    if (existing && /^[A-Za-z0-9_-]{32,128}$/.test(existing)) {
+      checkoutAttemptKey.current = { signature, key: existing };
+      return existing;
+    }
+    const key = crypto.randomUUID();
+    localStorage.setItem(storageKey, key);
+    checkoutAttemptKey.current = { signature, key };
+    return key;
+  };
 
   useEffect(() => {
     const trackingItems = product
@@ -310,6 +325,19 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
       } catch (e) {}
 
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const idempotencySignature = JSON.stringify({
+        storeId: store.id,
+        studentId: studentSession?.id || '',
+        isPlrPurchase,
+        couponCode: couponResult?.valid ? couponCode : '',
+        kitId: kit?.id || '',
+        items: payload.items.map((item: { productId: string; quantity?: number; unitPrice?: number }) => ({
+          productId: item.productId,
+          quantity: item.quantity || 1,
+          unitPrice: item.unitPrice || 0,
+        })),
+      });
+      headers['Idempotency-Key'] = getCheckoutIdempotencyKey(idempotencySignature);
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
