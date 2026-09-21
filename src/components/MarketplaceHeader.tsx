@@ -75,7 +75,7 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="w-full sticky top-0 z-50 overflow-x-clip bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
+    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
       {cartItemsCount > 0 && (
         <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
           <span aria-hidden="true">🎁</span>
@@ -187,9 +187,9 @@ function MarketplaceHeaderInner() {
           </div>
 
           <div className="xl:hidden">
-            <div className="flex min-h-12 items-center gap-1 overflow-hidden border-b border-slate-100 px-1">
+            <div className="relative flex min-h-12 items-center gap-1 border-b border-slate-100">
               <Link href="/" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-slate-900">Início</Link>
-              <div className="flex min-w-0 flex-[1.8] items-center justify-center overflow-hidden"><CategoryDropdown /></div>
+              <div className="flex shrink-0 items-center justify-center"><CategoryDropdown /></div>
               <Link href="/lojas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-slate-600">Lojas</Link>
               <Link href="/ofertas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-orange-600">Ofertas</Link>
             </div>

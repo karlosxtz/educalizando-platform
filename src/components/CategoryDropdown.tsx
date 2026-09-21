@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 
@@ -29,40 +29,61 @@ const CATEGORIES = [
 
 export default function CategoryDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const panelId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [isOpen]);
 
   return (
     <div 
-      className="relative flex items-center h-full"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      ref={rootRef}
+      className="flex items-center h-full xl:relative"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) setIsOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && isOpen) {
+          event.stopPropagation();
+          setIsOpen(false);
+          buttonRef.current?.focus();
+        }
+      }}
     >
       <button 
         type="button"
-        aria-haspopup="menu"
+        ref={buttonRef}
+        aria-label="Todas as categorias"
         aria-expanded={isOpen}
-        aria-controls="marketplace-category-menu"
-        className="flex max-w-full items-center gap-1 overflow-hidden py-2 text-center text-xs font-bold text-slate-600 transition-colors hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:text-sm"
+        aria-controls={panelId}
+        className="flex min-h-11 items-center gap-1 py-2 text-center text-sm font-bold text-slate-600 transition-colors hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="truncate">Todas as categorias</span>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
+        <span className="xl:hidden">Categorias</span>
+        <span className="hidden xl:inline">Todas as categorias</span>
+        <ChevronDown aria-hidden="true" className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
       </button>
 
       {/* Dropdown Menu */}
-      <div 
-        id="marketplace-category-menu"
-        role="menu"
-        className={`absolute top-full left-1/2 mt-2 w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 bg-white shadow-2xl rounded-xl z-[9999] border border-slate-200 p-2 flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar transition-all duration-200 origin-top-center sm:left-0 sm:w-64 sm:translate-x-0 sm:origin-top-left ${
-          isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
-        }`}
+      <div
+        id={panelId}
+        hidden={!isOpen}
+        className="absolute top-full inset-x-0 mt-1 bg-white shadow-2xl rounded-xl z-[60] border border-slate-200 p-2 max-h-[min(60dvh,24rem)] overflow-y-auto overscroll-contain xl:right-auto xl:w-64"
       >
         <div className="grid grid-cols-1 gap-1">
           {CATEGORIES.map((cat, idx) => (
             <Link
               key={idx}
               href={cat.href}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors w-full text-left flex items-center"
-              onClick={() => setIsOpen(false)}
+              className="min-h-11 px-4 py-2.5 text-sm font-medium text-slate-700 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors w-full text-left flex items-center focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-[-2px]"
+              onClick={() => { setIsOpen(false); buttonRef.current?.focus(); }}
             >
               {cat.name}
             </Link>
