@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart, 
   Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, FolderCheck, PlaySquare, Library, Gift, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
@@ -22,13 +21,19 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeMobileMenu = useCallback((restoreFocus = true) => {
+    setMobileOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => menuButtonRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileOpen(false);
+      if (event.key === 'Escape') closeMobileMenu();
     };
 
     document.body.style.overflow = 'hidden';
@@ -37,7 +42,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [mobileOpen]);
+  }, [mobileOpen, closeMobileMenu]);
 
   const handleLogout = async () => {
     await signOutUser();
@@ -168,38 +173,46 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
     }
   ];
 
+  const NAV_GROUPS = [
+    { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
+    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados', '/dashboard/conteudo'] },
+    { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja'] },
+    { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
+    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },
+    { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
+  ].map((group) => ({ ...group, items: NAV_ITEMS.filter((item) => group.hrefs.includes(item.href)) }));
+
+  const activeItem = NAV_ITEMS.find((item) => pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`))) || NAV_ITEMS[0];
+
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-xs">
-        <Link href="/" className="flex items-center gap-2.5">
-          <img
-            src="/branding/logo-educalizando.png?v=3"
-            alt="Educalizando"
-            className="h-9 w-auto object-contain"
-            style={{ width: 'auto', height: '36px' }}
-          />
-        </Link>
+      <div className="sticky top-0 z-40 flex min-h-16 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2 shadow-xs lg:hidden">
+        <button
+          ref={menuButtonRef}
+          onClick={() => mobileOpen ? closeMobileMenu(false) : setMobileOpen(true)}
+          className="min-h-11 min-w-11 shrink-0 rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+          aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={mobileOpen}
+          aria-controls="creator-mobile-navigation"
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
 
-        <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Painel da loja</p>
+          <p className="truncate text-sm font-black text-slate-900">{activeItem.label}</p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1">
           <Link
             href={`/loja/${storeSlug}`}
             target="_blank"
-            className="p-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+            aria-label="Abrir loja pública em nova guia"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Ver Loja</span>
+            <ExternalLink className="h-4 w-4" />
           </Link>
-
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="min-h-11 min-w-11 p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
-            aria-expanded={mobileOpen}
-            aria-controls="creator-mobile-navigation"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </div>
 
@@ -211,7 +224,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
         id="creator-mobile-navigation"
         aria-label="Menu principal do criador"
       >
-        <div className="min-w-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-5">
+        <div className="min-w-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           
           {/* Top Brand Logo & Active Store Indicator */}
           <div className="flex min-w-0 items-center justify-between gap-2 pt-1">
@@ -236,7 +249,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                 <span className="hidden sm:inline">Loja ativa</span>
               </div>
 
-              <button onClick={() => setMobileOpen(false)} className="lg:hidden min-h-11 min-w-11 text-slate-400 p-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-lg" aria-label="Fechar menu">
+              <button onClick={() => closeMobileMenu()} className="lg:hidden min-h-11 min-w-11 text-slate-400 p-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-lg" aria-label="Fechar menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -254,21 +267,21 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1 pt-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 block mb-2">
-              Menu Principal
-            </span>
-
-            {NAV_ITEMS.map((item) => {
+          <nav className="space-y-5 pt-2" aria-label="Navegação do painel do vendedor">
+            {NAV_GROUPS.map((group) => (
+              <div key={group.label} className="space-y-1">
+                <h2 className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">{group.label}</h2>
+                {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`));
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  onClick={() => closeMobileMenu(false)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex min-h-11 items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                     isActive
                       ? 'bg-slate-100 text-brand-navy font-bold shadow-xs border-l-4 border-brand-navy'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-brand-navy'
@@ -288,7 +301,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                   )}
                 </Link>
               );
-            })}
+                })}
+              </div>
+            ))}
           </nav>
 
           {/* Navigation Links */}
@@ -298,7 +313,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
             <Link
               href={`/loja/${storeSlug}`}
               target="_blank"
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-brand-green bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition-all"
+            className="flex min-h-11 items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-bold text-brand-green transition-all hover:bg-emerald-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
             >
               <div className="flex items-center gap-2.5">
                 <ExternalLink className="w-4 h-4 text-brand-green" />
@@ -323,8 +338,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
           <button
             onClick={handleLogout}
-            className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-transparent hover:border-rose-200 transition-all flex-shrink-0"
+            className="min-h-11 min-w-11 rounded-lg border border-transparent p-2 text-rose-600 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600"
             title="Encerrar Sessão"
+            aria-label="Encerrar sessão"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -334,7 +350,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       {/* Overlay Backdrop for Mobile Drawer */}
       {mobileOpen && (
         <div
-          onClick={() => setMobileOpen(false)}
+          onClick={() => closeMobileMenu()}
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
           aria-hidden="true"
         />
