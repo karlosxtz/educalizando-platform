@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, CreditCard,
-  Check, AlertCircle, Loader2, Sparkles, Zap, Ticket, Tag, CheckCircle2,
-  LogIn, UserPlus, UserCheck, CheckCircle, Gift
+  AlertCircle, Loader2, Ticket, CheckCircle2,
+  LogIn, UserPlus, UserCheck, Gift, PackageOpen
 } from 'lucide-react';
 import { Store, Product, Kit, CouponValidationResult } from '@/lib/types';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -55,6 +55,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const orderBump = product?.order_bump_product && product.order_bump_product.status === 'publicado' ? product.order_bump_product : null;
   const orderBumpPrice = Number(orderBump?.preco || 0);
   const payableTotal = finalPrice + (includeOrderBump ? orderBumpPrice : 0);
+  const hasValidCheckout = isDirectPurchase || cartItems.length > 0;
 
   useEffect(() => {
     const newBasePrice = product
@@ -348,12 +349,12 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
       {/* Security Header Bar */}
       <div className="bg-slate-900 text-white py-2 px-4 text-center text-xs font-medium flex items-center justify-center gap-2">
         <ShieldCheck className="w-4 h-4 text-emerald-400" />
-        <span>Checkout Seguro Educalizando • Ambiente Criptografado 256-bit SSL</span>
+        <span>Checkout seguro da Educalizando</span>
       </div>
 
       {/* Main Top Header */}
       <header className="bg-white border-b border-slate-200 py-4 px-4 sm:px-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex min-w-0 items-center justify-between gap-4">
           {product ? (
             <Link
               href={`/loja/${store.slug}/produto/${product.slug || product.id}`}
@@ -380,18 +381,33 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
             </Link>
           )}
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             {store.logo_url ? (
-              <img src={store.logo_url} alt={store.nome_loja} className="h-8 max-w-[140px] object-contain" />
+              <img src={store.logo_url} alt={store.nome_loja} className="h-8 max-w-[120px] object-contain sm:max-w-[140px]" />
             ) : (
-              <span className="font-black text-sm text-slate-900 tracking-tight">{store.nome_loja}</span>
+              <span className="max-w-[130px] truncate font-black text-sm text-slate-900 tracking-tight sm:max-w-none">{store.nome_loja}</span>
             )}
           </div>
         </div>
       </header>
 
       {/* Checkout Main Layout */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 sm:py-8 lg:pb-8">
+        <div className="mb-6 max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Checkout da loja</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Finalize seu pedido</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">Revise os itens e informe seus dados antes de seguir para o pagamento.</p>
+        </div>
+        {!hasValidCheckout ? (
+          <section className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8" aria-labelledby="empty-checkout-title">
+            <PackageOpen className="mx-auto h-10 w-10 text-slate-400" aria-hidden="true" />
+            <h2 id="empty-checkout-title" className="mt-4 text-xl font-black text-slate-950">Seu carrinho está vazio</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">Adicione um material desta loja ao carrinho para continuar.</p>
+            <Link href={`/loja/${store.slug}`} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-navy px-5 py-3 text-sm font-black text-white transition-colors hover:bg-brand-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-navy">
+              Voltar para a loja
+            </Link>
+          </section>
+        ) : (
         <form onSubmit={handleSubmitCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Buyer & Payment Info (8 Cols) */}
@@ -404,15 +420,20 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                   1
                 </span>
                 <div>
-                  <h2 className="text-base font-black text-slate-900">Seus Dados de Entrega</h2>
+                  <h2 className="text-base font-black text-slate-900">Dados do comprador</h2>
                   <p className="text-xs text-slate-500 font-medium">
-                    O material digital será liberado instantaneamente para este e-mail.
+                    Usaremos estas informações para identificar seu pedido.
                   </p>
                 </div>
               </div>
 
               {/* Status de Login ou Opções Rápidas */}
-              {hasRoleMismatch ? (
+              {isStudentLoggedIn === null ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs font-semibold text-sky-900" role="status" aria-live="polite">
+                  <Loader2 className="h-5 w-5 shrink-0 animate-spin text-sky-700" aria-hidden="true" />
+                  <span>Verificando sua sessão para preparar o checkout.</span>
+                </div>
+              ) : hasRoleMismatch ? (
                 <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 sm:p-5 rounded-2xl space-y-3 shadow-xs">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -474,11 +495,13 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                  <label htmlFor="buyer-name" className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                     Nome Completo *
                   </label>
                   <input
+                    id="buyer-name"
                     type="text"
+                    autoComplete="name"
                     required
                     value={buyerName}
                     onChange={(e) => setBuyerName(e.target.value)}
@@ -488,11 +511,13 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                  <label htmlFor="buyer-email" className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                     E-mail Principal (para receber o acesso) *
                   </label>
                   <input
+                    id="buyer-email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={buyerEmail}
                     onChange={(e) => setBuyerEmail(e.target.value)}
@@ -503,11 +528,13 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    <label htmlFor="buyer-cpf" className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       CPF (obrigatório para nota) *
                     </label>
                     <input
+                      id="buyer-cpf"
                       type="text"
+                      autoComplete="off"
                       required
                       value={buyerCpf}
                       onChange={(e) => setBuyerCpf(formatCPF(e.target.value))}
@@ -519,11 +546,13 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    <label htmlFor="buyer-phone" className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Celular / WhatsApp
                     </label>
                     <input
+                      id="buyer-phone"
                       type="tel"
+                      autoComplete="tel"
                       value={buyerPhone}
                       onChange={(e) => setBuyerPhone(formatPhone(e.target.value))}
                       placeholder="(00) 90000-0000"
@@ -532,8 +561,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                     />
                   </div>
                 </div>
-                <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-                  <input type="checkbox" checked={remarketingConsent} onChange={(event) => setRemarketingConsent(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <label htmlFor="remarketing-consent" className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+                  <input id="remarketing-consent" type="checkbox" checked={remarketingConsent} onChange={(event) => setRemarketingConsent(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
                   <span>Quero receber no WhatsApp da <strong>Educalizando</strong> um lembrete único sobre este carrinho caso eu não conclua a compra. Posso cancelar a qualquer momento respondendo SAIR.</span>
                 </label>
               </div>
@@ -563,7 +592,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
               {/* Error Message Notice */}
               {errorMessage && !hasRoleMismatch && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 sm:p-5 rounded-2xl text-xs font-semibold space-y-3">
+                <div id="checkout-error" role="alert" aria-live="assertive" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 sm:p-5 rounded-2xl text-xs font-semibold space-y-3">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />
                     <span className="leading-snug">{errorMessage}</span>
@@ -614,8 +643,9 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
               {/* Main Submit Button */}
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-sm shadow-xl shadow-brand-navy/20 flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
+                disabled={submitting || isStudentLoggedIn === null}
+                aria-busy={submitting}
+                className="min-h-12 w-full rounded-2xl bg-brand-navy px-4 py-4 text-sm font-black text-white shadow-xl shadow-brand-navy/20 transition-all hover:bg-brand-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-navy disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -647,7 +677,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
           </div>
 
           {/* Right Column: Order Summary Card (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="order-first space-y-6 lg:order-none lg:col-span-5">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-sm">
               <div className="flex items-center gap-2 text-xs font-extrabold">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
@@ -664,17 +694,24 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
               {/* Product Preview */}
               {isDirectPurchase ? (
                 <div className="flex items-start gap-4">
-                  <img
-                    src={directImage || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
-                    alt={directTitle}
-                    className="w-16 h-20 object-cover rounded-2xl border border-slate-200 shadow-2xs flex-shrink-0"
-                  />
+                  {directImage ? (
+                    <img src={directImage} alt={directTitle} className="h-20 w-16 shrink-0 rounded-2xl border border-slate-200 object-cover shadow-2xs" />
+                  ) : (
+                    <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-slate-400" aria-hidden="true">
+                      <PackageOpen className="h-6 w-6" />
+                    </div>
+                  )}
                   <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
-                      {directType}
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
-                      {isPlrPurchase ? `${directTitle} (Licença PLR)` : directTitle}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-blue-700">
+                        {directType}
+                      </span>
+                      <span className={`rounded-md border px-2 py-0.5 text-[10px] font-extrabold uppercase ${isPlrPurchase ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+                        {isPlrPurchase ? 'Licença PLR' : 'Uso próprio'}
+                      </span>
+                    </div>
+                    <h4 title={directTitle} className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
+                      {directTitle}
                     </h4>
                     <p className="text-[11px] text-slate-500">Vendido por {store.nome_loja}</p>
                   </div>
@@ -683,21 +720,21 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                 <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-4">
-                      <img
-                        src={item.imageUrl || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300&auto=format&fit=crop&q=80'}
-                        alt={item.title}
-                        className="w-12 h-16 object-cover rounded-xl border border-slate-200 shadow-2xs flex-shrink-0"
-                      />
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.title} className="h-16 w-12 shrink-0 rounded-xl border border-slate-200 object-cover shadow-2xs" />
+                      ) : (
+                        <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-400" aria-hidden="true">
+                          <PackageOpen className="h-5 w-5" />
+                        </div>
+                      )}
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                             {item.type}
                           </span>
-                          {item.isPlr && (
-                            <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded uppercase">PLR</span>
-                          )}
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${item.isPlr ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'}`}>{item.isPlr ? 'Licença PLR' : 'Uso próprio'}</span>
                         </div>
-                        <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
+                        <h4 title={item.title} className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">
                           {item.title}
                         </h4>
                         <div className="flex items-center justify-between mt-1">
@@ -726,13 +763,15 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
 
               {/* Cupom de Desconto Form */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <label htmlFor="coupon-code" className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <Ticket className="w-4 h-4 text-brand-teal" />
                   <span>Possui um cupom de desconto?</span>
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="coupon-code"
                     type="text"
+                    autoComplete="off"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="CÓDIGO DO CUPOM"
@@ -784,30 +823,14 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
               </div>
 
               {/* Guarantee Disclaimer */}
-              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3 text-center">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 text-center">
                 <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                  <span>Garantia de Satisfação Educalizando</span>
+                  <span>Informações do pagamento</span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                  Ambiente seguro e monitorado 24/7. Após a confirmação do pagamento, seu acesso ao material será liberado imediatamente.
+                  O pagamento é concluído no ambiente do provedor. O acesso ao material é liberado após a confirmação do pagamento.
                 </p>
-                <div className="flex flex-wrap justify-center gap-3 pt-3 border-t border-slate-200/60">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Compra Segura
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Privacidade Protegida
-                  </div>
-                </div>
-              </div>
-
-              {/* Trust Badges */}
-              <div className="flex justify-center gap-4 opacity-60 grayscale pt-2">
-                <img src="https://logodownload.org/wp-content/uploads/2014/07/mastercard-logo.png" alt="Mastercard" className="h-4 object-contain" />
-                <img src="https://logodownload.org/wp-content/uploads/2016/10/visa-logo.png" alt="Visa" className="h-4 object-contain" />
-                <img src="https://logodownload.org/wp-content/uploads/2020/02/pix-logo-1.png" alt="Pix" className="h-4 object-contain" />
-                <img src="https://logodownload.org/wp-content/uploads/2019/09/boleto-logo.png" alt="Boleto" className="h-4 object-contain" />
               </div>
 
             </div>
@@ -823,14 +846,16 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
               </div>
               <button
                 type="submit"
-                disabled={submitting || (!isDirectPurchase && cartItems.length === 0)}
-                className="min-h-11 rounded-xl bg-brand-navy px-4 py-3 text-xs font-black text-white shadow-lg shadow-brand-navy/20 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={submitting || isStudentLoggedIn === null}
+                aria-busy={submitting}
+                className="min-h-11 rounded-xl bg-brand-navy px-4 py-3 text-xs font-black text-white shadow-lg shadow-brand-navy/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-navy disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Abrindo pagamento...' : 'Ir para pagar'}
               </button>
             </div>
           </div>
         </form>
+        )}
       </main>
     </div>
   );
