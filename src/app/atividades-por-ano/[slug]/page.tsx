@@ -91,7 +91,7 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4 max-w-[1200px]">
             {result.data.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
                 {result.data.map((product) => <ProductCard key={product.id} product={product} />)}
               </div>
             ) : (

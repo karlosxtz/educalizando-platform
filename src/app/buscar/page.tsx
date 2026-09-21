@@ -124,7 +124,7 @@ export default async function BuscarPage({
               {/* Grid de Produtos */}
               {count > 0 ? (
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
+                  <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 xl:grid-cols-3">
                     {products.map(product => (
                       <ProductCard key={product.id} product={product} purchaseMode={isPlrMarketplace ? 'plr' : 'standard'} />
                     ))}

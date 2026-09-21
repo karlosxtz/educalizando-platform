@@ -31,7 +31,7 @@ export default async function OffersPage() {
         <h1 className="flex items-center gap-3 text-3xl font-black tracking-tight sm:text-5xl"><BadgePercent className="h-9 w-9 sm:h-12 sm:w-12" /> Oferta em Destaque</h1>
         <p className="mt-3 max-w-2xl text-sm font-medium text-white/90 sm:text-base">Materiais com preço original e valor promocional definidos diretamente pelos criadores. A seleção prioriza temas relevantes do calendário escolar.</p>
       </section>
-      {products.length ? <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center"><BadgePercent className="mx-auto mb-4 h-10 w-10 text-slate-300" /><h2 className="text-lg font-black">Ainda não há ofertas em destaque</h2><p className="mt-2 text-sm text-slate-500">Quando um criador cadastrar um preço original maior que o preço de venda, o material aparecerá aqui.</p></div>}
+      {products.length ? <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center"><BadgePercent className="mx-auto mb-4 h-10 w-10 text-slate-300" /><h2 className="text-lg font-black">Ainda não há ofertas em destaque</h2><p className="mt-2 text-sm text-slate-500">Quando um criador cadastrar um preço original maior que o preço de venda, o material aparecerá aqui.</p></div>}
     </main><Footer />
   </div>;
 }

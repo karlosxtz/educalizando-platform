@@ -83,7 +83,7 @@ export default async function Home() {
 
         <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="home-destaques">
           <div className="mb-5 flex items-end justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Para começar</p><h2 id="home-destaques" className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Em destaque</h2></div><Link href="/buscar?sort=popular" className="text-sm font-bold text-blue-700">Ver todos</Link></div>
-          {produtosEmAlta.length > 0 ? <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">{produtosEmAlta.slice(0, 4).map((produto) => <ProductCard key={produto.id} product={produto} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">Nenhum material publicado ainda.</div>}
+          {produtosEmAlta.length > 0 ? <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">{produtosEmAlta.slice(0, 4).map((produto) => <ProductCard key={produto.id} product={produto} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">Nenhum material publicado ainda.</div>}
         </section>
         
         {/* HERO BANNER CAROUSEL */}
@@ -138,7 +138,7 @@ export default async function Home() {
                 </div>
                 <Link href="/ofertas" className="text-sm font-bold text-orange-700 hover:text-orange-900">Ver todas as ofertas →</Link>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
                 {featuredOffers.slice(0, 4).map((produto) => <ProductCard key={produto.id} product={produto} />)}
               </div>
             </div>
@@ -163,7 +163,7 @@ export default async function Home() {
               <p className="text-slate-500 font-medium">Nenhum material publicado ainda.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
               {produtosEmAlta.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -202,7 +202,7 @@ export default async function Home() {
               <p className="text-slate-500 font-medium">Nenhum material sazonal no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
               {produtosSazonais.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -223,7 +223,7 @@ export default async function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
               {produtosGratuitos.map(produto => (
                 <ProductCard key={produto.id} product={produto} />
               ))}
@@ -244,7 +244,7 @@ export default async function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
               {produtosPLR.map(produto => (
                 <ProductCard key={produto.id} product={produto} purchaseMode="plr" />
               ))}

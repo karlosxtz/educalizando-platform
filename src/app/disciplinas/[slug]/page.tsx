@@ -77,7 +77,7 @@ export default async function DisciplinePage({ params }: DisciplinePageProps) {
         <section className="py-8 sm:py-12">
           <div className="container mx-auto max-w-[1200px] px-4">
             {result.data.length ? (
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
                 {result.data.map((product) => <ProductCard key={product.id} product={product} />)}
               </div>
             ) : (

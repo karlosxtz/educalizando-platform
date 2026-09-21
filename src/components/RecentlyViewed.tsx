@@ -1,20 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Eye, ChevronRight } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { Eye } from 'lucide-react';
 import { getRecentViews, RecentProduct } from '@/lib/recent-views';
 import ProductCard from './ProductCard';
 
+const EMPTY_RECENT_PRODUCTS: RecentProduct[] = [];
+
 export default function RecentlyViewed() {
-  const [recentProducts, setRecentProducts] = useState<RecentProduct[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const recentProducts = useSyncExternalStore(
+    () => () => {},
+    getRecentViews,
+    () => EMPTY_RECENT_PRODUCTS,
+  );
 
-  useEffect(() => {
-    setRecentProducts(getRecentViews());
-    setMounted(true);
-  }, []);
-
-  if (!mounted || recentProducts.length === 0) {
+  if (recentProducts.length === 0) {
     return null;
   }
 
@@ -27,7 +27,7 @@ export default function RecentlyViewed() {
         </h2>
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         {recentProducts.map(produto => (
           <ProductCard key={produto.id} product={produto} />
         ))}

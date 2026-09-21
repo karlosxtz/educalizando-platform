@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Rocket, Gift, Store as StoreIcon, ShoppingBag, Zap, Star, Sparkles, GraduationCap, FileText, Video, Layers, HelpCircle, Timer } from 'lucide-react';
-import { Product, Store } from '@/lib/types';
+import { BookOpen, FileText, Gift, GraduationCap, Rocket, ShoppingBag, Store as StoreIcon, Tag, Zap } from 'lucide-react';
+import type { Product, Store } from '@/lib/types';
 import { useCart } from '@/components/store/CartContext';
 
 interface ProductCardProps {
@@ -12,240 +12,71 @@ interface ProductCardProps {
   purchaseMode?: 'standard' | 'plr';
 }
 
+const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const materialLabel = (tipo: Product['tipo']) => tipo.toUpperCase();
+
 export default function ProductCard({ product, purchaseMode = 'standard' }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const [imageError, setImageError] = useState(false);
-
-  const itemTitle = product.titulo || 'Material Didático';
+  const itemTitle = product.titulo || 'Material didático';
   const itemCover = product.capa_url || null;
-  const storeName = product.store?.nome_loja || 'Loja Parceira';
+  const storeName = product.store?.nome_loja || 'Loja parceira';
   const isPlrMode = purchaseMode === 'plr' && product.is_plr === true;
   const standardPrice = Number(product.preco || 0);
   const originalPrice = Number(product.preco_original || 0);
   const plrPrice = Number(product.preco_plr || 0);
   const purchasePrice = isPlrMode ? plrPrice : standardPrice;
   const isFree = !isPlrMode && (product.is_free || standardPrice === 0);
-  const hasFeaturedOffer = !isPlrMode && !isFree && originalPrice > standardPrice;
-  const featuredSessionDuration = useMemo(() => {
-    const sum = product.id.split('').reduce((total, character) => total + character.charCodeAt(0), 0);
-    return 10 + (sum % 11);
-  }, [product.id]);
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!hasFeaturedOffer) return;
-    const key = `educalizando:featured-offer:${product.id}`;
-    const now = Date.now();
-    const savedExpiry = Number(window.sessionStorage.getItem(key) || 0);
-    const expiry = savedExpiry > now ? savedExpiry : now + featuredSessionDuration * 60_000;
-    if (savedExpiry <= now) window.sessionStorage.setItem(key, String(expiry));
-    const update = () => {
-      const seconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
-      if (seconds === 0) {
-        const refreshedExpiry = Date.now() + featuredSessionDuration * 60_000;
-        window.sessionStorage.setItem(key, String(refreshedExpiry));
-        setRemainingSeconds(featuredSessionDuration * 60);
-        return;
-      }
-      setRemainingSeconds(seconds);
-    };
-    update();
-    const interval = window.setInterval(update, 1000);
-    return () => window.clearInterval(interval);
-  }, [featuredSessionDuration, hasFeaturedOffer, product.id]);
-
-  const featuredTime = remainingSeconds === null ? null : `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`;
-  
-  // Format price
-  let priceDisplay = 'Grátis';
-  if (!isFree) {
-    priceDisplay = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(purchasePrice);
-  }
-
-  const getTipoIcon = (tipo: string) => {
-    switch (tipo) {
-      case 'pdf': return <FileText className="w-3 h-3" />;
-      case 'ebook': return <BookOpen className="w-3 h-3" />;
-      case 'video': return <Video className="w-3 h-3" />;
-      case 'curso': return <Layers className="w-3 h-3" />;
-      case 'simulado': return <HelpCircle className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
-    }
-  };
-
+  const hasDiscount = !isPlrMode && !isFree && originalPrice > standardPrice;
+  const discountPercent = hasDiscount ? Math.round((1 - standardPrice / originalPrice) * 100) : 0;
   const storeSlug = product.store?.slug || product.store_id;
-  // Target link
   const productLink = `/produto/${product.slug || product.id}${isPlrMode ? '?licenca=plr' : ''}`;
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAdd = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (isFree) {
       router.push(productLink);
       return;
     }
-    addToCart({
-      productId: product.id,
-      title: product.titulo,
-      price: purchasePrice,
-      isPlr: isPlrMode,
-      storeId: product.store_id,
-      type: product.tipo,
-      imageUrl: product.capa_url || undefined,
-      quantity: 1
-    });
+    addToCart({ productId: product.id, title: product.titulo, price: purchasePrice, isPlr: isPlrMode, storeId: product.store_id, type: product.tipo, imageUrl: product.capa_url || undefined, quantity: 1 });
   };
-
-  const handleBuy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // O resgate do brinde é confirmado na página do material, com sessão e
-    // produto validados pelo servidor. Não enviar preço zero ao checkout pago.
+  const handleBuy = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (isFree) {
       router.push(productLink);
       return;
     }
-    addToCart({
-      productId: product.id,
-      title: product.titulo,
-      price: purchasePrice,
-      isPlr: isPlrMode,
-      storeId: product.store_id,
-      type: product.tipo,
-      imageUrl: product.capa_url || undefined,
-      quantity: 1
-    });
+    addToCart({ productId: product.id, title: product.titulo, price: purchasePrice, isPlr: isPlrMode, storeId: product.store_id, type: product.tipo, imageUrl: product.capa_url || undefined, quantity: 1 });
     const checkoutParams = new URLSearchParams({ produtoId: product.id });
     if (isPlrMode) checkoutParams.set('licenca', 'plr');
     router.push(`/loja/${storeSlug}/checkout?${checkoutParams.toString()}`);
   };
 
-  return (
-    <div className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-100 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
-      {/* Imagem (Capa) */}
-      <Link href={productLink} className="aspect-square w-full bg-slate-100 relative overflow-hidden block">
-        {itemCover && !imageError ? (
-          <img 
-            src={itemCover} 
-            alt={itemTitle} 
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" 
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
-            <BookOpen className="w-12 h-12" />
-          </div>
-        )}
-        {/* Badge PLR ou Grátis */}
-        {isPlrMode && (
-          <div className="absolute left-2 top-2 bg-purple-600 text-white text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
-            <Rocket className="w-3 h-3" /> Licença PLR
-          </div>
-        )}
-        {!product.is_plr && isFree && (
-          <div className="absolute left-2 top-2 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase shadow-md flex items-center gap-1">
-            <Gift className="w-3 h-3" /> Grátis
-          </div>
-        )}
-        {hasFeaturedOffer && (
-          <div className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-orange-500 to-rose-500 px-2 py-1 text-[9px] font-black text-white shadow-md sm:text-[10px]">
-            Oferta em destaque
-          </div>
-        )}
-      </Link>
-
-      {/* Corpo do Card */}
-      <div className="p-2.5 sm:p-5 flex flex-col flex-1">
-        <Link href={productLink} className="block flex-1">
-          <h3 title={itemTitle} className="font-bold text-slate-900 text-[12px] sm:text-base line-clamp-2 min-h-[2.75em] break-words leading-snug group-hover:text-blue-600 transition-colors mb-1.5 sm:mb-2">
-            {itemTitle}
-          </h3>
-          
-          {/* Quick Decision Badges */}
-          <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-3">
-            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-extrabold flex items-center gap-1 uppercase tracking-wide">
-              {getTipoIcon(product.tipo)} {product.tipo}
-            </span>
-            {product.education_level?.nome && (
-              <span className="hidden sm:flex bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide truncate max-w-[100px]">
-                <GraduationCap className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{product.education_level.nome}</span>
-              </span>
-            )}
-            {product.average_rating ? (
-              <span className="hidden sm:flex bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-500" /> {product.average_rating}
-              </span>
-            ) : (
-              <span className="hidden sm:flex bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide">
-                <Sparkles className="w-3 h-3" /> Novo
-              </span>
-            )}
-            {product.is_plr && !isPlrMode && (
-              <span className="hidden sm:flex bg-purple-50 text-purple-700 border border-purple-100 px-1.5 py-0.5 rounded text-[9px] font-extrabold items-center gap-1 uppercase tracking-wide">
-                <Rocket className="w-3 h-3" /> PLR disponível
-              </span>
-            )}
-          </div>
-
-          <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wide sm:tracking-wider flex items-center gap-1 mb-2 sm:mb-4">
-            <StoreIcon className="w-3.5 h-3.5" />
-            <span className="truncate">{storeName}</span>
-          </p>
-        </Link>
-
-        {/* Preço e Botão */}
-        <div className="mt-auto pt-2 sm:pt-4 border-t border-slate-100 flex flex-col gap-2 sm:gap-3">
-          {isPlrMode ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">Produto final</span>
-                <span className="text-sm font-black text-slate-700">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(standardPrice)}
-                </span>
-              </div>
-              <div className="border-l border-purple-100 pl-3">
-                <span className="block text-[10px] font-bold uppercase tracking-wide text-purple-600">Licença PLR</span>
-                <span className="text-lg font-black text-purple-700">{priceDisplay}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-end justify-between gap-2">
-              <div>
-                {hasFeaturedOffer && <span className="mb-0.5 block text-[10px] font-bold text-slate-400 line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPrice)}</span>}
-                <span className={`text-base sm:text-lg font-black ${isFree ? 'text-emerald-600' : hasFeaturedOffer ? 'text-rose-600' : 'text-slate-900'}`}>
-                  {priceDisplay}
-                </span>
-              </div>
-              {hasFeaturedOffer && featuredTime && (
-                <span title="Tempo de rotação desta oferta na vitrine" className="mb-0.5 inline-flex items-center gap-1 rounded-md bg-orange-50 px-1.5 py-1 text-[9px] font-black text-orange-700 ring-1 ring-orange-100">
-                  <Timer className="h-3 w-3" /> {featuredTime}
-                </span>
-              )}
-            </div>
-          )}
-          <div className="flex gap-1.5 sm:gap-2">
-            <button 
-              onClick={handleAdd}
-              className="flex-1 min-h-9 bg-slate-100 text-slate-700 p-2 rounded-lg sm:rounded-xl text-xs font-bold shadow-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
-              title={isFree ? 'Ver material gratuito' : 'Adicionar ao carrinho'}
-              aria-label={isFree ? `Ver material gratuito: ${itemTitle}` : `Adicionar ao carrinho: ${itemTitle}`}
-            >
-              <ShoppingBag className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={handleBuy}
-              aria-label={isFree ? `Resgatar material: ${itemTitle}` : `Comprar ${isPlrMode ? 'licença PLR de ' : ''}${itemTitle}`}
-              className="flex-[2] min-h-9 bg-blue-600 text-white px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 active:scale-95"
-            >
-              {isFree ? <Gift className="w-4 h-4" /> : <Zap className="w-4 h-4 fill-transparent" />}
-              {isFree ? 'Resgatar' : 'Comprar'}
-            </button>
-          </div>
-        </div>
+  return <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <Link href={productLink} aria-label={`Abrir detalhes de ${itemTitle}`} className="relative block aspect-square w-full overflow-hidden bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600">
+      {itemCover && !imageError ? <img src={itemCover} alt={`Capa do material: ${itemTitle}`} width={600} height={600} loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" onError={() => setImageError(true)} /> : <div role="img" aria-label={`Material sem capa: ${itemTitle}`} className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400"><BookOpen aria-hidden="true" className="h-12 w-12" /></div>}
+      <div className="absolute left-2 top-2 flex max-w-[calc(100%-1rem)] flex-wrap gap-1.5">
+        {isPlrMode && <span className="inline-flex items-center gap-1 rounded-full bg-violet-700 px-2 py-1 text-[11px] font-bold text-white shadow-sm"><Rocket aria-hidden="true" className="h-3 w-3" />Licença PLR</span>}
+        {!isPlrMode && isFree && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white shadow-sm"><Gift aria-hidden="true" className="h-3 w-3" />Grátis</span>}
+        {hasDiscount && <span className="inline-flex items-center gap-1 rounded-full bg-orange-600 px-2 py-1 text-[11px] font-bold text-white shadow-sm"><Tag aria-hidden="true" className="h-3 w-3" />Oferta{discountPercent > 0 ? ` · ${discountPercent}%` : ''}</span>}
+      </div>
+    </Link>
+    <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-4">
+      <Link href={productLink} className="min-w-0 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><h3 title={itemTitle} className="min-h-[2.65em] break-words text-sm font-bold leading-snug text-slate-900 line-clamp-2 transition-colors group-hover:text-blue-700 sm:text-base">{itemTitle}</h3></Link>
+      <div className="mt-2 flex min-h-6 flex-wrap gap-1.5">
+        <span className="inline-flex min-h-6 max-w-full items-center gap-1 rounded-md bg-slate-100 px-2 text-[11px] font-semibold text-slate-700"><FileText aria-hidden="true" className="h-3 w-3 shrink-0" />{materialLabel(product.tipo)}</span>
+        {product.category?.nome && <span className="max-w-full truncate rounded-md bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800" title={product.category.nome}>{product.category.nome}</span>}
+        {product.education_level?.nome && <span className="inline-flex max-w-full items-center gap-1 truncate rounded-md bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-800" title={product.education_level.nome}><GraduationCap aria-hidden="true" className="h-3 w-3 shrink-0" /><span className="truncate">{product.education_level.nome}</span></span>}
+        {!isPlrMode && product.is_plr && <span className="inline-flex min-h-6 items-center gap-1 rounded-md bg-violet-50 px-2 text-[11px] font-semibold text-violet-800"><Rocket aria-hidden="true" className="h-3 w-3" />PLR disponível</span>}
+      </div>
+      <p className="mt-3 flex min-w-0 items-center gap-1 text-xs font-medium text-slate-600"><StoreIcon aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{storeName}</span></p>
+      <div className="mt-3 border-t border-slate-100 pt-3">{isPlrMode ? <div className="space-y-1"><p className="text-xs text-slate-600">Produto final: <span className="font-semibold text-slate-800">{currency.format(standardPrice)}</span></p><p className="text-sm font-bold text-violet-800">Licença PLR: {currency.format(plrPrice)}</p></div> : <div>{hasDiscount && <p className="text-xs font-medium text-slate-500 line-through">{currency.format(originalPrice)}</p>}<p className={`text-lg font-black ${isFree ? 'text-emerald-700' : hasDiscount ? 'text-orange-700' : 'text-slate-900'}`}>{isFree ? 'Grátis' : currency.format(standardPrice)}</p></div>}</div>
+      <div className="mt-3 grid grid-cols-[48px_minmax(0,1fr)] gap-2">
+        <button onClick={handleAdd} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" title={isFree ? 'Ver material gratuito' : 'Adicionar ao carrinho'} aria-label={isFree ? `Ver material gratuito: ${itemTitle}` : `Adicionar ao carrinho: ${itemTitle}`}><ShoppingBag aria-hidden="true" className="h-4 w-4" /></button>
+        <button onClick={handleBuy} aria-label={isFree ? `Resgatar material: ${itemTitle}` : `Comprar ${isPlrMode ? 'licença PLR de ' : ''}${itemTitle}`} className="inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-xl bg-blue-700 px-3 text-xs font-bold text-white transition-colors hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">{isFree ? <Gift aria-hidden="true" className="h-4 w-4" /> : <Zap aria-hidden="true" className="h-4 w-4" />}<span className="truncate">{isFree ? 'Resgatar' : isPlrMode ? 'Comprar PLR' : 'Comprar'}</span></button>
       </div>
     </div>
-  );
+  </article>;
 }
