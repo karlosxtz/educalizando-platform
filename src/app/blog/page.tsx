@@ -26,7 +26,7 @@ export default async function BlogPage() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
                 <article key={post.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  {post.cover_url && <img src={post.cover_url} alt="" className="h-44 w-full object-cover" />}
+                  {post.cover_url && <img src={post.cover_url} alt={`Capa do guia: ${post.title}`} width={640} height={352} loading="lazy" decoding="async" className="h-44 w-full object-cover" />}
                   <div className="p-5"><p className="text-xs font-bold text-blue-600">Guia Educalizando</p><h2 className="mt-2 text-xl font-black text-slate-900">{post.title}</h2><p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{post.excerpt}</p><Link href={`/blog/${post.slug}`} className="mt-5 inline-flex min-h-11 items-center font-bold text-blue-700 hover:text-blue-900">Ler guia →</Link></div>
                 </article>
               ))}

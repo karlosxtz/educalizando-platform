@@ -9,6 +9,14 @@ import {
   Search,
   ArrowRight
 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sobre a Educalizando',
+  description: 'Conheça a Educalizando, uma plataforma para descobrir, comprar e vender materiais didáticos digitais.',
+  alternates: { canonical: '/sobre' },
+  openGraph: { title: 'Sobre a Educalizando', description: 'Uma plataforma para materiais didáticos digitais.', url: '/sobre', type: 'website' },
+};
 
 export default function SobrePage() {
   return (
@@ -47,11 +55,11 @@ export default function SobrePage() {
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-8 tracking-tight">Nossa Missão</h2>
             
             <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-xl border border-slate-100 relative">
-              <div className="absolute top-0 left-8 -mt-6 text-6xl text-blue-100 font-serif">"</div>
+              <div className="absolute top-0 left-8 -mt-6 text-6xl text-blue-100 font-serif">&ldquo;</div>
               <p className="text-xl sm:text-2xl text-slate-700 font-medium leading-relaxed italic relative z-10">
                 Acreditamos que o tempo do professor é valioso. Nossa missão é acabar com as horas perdidas criando materiais do zero, oferecendo um ecossistema seguro onde os melhores conteúdos do Brasil estão a um clique de distância. Valorizamos quem cria e facilitamos a vida de quem ensina.
               </p>
-              <div className="absolute bottom-4 right-8 -mb-6 text-6xl text-blue-100 font-serif rotate-180">"</div>
+              <div className="absolute bottom-4 right-8 -mb-6 text-6xl text-blue-100 font-serif rotate-180">&ldquo;</div>
             </div>
           </div>
         </section>

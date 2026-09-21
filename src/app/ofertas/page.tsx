@@ -5,12 +5,15 @@ import ProductCard from '@/components/ProductCard';
 import Footer from '@/components/Footer';
 import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Oferta em Destaque | Educalizando',
-  description: 'Materiais didáticos digitais com preço promocional cadastrados pelos criadores da Educalizando.'
+  description: 'Materiais didáticos digitais com preço promocional cadastrados pelos criadores da Educalizando.',
+  alternates: { canonical: '/ofertas' },
+  openGraph: { title: 'Ofertas de materiais didáticos | Educalizando', description: 'Materiais didáticos digitais com preço promocional.', url: '/ofertas', type: 'website' },
 };
 
 export default async function OffersPage() {

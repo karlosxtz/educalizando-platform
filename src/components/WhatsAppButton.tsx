@@ -29,7 +29,7 @@ export default function WhatsAppButton() {
       initial={{ opacity: 0, scale: 0.5, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      className="fixed bottom-6 right-6 z-50 flex items-center justify-center"
+      className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-[calc(1.5rem+env(safe-area-inset-right))] z-50 flex items-center justify-center"
       title="Suporte via WhatsApp"
     >
       <div className="relative group">
@@ -41,7 +41,8 @@ export default function WhatsAppButton() {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          aria-label="Falar com o suporte pelo WhatsApp"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-2xl transition-transform hover:scale-110 hover:bg-emerald-600 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
         >
           <svg 
             viewBox="0 0 24 24" 

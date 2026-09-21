@@ -13,8 +13,16 @@ import SearchSort from '@/components/SearchSort';
 import SearchQuery from './SearchQuery';
 import Link from 'next/link';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import type { Metadata } from 'next';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Buscar materiais didáticos | Educalizando',
+  description: 'Pesquise materiais didáticos digitais por tema, etapa de ensino, disciplina e formato na Educalizando.',
+  alternates: { canonical: '/buscar' },
+  robots: { index: false, follow: true },
+};
 
 export default async function BuscarPage({ 
   searchParams 

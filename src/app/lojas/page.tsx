@@ -4,12 +4,20 @@ import Footer from '@/components/Footer';
 import { getAllPublicStores } from '@/lib/store-service';
 import { Store } from '@/lib/types';
 import { Store as StoreIcon, ChevronRight } from 'lucide-react';
+import type { Metadata } from 'next';
 
-export const revalidate = 0; // Ensures it shuffles on every request, no caching
+export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Lojas de materiais didáticos | Educalizando',
+  description: 'Conheça lojas de educadores e encontre materiais didáticos digitais para sua rotina pedagógica.',
+  alternates: { canonical: '/lojas' },
+  openGraph: { title: 'Lojas de materiais didáticos | Educalizando', description: 'Conheça educadores e suas vitrines de materiais didáticos digitais.', url: '/lojas', type: 'website' },
+};
 
 export default async function LojasPage() {
   const stores = await getAllPublicStores();
-  const shuffledStores = [...stores].sort(() => Math.random() - 0.5);
+  const listedStores = stores;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
@@ -32,13 +40,13 @@ export default async function LojasPage() {
         <section className="py-12 bg-slate-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {shuffledStores.map((store: Store) => (
+              {listedStores.map((store: Store) => (
                 <div key={store.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group hover:-translate-y-1">
                   
                   {/* Banner */}
                   <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 relative">
                     {store.banner_url && (
-                      <img src={store.banner_url} alt={`Banner de ${store.nome_loja}`} className="w-full h-full object-cover" />
+                      <img src={store.banner_url} alt={`Banner de ${store.nome_loja}`} width={768} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                   </div>
 
@@ -47,7 +55,7 @@ export default async function LojasPage() {
                     {/* Logo Sobreposta */}
                     <div className="w-16 h-16 rounded-full bg-white border-4 border-white shadow-sm overflow-hidden flex items-center justify-center -mt-8 mb-4 relative z-10">
                       {store.logo_url ? (
-                        <img src={store.logo_url} alt={`Logo de ${store.nome_loja}`} className="w-full h-full object-cover" />
+                        <img src={store.logo_url} alt={`Logo de ${store.nome_loja}`} width={64} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-2xl font-black text-slate-400">
                           {store.nome_loja.charAt(0).toUpperCase()}
@@ -76,7 +84,7 @@ export default async function LojasPage() {
               ))}
             </div>
 
-            {shuffledStores.length === 0 && (
+            {listedStores.length === 0 && (
               <div className="text-center py-20">
                 <StoreIcon className="w-16 h-16 mx-auto text-slate-300 mb-4" />
                 <h3 className="text-xl font-bold text-slate-900">Nenhuma loja encontrada</h3>

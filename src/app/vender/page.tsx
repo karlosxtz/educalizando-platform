@@ -7,6 +7,14 @@ import Pricing from '@/components/Pricing';
 import FAQ from '@/components/FAQ';
 
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Venda materiais didáticos digitais | Educalizando',
+  description: 'Crie sua loja e venda materiais didáticos digitais na Educalizando.',
+  alternates: { canonical: '/vender' },
+  openGraph: { title: 'Venda materiais didáticos digitais | Educalizando', description: 'Crie sua loja para vender materiais didáticos digitais.', url: '/vender', type: 'website' },
+};
 
 export default function Home() {
   return (

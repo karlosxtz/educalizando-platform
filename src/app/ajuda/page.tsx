@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { 
@@ -10,6 +9,14 @@ import {
   Megaphone,
   ChevronDown
 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Central de ajuda | Educalizando',
+  description: 'Encontre orientações para comprar, vender e usar materiais didáticos digitais na Educalizando.',
+  alternates: { canonical: '/ajuda' },
+  openGraph: { title: 'Central de ajuda | Educalizando', description: 'Orientações para aproveitar a plataforma Educalizando.', url: '/ajuda', type: 'website' },
+};
 
 export default function AjudaPage() {
   return (
@@ -57,7 +64,7 @@ export default function AjudaPage() {
                   <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
                 </summary>
                 <div className="px-5 pb-5 pt-0 text-slate-600 font-medium leading-relaxed">
-                  Os materiais ficam disponíveis imediatamente após a aprovação do pagamento. Basta acessar a sua conta, clicar no menu superior e ir até a aba <strong>"Minhas Compras"</strong>. Todo o seu acervo digital estará lá para download a qualquer momento.
+                  Os materiais ficam disponíveis imediatamente após a aprovação do pagamento. Basta acessar a sua conta, clicar no menu superior e ir até a aba <strong>&ldquo;Minhas Compras&rdquo;</strong>. Todo o seu acervo digital estará lá para download a qualquer momento.
                 </div>
               </details>
 
@@ -141,7 +148,7 @@ export default function AjudaPage() {
                   <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
                 </summary>
                 <div className="px-5 pb-5 pt-0 text-slate-600 font-medium leading-relaxed">
-                  Na Educalizando, você não ganha apenas um "link solto". Você recebe uma vitrine exclusiva (sua própria loja) para personalizar com sua foto e banner. É nela que você expõe todos os produtos que escolheu divulgar, passando muito mais credibilidade aos seus clientes.
+                  Na Educalizando, você não ganha apenas um &ldquo;link solto&rdquo;. Você recebe uma vitrine exclusiva (sua própria loja) para personalizar com sua foto e banner. É nela que você expõe todos os produtos que escolheu divulgar, passando muito mais credibilidade aos seus clientes.
                 </div>
               </details>
 
@@ -151,7 +158,7 @@ export default function AjudaPage() {
                   <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
                 </summary>
                 <div className="px-5 pb-5 pt-0 text-slate-600 font-medium leading-relaxed">
-                  As comissões de cada venda aprovada entram na mesma hora no seu saldo "A Receber". Assim que a garantia de 7 dias do produto expira (sem contestação do comprador), o valor fica "Disponível" e você pode sacar via Pix direto no seu painel financeiro.
+                  As comissões de cada venda aprovada entram na mesma hora no seu saldo &ldquo;A Receber&rdquo;. Assim que a garantia de 7 dias do produto expira (sem contestação do comprador), o valor fica &ldquo;Disponível&rdquo; e você pode sacar via Pix direto no seu painel financeiro.
                 </div>
               </details>
             </div>
