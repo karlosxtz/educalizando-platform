@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { Store, ArrowLeft, PackageX } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 export default function ProductNotFound() {
   const params = useParams();
   const slug = params?.slug as string || '';
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => headingRef.current?.focus(), []);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
@@ -36,7 +39,7 @@ export default function ProductNotFound() {
             <span className="text-xs font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-200 inline-block">
               MATERIAL INDISPONÍVEL
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h1 ref={headingRef} tabIndex={-1} className="text-2xl sm:text-3xl font-black text-slate-900 outline-none">
               Produto Removido
             </h1>
             <p className="text-sm text-slate-600 leading-relaxed font-medium">
@@ -48,7 +51,7 @@ export default function ProductNotFound() {
             {slug ? (
               <Link
                 href={`/loja/${slug}`}
-                className="w-full py-3.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+                className="min-h-11 w-full rounded-xl bg-blue-600 py-3.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 hover:bg-blue-700"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Voltar para a Loja</span>
@@ -57,7 +60,7 @@ export default function ProductNotFound() {
 
             <Link
               href="/"
-              className="w-full py-3 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center justify-center gap-2"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-100 py-3 text-xs font-bold text-slate-700 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 hover:bg-slate-200"
             >
               <Store className="w-4 h-4 text-blue-600" />
               <span>Ir para a Página Inicial</span>

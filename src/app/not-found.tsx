@@ -1,9 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Store, ArrowLeft, HelpCircle, Sparkles } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Store, ArrowLeft, HelpCircle } from 'lucide-react';
 
 export default function NotFound() {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => headingRef.current?.focus(), []);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
       {/* Background Radial Glow */}
@@ -32,7 +36,7 @@ export default function NotFound() {
             <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 inline-block">
               ERRO 404
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h1 ref={headingRef} tabIndex={-1} className="text-2xl sm:text-3xl font-black text-slate-900 outline-none">
               Página ou Material Não Encontrado
             </h1>
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -43,7 +47,7 @@ export default function NotFound() {
           <div className="pt-2 flex flex-col gap-3">
             <Link
               href="/"
-              className="w-full py-3.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+              className="min-h-11 w-full rounded-xl bg-blue-600 py-3.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 hover:bg-blue-700"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Voltar para a Página Inicial</span>
@@ -51,7 +55,7 @@ export default function NotFound() {
 
             <Link
               href="/#cadastro"
-              className="w-full py-3 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center justify-center gap-2"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-100 py-3 text-xs font-bold text-slate-700 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 hover:bg-slate-200"
             >
               <Store className="w-4 h-4 text-blue-600" />
               <span>Criar minha própria loja grátis</span>

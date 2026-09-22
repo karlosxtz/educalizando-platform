@@ -119,6 +119,8 @@ export default function DashboardLayout({
     }
 
     if (activeContext !== context) {
+      // This mirrors the route-derived context without changing authorization rules.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveContext(context);
     }
   }, [pathname, roles, checkingAuth, router, activeContext]);
@@ -126,9 +128,9 @@ export default function DashboardLayout({
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-900 font-sans">
-        <div className="flex items-center gap-3 bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-          <span className="text-sm font-bold text-slate-700">Carregando seu Painel Educalizando...</span>
+        <div role="status" aria-live="polite" className="flex items-center gap-3 bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+          <Loader2 className="w-6 h-6 text-blue-600 motion-safe:animate-spin" aria-hidden="true" />
+          <span className="text-sm font-bold text-slate-700">Carregando seu painel…</span>
         </div>
       </div>
     );

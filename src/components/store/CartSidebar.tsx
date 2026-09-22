@@ -40,7 +40,8 @@ export default function CartSidebar({ storeSlug, store }: CartSidebarProps = {})
           </div>
           <button 
             onClick={() => setIsOpen(false)}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+            className="min-h-11 min-w-11 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            aria-label="Fechar carrinho"
           >
             <X className="w-5 h-5" />
           </button>
@@ -49,12 +50,13 @@ export default function CartSidebar({ storeSlug, store }: CartSidebarProps = {})
         {/* Item List */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
-              <ShoppingBag className="w-12 h-12 opacity-20" />
-              <p className="font-medium text-slate-500">Seu carrinho está vazio</p>
+            <div className="flex h-full flex-col items-center justify-center space-y-3 px-4 text-center text-slate-400">
+              <ShoppingBag className="h-12 w-12 opacity-20" aria-hidden="true" />
+              <p className="font-bold text-slate-700">Seu carrinho está vazio</p>
+              <p className="max-w-xs text-sm leading-relaxed text-slate-500">Adicione materiais para revisá-los antes de finalizar a compra.</p>
               <button 
                 onClick={() => setIsOpen(false)}
-                className="text-blue-600 font-semibold text-sm hover:underline"
+                className="min-h-11 rounded-xl px-3 text-sm font-bold text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
               >
                 Continuar comprando
               </button>
