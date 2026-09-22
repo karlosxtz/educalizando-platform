@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -48,6 +48,8 @@ export default function ProductsManagementPage() {
   const [campaignData, setCampaignData] = useState<string>('');
   const [isGeneratingCampaign, setIsGeneratingCampaign] = useState(false);
   const [showSeo, setShowSeo] = useState(false);
+  const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const marketingTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const loadData = async () => {
     try {
@@ -79,10 +81,12 @@ export default function ProductsManagementPage() {
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || isDeletingLoading) return;
+      const trigger = deletingProduct ? deleteTriggerRef.current : marketingTriggerRef.current;
       setDeletingProduct(null);
       setMarketingProduct(null);
       setCampaignData('');
       setActionError(null);
+      window.requestAnimationFrame(() => trigger?.focus());
     };
 
     window.addEventListener('keydown', closeOnEscape);
@@ -421,7 +425,10 @@ export default function ProductsManagementPage() {
 
                   <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-1.5">
                     <button
-                      onClick={() => setMarketingProduct(prod)}
+                      onClick={(event) => {
+                        marketingTriggerRef.current = event.currentTarget;
+                        setMarketingProduct(prod);
+                      }}
                       aria-label={`Gerar campanha com IA para ${prod.titulo}`}
                       className="min-h-11 justify-center px-2.5 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 transition-colors flex items-center gap-1 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
                       title="Gerar Campanha com IA"
@@ -437,7 +444,10 @@ export default function ProductsManagementPage() {
                       <Edit3 className="w-4 h-4" />
                     </Link>
                     <button
-                      onClick={() => setDeletingProduct(prod)}
+                      onClick={(event) => {
+                        deleteTriggerRef.current = event.currentTarget;
+                        setDeletingProduct(prod);
+                      }}
                       aria-label={`Excluir ${prod.titulo}`}
                       className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2"
                       title="Excluir produto"
@@ -490,6 +500,7 @@ export default function ProductsManagementPage() {
                   onClick={() => {
                     setDeletingProduct(null);
                     setActionError(null);
+                    window.requestAnimationFrame(() => deleteTriggerRef.current?.focus());
                   }}
                   disabled={isDeletingLoading}
                   className="min-h-11 w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-600 focus-visible:ring-offset-2"
@@ -548,7 +559,12 @@ export default function ProductsManagementPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => { setMarketingProduct(null); setCampaignData(''); setActionError(null); }}
+                  onClick={() => {
+                    setMarketingProduct(null);
+                    setCampaignData('');
+                    setActionError(null);
+                    window.requestAnimationFrame(() => marketingTriggerRef.current?.focus());
+                  }}
                   className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
                   aria-label="Fechar campanha de vendas"
                 >
