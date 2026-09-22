@@ -107,11 +107,11 @@ export default function FileUploadMultiple({
 
       setUploading(false);
       onChange([...value, ...newUrls]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setUploading(false);
       setError({
         title: 'Erro no Upload',
-        message: err.message || 'Erro ao realizar o upload do arquivo.'
+        message: err instanceof Error ? err.message : 'Erro ao realizar o upload do arquivo.'
       });
     }
   };
@@ -199,7 +199,7 @@ export default function FileUploadMultiple({
 
   return (
     <div className="space-y-4 font-sans">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
           {label} ({value.length}/{maxItems})
         </label>
@@ -279,7 +279,8 @@ export default function FileUploadMultiple({
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          className={`w-full flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed rounded-2xl transition-all duration-200 outline-none focus:ring-4 focus:ring-blue-500/20 ${
+          aria-label={`${label}. Clique para selecionar imagens.`}
+          className={`min-h-36 w-full flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed rounded-2xl transition-all duration-200 outline-none focus:ring-4 focus:ring-blue-500/20 ${
             dragOver 
               ? 'border-blue-500 bg-blue-50' 
               : error 
@@ -305,7 +306,7 @@ export default function FileUploadMultiple({
 
       {/* Progress */}
       {uploading && (
-        <div className="bg-slate-50 border border-blue-200 rounded-xl p-5 space-y-3">
+        <div role="status" aria-live="polite" className="bg-slate-50 border border-blue-200 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
             <span className="flex items-center gap-2">
               <UploadCloud className="w-4 h-4 text-blue-600 animate-bounce" />
@@ -326,7 +327,7 @@ export default function FileUploadMultiple({
 
       {/* Error State */}
       {error && !uploading && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex gap-3 text-rose-800">
+        <div role="alert" className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex gap-3 text-rose-800">
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600" />
           <div className="space-y-1">
             <h5 className="text-xs font-bold">{error.title}</h5>

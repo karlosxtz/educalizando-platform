@@ -110,11 +110,11 @@ export default function FileUpload({
         setUploading(false);
         onChange(finalUrl);
       }, 300);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setUploading(false);
       setError({
         title: 'Erro no Upload',
-        message: err.message || 'Erro ao realizar o upload do arquivo. Tente novamente.'
+        message: err instanceof Error ? err.message : 'Erro ao realizar o upload do arquivo. Tente novamente.'
       });
     }
   };
@@ -272,7 +272,7 @@ export default function FileUpload({
       )}
 
       {error && !uploading && (
-        <div className="mt-2 bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl text-xs space-y-1 font-medium">
+        <div role="alert" className="mt-2 bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl text-xs space-y-1 font-medium">
           <div className="flex items-center gap-1.5 font-bold text-rose-900 text-xs">
             <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{error.title}</span>

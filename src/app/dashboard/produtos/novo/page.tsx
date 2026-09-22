@@ -198,7 +198,7 @@ function ProductWizardContent() {
             setUsesBncc(Array.isArray(source.bnccSkillIds) && source.bnccSkillIds.length > 0);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         setErrorMsg('Erro ao carregar dados do formulário.');
       } finally {
@@ -293,8 +293,8 @@ function ProductWizardContent() {
       }
       
       toast.success(`Material gerado com sucesso!`, { id: loadingToast });
-    } catch (err: any) {
-      toast.error(err.message, { id: loadingToast });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Não foi possível gerar o material agora.', { id: loadingToast });
     }
   };
 
@@ -446,9 +446,9 @@ function ProductWizardContent() {
       }
 
       router.push('/dashboard/produtos');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg(err.message || 'Erro ao salvar produto.');
+      setErrorMsg(err instanceof Error ? err.message : 'Erro ao salvar produto.');
       setSaving(false);
     }
   };
@@ -465,8 +465,9 @@ function ProductWizardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      <div role="status" className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 text-sm font-semibold text-slate-600">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" aria-hidden="true" />
+        Carregando formulário do produto...
       </div>
     );
   }
@@ -475,16 +476,16 @@ function ProductWizardContent() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Top Fixed Navigation Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 min-h-16 py-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
           <Link
             href="/dashboard/produtos"
-            className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors"
+            className="min-h-11 min-w-0 flex items-center gap-2 rounded-lg px-1 text-xs font-bold text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Voltar para Produtos</span>
+            <span className="truncate">Voltar</span><span className="hidden sm:inline">para Produtos</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden min-w-0 items-center gap-2 sm:flex">
             <Sparkles className="w-4 h-4 text-blue-600" />
             <h1 className="text-sm font-black text-slate-900">
               {editId ? 'Editar Produto Didático' : 'Wizard de Cadastro de Produto'}
@@ -498,7 +499,7 @@ function ProductWizardContent() {
       </header>
 
       {/* Step Progress Indicator Bar */}
-      <div className="bg-white border-b border-slate-200 py-4 px-4 sm:px-6 shadow-xs">
+      <div className="bg-white border-b border-slate-200 py-3 sm:py-4 px-4 sm:px-6 shadow-xs" aria-label={`Etapa ${currentStep} de 4 do cadastro`}>
         <div className="max-w-4xl mx-auto flex items-center justify-between relative">
           {/* Connector Line */}
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-200 -translate-y-1/2 z-0" />
@@ -513,7 +514,7 @@ function ProductWizardContent() {
             const isCurrent = currentStep === item.step;
 
             return (
-              <div key={item.step} className="relative z-10 flex flex-col items-center gap-1.5 bg-white px-2">
+              <div key={item.step} aria-current={isCurrent ? 'step' : undefined} className="relative z-10 flex flex-col items-center gap-1.5 bg-white px-1 sm:px-2">
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black transition-all ${
                     isCompleted
@@ -537,13 +538,13 @@ function ProductWizardContent() {
       {/* Main Wizard Form Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 space-y-6">
         {errorMsg && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
+          <div role="alert" aria-live="assertive" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 sm:p-10 space-y-8">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-lg p-5 sm:p-10 space-y-8">
           {/* STEP 1: Basic Information & Categorization */}
           {currentStep === 1 && (
             <motion.div
@@ -1305,12 +1306,12 @@ function ProductWizardContent() {
           )}
 
           {/* Navigation Controls Bar */}
-          <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
+          <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || saving}
-              className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 transition-all"
+              className="min-h-11 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700 transition-all"
             >
               Anterior
             </button>
@@ -1319,7 +1320,7 @@ function ProductWizardContent() {
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="px-6 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 text-white hover:bg-blue-700 shadow-md flex items-center gap-2 transition-all"
+                className="min-h-11 px-4 sm:px-6 py-2.5 rounded-xl font-extrabold text-xs bg-blue-600 text-white hover:bg-blue-700 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 flex items-center gap-2 transition-all"
               >
                 <span>Próximo Passo</span>
                 <ChevronRight className="w-4 h-4" />
@@ -1329,10 +1330,10 @@ function ProductWizardContent() {
                 type="button"
                 onClick={handleSaveProduct}
                 disabled={saving}
-                className="px-7 py-3 rounded-xl font-extrabold text-xs bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg flex items-center gap-2 transition-all"
+                className="min-h-11 px-4 sm:px-7 py-3 rounded-xl font-extrabold text-xs bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 flex items-center gap-2 transition-all"
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>{saving ? 'Salvando...' : editId ? 'Atualizar Produto' : 'Publicar Produto Didático'}</span>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Save className="w-4 h-4" aria-hidden="true" />}
+                <span role={saving ? 'status' : undefined}>{saving ? 'Salvando...' : editId ? 'Atualizar Produto' : 'Publicar Produto Didático'}</span>
               </button>
             )}
           </div>
