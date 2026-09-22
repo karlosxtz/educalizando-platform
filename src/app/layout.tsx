@@ -1,14 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
 import WhatsAppButton from '@/components/WhatsAppButton';
-
-const fontSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
 
 export const viewport: Viewport = {
   themeColor: '#093b6c',
@@ -103,7 +96,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR" className={`${fontSans.variable} scroll-smooth overflow-x-hidden`}>
+    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <script
           type="application/ld+json"
