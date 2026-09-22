@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Wallet, TrendingUp, Clock, CheckCircle2, AlertCircle, DollarSign, 
-  ArrowUpRight, ArrowDownLeft, ShieldCheck, Search, Filter, Calendar, 
-  ChevronLeft, ChevronRight, Info, HelpCircle, Lock, Sparkles, RefreshCw, X, FileText, Loader2, Key 
+  ArrowUpRight, Search, ChevronLeft, ChevronRight, Sparkles, RefreshCw, X, FileText, Loader2, Key
 } from 'lucide-react';
 import { 
   calculateCreatorWallet, 
@@ -17,6 +16,16 @@ import { MIN_WITHDRAWAL_AMOUNT, type CreatorPixKey, type WithdrawalRecord } from
 import CustomSelect from '@/components/ui/CustomSelect';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import Link from 'next/link';
+
+function getTransactionPresentation(tx: WalletTransaction) {
+  const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
+  const isWithdrawal = tx.type === 'WITHDRAWAL';
+  const isPending = tx.status === 'PENDING';
+  if (isWithdrawal) return { label: 'Saque PIX', className: 'bg-purple-50 text-purple-700 border-purple-200', valueClass: 'text-rose-600', direction: 'Débito' };
+  if (isRefund) return { label: 'Estornado', className: 'bg-rose-50 text-rose-700 border-rose-200', valueClass: 'text-rose-600', direction: 'Débito' };
+  if (isPending) return { label: 'Pendente', className: 'bg-amber-50 text-amber-700 border-amber-200', valueClass: 'text-amber-700', direction: 'Pendente' };
+  return { label: 'Disponível', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', valueClass: 'text-emerald-700', direction: 'Crédito' };
+}
 
 export default function FinancialWalletDashboardPage() {
   const [storeId, setStoreId] = useState<string>('');
@@ -53,6 +62,9 @@ export default function FinancialWalletDashboardPage() {
   const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRecord | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const withdrawTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const transactionTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const withdrawalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   // Withdrawal Form State
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
@@ -84,7 +96,7 @@ export default function FinancialWalletDashboardPage() {
           try {
             const sess = JSON.parse(rawSession);
             if (sess.cpf) setCreatorProfileCpf(sess.cpf);
-          } catch (e) {}
+          } catch {}
         }
       }
     }
@@ -102,6 +114,25 @@ export default function FinancialWalletDashboardPage() {
       void refreshPixKey(storeId);
     }
   }, [storeId]);
+
+  useEffect(() => {
+    if (!showWithdrawModal && !selectedTx && !selectedWithdrawal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || withdrawSubmitting) return;
+      if (showWithdrawModal) {
+        setShowWithdrawModal(false);
+        window.requestAnimationFrame(() => withdrawTriggerRef.current?.focus());
+      } else if (selectedTx) {
+        setSelectedTx(null);
+        window.requestAnimationFrame(() => transactionTriggerRef.current?.focus());
+      } else if (selectedWithdrawal) {
+        setSelectedWithdrawal(null);
+        window.requestAnimationFrame(() => withdrawalTriggerRef.current?.focus());
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [showWithdrawModal, selectedTx, selectedWithdrawal, withdrawSubmitting]);
 
   async function loadActivePixKey(activeStoreId: string): Promise<CreatorPixKey | null> {
     const response = await fetch(`/api/financeiro/pix-key?storeId=${encodeURIComponent(activeStoreId)}&at=${Date.now()}`, {
@@ -277,18 +308,18 @@ export default function FinancialWalletDashboardPage() {
         loadData();
       }, 2500);
 
-    } catch (err: any) {
-      setWithdrawError(err.message || 'Falha ao processar a solicitação de saque.');
+    } catch (err: unknown) {
+      setWithdrawError(err instanceof Error ? err.message : 'Falha ao processar a solicitação de saque.');
     } finally {
       setWithdrawSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8 font-sans pb-12">
+    <div className="space-y-6 sm:space-y-8 font-sans pb-12">
       
       {/* Top Header Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <span className="p-2 rounded-xl bg-brand-navy/10 text-brand-navy">
@@ -301,10 +332,11 @@ export default function FinancialWalletDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col min-[390px]:flex-row items-stretch min-[390px]:items-center gap-3">
           <button
             onClick={() => loadData()}
-            className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all text-xs font-bold flex items-center gap-1.5"
+            aria-label="Atualizar dados financeiros"
+            className="min-h-11 justify-center p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all text-xs font-bold flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
             title="Atualizar Dados"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -313,8 +345,8 @@ export default function FinancialWalletDashboardPage() {
 
           {/* Botão Solicitar Saque (Fase C — Ativo!) */}
           <button
-            onClick={handleOpenWithdrawModal}
-            className="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95"
+            onClick={(event) => { withdrawTriggerRef.current = event.currentTarget; handleOpenWithdrawModal(); }}
+            className="min-h-11 justify-center px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
             <ArrowUpRight className="w-4 h-4" />
             <span>Solicitar Saque PIX</span>
@@ -326,7 +358,7 @@ export default function FinancialWalletDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Card 1: Total Vendido (Bruto) */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Total Vendido</span>
             <span className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
@@ -342,7 +374,7 @@ export default function FinancialWalletDashboardPage() {
         </div>
 
         {/* Card 2: Saldo Pendente */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Saldo Pendente</span>
             <span className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
@@ -358,7 +390,7 @@ export default function FinancialWalletDashboardPage() {
         </div>
 
         {/* Card 3: Saldo Disponível (DESTACADO VISUALMENTE) */}
-        <div className="bg-gradient-to-br from-brand-navy to-slate-900 rounded-3xl p-6 shadow-xl space-y-2 flex flex-col justify-between text-white border border-brand-navy/30 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-brand-navy to-slate-900 rounded-3xl p-4 sm:p-6 shadow-xl space-y-2 flex flex-col justify-between text-white border border-brand-navy/30 relative overflow-hidden">
           <div className="absolute right-0 top-0 w-32 h-32 bg-brand-teal/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between text-slate-300 relative z-10">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-teal">Saldo Disponível</span>
@@ -375,7 +407,7 @@ export default function FinancialWalletDashboardPage() {
         </div>
 
         {/* Card 4: Total Recebido */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Total Recebido</span>
             <span className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
@@ -453,7 +485,7 @@ export default function FinancialWalletDashboardPage() {
       </div>
 
       {/* Banner / Card da Chave PIX Cadastrada */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
             <Key className="w-6 h-6" />
@@ -479,14 +511,14 @@ export default function FinancialWalletDashboardPage() {
 
         <Link
           href="/dashboard/conta"
-          className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center"
+          className="min-h-11 w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
         >
           {activePixKey ? 'Gerenciar Chave PIX' : 'Cadastrar Chave PIX CPF'}
         </Link>
       </div>
 
       {/* Resumo Transparente de Taxas Descontadas */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
@@ -520,7 +552,7 @@ export default function FinancialWalletDashboardPage() {
       </div>
 
       {/* Histórico de Saques Realizados (Item 26 & 27 da Especificação) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
@@ -538,7 +570,15 @@ export default function FinancialWalletDashboardPage() {
           </div>
         ) : (
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-            <table className="w-full text-left border-collapse font-sans text-xs">
+            <div className="divide-y divide-slate-100 sm:hidden">
+              {withdrawals.map(wtd => {
+                const pending = wtd.status === 'PROCESSING' || wtd.status === 'PENDING';
+                const label = wtd.status === 'COMPLETED' ? 'Concluído' : pending ? 'Em processamento' : 'Falhou';
+                const className = wtd.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : pending ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200';
+                return <button key={wtd.id} type="button" onClick={(event) => { withdrawalTriggerRef.current = event.currentTarget; setSelectedWithdrawal(wtd); }} className="w-full space-y-2 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-inset"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Solicitado em</p><p className="mt-1 text-xs font-semibold text-slate-700">{new Date(wtd.requestedAt).toLocaleString('pt-BR')}</p></div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${className}`}>{label}</span></div><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Chave PIX</p><p className="mt-1 font-mono text-xs text-slate-700">{wtd.pixKeyMasked}</p></div><div className="text-right"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Valor</p><p className="mt-1 font-mono text-sm font-black text-slate-900">{formatCurrency(wtd.amount)}</p></div></div></button>;
+              })}
+            </div>
+            <table className="hidden w-full text-left border-collapse font-sans text-xs sm:table">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3 px-4">Solicitado em</th>
@@ -591,7 +631,7 @@ export default function FinancialWalletDashboardPage() {
       </div>
 
       {/* Extrato Financeiro & Lançamentos */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="w-full lg:w-auto">
             <h3 className="text-lg font-black text-slate-900 tracking-tight">Extrato do Ledger Financeiro</h3>
@@ -607,7 +647,8 @@ export default function FinancialWalletDashboardPage() {
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
               placeholder="Buscar por pedido, produto ou comprador..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-all font-medium"
+              aria-label="Buscar no extrato financeiro"
+              className="min-h-11 w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-all font-medium focus:ring-2 focus:ring-brand-navy/20"
             />
           </div>
         </div>
@@ -626,7 +667,7 @@ export default function FinancialWalletDashboardPage() {
                 { value: 'last_month', label: 'Mês anterior' }
               ]}
               value={periodFilter}
-              onChange={(val) => { setPeriodFilter(val as any); setPage(1); }}
+              onChange={(val) => { setPeriodFilter(val as typeof periodFilter); setPage(1); }}
               size="sm"
             />
           </div>
@@ -641,7 +682,7 @@ export default function FinancialWalletDashboardPage() {
                 { value: 'REFUND', label: 'Estornado / Reembolsado' }
               ]}
               value={statusFilter}
-              onChange={(val) => { setStatusFilter(val as any); setPage(1); }}
+              onChange={(val) => { setStatusFilter(val as typeof statusFilter); setPage(1); }}
               size="sm"
             />
           </div>
@@ -668,7 +709,13 @@ export default function FinancialWalletDashboardPage() {
           </div>
         ) : (
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-            <table className="w-full text-left border-collapse font-sans">
+            <div className="divide-y divide-slate-100 sm:hidden">
+              {transactions.map(tx => {
+                const presentation = getTransactionPresentation(tx);
+                return <button key={tx.id} type="button" onClick={(event) => { transactionTriggerRef.current = event.currentTarget; setSelectedTx(tx); }} className="w-full space-y-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-inset"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="break-words text-sm font-bold text-slate-900">{tx.description}</p>{tx.buyerName && <p className="mt-1 truncate text-xs text-slate-500">{tx.buyerName}</p>}</div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${presentation.className}`}>{presentation.label}</span></div><div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-xs"><div><p className="font-bold uppercase tracking-wide text-slate-400">Data</p><p className="mt-1 text-slate-700">{new Date(tx.createdAt).toLocaleString('pt-BR')}</p></div><div className="text-right"><p className="font-bold uppercase tracking-wide text-slate-400">{presentation.direction}</p><p className={`mt-1 font-mono text-sm font-black ${presentation.valueClass}`}>{formatCurrency(tx.netAmount)}</p></div></div></button>;
+              })}
+            </div>
+            <table className="hidden w-full text-left border-collapse font-sans sm:table">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3.5 px-4">Data</th>
@@ -683,9 +730,7 @@ export default function FinancialWalletDashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {transactions.map(tx => {
-                  const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
-                  const isWithdrawal = tx.type === 'WITHDRAWAL';
-                  const isPending = tx.status === 'PENDING';
+                  const presentation = getTransactionPresentation(tx);
 
                   return (
                     <tr 
@@ -724,30 +769,12 @@ export default function FinancialWalletDashboardPage() {
                         {tx.asaasFeeAmount > 0 ? `- ${formatCurrency(tx.asaasFeeAmount)}` : '—'}
                       </td>
 
-                      <td className={`py-3.5 px-4 text-right font-mono font-black text-sm ${
-                        isRefund || isWithdrawal ? 'text-rose-600' : isPending ? 'text-amber-600' : 'text-emerald-600'
-                      }`}>
+                      <td className={`py-3.5 px-4 text-right font-mono font-black text-sm ${presentation.valueClass}`}>
                         {formatCurrency(tx.netAmount)}
                       </td>
 
                       <td className="py-3.5 px-4 text-center">
-                        {isWithdrawal ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                            Saque PIX
-                          </span>
-                        ) : isRefund ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                            Estornado
-                          </span>
-                        ) : isPending ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            Pendente
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Disponível
-                          </span>
-                        )}
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${presentation.className}`}>{presentation.label}</span>
                       </td>
                     </tr>
                   );
@@ -783,29 +810,29 @@ export default function FinancialWalletDashboardPage() {
 
       {/* MODAL 1: Solicitar Saque PIX (Item 10, 11, 12, 13 & 16) */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4" role="presentation">
+          <div className="max-h-[calc(100vh-1.5rem)] overflow-y-auto bg-white rounded-3xl border border-slate-200 max-w-md w-full p-5 sm:p-8 shadow-2xl space-y-5" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
                   Solicitação de Saque PIX
                 </span>
-                <h3 className="text-lg font-black text-slate-900">Solicitar Saque</h3>
+                <h3 id="withdraw-modal-title" className="text-lg font-black text-slate-900">Solicitar Saque</h3>
               </div>
-              <button onClick={() => setShowWithdrawModal(false)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
+              <button onClick={() => { setShowWithdrawModal(false); window.requestAnimationFrame(() => withdrawTriggerRef.current?.focus()); }} aria-label="Fechar solicitação de saque" className="min-h-11 min-w-11 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {withdrawError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold">
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold" role="alert">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{withdrawError}</span>
               </div>
             )}
 
             {withdrawSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold">
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold" role="status" aria-live="polite">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{withdrawSuccess}</span>
               </div>
@@ -855,7 +882,7 @@ export default function FinancialWalletDashboardPage() {
                       value={withdrawAmountInput}
                       onChange={(e) => setWithdrawAmountInput(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none"
+                      className="min-h-12 w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     />
                     <span className="text-[10px] text-slate-500 block font-medium">
                       Valor mínimo: {formatCurrency(minimumWithdrawalAmount)}. {withdrawalFee > 0 ? `Taxa de saque: ${formatCurrency(withdrawalFee)}. Reserva total: ${formatCurrency(Math.max(0, Number(withdrawAmountInput.replace(',', '.')) || 0) + withdrawalFee)}.` : 'Sem taxa adicional de saque.'}
@@ -866,7 +893,7 @@ export default function FinancialWalletDashboardPage() {
                     <button
                       type="submit"
                       disabled={withdrawSubmitting || summary.saldoDisponivel < minimumWithdrawalAmount}
-                      className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="min-h-12 w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                     >
                       {withdrawSubmitting ? (
                         <>
