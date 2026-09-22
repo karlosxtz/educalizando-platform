@@ -13,7 +13,6 @@ import {
 import { 
   getCurrentCreatorStore, 
   getProductsByStoreId, 
-  createProduct, 
   updateProduct, 
   deleteProduct 
 } from '@/lib/store-service';
@@ -70,8 +69,25 @@ export default function ProductsManagementPage() {
   };
 
   useEffect(() => {
+    // This request synchronizes the seller's current data after the page mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!deletingProduct && !marketingProduct) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || isDeletingLoading) return;
+      setDeletingProduct(null);
+      setMarketingProduct(null);
+      setCampaignData('');
+      setActionError(null);
+    };
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [deletingProduct, isDeletingLoading, marketingProduct]);
 
   const handleOpenCreateWizard = () => {
     router.push('/dashboard/produtos/novo');
@@ -88,8 +104,8 @@ export default function ProductsManagementPage() {
       setDeletingProduct(null);
       await loadData();
       router.refresh();
-    } catch (err: any) {
-      setActionError(err.message || 'Erro ao excluir produto.');
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao excluir produto.');
     } finally {
       setIsDeletingLoading(false);
     }
@@ -109,8 +125,8 @@ export default function ProductsManagementPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao gerar campanha.');
       setCampaignData(data.campaign);
-    } catch (err: any) {
-      setActionError(err.message);
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao gerar campanha.');
     } finally {
       setIsGeneratingCampaign(false);
     }
@@ -122,8 +138,8 @@ export default function ProductsManagementPage() {
       const updated = await updateProduct(prod.id, { status: newStatus });
       setProducts(prev => prev.map(p => (p.id === prod.id ? updated : p)));
       router.refresh();
-    } catch (err: any) {
-      setActionError(err.message || 'Erro ao alterar status do produto.');
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao alterar status do produto.');
     }
   };
 
@@ -187,8 +203,9 @@ export default function ProductsManagementPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center gap-3 py-20" role="status" aria-live="polite">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-sm font-semibold text-slate-600">Carregando seus produtos...</p>
       </div>
     );
   }
@@ -196,24 +213,24 @@ export default function ProductsManagementPage() {
   const storeIsConfigured = store && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(store.id);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {!storeIsConfigured && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-5 rounded-2xl flex items-start gap-4">
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 sm:p-5 rounded-2xl flex items-start gap-4" role="alert">
           <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-black text-sm">Sua loja ainda não está configurada</p>
             <p className="text-xs font-medium mt-1">
               Para cadastrar produtos, você precisa primeiro salvar as informações da sua loja.
-              Acesse <strong>"Configurações da Loja"</strong> no menu lateral, preencha o nome e slug, e clique em Salvar.
+              Acesse <strong>&quot;Configurações da Loja&quot;</strong> no menu lateral, preencha o nome e slug, e clique em Salvar.
             </p>
-            <a href="/dashboard/loja" className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold rounded-lg transition-colors">
+            <a href="/dashboard/loja" className="inline-flex min-h-11 items-center gap-1.5 mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">
               Configurar Minha Loja Agora
             </a>
           </div>
         </div>
       )}
       {/* Page Title & Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
             <Package className="w-7 h-7 text-brand-navy" /> Meus Produtos Didáticos ({products.length})
@@ -223,27 +240,27 @@ export default function ProductsManagementPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
           <button
             onClick={() => setIsCategoryManagerOpen(true)}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center gap-2 min-h-[44px]"
+            className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
           >
             <Tags className="w-4 h-4 text-brand-teal" />
             <span>Gerenciar Minhas Categorias</span>
           </button>
 
-          <button onClick={() => setShowSeo(value => !value)} className="px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-2 min-h-[44px]"><Sparkles className="w-4 h-4" /> {showSeo ? 'Ocultar SEO' : 'Verificar SEO'}</button><Link
+          <button onClick={() => setShowSeo(value => !value)} className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"><Sparkles className="w-4 h-4" /> {showSeo ? 'Ocultar SEO' : 'Verificar SEO'}</button><Link
             href="/dashboard/produtos/novo"
-            className="px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px]"
+            className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Novo produto</span>
+            <span>Novo produto</span>
           </Link>
         </div>
       </div>
 
       {actionError && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold" role="alert">
           <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
           <span>{actionError}</span>
         </div>
@@ -257,13 +274,13 @@ export default function ProductsManagementPage() {
         <div className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
           <Filter className="w-4 h-4 text-blue-600" /> Filtrar Por:
         </div>
-        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-slate-500">{filteredProducts.length} resultado(s)</span>{hasFilters && <button onClick={clearFilters} className="inline-flex items-center gap-1 text-xs font-black text-blue-700"><RotateCcw className="h-3.5 w-3.5" /> Limpar</button>}</div>
+        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-slate-500" aria-live="polite">{filteredProducts.length} resultado(s)</span>{hasFilters && <button onClick={clearFilters} className="inline-flex min-h-11 items-center gap-1 text-xs font-black text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-lg px-2"><RotateCcw className="h-3.5 w-3.5" /> Limpar</button>}</div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.3fr)_minmax(180px,1fr)_minmax(180px,1fr)_minmax(170px,.8fr)]">
-          <label className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={searchFilter} onChange={event => setSearchFilter(event.target.value)} placeholder="Buscar produto" className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm outline-none focus:border-blue-500" /></label>
+          <label className="relative"><span className="sr-only">Buscar nos seus produtos</span><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={searchFilter} onChange={event => setSearchFilter(event.target.value)} placeholder="Buscar produto" className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500" /></label>
           {/* Custom Category Select */}
-          <div className="w-full sm:w-56">
+          <div className="w-full">
             <CustomSelect
               options={categoryFilterOptions}
               value={selectedCategoryFilter}
@@ -273,7 +290,7 @@ export default function ProductsManagementPage() {
           </div>
 
           {/* Custom Education Level Select */}
-          <div className="w-full sm:w-56">
+          <div className="w-full">
             <CustomSelect
               options={educationFilterOptions}
               value={selectedEducationFilter}
@@ -282,13 +299,13 @@ export default function ProductsManagementPage() {
             />
           </div>
 
-          <div className="w-full sm:w-56"><CustomSelect options={statusFilterOptions} value={selectedStatusFilter} onChange={setSelectedStatusFilter} icon={<Eye className="w-4 h-4" />} /></div>
+          <div className="w-full"><CustomSelect options={statusFilterOptions} value={selectedStatusFilter} onChange={setSelectedStatusFilter} icon={<Eye className="w-4 h-4" />} /></div>
         </div>
       </div>
 
       {/* Products Catalog Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-xs text-center max-w-lg mx-auto space-y-4">
+        <div className="bg-white p-6 sm:p-12 rounded-2xl border border-slate-200 shadow-xs text-center max-w-lg mx-auto space-y-4">
           <Package className="w-12 h-12 text-slate-400 mx-auto" />
           <h3 className="text-lg font-bold text-slate-900">
             {products.length === 0 ? 'Você ainda não publicou nenhum produto' : 'Nenhum produto atende a este filtro'}
@@ -298,13 +315,13 @@ export default function ProductsManagementPage() {
           </p>
           <button
             onClick={handleOpenCreateWizard}
-            className="px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md hover:bg-blue-700 transition-all"
+            className="min-h-11 px-5 py-2.5 rounded-xl font-bold text-xs bg-blue-600 text-white inline-flex items-center gap-2 shadow-md hover:bg-blue-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
           >
             <Plus className="w-4 h-4" /> Cadastrar Meu Primeiro Produto
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredProducts.map(prod => {
             const catName = getCategoryName(prod.category_id);
             const edName = getEducationName(prod.education_level_id);
@@ -312,7 +329,7 @@ export default function ProductsManagementPage() {
             return (
               <div
                 key={prod.id}
-                className="relative flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
+                className="relative min-w-0 flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
               >
                 {showSeo && getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${getSeoReport(prod.id)!.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getSeoReport(prod.id)!.score}</span>}
                 <div className="space-y-3">
@@ -329,7 +346,9 @@ export default function ProductsManagementPage() {
                     {/* Status Badge */}
                     <button
                       onClick={() => handleToggleStatus(prod)}
-                      className={`absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-xs ${
+                      aria-label={`Alterar status de ${prod.titulo}. Status atual: ${prod.status}.`}
+                      title={`Alterar status: ${prod.status}`}
+                      className={`absolute top-2 right-2 min-h-8 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-700 ${
                         prod.status === 'publicado'
                           ? 'bg-emerald-600 text-white'
                           : 'bg-amber-500 text-white'
@@ -362,7 +381,7 @@ export default function ProductsManagementPage() {
 
                   {/* Product Title & Info */}
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-tight">
+                    <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-tight" title={prod.titulo}>
                       {prod.titulo}
                     </h3>
                     {prod.descricao && (
@@ -400,24 +419,27 @@ export default function ProductsManagementPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-1.5">
                     <button
                       onClick={() => setMarketingProduct(prod)}
-                      className="px-2.5 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 transition-colors flex items-center gap-1 text-xs font-bold"
+                      aria-label={`Gerar campanha com IA para ${prod.titulo}`}
+                      className="min-h-11 justify-center px-2.5 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 transition-colors flex items-center gap-1 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
                       title="Gerar Campanha com IA"
                     >
-                      <Sparkles className="w-4 h-4" /> <span className="hidden lg:inline">Campanha</span>
+                      <Sparkles className="w-4 h-4" /> <span className="hidden min-[420px]:inline">Campanha</span>
                     </button>
                     <Link
                       href={`/dashboard/produtos/novo?edit=${prod.id}`}
-                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                      aria-label={`Editar ${prod.titulo}`}
+                      className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-600 focus-visible:ring-offset-2"
                       title="Editar produto via Wizard"
                     >
                       <Edit3 className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={() => setDeletingProduct(prod)}
-                      className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"
+                      aria-label={`Excluir ${prod.titulo}`}
+                      className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2"
                       title="Excluir produto"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -433,26 +455,30 @@ export default function ProductsManagementPage() {
       {/* Styled AlertDialog Modal for Delete Confirmation */}
       <AnimatePresence>
         {deletingProduct && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="presentation">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 space-y-5 shadow-2xl relative"
+              className="max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5 shadow-2xl relative"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-product-title"
+              aria-describedby="delete-product-description"
             >
               <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
                 <AlertTriangle className="w-6 h-6" />
               </div>
 
               <div className="text-center space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">Excluir Produto Didático?</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Tem certeza que deseja remover <strong>"{deletingProduct.titulo}"</strong>? Esta ação é definitiva para materiais sem vendas.
+                <h3 id="delete-product-title" className="text-xl font-bold text-slate-900">Excluir Produto Didático?</h3>
+                <p id="delete-product-description" className="text-xs text-slate-500 leading-relaxed">
+                  Tem certeza que deseja remover <strong>&quot;{deletingProduct.titulo}&quot;</strong>? Esta ação é definitiva para materiais sem vendas.
                 </p>
               </div>
 
               {actionError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 text-left font-medium">
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 text-left font-medium" role="alert">
                   <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                   <span className="leading-snug">{actionError}</span>
                 </div>
@@ -466,7 +492,7 @@ export default function ProductsManagementPage() {
                     setActionError(null);
                   }}
                   disabled={isDeletingLoading}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+                  className="min-h-11 w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-600 focus-visible:ring-offset-2"
                 >
                   {actionError ? 'Fechar' : 'Cancelar'}
                 </button>
@@ -475,7 +501,7 @@ export default function ProductsManagementPage() {
                     type="button"
                     onClick={confirmDeleteProduct}
                     disabled={isDeletingLoading}
-                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                    className="min-h-11 w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center justify-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2"
                   >
                     {isDeletingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     <span>Excluir Produto</span>
@@ -497,20 +523,23 @@ export default function ProductsManagementPage() {
       {/* Marketing AI Modal */}
       <AnimatePresence>
         {marketingProduct && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="presentation">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl border border-slate-200 w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+              className="bg-white rounded-3xl border border-slate-200 w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[calc(100vh-2rem)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="campaign-dialog-title"
             >
-              <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-purple-50/50">
+              <div className="px-4 sm:px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-purple-50/50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md">
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 leading-tight">
+                    <h2 id="campaign-dialog-title" className="text-lg font-black text-slate-900 leading-tight">
                       Campanha de Vendas (IA)
                     </h2>
                     <p className="text-xs text-slate-600 font-medium line-clamp-1">
@@ -520,15 +549,16 @@ export default function ProductsManagementPage() {
                 </div>
                 <button
                   onClick={() => { setMarketingProduct(null); setCampaignData(''); setActionError(null); }}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors"
+                  className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
+                  aria-label="Fechar campanha de vendas"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6 flex-1 overflow-y-auto space-y-4">
+              <div className="p-4 sm:p-6 flex-1 overflow-y-auto space-y-4">
                 {actionError && (
-                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 font-medium mb-4">
+                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs flex items-start gap-2.5 font-medium mb-4" role="alert">
                     <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                     <span>{actionError}</span>
                   </div>
@@ -542,7 +572,7 @@ export default function ProductsManagementPage() {
                     </p>
                     <button
                       onClick={handleGenerateCampaign}
-                      className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-md inline-flex items-center gap-2"
+                      className="min-h-11 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-md inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
                     >
                       <Sparkles className="w-4 h-4" /> Gerar Campanha Agora
                     </button>
