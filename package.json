@@ -11,7 +11,8 @@
     "test:financial-config": "ts-node -P tsconfig.test.json scripts/verify-financial-configuration.ts",
     "test:checkout-idempotency": "ts-node -P tsconfig.test.json scripts/verify-checkout-idempotency.ts",
     "test:infinitepay-webhook": "ts-node -P tsconfig.test.json scripts/verify-infinitepay-webhook.ts",
-    "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts"
+    "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts",
+    "test:e2e:mobile": "playwright test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
@@ -42,6 +43,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
