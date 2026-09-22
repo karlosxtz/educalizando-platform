@@ -23,25 +23,25 @@ export default async function LojasPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       <MarketplaceHeader />
 
-      <main className="flex-1 pt-8">
+      <main className="flex-1 pt-4 sm:pt-8">
         {/* Cabeçalho da Página */}
-        <section className="bg-slate-50 py-12 border-b border-slate-200">
+        <section className="bg-slate-50 py-8 sm:py-12 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
               Nossos Produtores Parceiros
             </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
               Conheça os educadores que criam os melhores materiais da plataforma.
             </p>
           </div>
         </section>
 
         {/* Grid de Lojas */}
-        <section className="py-12 bg-slate-50">
+        <section className="py-6 sm:py-12 bg-slate-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 min-[390px]:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {listedStores.map((store: Store) => (
-                <div key={store.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group hover:-translate-y-1">
+                <div key={store.id} className="min-w-0 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group hover:-translate-y-1">
                   
                   {/* Banner */}
                   <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 relative">
@@ -63,18 +63,18 @@ export default async function LojasPage() {
                       )}
                     </div>
 
-                    <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-1">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2">
                       {store.nome_loja}
                     </h2>
                     
                     <p className="text-sm text-slate-500 line-clamp-3 mb-6 flex-1">
-                      {store.descricao || 'Conheça os materiais exclusivos deste produtor.'}
+                      {store.descricao || 'Esta loja ainda não adicionou uma apresentação.'}
                     </p>
 
                     <div className="mt-auto">
                       <Link 
                         href={`/loja/${store.slug}`}
-                        className="inline-flex w-full justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-xl text-sm font-bold transition-colors"
+                        className="inline-flex min-h-11 w-full justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-xl text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
                       >
                         <StoreIcon className="w-4 h-4" /> Visitar Loja <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
                       </Link>
@@ -85,10 +85,11 @@ export default async function LojasPage() {
             </div>
 
             {listedStores.length === 0 && (
-              <div className="text-center py-20">
+              <div className="text-center py-14 sm:py-20" role="status" aria-live="polite">
                 <StoreIcon className="w-16 h-16 mx-auto text-slate-300 mb-4" />
                 <h3 className="text-xl font-bold text-slate-900">Nenhuma loja encontrada</h3>
                 <p className="text-slate-500 mt-2">Ainda não temos produtores parceiros cadastrados.</p>
+                <Link href="/" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">Voltar ao marketplace</Link>
               </div>
             )}
           </div>

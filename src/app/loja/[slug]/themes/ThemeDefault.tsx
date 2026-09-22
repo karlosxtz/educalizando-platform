@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
-  Globe
+  Globe, ArrowLeft
 } from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
@@ -179,14 +179,14 @@ export default function ThemeDefault(props: StoreThemeProps) {
     >
       {/* Top Educalizando Trust Bar */}
       <div className="bg-slate-900 px-3 py-1.5 text-[10px] text-slate-300">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 whitespace-nowrap">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-green flex-shrink-0" />
             <span className="truncate">Loja na Educalizando • Compra protegida</span>
           </div>
           <Link
             href={`/cliente/login?from=${store.slug}`}
-            className="shrink-0 text-brand-teal hover:text-white font-extrabold transition-colors"
+            className="shrink-0 rounded px-1 py-1 text-brand-teal hover:text-white font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
           >
             Já comprou? Acesse materiais
           </Link>
@@ -195,7 +195,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
       {/* Store Banner Hero Header */}
       <header className="relative bg-white border-b border-slate-200">
-        <div className="h-52 sm:h-64 relative overflow-hidden bg-slate-950">
+        <div className="h-36 sm:h-64 relative overflow-hidden bg-slate-950">
           {store.banner_url ? (
             <>
               <img src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
@@ -224,7 +224,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   <Sparkles className="w-6 h-6" style={{ color: primaryColor }} />
                 </div>
                 <span className="text-xs font-black uppercase tracking-widest text-slate-300/70 drop-shadow-xs">
-                  Vitrine Oficial • {store.nome_loja}
+                  {store.nome_loja}
                 </span>
                 {store.welcome_message && (
                   <p className="mt-2 max-w-2xl text-sm sm:text-base font-semibold text-white/90 drop-shadow-md">
@@ -237,7 +237,10 @@ export default function ThemeDefault(props: StoreThemeProps) {
         </div>
 
         {/* Store Profile Bar with Floating Circle Logo */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-6 sm:pb-8">
+          <Link href="/lojas" className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-1 text-xs font-bold text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+            <ArrowLeft className="h-4 w-4" /> Voltar para lojas
+          </Link>
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
             
             {/* Circular Logo Overlapping Banner */}
@@ -260,39 +263,36 @@ export default function ThemeDefault(props: StoreThemeProps) {
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
                   {store.nome_loja}
                 </h1>
-                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1.5 self-center shadow-xs">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> VERIFICADO EDUCALIZANDO
-                </span>
 
                 {/* Social Links Header */}
                 <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:ml-auto flex-wrap justify-center sm:justify-end">
                   {store.youtube && (
-                    <a href={store.youtube} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#FF0000] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="YouTube">
+                    <a href={store.youtube} target="_blank" rel="noopener noreferrer" aria-label="Abrir YouTube da loja" className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 bg-white rounded-full text-slate-400 hover:text-[#FF0000] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title="YouTube">
                       <YoutubeIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.tiktok && (
-                    <a href={store.tiktok} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-black hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="TikTok">
+                    <a href={store.tiktok} target="_blank" rel="noopener noreferrer" aria-label="Abrir TikTok da loja" className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 bg-white rounded-full text-slate-400 hover:text-black hover:bg-slate-50 transition-colors shadow-sm border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title="TikTok">
                       <TikTokIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.facebook && (
-                    <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#1877F2] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="Facebook">
+                    <a href={store.facebook} target="_blank" rel="noopener noreferrer" aria-label="Abrir Facebook da loja" className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 bg-white rounded-full text-slate-400 hover:text-[#1877F2] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title="Facebook">
                       <FacebookIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.website && (
-                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="Site Oficial">
+                    <a href={store.website} target="_blank" rel="noopener noreferrer" aria-label="Abrir site da loja" className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 bg-white rounded-full text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-colors shadow-sm border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title="Site da loja">
                       <Globe className="w-5 h-5" />
                     </a>
                   )}
                   {store.instagram && (
-                    <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-slate-400 hover:text-[#E1306C] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200" title="Instagram">
+                    <a href={store.instagram} target="_blank" rel="noopener noreferrer" aria-label="Abrir Instagram da loja" className="min-h-11 min-w-11 inline-flex items-center justify-center p-2 bg-white rounded-full text-slate-400 hover:text-[#E1306C] hover:bg-slate-50 transition-colors shadow-sm border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title="Instagram">
                       <InstagramIcon className="w-5 h-5" />
                     </a>
                   )}
                   {store.whatsapp && (
-                    <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre a loja ${store.nome_loja} na Educalizando.`)} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-[#25D366] text-white rounded-full text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-sm flex items-center gap-1.5" title={`Falar com ${store.nome_loja} no WhatsApp`}>
+                    <a href={getStoreWhatsAppUrl(store.whatsapp, `Olá! Tenho uma dúvida sobre a loja ${store.nome_loja} na Educalizando.`)} target="_blank" rel="noopener noreferrer" className="min-h-11 px-4 py-2 bg-[#25D366] text-white rounded-full text-xs font-bold hover:bg-[#128C7E] transition-colors shadow-sm flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" title={`Falar com ${store.nome_loja} no WhatsApp`}>
                       <MessageCircle className="w-4 h-4 fill-white" />
                       WhatsApp
                     </a>
@@ -301,7 +301,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
               </div>
 
               {store.descricao && (
-                <p className="text-sm text-slate-600 max-w-3xl leading-relaxed font-medium">
+                <p className="text-sm text-slate-600 max-w-3xl leading-relaxed font-medium break-words">
                   {store.descricao}
                 </p>
               )}
@@ -511,7 +511,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       </div>
 
                       <button
-                        onClick={(e) => { e.preventDefault(); setSelectedProduct({ ...kit, isKit: true } as any); }}
+                        onClick={(e) => { e.preventDefault(); setSelectedProduct({ ...kit, isKit: true } as unknown as StoreListingProduct); }}
                         className={`px-4 py-2 ${btnRadius} text-xs font-black text-white shadow-md group-hover:brightness-110 transition-all flex items-center gap-1`}
                         style={{ backgroundColor: primaryColor }}
                       >

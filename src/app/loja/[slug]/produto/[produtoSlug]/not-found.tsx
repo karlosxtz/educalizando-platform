@@ -40,10 +40,10 @@ export default function ProductNotFound() {
               MATERIAL INDISPONÍVEL
             </span>
             <h1 ref={headingRef} tabIndex={-1} className="text-2xl sm:text-3xl font-black text-slate-900 outline-none">
-              Produto Removido
+              Produto indisponível
             </h1>
             <p className="text-sm text-slate-600 leading-relaxed font-medium">
-              Este material foi removido pelo criador e não está mais disponível para acesso ou compra.
+              Este material não está disponível para acesso ou compra no momento.
             </p>
           </div>
 
