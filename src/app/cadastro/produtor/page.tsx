@@ -4,7 +4,7 @@ import SignupForm from '@/components/SignupForm';
 
 export default function ProducerSignupPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8 font-sans relative overflow-x-hidden">
       {/* Glow Effect */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
 
@@ -23,9 +23,9 @@ export default function ProducerSignupPage() {
           <span>Cadastro de Loja Didática</span>
         </div>
 
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
           Crie sua loja e comece a vender
-        </h2>
+        </h1>
         <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
           Junte-se a milhares de educadores e monetize seus materiais didáticos.
         </p>

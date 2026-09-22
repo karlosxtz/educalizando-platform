@@ -3,11 +3,11 @@ import { ShoppingCart, Store, Megaphone, ArrowLeft } from 'lucide-react';
 
 export default function RegisterTriagePage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-8 sm:p-6 selection:bg-emerald-600 selection:text-white">
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
         
         {/* Header */}
-        <div className="text-center mb-10 space-y-3">
+        <div className="text-center mb-7 sm:mb-10 space-y-3">
           <div className="flex justify-center mb-4">
             <img 
               src="/branding/logo-educalizando-icon.png?v=3" 
@@ -18,16 +18,16 @@ export default function RegisterTriagePage() {
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Crie sua conta no Educalizando
           </h1>
-          <p className="text-lg text-slate-600 font-medium">
+          <p className="text-base sm:text-lg text-slate-600 font-medium">
             Escolha o perfil que melhor se adapta ao seu objetivo hoje.
           </p>
         </div>
 
         {/* Grid de Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full mb-8">
           
           {/* Card 1 - Cliente */}
-          <Link href="/cliente/cadastro" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 group">
+          <Link href="/cliente/cadastro" className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 min-h-44 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:border-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 transition-all duration-300 hover:-translate-y-1 group">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <ShoppingCart className="w-8 h-8" />
             </div>
@@ -38,7 +38,7 @@ export default function RegisterTriagePage() {
           </Link>
 
           {/* Card 2 - Produtor */}
-          <Link href="/cadastro/produtor" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:blue-300 transition-all duration-300 hover:-translate-y-1 group">
+          <Link href="/cadastro/produtor" className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 min-h-44 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 transition-all duration-300 hover:-translate-y-1 group">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Store className="w-8 h-8" />
             </div>
@@ -49,7 +49,7 @@ export default function RegisterTriagePage() {
           </Link>
 
           {/* Card 3 - Afiliado */}
-          <Link href="/afiliados/cadastro" className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:purple-300 transition-all duration-300 hover:-translate-y-1 group">
+          <Link href="/afiliados/cadastro" className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 min-h-44 flex flex-col items-center text-center shadow-sm hover:shadow-xl border border-slate-200 hover:purple-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2 transition-all duration-300 hover:-translate-y-1 group">
             <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Megaphone className="w-8 h-8" />
             </div>

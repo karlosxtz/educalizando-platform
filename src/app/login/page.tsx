@@ -89,12 +89,12 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-x-hidden">
       {/* Background Radial Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/5 rounded-full blur-[120px] pointer-events-none" />
       
       {/* Top Header */}
-      <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
+      <header className="px-4 py-4 sm:p-6 max-w-7xl w-full mx-auto flex items-center justify-between gap-3 relative z-10">
         <Link href="/" className="flex items-center group">
           <img
             src="/branding/logo-educalizando.png?v=3"
@@ -106,7 +106,7 @@ function LoginPageContent() {
 
         <Link
           href="/"
-          className="text-xs text-slate-600 hover:text-brand-navy flex items-center gap-1 font-bold transition-colors"
+          className="min-h-11 shrink-0 rounded-lg px-2 text-xs text-slate-600 hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 flex items-center gap-1 font-bold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar ao início</span>
@@ -114,12 +114,12 @@ function LoginPageContent() {
       </header>
 
       {/* Main Container Card */}
-      <main className="flex-1 flex items-center justify-center p-4 relative z-10 my-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:p-4 relative z-10 sm:my-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-8 shadow-xl relative overflow-hidden space-y-6"
+          className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 sm:p-8 shadow-xl relative overflow-hidden space-y-6"
         >
           {activeTab === 'login' ? (
             /* Login Form Tab */
@@ -138,7 +138,7 @@ function LoginPageContent() {
               </div>
 
               {serverError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
+                <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                   <span>{serverError}</span>
                 </div>
@@ -146,13 +146,17 @@ function LoginPageContent() {
 
               <form onSubmit={handleSubmitLogin(onLoginSubmit)} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  <label htmlFor="creator-login-email" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     E-mail Cadastrado *
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
+                      id="creator-login-email"
+                      autoComplete="email"
+                      aria-invalid={Boolean(loginErrors.email)}
+                      aria-describedby={loginErrors.email ? 'creator-login-email-error' : undefined}
                       placeholder="seuemail@exemplo.com"
                       {...registerLogin('email')}
                       className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${
@@ -161,13 +165,13 @@ function LoginPageContent() {
                     />
                   </div>
                   {loginErrors.email && (
-                    <p className="text-xs text-rose-500 mt-1 font-medium">{loginErrors.email.message}</p>
+                    <p id="creator-login-email-error" className="text-xs text-rose-500 mt-1 font-medium">{loginErrors.email.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    <label htmlFor="creator-login-password" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                       Sua Senha *
                     </label>
                     <button
@@ -186,6 +190,10 @@ function LoginPageContent() {
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      id="creator-login-password"
+                      autoComplete="current-password"
+                      aria-invalid={Boolean(loginErrors.password)}
+                      aria-describedby={loginErrors.password ? 'creator-login-password-error' : undefined}
                       placeholder="••••••••"
                       {...registerLogin('password')}
                       className={`w-full pl-10 pr-10 py-3 bg-slate-50 border ${
@@ -195,13 +203,15 @@ function LoginPageContent() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                      aria-pressed={showPassword}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 rounded-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {loginErrors.password && (
-                    <p className="text-xs text-rose-500 mt-1 font-medium">{loginErrors.password.message}</p>
+                    <p id="creator-login-password-error" className="text-xs text-rose-500 mt-1 font-medium">{loginErrors.password.message}</p>
                   )}
                 </div>
 
@@ -213,7 +223,7 @@ function LoginPageContent() {
                   {isLoginSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Verificando Acesso...</span>
+                      <span role="status">Verificando acesso...</span>
                     </>
                   ) : (
                     <>
@@ -238,14 +248,14 @@ function LoginPageContent() {
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 text-brand-amber border border-amber-200 flex items-center justify-center mx-auto">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h2 className="text-2xl font-black text-slate-900">Recuperar Senha</h2>
+                <h1 className="text-2xl font-black text-slate-900">Recuperar senha</h1>
                 <p className="text-xs text-slate-600">
                   Informe o seu e-mail cadastrado para receber o link de redefinição.
                 </p>
               </div>
 
               {resetSuccess ? (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
+                <div role="status" aria-live="polite" className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
                   <CheckCircle2 className="w-8 h-8 text-brand-green mx-auto" />
                   <div>
                     <strong className="block text-sm font-bold text-slate-900 mb-1">E-mail de recuperação enviado!</strong>
@@ -261,20 +271,24 @@ function LoginPageContent() {
               ) : (
                 <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-4">
                   {serverError && (
-                    <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3">
+                    <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3">
                       <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                       <span>{serverError}</span>
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    <label htmlFor="creator-reset-email" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                       Seu E-mail Cadastrado *
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
+                        id="creator-reset-email"
+                        autoComplete="email"
+                        aria-invalid={Boolean(resetErrors.email)}
+                        aria-describedby={resetErrors.email ? 'creator-reset-email-error' : undefined}
                         placeholder="seuemail@exemplo.com"
                         {...registerReset('email')}
                         className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${
@@ -283,7 +297,7 @@ function LoginPageContent() {
                       />
                     </div>
                     {resetErrors.email && (
-                      <p className="text-xs text-rose-500 mt-1 font-medium">{resetErrors.email.message}</p>
+                      <p id="creator-reset-email-error" className="text-xs text-rose-500 mt-1 font-medium">{resetErrors.email.message}</p>
                     )}
                   </div>
 

@@ -65,7 +65,7 @@ export default function AffiliateSignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-x-hidden">
       {/* Background Radial Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -76,9 +76,9 @@ export default function AffiliateSignupPage() {
             alt="Educalizando"
             className="h-14 w-auto mx-auto object-contain"
           />
-          <h2 className="mt-6 text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="mt-6 text-3xl font-black text-slate-900 tracking-tight">
             Torne-se um Afiliado
-          </h2>
+          </h1>
           <p className="mt-2 text-sm text-slate-600 font-medium">
             Cadastre-se gratuitamente e comece a vender materiais didáticos
           </p>
@@ -89,10 +89,10 @@ export default function AffiliateSignupPage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-8 shadow-2xl space-y-6 border border-slate-100"
+          className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 border border-slate-100"
         >
           {errorMsg && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
+            <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>

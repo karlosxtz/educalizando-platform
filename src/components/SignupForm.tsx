@@ -89,11 +89,11 @@ export default function SignupForm() {
 
   return (
     <section id="cadastro" className="py-12 px-4 scroll-mt-24">
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl max-w-2xl mx-auto space-y-8 relative overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-xl max-w-2xl mx-auto space-y-8 relative overflow-hidden">
       
       {/* Form Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        <h2 id="creator-signup-form-title" className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
           Crie Sua Conta de Criador em Segundos
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -102,13 +102,13 @@ export default function SignupForm() {
       </div>
 
       {serverError && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs flex items-center gap-3 font-semibold">
+        <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs flex items-center gap-3 font-semibold">
           <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
           <span>{serverError}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-labelledby="creator-signup-form-title">
         
         {/* Step 1: Personal Info */}
         <div className="space-y-4">
@@ -123,8 +123,9 @@ export default function SignupForm() {
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Nome Completo *
               </label>
-              <input
-                type="text"
+                <input
+                  type="text"
+                  autoComplete="name"
                 {...register('fullName')}
                 placeholder="Ex: Prof. Ricardo Silva"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
@@ -138,8 +139,9 @@ export default function SignupForm() {
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Seu E-mail Principal *
               </label>
-              <input
-                type="email"
+                <input
+                  type="email"
+                  autoComplete="email"
                 {...register('email')}
                 placeholder="seu.email@exemplo.com"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
@@ -266,6 +268,7 @@ export default function SignupForm() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   {...register('password')}
                   placeholder="Mínimo 6 caracteres"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
@@ -273,7 +276,9 @@ export default function SignupForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={showPassword}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 rounded-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -290,6 +295,7 @@ export default function SignupForm() {
               <div className="relative">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   {...register('confirmPassword')}
                   placeholder="Repita sua senha"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm focus:outline-none pr-10"
@@ -297,7 +303,9 @@ export default function SignupForm() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                  aria-label={showConfirmPassword ? 'Ocultar confirmação da senha' : 'Mostrar confirmação da senha'}
+                  aria-pressed={showConfirmPassword}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 rounded-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

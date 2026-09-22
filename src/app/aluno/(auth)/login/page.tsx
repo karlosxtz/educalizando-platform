@@ -133,7 +133,7 @@ function StudentLoginForm() {
         </div>
 
         {errorMsg && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
+          <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -294,7 +294,7 @@ function StudentLoginForm() {
 
 export default function StudentLoginPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8 relative overflow-x-hidden font-sans">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-8">
@@ -312,16 +312,16 @@ export default function StudentLoginPage() {
           <span>Autenticação de Cliente Educalizando</span>
         </div>
 
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
           Acesse ou Crie sua Conta de Cliente
-        </h2>
+        </h1>
         <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
           Faça login ou crie sua conta gratuitamente para comprar e baixar seus materiais didáticos.
         </p>
       </div>
 
       <Suspense fallback={
-        <div className="text-center text-slate-600 text-xs">Carregando formulário...</div>
+        <div role="status" className="text-center text-slate-600 text-xs">Carregando formulário...</div>
       }>
         <StudentLoginForm />
       </Suspense>

@@ -78,12 +78,12 @@ export default function AffiliateLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-x-hidden">
       {/* Background Radial Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/5 rounded-full blur-[120px] pointer-events-none" />
       
       {/* Top Header */}
-      <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
+      <header className="px-4 py-4 sm:p-6 max-w-7xl w-full mx-auto flex items-center justify-between gap-3 relative z-10">
         <Link href="/" className="flex items-center group">
           <img
             src="/branding/logo-educalizando.png?v=3"
@@ -103,12 +103,12 @@ export default function AffiliateLoginPage() {
       </header>
 
       {/* Main Container Card */}
-      <main className="flex-1 flex items-center justify-center p-4 relative z-10 my-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:p-4 relative z-10 sm:my-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-8 shadow-xl relative overflow-hidden space-y-6"
+          className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 sm:p-8 shadow-xl relative overflow-hidden space-y-6"
         >
           {activeTab === 'login' ? (
             /* Login Form Tab */
@@ -127,7 +127,7 @@ export default function AffiliateLoginPage() {
               </div>
 
               {serverError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
+                <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                   <span>{serverError}</span>
                 </div>
@@ -227,14 +227,14 @@ export default function AffiliateLoginPage() {
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 text-brand-amber border border-amber-200 flex items-center justify-center mx-auto">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h2 className="text-2xl font-black text-slate-900">Recuperar Senha</h2>
+                <h1 className="text-2xl font-black text-slate-900">Recuperar senha</h1>
                 <p className="text-xs text-slate-600">
                   Informe o seu e-mail cadastrado para receber o link de redefinição.
                 </p>
               </div>
 
               {resetSuccess ? (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
+                <div role="status" aria-live="polite" className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
                   <CheckCircle2 className="w-8 h-8 text-brand-green mx-auto" />
                   <div>
                     <strong className="block text-sm font-bold text-slate-900 mb-1">E-mail de recuperação enviado!</strong>
@@ -250,7 +250,7 @@ export default function AffiliateLoginPage() {
               ) : (
                 <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-4">
                   {serverError && (
-                    <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3">
+                    <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3">
                       <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                       <span>{serverError}</span>
                     </div>

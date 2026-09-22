@@ -61,12 +61,12 @@ export default function RedefinirSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans relative overflow-x-hidden">
       {/* Background Radial Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/5 rounded-full blur-[120px] pointer-events-none" />
       
       {/* Top Header */}
-      <header className="p-6 max-w-7xl w-full mx-auto flex items-center justify-between relative z-10">
+      <header className="px-4 py-4 sm:p-6 max-w-7xl w-full mx-auto flex items-center justify-between gap-3 relative z-10">
         <Link href="/" className="flex items-center group">
           <img
             src="/branding/logo-educalizando.png?v=3"
@@ -78,7 +78,7 @@ export default function RedefinirSenhaPage() {
 
         <Link
           href="/login"
-          className="text-xs text-slate-600 hover:text-brand-navy flex items-center gap-1 font-bold transition-colors"
+          className="min-h-11 shrink-0 rounded-lg px-2 text-xs text-slate-600 hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 flex items-center gap-1 font-bold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar ao Login</span>
@@ -86,12 +86,12 @@ export default function RedefinirSenhaPage() {
       </header>
 
       {/* Main Container Card */}
-      <main className="flex-1 flex items-center justify-center p-4 relative z-10 my-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:p-4 relative z-10 sm:my-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-8 shadow-xl relative overflow-hidden space-y-6"
+          className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 sm:p-8 shadow-xl relative overflow-hidden space-y-6"
         >
           <div className="space-y-6">
             <div className="text-center space-y-3">
@@ -105,7 +105,7 @@ export default function RedefinirSenhaPage() {
             </div>
 
             {isSuccess ? (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
+              <div role="status" aria-live="polite" className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs text-center space-y-3">
                 <CheckCircle2 className="w-8 h-8 text-brand-green mx-auto" />
                 <div>
                   <strong className="block text-sm font-bold text-slate-900 mb-1">Senha alterada com sucesso!</strong>
@@ -115,20 +115,22 @@ export default function RedefinirSenhaPage() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {serverError && (
-                  <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
+                  <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-3 font-medium">
                     <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500" />
                     <span>{serverError}</span>
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  <label htmlFor="new-password" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     Nova Senha *
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      id="new-password"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -139,7 +141,9 @@ export default function RedefinirSenhaPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+                      aria-pressed={showPassword}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 rounded-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -147,13 +151,15 @@ export default function RedefinirSenhaPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  <label htmlFor="confirm-new-password" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     Confirmar Nova Senha *
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirm-new-password"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -164,7 +170,9 @@ export default function RedefinirSenhaPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label={showConfirmPassword ? 'Ocultar confirmação da senha' : 'Mostrar confirmação da senha'}
+                      aria-pressed={showConfirmPassword}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 rounded-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
