@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
-  LayoutDashboard, ShoppingBag, Link2, Wallet, Settings, 
-  LogOut, Menu, X, ChevronRight, User, Store, BarChart3,
-  MousePointerClick, ArrowLeftRight, Palette
+  LayoutDashboard, ShoppingBag, Link2, Wallet, Settings,
+  LogOut, Menu, X, ChevronRight, User, ArrowLeftRight, Palette
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { saveRolePreference } from '@/lib/role-service';
@@ -25,13 +24,17 @@ export default function AffiliateSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!mobileOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileOpen(false);
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+        window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
+      }
     };
 
     document.body.style.overflow = 'hidden';
@@ -99,6 +102,7 @@ export default function AffiliateSidebar({
         </Link>
 
         <button
+          ref={menuTriggerRef}
           onClick={() => setMobileOpen(!mobileOpen)}
           className="min-h-11 min-w-11 p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
           aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
@@ -139,7 +143,7 @@ export default function AffiliateSidebar({
                 <span className="hidden sm:inline">Afiliado</span>
               </div>
 
-              <button onClick={() => setMobileOpen(false)} className="lg:hidden min-h-11 min-w-11 text-slate-400 p-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-lg" aria-label="Fechar menu">
+              <button onClick={() => { setMobileOpen(false); window.requestAnimationFrame(() => menuTriggerRef.current?.focus()); }} className="lg:hidden min-h-11 min-w-11 text-slate-400 p-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-lg" aria-label="Fechar menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -184,7 +188,11 @@ export default function AffiliateSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                     isActive
                       ? 'bg-teal-50 text-teal-700 font-bold shadow-xs border-l-4 border-teal-600'
@@ -234,7 +242,10 @@ export default function AffiliateSidebar({
       {/* Overlay Backdrop for Mobile Drawer */}
       {mobileOpen && (
         <div
-          onClick={() => setMobileOpen(false)}
+          onClick={() => {
+            setMobileOpen(false);
+            window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
+          }}
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
           aria-hidden="true"
         />

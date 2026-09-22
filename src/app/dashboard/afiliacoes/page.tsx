@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getMyAffiliations, getAffiliateProfile } from '@/lib/affiliate-service';
-import { Affiliate, AffiliateProfile } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Wallet, Pencil } from 'lucide-react';
+import { Affiliate } from '@/lib/types';
+import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+
+type StorePerformance = { storeName: string; cliques: number; vendas: number; conversao: number; comissao: number };
+type ProductPerformance = { productName: string; storeName: string; cliques: number; vendas: number; receita: number };
+type RecentTransaction = { id: string; type: string; amount: number; date: string; productName?: string; storeName?: string; status: string };
 
 export default function AffiliateDashboardPage() {
   const [affiliations, setAffiliations] = useState<Affiliate[]>([]);
@@ -20,19 +24,16 @@ export default function AffiliateDashboardPage() {
     conversao: 0,
     ticketMedio: 0
   });
-  const [storePerformance, setStorePerformance] = useState<any[]>([]);
-  const [productPerformance, setProductPerformance] = useState<any[]>([]);
-  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [storePerformance, setStorePerformance] = useState<StorePerformance[]>([]);
+  const [productPerformance, setProductPerformance] = useState<ProductPerformance[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
   
   const [dateFilter, setDateFilter] = useState('30_days');
-
-  useEffect(() => {
-    loadData();
-  }, [dateFilter]);
 
   const getDateRange = () => {
     const today = new Date();
@@ -113,13 +114,26 @@ export default function AffiliateDashboardPage() {
     }
   }
 
-  const handleCopyLink = (url: string, id: string) => {
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  useEffect(() => {
+    // The data refresh is intentionally driven by the selected reporting period.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadData();
+    // `dateFilter` is the explicit trigger for refreshing this dashboard.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFilter]);
+
+  const handleCopyLink = async (url: string, id: string) => {
+    setCopyError(null);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      setCopyError('Não foi possível copiar o link. Tente novamente.');
+    }
   };
 
-  const getAffiliateLink = (affiliate: any) => {
+  const getAffiliateLink = (affiliate: Affiliate) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     if (affiliate.product_id) {
       return `${origin}/loja/${affiliate.store?.slug}/produto/${affiliate.product_id}?ref=${affiliate.id}`;
@@ -129,7 +143,7 @@ export default function AffiliateDashboardPage() {
 
   if (isLoading && affiliations.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="max-w-6xl mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh]" role="status" aria-live="polite">
         <div className="w-12 h-12 border-4 border-slate-200 border-t-brand-primary rounded-full animate-spin mb-4"></div>
         <p className="text-slate-500 font-medium">Carregando painel de afiliados...</p>
       </div>
@@ -137,17 +151,17 @@ export default function AffiliateDashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Central de Afiliados</h1>
           <p className="text-slate-500 mt-1">Acompanhe seus links de divulgação e performance.</p>
         </div>
         {userId && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
             <Link 
               href="/dashboard/afiliacoes/mercado" 
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold shadow-sm transition-all"
+              className="min-h-11 w-full sm:w-auto justify-center inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
             >
               <Store className="w-4 h-4 text-brand-teal" />
               Mercado de Produtos
@@ -206,9 +220,9 @@ export default function AffiliateDashboardPage() {
       </div>
 
       {/* Resumo Financeiro e Analítico */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 relative">
+      <div className="grid grid-cols-1 min-[390px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-6 relative">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl">
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl" role="status" aria-live="polite">
             <div className="w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
           </div>
         )}
@@ -296,7 +310,7 @@ export default function AffiliateDashboardPage() {
 
       {/* Lojas Afiliadas (Meus Links) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center gap-3">
           <Link2 className="w-5 h-5 text-brand-primary" />
           <h2 className="text-lg font-semibold text-slate-900">Meus Links (Afiliações Ativas)</h2>
         </div>
@@ -317,7 +331,7 @@ export default function AffiliateDashboardPage() {
             </div>
           ) : (
             affiliations.map(affiliate => (
-              <div key={affiliate.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
+              <div key={affiliate.id} className="p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-center gap-4">
                   {affiliate.store?.logo_url ? (
                     <img src={affiliate.store.logo_url} alt="" className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
@@ -357,7 +371,8 @@ export default function AffiliateDashboardPage() {
                       </div>
                       <button 
                         onClick={() => handleCopyLink(getAffiliateLink(affiliate), affiliate.id)}
-                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors flex items-center gap-2 shrink-0 text-sm"
+                        aria-label={`Copiar link de divulgação de ${affiliate.store?.nome_loja || 'loja'}`}
+                        className="min-h-11 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors flex items-center gap-2 shrink-0 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
                       >
                         {copiedId === affiliate.id ? <><Check className="w-4 h-4 text-green-600" /> Copiado</> : <><Copy className="w-4 h-4" /> Copiar</>}
                       </button>
@@ -369,6 +384,8 @@ export default function AffiliateDashboardPage() {
           )}
         </div>
       </div>
+
+      {copyError && <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800" role="alert">{copyError}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance por Loja */}
@@ -491,7 +508,7 @@ export default function AffiliateDashboardPage() {
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-slate-900 font-medium truncate max-w-[200px]">{tx.productName}</div>
-                      <div className="text-xs text-slate-400 font-mono mt-1">ID: {tx.orderId?.substring(0, 8)}...</div>
+                      <div className="text-xs text-slate-400 mt-1">Comissão registrada nesta venda</div>
                     </td>
                     <td className="p-4 text-sm text-slate-600 truncate max-w-[120px]">
                       {tx.storeName}
