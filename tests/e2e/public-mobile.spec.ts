@@ -57,6 +57,6 @@ test.describe('header mobile público', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: 'Abrir carrinho' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Entrar ou criar conta' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /o que você procura hoje/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /o que você procura hoje/i }).first()).toBeVisible();
   });
 });
