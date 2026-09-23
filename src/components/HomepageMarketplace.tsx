@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { CalendarDays, ChevronRight, Gift, ImageIcon, Rocket, Sparkles, Store } from 'lucide-react';
 import type { MainBanner } from '@/lib/banners-service';
 import type { Product, Store as StoreData } from '@/lib/types';
@@ -6,6 +7,7 @@ import MainBannersCarousel from '@/components/MainBannersCarousel';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import SearchBar from '@/components/SearchBar';
+import { SCHOOL_CALENDAR_ARTWORK, SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
 
 type MarketplaceProduct = Product & { store?: StoreData };
 
@@ -44,6 +46,14 @@ export default function HomepageMarketplace({
   const freeProducts = products.filter((product) => product.is_free || Number(product.preco) === 0).slice(0, 4);
   const plrProducts = products.filter((product) => product.is_plr && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery).slice(0, 4);
   const offers = products.filter((product) => !product.is_free && Number(product.preco_original || 0) > Number(product.preco || 0)).slice(0, 4);
+  const featuredCalendarEvent = monthlyTags
+    .map((tag) => SCHOOL_CALENDAR_EVENTS.find((event) => event.searchTerm === tag))
+    .find((event) => Boolean(event));
+  const featuredCalendarArtwork = featuredCalendarEvent ? SCHOOL_CALENDAR_ARTWORK[featuredCalendarEvent.slug] : undefined;
+  const featuredThemeProducts = featuredCalendarEvent
+    ? products.filter((product) => product.seasonal_tags?.includes(featuredCalendarEvent.searchTerm)).slice(0, 4)
+    : [];
+  const featuredThemeFreeProducts = featuredThemeProducts.filter((product) => product.is_free || Number(product.preco) === 0).slice(0, 2);
 
   return (
     <main className="flex-1 pb-16 sm:pb-20">
@@ -78,6 +88,18 @@ export default function HomepageMarketplace({
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-3 sm:px-6 sm:pb-6 lg:px-8" aria-label="Banners e campanhas disponíveis">{banners.length > 0 ? <div className="overflow-hidden rounded-[2rem] border border-violet-100 shadow-sm"><MainBannersCarousel banners={banners} /></div> : <div className="rounded-[2rem] border border-violet-100 bg-violet-50 p-6 sm:p-8"><div className="flex items-start gap-4"><ImageIcon className="mt-0.5 h-6 w-6 shrink-0 text-violet-700" /><div><h2 className="text-xl font-black text-slate-950">Encontre o material ideal para sua próxima aula</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Navegue pelas categorias, descubra materiais gratuitos e veja as vitrines de criadores disponíveis.</p><Link href="/buscar" className="mt-4 inline-flex text-sm font-black text-violet-700 hover:text-violet-900">Ir para o catálogo <ChevronRight className="h-4 w-4" /></Link></div></div></div>}</section>
+
+      {featuredCalendarEvent && <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="tema-em-destaque">
+        <div className="overflow-hidden rounded-[2rem] border border-indigo-100 bg-white shadow-lg shadow-indigo-950/5">
+          <div className="relative isolate min-h-72 overflow-hidden bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 p-6 text-white sm:p-9">
+            {featuredCalendarArtwork && <Image src={featuredCalendarArtwork.src} alt="" fill sizes="(min-width: 1280px) 80rem, 100vw" className="object-cover object-right opacity-35" />}
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-indigo-950 via-indigo-950/90 to-violet-800/30" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0"><span className="home-calendar-float absolute right-[8%] top-8 text-5xl drop-shadow-lg">{calendarThemeIcons[featuredCalendarEvent.name] || '✨'}</span><span className="home-calendar-sparkle absolute right-[28%] top-10 text-2xl text-yellow-100">✦</span></div>
+            <div className="relative flex h-full max-w-2xl flex-col justify-center"><p className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[.14em] text-fuchsia-100 backdrop-blur-sm"><CalendarDays className="h-4 w-4" /> Tema em destaque</p><h2 id="tema-em-destaque" className="mt-4 text-3xl font-black leading-tight sm:text-4xl">{featuredCalendarEvent.name}</h2><p className="mt-3 max-w-xl text-sm leading-6 text-indigo-100 sm:text-base">Uma campanha visual para inspirar seu planejamento e localizar materiais que os criadores marcaram para esta data.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row"><Link href={`/calendario/${featuredCalendarEvent.slug}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-black text-indigo-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Ver tema completo <ChevronRight className="h-4 w-4" /></Link><Link href={`/buscar?data=${encodeURIComponent(featuredCalendarEvent.searchTerm)}`} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Explorar materiais</Link></div></div>
+          </div>
+          <div className="p-5 sm:p-7"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.14em] text-indigo-700">Materiais vinculados ao tema</p><h3 className="mt-1 text-xl font-black text-slate-950">{featuredThemeProducts.length ? 'Escolhas para começar agora' : 'A campanha está pronta para receber materiais'}</h3></div><Link href={`/buscar?data=${encodeURIComponent(featuredCalendarEvent.searchTerm)}`} className="text-sm font-black text-indigo-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700">Ver todos →</Link></div>{featuredThemeProducts.length ? <div className="mt-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-5 lg:grid-cols-4">{featuredThemeProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-4 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50 p-4 text-sm leading-6 text-slate-600">Quando um criador marcar um material com este tema, ele aparecerá aqui automaticamente.</p>}{featuredThemeFreeProducts.length > 0 && <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl bg-emerald-50 p-4"><Gift className="h-5 w-5 text-emerald-700" /><p className="text-sm font-bold text-emerald-900">Também há {featuredThemeFreeProducts.length === 1 ? 'material gratuito' : `${featuredThemeFreeProducts.length} materiais gratuitos`} relacionado(s) a esta campanha.</p><Link href={`/buscar?data=${encodeURIComponent(featuredCalendarEvent.searchTerm)}&preco=gratis`} className="text-sm font-black text-emerald-800 underline">Ver gratuitos</Link></div>}</div>
+        </div>
+      </section>}
 
       <Shelf title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar?sort=popular" products={featured} />
 
