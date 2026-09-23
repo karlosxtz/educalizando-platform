@@ -5,6 +5,7 @@ import type { MainBanner } from '@/lib/banners-service';
 import type { Product, Store as StoreData } from '@/lib/types';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import MonthlyCampaignCarousel from '@/components/MonthlyCampaignCarousel';
+import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import SearchBar from '@/components/SearchBar';
@@ -107,6 +108,8 @@ export default function HomepageMarketplace({
       </section>}
 
       <MonthlyCampaignCarousel tags={monthlyTags} />
+
+      <UpcomingCalendarDates products={products} />
 
       <Shelf title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar?sort=popular" products={featured} />
 
