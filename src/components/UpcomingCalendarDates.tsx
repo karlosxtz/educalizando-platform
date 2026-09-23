@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowUpRight, CalendarDays } from 'lucide-react';
 import CalendarEventIcon from '@/components/CalendarEventIcon';
+import CampaignTrackedLink from '@/components/CampaignTrackedLink';
 import { getUpcomingSchoolEvents, SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
 
 type UpcomingCalendarDatesProps = {
@@ -33,11 +34,11 @@ export default function UpcomingCalendarDates({ products }: UpcomingCalendarDate
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {events.map((item) => {
             const href = '/buscar?data=' + encodeURIComponent(item.tag);
-            return <Link key={item.tag} href={href} className="group flex min-h-40 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700">
+            return <CampaignTrackedLink key={item.tag} href={href} tag={item.tag} surface="homepage_upcoming" className="group flex min-h-40 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700">
               <span className="flex items-start justify-between gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-100 text-indigo-700">{item.event ? <CalendarEventIcon icon={item.event.icon} /> : <CalendarDays className="h-5 w-5" />}</span><span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-black text-indigo-700">{item.daysUntil === 0 ? 'Hoje' : item.daysUntil === 1 ? 'Amanhã' : 'Em ' + item.daysUntil + ' dias'}</span></span>
               <span className="mt-4"><time dateTime={item.date.toISOString().slice(0, 10)} className="block text-xs font-bold text-slate-500">{monthFormatter.format(item.date)}</time><span className="mt-1 block text-base font-black leading-tight text-slate-950">{item.tag}</span></span>
               <span className="mt-auto pt-4 text-xs font-bold text-indigo-700">{item.materials === 1 ? '1 material relacionado' : item.materials + ' materiais relacionados'} <ArrowUpRight className="inline h-3.5 w-3.5" /></span>
-            </Link>;
+            </CampaignTrackedLink>;
           })}
         </div>
       </div>

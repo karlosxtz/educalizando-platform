@@ -1,10 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getSchoolCalendarArtworkForTag, type SchoolCalendarTag } from '@/lib/school-calendar';
+import CampaignTrackedLink from '@/components/CampaignTrackedLink';
 
 type MonthlyCampaignCarouselProps = {
   tags: readonly string[];
@@ -44,11 +44,11 @@ export default function MonthlyCampaignCarousel({ tags }: MonthlyCampaignCarouse
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}>
-          {visibleCampaigns.map((campaign, index) => <Link key={campaign.tag + '-' + index} href={'/buscar?data=' + encodeURIComponent(campaign.tag)} className={'group relative min-h-48 overflow-hidden rounded-2xl border border-slate-200 bg-indigo-950 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 ' + (index > 0 ? 'hidden md:block' : '')}>
+          {visibleCampaigns.map((campaign, index) => <CampaignTrackedLink key={campaign.tag + '-' + index} href={'/buscar?data=' + encodeURIComponent(campaign.tag)} tag={campaign.tag} surface="homepage_monthly" className={'group relative min-h-48 overflow-hidden rounded-2xl border border-slate-200 bg-indigo-950 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 ' + (index > 0 ? 'hidden md:block' : '')}>
             <Image src={campaign.artwork.src} alt="" fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover object-right opacity-70 transition duration-500 group-hover:scale-105" />
             <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-indigo-950 via-indigo-950/75 to-indigo-900/10" />
             <span className="relative flex h-full flex-col justify-between"><span className="inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wide backdrop-blur-sm">Campanha {index + 1} de {campaigns.length}</span><span><span className="block text-xl font-black leading-tight">{campaign.tag}</span><span className="mt-2 inline-flex items-center gap-1 text-sm font-black text-indigo-100">Explorar materiais <ChevronRight className="h-4 w-4" /></span></span></span>
-          </Link>)}
+          </CampaignTrackedLink>)}
         </div>
         <div className="mt-5 flex justify-center gap-2" aria-label="Indicador das campanhas">
           {campaigns.map((campaign, index) => <button key={campaign.tag} type="button" onClick={() => setActiveIndex(index)} className={'h-2.5 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 ' + (index === activeIndex ? 'w-7 bg-indigo-700' : 'w-2.5 bg-indigo-200 hover:bg-indigo-400')} aria-label={'Mostrar campanha: ' + campaign.tag} aria-current={index === activeIndex ? 'true' : undefined} />)}
