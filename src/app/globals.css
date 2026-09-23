@@ -195,6 +195,7 @@ html {
 .home-calendar-sparkle { animation: home-calendar-sparkle 2.8s ease-in-out infinite; }
 .home-calendar-sparkle-delayed { animation: home-calendar-sparkle 3.4s ease-in-out 1.2s infinite; }
 .home-calendar-chip-icon { animation: home-calendar-float 4.8s ease-in-out infinite; }
+.home-calendar-filter-dot { animation: home-calendar-sparkle 2.8s ease-in-out infinite; }
 
 .marketplace-category-track {
   min-width: max-content;
@@ -224,5 +225,5 @@ html {
 .marketplace-category-rail { animation: marketplace-category-glow 3.2s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .marketplace-category-track, .marketplace-category-rail, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon { animation: none; }
+  .marketplace-category-track, .marketplace-category-rail, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon, .home-calendar-filter-dot { animation: none; }
 }
