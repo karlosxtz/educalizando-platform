@@ -26,11 +26,11 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
         <div className="absolute top-10 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6 py-16">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight tracking-tight max-w-4xl mx-auto drop-shadow-sm">
-            O Maior Acervo de Atividades para <span className="text-cyan-300">Transformar sua Aula</span>
-          </h1>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight tracking-tight max-w-4xl mx-auto drop-shadow-sm">
+            Materiais didáticos para <span className="text-cyan-300">apoiar sua aula</span>
+          </h2>
           <p className="text-lg sm:text-xl text-blue-50 font-medium max-w-2xl mx-auto drop-shadow-sm">
-            Materiais didáticos criados por professores especialistas, prontos para imprimir e aplicar.
+            Explore atividades, apostilas, jogos e recursos digitais disponíveis no catálogo.
           </p>
           <div className="pt-6">
             <Link href="/buscar" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-900 hover:bg-slate-50 font-black rounded-full shadow-xl shadow-blue-900/20 transition-transform hover:-translate-y-1 text-lg">
