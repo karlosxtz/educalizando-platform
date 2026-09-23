@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarDays, ChevronRight, Gift, ImageIcon, Rocket, Sparkles, Store, Tag } from 'lucide-react';
+import { CalendarDays, ChevronRight, Gift, ImageIcon, Rocket, Sparkles, Store } from 'lucide-react';
 import type { MainBanner } from '@/lib/banners-service';
 import type { Product, Store as StoreData } from '@/lib/types';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
@@ -15,6 +15,19 @@ const categories = [
   { href: '/buscar?categoria=ensino-fundamental', label: 'Ensino fundamental', icon: '📚' },
   { href: '/buscar?categoria=jogos', label: 'Jogos e atividades', icon: '🧩' },
 ];
+
+const calendarThemeIcons: Record<string, string> = {
+  'Semana da Pátria': '🇧🇷',
+  'Independência do Brasil': '🏛️',
+  'Dia da Árvore': '🌳',
+  'Primavera': '🌸',
+  'Dia do Trânsito': '🚦',
+  'Meio Ambiente': '🌿',
+  'Festa Junina': '🎉',
+  'Dia das Crianças': '🎈',
+  'Dia dos Professores': '🍎',
+  'Natal': '🎄',
+};
 
 export default function HomepageMarketplace({
   banners,
@@ -69,7 +82,33 @@ export default function HomepageMarketplace({
       <Shelf title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar?sort=popular" products={featured} />
 
       <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="home-calendario">
-        <div className="rounded-[2rem] border border-indigo-100 bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 p-5 text-white shadow-lg sm:p-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.14em] text-fuchsia-200"><CalendarDays className="h-4 w-4" /> Planejamento do mês</p><h2 id="home-calendario" className="mt-2 text-2xl font-black sm:text-3xl">Temas para o calendário escolar</h2><p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">Use as datas e temas já cadastrados para encontrar recursos alinhados ao seu planejamento.</p></div><Link href="/calendario" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-indigo-900 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Ver calendário</Link></div><div className="mt-6 flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">{monthlyTags.map((tag) => <Link key={tag} href={`/buscar?data=${encodeURIComponent(tag)}`} className="inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border border-white/25 bg-white/10 px-4 text-sm font-bold text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><Tag className="mr-2 h-3.5 w-3.5" />{tag}</Link>)}</div></div>
+        <div className="home-calendar-panel relative isolate overflow-hidden rounded-[2rem] border border-indigo-100 bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 p-5 text-white shadow-xl shadow-violet-950/20 sm:p-8">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-fuchsia-300/25 blur-3xl" />
+            <div className="absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
+            <span className="home-calendar-float absolute right-[8%] top-8 text-5xl drop-shadow-lg sm:text-6xl">{calendarThemeIcons[monthlyTags[2]] || '✨'}</span>
+            <span className="home-calendar-float-delayed absolute bottom-9 right-[22%] text-3xl opacity-80 sm:text-4xl">{calendarThemeIcons[monthlyTags[4]] || '🌟'}</span>
+            <span className="home-calendar-sparkle absolute right-[4%] top-1/2 text-2xl text-yellow-200">✦</span>
+            <span className="home-calendar-sparkle-delayed absolute left-[54%] top-7 text-xl text-fuchsia-200">✧</span>
+          </div>
+
+          <div className="relative">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="max-w-xl">
+                <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[.14em] text-fuchsia-100 backdrop-blur-sm"><CalendarDays className="h-4 w-4" /> Planejamento do mês</p>
+                <h2 id="home-calendario" className="mt-3 text-2xl font-black sm:text-3xl">Temas para o calendário escolar</h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">Use as datas e temas já cadastrados para encontrar recursos alinhados ao seu planejamento.</p>
+              </div>
+              <Link href="/calendario" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-indigo-900 shadow-lg shadow-indigo-950/20 transition hover:-translate-y-0.5 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Ver calendário</Link>
+            </div>
+
+            <div className="mt-6 flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label="Temas do calendário do mês">
+              {monthlyTags.map((tag, index) => <Link key={tag} href={`/buscar?data=${encodeURIComponent(tag)}`} className="group inline-flex min-h-12 shrink-0 snap-start items-center rounded-2xl border border-white/20 bg-white/10 px-3.5 text-sm font-bold text-white shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                <span aria-hidden="true" className={`mr-2 inline-flex h-7 w-7 items-center justify-center rounded-xl bg-white/15 text-base transition-transform group-hover:scale-110 ${index % 2 === 0 ? 'home-calendar-chip-icon' : ''}`}>{calendarThemeIcons[tag] || '✨'}</span>{tag}
+              </Link>)}
+            </div>
+          </div>
+        </div>
       </section>
 
       {offers.length > 0 && <Shelf title="Ofertas cadastradas" description="Materiais com preço promocional informado pelos criadores." href="/ofertas" products={offers} accent="orange" />}
