@@ -53,6 +53,35 @@ export type SchoolCalendarEvent = {
   displayOrder: number;
 };
 
+export const SCHOOL_CALENDAR_ARTWORK: Readonly<Record<string, { src: string; alt: string }>> = {
+  'dia-internacional-da-mulher': { src: '/images/calendar/bem-estar.png', alt: 'Ilustração educativa de convivência, cuidado e bem-estar' },
+  'dia-da-escola': { src: '/images/calendar/leitura.png', alt: 'Ilustração de livros e materiais de planejamento escolar' },
+  'dia-mundial-da-agua': { src: '/images/calendar/dia-da-arvore.png', alt: 'Ilustração de crianças cuidando da natureza' },
+  'dia-mundial-da-saude': { src: '/images/calendar/bem-estar.png', alt: 'Ilustração educativa de cuidado e bem-estar' },
+  'dia-do-livro-infantil': { src: '/images/calendar/leitura.png', alt: 'Ilustração de livro infantil e materiais de leitura' },
+  'dia-dos-povos-indigenas': { src: '/images/calendar/cultura.png', alt: 'Ilustração de materiais culturais e criatividade' },
+  'dia-da-terra': { src: '/images/calendar/dia-da-arvore.png', alt: 'Ilustração de crianças cuidando de uma árvore e de mudas' },
+  'dia-do-trabalho': { src: '/images/calendar/cidadania.png', alt: 'Ilustração de crianças aprendendo sobre cidadania e comunidade' },
+  'meio-ambiente': { src: '/images/calendar/dia-da-arvore.png', alt: 'Ilustração de crianças cuidando de uma árvore e de mudas' },
+  'festa-junina': { src: '/images/calendar/cultura.png', alt: 'Ilustração de materiais culturais e criatividade' },
+  'dia-do-folclore': { src: '/images/calendar/cultura.png', alt: 'Ilustração de materiais culturais e criatividade' },
+  'independencia-do-brasil': { src: '/images/calendar/cidadania.png', alt: 'Ilustração de crianças aprendendo sobre cidadania e comunidade' },
+  'dia-da-arvore': {
+    src: '/images/calendar/dia-da-arvore.png',
+    alt: 'Ilustração de crianças cuidando de uma árvore e de mudas',
+  },
+  'dia-das-criancas': { src: '/images/calendar/cultura.png', alt: 'Ilustração de materiais culturais e criatividade' },
+  'dia-dos-professores': { src: '/images/calendar/leitura.png', alt: 'Ilustração de livros e materiais de planejamento escolar' },
+  'proclamacao-da-republica': { src: '/images/calendar/cidadania.png', alt: 'Ilustração de crianças aprendendo sobre cidadania e comunidade' },
+  'dia-da-bandeira': { src: '/images/calendar/cidadania.png', alt: 'Ilustração de crianças aprendendo sobre cidadania e comunidade' },
+  'dia-da-consciencia-negra': { src: '/images/calendar/bem-estar.png', alt: 'Ilustração educativa de convivência, cuidado e bem-estar' },
+  natal: { src: '/images/calendar/cultura.png', alt: 'Ilustração de materiais culturais e criatividade' },
+  'dia-do-transito': {
+    src: '/images/calendar/dia-do-transito.png',
+    alt: 'Ilustração educativa de crianças, faixa de pedestres, ônibus escolar e semáforo',
+  },
+};
+
 export const SCHOOL_CALENDAR_EVENTS: readonly SchoolCalendarEvent[] = [
   { slug: 'dia-internacional-da-mulher', name: 'Dia Internacional da Mulher', month: 3, day: 8, kind: 'cidadania', description: 'Tema disponível para apoiar planejamentos e propostas pedagógicas relacionadas à data.', searchTerm: 'Dia Internacional da Mulher', icon: 'heart', sourceName: 'Organização das Nações Unidas', sourceUrl: 'https://www.un.org/en/observances/womens-day', reviewedAt: '2026-09-23', editorialStatus: 'revisado', displayOrder: 20 },
   { slug: 'dia-da-escola', name: 'Dia da Escola', month: 3, day: 15, kind: 'data pedagógica', description: 'Tema de planejamento escolar disponível para explorar no catálogo.', searchTerm: 'Dia da Escola', icon: 'calendar', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 30 },
