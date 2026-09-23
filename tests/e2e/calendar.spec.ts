@@ -19,7 +19,7 @@ for (const viewport of [
 
     test('exibe título, navegação mensal e datas acessíveis', async ({ page }) => {
       await page.goto('/calendario?mes=8&ano=2026', { waitUntil: 'domcontentloaded' });
-      await expect(page.getByRole('heading', { name: /calendário escolar e datas comemorativas/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /calendário escolar para planejar com mais contexto/i })).toBeVisible();
       await expect(page.getByRole('grid', { name: /calendário de setembro de 2026/i })).toBeVisible();
       await expect(page.getByRole('gridcell', { name: /7 de setembro: independência do brasil/i })).toBeVisible();
       await page.getByRole('link', { name: /ver outubro de 2026/i }).click();
@@ -32,7 +32,16 @@ for (const viewport of [
 test('detalhe do calendário é acessível e slug inexistente retorna 404', async ({ page }) => {
   await page.goto('/calendario/dia-da-arvore', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Dia da Árvore' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /buscar materiais para dia da árvore/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: /buscar materiais sobre este tema/i })).toBeVisible();
   await page.goto('/calendario/data-inexistente', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: /página ou material não encontrado/i })).toBeVisible();
+});
+
+test('filtra temas sem esconder o estado vazio e mantém o fallback de busca', async ({ page }) => {
+  await page.goto('/calendario?mes=8&ano=2026&tipo=literatura', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: /nenhuma data deste tipo neste mês/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: /mostrar todas as datas/i })).toBeVisible();
+  await page.goto('/calendario/dia-da-arvore', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('link', { name: /ver busca completa/i })).toHaveAttribute('href', /buscar\?data=Dia/);
+  await expectNoHorizontalOverflow(page);
 });
