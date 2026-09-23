@@ -82,6 +82,26 @@ export const SCHOOL_CALENDAR_ARTWORK: Readonly<Record<string, { src: string; alt
   },
 };
 
+/** Campanhas panorâmicas trocadas automaticamente conforme o mês do calendário (0 = janeiro). */
+export const SCHOOL_CALENDAR_MONTH_ARTWORK = [
+  { src: '/images/calendar/mes-01-janeiro.png', alt: 'Ilustração de volta às aulas e acolhimento escolar' },
+  { src: '/images/calendar/mes-02-fevereiro.png', alt: 'Ilustração de atividade escolar criativa de carnaval' },
+  { src: '/images/calendar/mes-03-marco.png', alt: 'Ilustração de ciência, água e aprendizagem na escola' },
+  { src: '/images/calendar/mes-04-abril.png', alt: 'Ilustração de leitura e literatura infantil na escola' },
+  { src: '/images/calendar/mes-05-maio.png', alt: 'Ilustração de família, comunidade e projeto escolar' },
+  { src: '/images/calendar/mes-06-junho.png', alt: 'Ilustração de festa junina e celebração escolar' },
+  { src: '/images/calendar/mes-07-julho.png', alt: 'Ilustração de educação financeira para crianças' },
+  { src: '/images/calendar/mes-08-agosto.png', alt: 'Ilustração de folclore, leitura e contação de histórias' },
+  { src: '/images/calendar/mes-09-setembro.png', alt: 'Ilustração de cidadania, natureza e educação no trânsito' },
+  { src: '/images/calendar/mes-10-outubro.png', alt: 'Ilustração lúdica do mês das crianças' },
+  { src: '/images/calendar/mes-11-novembro.png', alt: 'Ilustração de cultura, história e diversidade na escola' },
+  { src: '/images/calendar/mes-12-dezembro.png', alt: 'Ilustração de celebração e encerramento do ano escolar' },
+] as const;
+
+export function getSchoolCalendarMonthArtwork(month: number) {
+  return SCHOOL_CALENDAR_MONTH_ARTWORK[month] || SCHOOL_CALENDAR_MONTH_ARTWORK[0];
+}
+
 export const SCHOOL_CALENDAR_EVENTS: readonly SchoolCalendarEvent[] = [
   { slug: 'dia-internacional-da-mulher', name: 'Dia Internacional da Mulher', month: 3, day: 8, kind: 'cidadania', description: 'Tema disponível para apoiar planejamentos e propostas pedagógicas relacionadas à data.', searchTerm: 'Dia Internacional da Mulher', icon: 'heart', sourceName: 'Organização das Nações Unidas', sourceUrl: 'https://www.un.org/en/observances/womens-day', reviewedAt: '2026-09-23', editorialStatus: 'revisado', displayOrder: 20 },
   { slug: 'dia-da-escola', name: 'Dia da Escola', month: 3, day: 15, kind: 'data pedagógica', description: 'Tema de planejamento escolar disponível para explorar no catálogo.', searchTerm: 'Dia da Escola', icon: 'calendar', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 30 },
