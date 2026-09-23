@@ -18,6 +18,7 @@ import {
 } from '@/lib/store-service';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { Product, Store, ProductType, Category, EducationLevel } from '@/lib/types';
+import { searchMatchScore } from '@/lib/search-matching';
 import CategoryManagerModal from '@/components/dashboard/CategoryManagerModal';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 
@@ -151,8 +152,7 @@ export default function ProductsManagementPage() {
     const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter;
     const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter;
     const matchStatus = selectedStatusFilter === 'all' || p.status === selectedStatusFilter;
-    const term = searchFilter.trim().toLocaleLowerCase('pt-BR');
-    const matchSearch = !term || `${p.titulo} ${p.descricao || ''}`.toLocaleLowerCase('pt-BR').includes(term);
+    const matchSearch = !searchFilter.trim() || searchMatchScore(p, searchFilter) > 0;
     return matchCategory && matchEducation && matchStatus && matchSearch;
   });
 

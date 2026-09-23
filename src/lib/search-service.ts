@@ -2,6 +2,9 @@ import { supabase } from './supabase';
 import { Product, Store } from './types';
 import { getAllPublicMarketplaceProducts } from './store-service';
 import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from './category-service';
+import { normalizeSearchText, searchMatchScore } from './search-matching';
+
+export { getSearchTerms, normalizeSearchText, searchMatchScore } from './search-matching';
 
 export interface SearchFilters {
   q?: string;
@@ -20,10 +23,11 @@ export interface SearchResult {
   data: (Product & { store?: Store })[];
   count: number;
   totalPages: number;
+  /** Indica quando a busca encontrou o termo em descrição, tags ou formato. */
+  matchMode?: 'exact' | 'expanded';
 }
 
 const ITEMS_PER_PAGE = 24;
-
 export async function searchProducts(filters: SearchFilters): Promise<SearchResult> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -43,9 +47,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         .eq('status', 'publicado')
         .is('excluido_em', null);
 
-      // 1. Busca Flexível (Fragmentos via ILIKE na coluna unaccent)
+      // 1. Busca direta por título. Caso não exista resultado, o fallback
+      // abaixo amplia a consulta usando dados reais do material.
       if (filters.q) {
-        const queryLimpo = filters.q.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const queryLimpo = normalizeSearchText(filters.q);
         query = query.ilike('titulo_limpo', `%${queryLimpo}%`);
       }
 
@@ -147,11 +152,12 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
       const { data, error, count } = await query;
 
-      if (!error && data) {
+      if (!error && data && (data.length > 0 || !filters.q)) {
         return {
           data: data as (Product & { store?: Store })[],
           count: count || 0,
-          totalPages: count ? Math.ceil(count / ITEMS_PER_PAGE) : 0
+          totalPages: count ? Math.ceil(count / ITEMS_PER_PAGE) : 0,
+          matchMode: 'exact',
         };
       }
     } catch (err) {
@@ -167,8 +173,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   if (filters.disciplina) return { data: [], count: 0, totalPages: 0 };
 
   if (filters.q) {
-    const qLower = filters.q.toLowerCase();
-    allProducts = allProducts.filter(p => p.titulo.toLowerCase().includes(qLower) || (p.descricao && p.descricao.toLowerCase().includes(qLower)));
+    allProducts = allProducts.filter((product) => searchMatchScore(product, filters.q as string) > 0);
   }
 
   if (filters.filter === 'plr') {
@@ -182,6 +187,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     const categoryObj = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === filters.categoria);
     if (categoryObj) {
       allProducts = allProducts.filter(p => p.category_id === categoryObj.id);
+    } else {
+      // Uma URL adulterada não pode transformar um filtro inexistente em
+      // acesso ao catálogo completo.
+      allProducts = [];
     }
   }
 
@@ -197,6 +206,8 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     const eduLevel = INITIAL_EDUCATION_LEVELS.find(e => e.slug === filters.ano_escolar);
     if (eduLevel) {
       allProducts = allProducts.filter(p => p.education_level_id === eduLevel.id);
+    } else {
+      allProducts = [];
     }
   }
 
@@ -208,7 +219,12 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     if (filters.formato === 'planilha') allProducts = allProducts.filter(p => ['planilha', 'excel'].some(term => format(p).includes(term)));
   }
 
-  if (filters.sort) {
+  if (filters.q && !filters.sort) {
+    allProducts.sort((a, b) => {
+      const scoreDifference = searchMatchScore(b, filters.q as string) - searchMatchScore(a, filters.q as string);
+      return scoreDifference || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  } else if (filters.sort) {
     if (filters.sort === 'popular') {
       allProducts.sort((a, b) => Number(b.views_count || 0) - Number(a.views_count || 0));
     } else if (filters.sort === 'menor-preco') {
@@ -231,7 +247,8 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   return {
     data: paginated,
     count: allProducts.length,
-    totalPages: Math.ceil(allProducts.length / ITEMS_PER_PAGE)
+    totalPages: Math.ceil(allProducts.length / ITEMS_PER_PAGE),
+    matchMode: filters.q ? 'expanded' : 'exact',
   };
 }
 
@@ -264,9 +281,9 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
 
   // Fallback Local
   const all = await getAllPublicMarketplaceProducts(100);
-  const qLower = query.toLowerCase();
   return all
-    .filter(p => p.titulo.toLowerCase().includes(qLower))
+    .filter((product) => searchMatchScore(product, query) > 0)
+    .sort((a, b) => searchMatchScore(b, query) - searchMatchScore(a, query))
     .slice(0, 5)
     .map(p => ({ titulo: p.titulo }));
 }

@@ -1,15 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   ShieldCheck, ExternalLink, Sparkles, Star, Flame
 } from 'lucide-react';
-import { AffiliateProfile } from '@/lib/types';
+import { AffiliateProfile, Product, Store } from '@/lib/types';
+import { searchMatchScore } from '@/lib/search-matching';
+
+type AffiliateProduct = Product & {
+  store?: Store;
+  affiliateInfo?: { id?: string };
+};
 
 interface AffiliateStoreClientViewProps {
   profile: AffiliateProfile;
-  products: any[];
+  products: AffiliateProduct[];
 }
 
 export default function AffiliateStoreClientView({ profile, products }: AffiliateStoreClientViewProps) {
@@ -23,16 +29,18 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
   const [filterUnder50, setFilterUnder50] = useState(false);
 
   const availableStores = Array.from(
-    new Map(products.filter(p => p.store).map(p => [p.store.id, p.store])).values()
+    new Map(products.filter(p => p.store).map(p => [p.store!.id, p.store!])).values()
   ) as {id: string, nome_loja: string}[];
 
   const availableCategories = Array.from(
-    new Map(products.filter(p => p.category).map(p => [p.category.id, p.category])).values()
+    new Map(products.filter(p => p.category).map(p => [p.category!.id, p.category!])).values()
   ) as {id: string, nome: string}[];
 
   let filteredProducts = products.filter(p => {
-    const matchSearch = p.titulo.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      (p.descricao && p.descricao.toLowerCase().includes(searchFilter.toLowerCase()));
+    const matchSearch = !searchFilter.trim() || searchMatchScore({
+      ...p,
+      descricao: [p.descricao, p.store?.nome_loja].filter(Boolean).join(' '),
+    }, searchFilter) > 0;
     const matchCategory = !selectedCategory || p.category?.id === selectedCategory;
     const matchMinPrice = !minPrice || p.preco >= parseFloat(minPrice);
     const matchMaxPrice = !maxPrice || p.preco <= parseFloat(maxPrice);
@@ -49,7 +57,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
     return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
-  const getTipoIcon = (tipo: string) => {
+  const getTipoIcon = () => {
     return <Sparkles className="w-3.5 h-3.5" />; // Simplification
   };
 
@@ -293,7 +301,7 @@ export default function AffiliateStoreClientView({ profile, products }: Affiliat
                         <span 
                           className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs bg-brand-navy z-10"
                         >
-                          {getTipoIcon(prod.tipo)}
+                          {getTipoIcon()}
                           <span>{prod.tipo}</span>
                         </span>
                         {/* Hot Badge */}

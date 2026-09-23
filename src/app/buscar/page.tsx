@@ -47,7 +47,7 @@ export default async function BuscarPage({
   ].filter(item => item.value);
 
   // Realiza a busca no service
-  const { data: products, count, totalPages } = await searchProducts({
+  const { data: products, count, totalPages, matchMode } = await searchProducts({
     q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data, page
   });
 
@@ -121,9 +121,14 @@ export default async function BuscarPage({
               {/* Barra de Ordenação */}
               {(
                 <div className="flex flex-wrap items-center justify-between bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm gap-4">
-                  <span className="text-sm font-bold text-slate-600">
-                    {count} {count === 1 ? 'resultado' : 'resultados'}
-                  </span>
+                  <div>
+                    <span className="text-sm font-bold text-slate-600">
+                      {count} {count === 1 ? 'resultado' : 'resultados'}
+                    </span>
+                    {matchMode === 'expanded' && q && count > 0 && (
+                      <p className="mt-1 text-xs font-medium text-slate-500">Resultados ampliados por termos, descrição, tags e formato do material.</p>
+                    )}
+                  </div>
                   
                   <SearchSort />
                 </div>

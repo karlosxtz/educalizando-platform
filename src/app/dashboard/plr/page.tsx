@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getPlrMarketplaceProducts } from '@/lib/store-service';
 import { Product, Store } from '@/lib/types';
+import { searchMatchScore } from '@/lib/search-matching';
 
 type PlrProduct = Product & { store?: Store };
 
@@ -39,10 +40,10 @@ export default function PlrMarketplacePage() {
     loadData();
   }, []);
 
-  const filteredProducts = products.filter(p => 
-    p.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.store?.nome_loja || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => !searchQuery.trim() || searchMatchScore({
+    ...product,
+    descricao: [product.descricao, product.store?.nome_loja].filter(Boolean).join(' '),
+  }, searchQuery) > 0);
 
   return (
     <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
