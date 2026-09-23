@@ -227,3 +227,7 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .marketplace-category-track, .marketplace-category-rail, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon, .home-calendar-filter-dot { animation: none; }
 }
+/* O carrossel de datas é uma seção própria; o banner principal não deve conter uma faixa rolável. */
+.homepage-featured-campaign [aria-label="Campanhas do mês"] {
+  display: none;
+}
