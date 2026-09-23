@@ -10,7 +10,7 @@ const viewports = [
 ];
 
 const publicRoutes = [
-  '/', '/buscar', '/buscar?query=inexistente', '/lojas', '/ofertas',
+  '/', '/buscar', '/buscar?query=inexistente', '/calendario', '/lojas', '/ofertas',
   '/materiais-gratis', '/blog', '/glossario', '/ajuda', '/sobre',
   '/entrar', '/login', '/cadastro', '/produto/slug-inexistente',
   '/loja/loja-inexistente-para-teste', '/carrinho',

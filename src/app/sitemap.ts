@@ -5,6 +5,7 @@ import { getDisciplines } from '@/lib/discipline-service';
 import { getPublishedBlogPosts } from '@/lib/blog-service';
 import { glossaryTerms } from '@/lib/glossary';
 import { seoLandings } from '@/lib/seo-landings';
+import { SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Must match the canonical host configured in the root metadata.
@@ -66,9 +67,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     { url: `${baseUrl}/glossario`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/calendario`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
   ];
 
   glossaryTerms.forEach((term) => sitemapEntries.push({ url: `${baseUrl}/glossario/${term.slug}`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 }));
+  SCHOOL_CALENDAR_EVENTS.forEach((event) => sitemapEntries.push({ url: `${baseUrl}/calendario/${event.slug}`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.55 }));
   Object.values(seoLandings).forEach((landing) => sitemapEntries.push({ url: `${baseUrl}/${landing.slug}`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 }));
 
   try {

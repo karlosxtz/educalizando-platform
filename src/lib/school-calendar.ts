@@ -16,6 +16,48 @@ export const SCHOOL_CALENDAR_TAGS = [
 
 export type SchoolCalendarTag = typeof SCHOOL_CALENDAR_TAGS[number];
 
+export type SchoolCalendarEventKind = 'data comemorativa' | 'tema escolar' | 'campanha informativa';
+
+/**
+ * Pequena seleção de datas fixas já usadas como temas no catálogo.
+ * São referências de planejamento, não uma relação oficial de feriados.
+ * Datas móveis (como Páscoa e Carnaval) permanecem apenas como temas de busca.
+ */
+export type SchoolCalendarEvent = {
+  slug: string;
+  name: SchoolCalendarTag;
+  month: number;
+  day: number;
+  kind: SchoolCalendarEventKind;
+  description: string;
+  searchTerm: SchoolCalendarTag;
+};
+
+export const SCHOOL_CALENDAR_EVENTS: readonly SchoolCalendarEvent[] = [
+  { slug: 'dia-internacional-da-mulher', name: 'Dia Internacional da Mulher', month: 3, day: 8, kind: 'data comemorativa', description: 'Tema disponível para apoiar planejamentos e propostas pedagógicas relacionadas à data.', searchTerm: 'Dia Internacional da Mulher' },
+  { slug: 'dia-da-escola', name: 'Dia da Escola', month: 3, day: 15, kind: 'data comemorativa', description: 'Tema de planejamento escolar disponível para explorar no catálogo.', searchTerm: 'Dia da Escola' },
+  { slug: 'dia-mundial-da-agua', name: 'Dia Mundial da Água', month: 3, day: 22, kind: 'data comemorativa', description: 'Tema disponível para localizar materiais e propostas relacionadas à água.', searchTerm: 'Dia Mundial da Água' },
+  { slug: 'dia-do-livro-infantil', name: 'Dia do Livro Infantil', month: 4, day: 18, kind: 'data comemorativa', description: 'Tema disponível para apoiar propostas de leitura e literatura infantil.', searchTerm: 'Dia do Livro Infantil' },
+  { slug: 'dia-dos-povos-indigenas', name: 'Dia dos Povos Indígenas', month: 4, day: 19, kind: 'data comemorativa', description: 'Tema disponível para organizar pesquisas e materiais pedagógicos relacionados.', searchTerm: 'Dia dos Povos Indígenas' },
+  { slug: 'dia-do-trabalho', name: 'Dia do Trabalho', month: 5, day: 1, kind: 'data comemorativa', description: 'Tema disponível para pesquisas e atividades adequadas ao contexto escolar.', searchTerm: 'Dia do Trabalho' },
+  { slug: 'meio-ambiente', name: 'Meio Ambiente', month: 6, day: 5, kind: 'campanha informativa', description: 'Tema de planejamento para encontrar recursos sobre cuidado e meio ambiente.', searchTerm: 'Meio Ambiente' },
+  { slug: 'dia-do-folclore', name: 'Dia do Folclore', month: 8, day: 22, kind: 'data comemorativa', description: 'Tema disponível para descobrir materiais ligados à cultura popular brasileira.', searchTerm: 'Dia do Folclore' },
+  { slug: 'independencia-do-brasil', name: 'Independência do Brasil', month: 9, day: 7, kind: 'data comemorativa', description: 'Tema disponível para apoiar pesquisas e atividades escolares relacionadas.', searchTerm: 'Independência do Brasil' },
+  { slug: 'dia-da-arvore', name: 'Dia da Árvore', month: 9, day: 21, kind: 'data comemorativa', description: 'Tema disponível para projetos pedagógicos sobre natureza e preservação.', searchTerm: 'Dia da Árvore' },
+  { slug: 'dia-das-criancas', name: 'Dia das Crianças', month: 10, day: 12, kind: 'data comemorativa', description: 'Tema disponível para propostas lúdicas e atividades voltadas à infância.', searchTerm: 'Dia das Crianças' },
+  { slug: 'dia-dos-professores', name: 'Dia dos Professores', month: 10, day: 15, kind: 'data comemorativa', description: 'Tema disponível para reconhecer o trabalho docente em projetos pedagógicos.', searchTerm: 'Dia dos Professores' },
+  { slug: 'dia-da-consciencia-negra', name: 'Dia da Consciência Negra', month: 11, day: 20, kind: 'data comemorativa', description: 'Tema disponível para encontrar materiais relacionados à educação e cultura afro-brasileira.', searchTerm: 'Dia da Consciência Negra' },
+  { slug: 'natal', name: 'Natal', month: 12, day: 25, kind: 'data comemorativa', description: 'Tema disponível para planejamentos e materiais de encerramento do ano.', searchTerm: 'Natal' },
+] as const;
+
+export function getSchoolCalendarEventsForMonth(month: number): SchoolCalendarEvent[] {
+  return SCHOOL_CALENDAR_EVENTS.filter((event) => event.month - 1 === month);
+}
+
+export function getSchoolCalendarEvent(slug: string): SchoolCalendarEvent | undefined {
+  return SCHOOL_CALENDAR_EVENTS.find((event) => event.slug === slug);
+}
+
 const MONTHLY_TAGS: Record<number, SchoolCalendarTag[]> = {
   0: ['Volta às aulas', 'Adaptação escolar'],
   1: ['Carnaval', 'Dia Internacional da Mulher'],
