@@ -12,7 +12,8 @@ import { searchHref, searchPage } from '@/lib/search-navigation';
 import SearchSort from '@/components/SearchSort';
 import SearchQuery from './SearchQuery';
 import Link from 'next/link';
-import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import Image from 'next/image';
+import { getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import type { Metadata } from 'next';
 
 export const revalidate = 0;
@@ -101,8 +102,12 @@ export default async function BuscarPage({
 
         {/* Layout com Sidebar e Grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <details className="mb-6 rounded-xl border border-slate-200 bg-white p-3"><summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-slate-700 focus-visible:outline-2 focus-visible:outline-blue-600">Explorar datas e campanhas</summary><div className="flex flex-wrap gap-2 pt-2">
-            {SCHOOL_CALENDAR_TAGS.map((tag) => <Link key={tag} href={searchHref(query, { data: data === tag ? null : tag })} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold ${data === tag ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{tag}</Link>)}
+          <details className="mb-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Explorar datas e campanhas</summary><div className="grid grid-cols-1 gap-2 pt-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {SCHOOL_CALENDAR_TAGS.map((tag) => {
+              const artwork = getSchoolCalendarArtworkForTag(tag);
+              const isActive = data === tag;
+              return <Link key={tag} href={searchHref(query, { data: isActive ? null : tag })} aria-current={isActive ? 'page' : undefined} className={`group relative flex min-h-12 min-w-0 items-center overflow-hidden rounded-xl border px-3 py-2 text-left text-xs font-black shadow-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md'}`}><Image src={artwork.src} alt="" fill sizes="(min-width: 1024px) 16rem, (min-width: 640px) 33vw, 100vw" className={`object-cover object-right opacity-20 transition duration-300 group-hover:scale-105 ${isActive ? 'opacity-25' : ''}`} /><span aria-hidden="true" className={`absolute inset-0 ${isActive ? 'bg-blue-700/55' : 'bg-gradient-to-r from-white via-white/90 to-white/20'}`} /><span className="relative min-w-0 break-words">{tag}</span></Link>;
+            })}
           </div></details>
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             

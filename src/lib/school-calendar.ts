@@ -138,22 +138,35 @@ export function getSchoolCalendarEventKinds(): SchoolCalendarEventKind[] {
 }
 
 const MONTHLY_TAGS: Record<number, SchoolCalendarTag[]> = {
-  0: ['Volta às aulas', 'Adaptação escolar'],
-  1: ['Carnaval', 'Dia Internacional da Mulher'],
-  2: ['Dia da Escola', 'Dia Mundial da Água', 'Dia do Circo'],
-  3: ['Páscoa', 'Dia do Livro Infantil', 'Dia dos Povos Indígenas', 'Tiradentes'],
-  4: ['Dia do Trabalho', 'Dia das Mães', 'Dia da Família'],
-  5: ['Meio Ambiente', 'Festa Junina', 'Dia do Orgulho Autista'],
-  6: ['Festa Junina', 'Educação Financeira'],
-  7: ['Dia dos Pais', 'Dia do Estudante', 'Dia do Folclore', 'Dia do Soldado'],
-  8: ['Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito'],
-  9: ['Dia das Crianças', 'Dia dos Professores', 'Cabelo Maluco', 'Halloween'],
-  10: ['Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira'],
-  11: ['Natal', 'Ano Novo', 'Formatura'],
+  0: ['Volta às aulas', 'Adaptação escolar', 'Ano Novo', 'Formatura'],
+  1: ['Carnaval', 'Dia Internacional da Mulher', 'Combate ao Bullying'],
+  2: ['Dia da Escola', 'Dia Mundial da Água', 'Dia do Circo', 'Projeto de Ciências'],
+  3: ['Páscoa', 'Dia do Livro Infantil', 'Dia dos Povos Indígenas', 'Tiradentes', 'Dia Mundial da Saúde', 'Dia da Terra', 'Projeto de Leitura'],
+  4: ['Dia do Trabalho', 'Dia das Mães', 'Dia da Família', 'Dia do Soldado'],
+  5: ['Meio Ambiente', 'Festa Junina', 'Dia do Orgulho Autista', 'Dia dos Namorados', 'Alimentação Saudável'],
+  6: ['Festa Junina', 'Educação Financeira', 'Inclusão e Acessibilidade'],
+  7: ['Dia dos Pais', 'Dia do Estudante', 'Dia do Folclore', 'Dia do Psicólogo', 'Dia do Amigo'],
+  8: ['Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito', 'Setembro Amarelo', 'Educação no Trânsito'],
+  9: ['Dia das Crianças', 'Dia dos Professores', 'Cabelo Maluco', 'Halloween', 'Dia dos Animais', 'Dia do Médico', 'Outubro Rosa', 'Semana da Criança', 'Dia do Brinquedo'],
+  10: ['Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Cultura Afro-Brasileira', 'Cultura Indígena', 'Saúde Bucal'],
+  11: ['Natal', 'Ano Novo', 'Formatura', 'Dia da Polícia'],
 };
 
 export function getSchoolCalendarTagsForMonth(month = new Date().getMonth()): SchoolCalendarTag[] {
   return MONTHLY_TAGS[month] || [];
+}
+
+/**
+ * Toda tag do calendário recebe uma imagem de campanha. Quando não há uma
+ * ilustração exclusiva, a arte do mês mantém a experiência visual consistente
+ * sem duplicar dezenas de arquivos grandes no carregamento inicial.
+ */
+export function getSchoolCalendarArtworkForTag(tag: SchoolCalendarTag) {
+  const event = SCHOOL_CALENDAR_EVENTS.find((item) => item.searchTerm === tag);
+  if (event && SCHOOL_CALENDAR_ARTWORK[event.slug]) return SCHOOL_CALENDAR_ARTWORK[event.slug];
+
+  const month = Object.entries(MONTHLY_TAGS).find(([, tags]) => tags.includes(tag))?.[0];
+  return getSchoolCalendarMonthArtwork(month ? Number(month) : 0);
 }
 
 const UPCOMING_EVENTS: Array<{ tag: SchoolCalendarTag; month: number; day: number }> = [
