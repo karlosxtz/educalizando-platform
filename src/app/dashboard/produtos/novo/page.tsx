@@ -19,7 +19,7 @@ import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 import { toast } from 'sonner';
-import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { getSchoolCalendarTagsForMonth, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { isUploadedMaterial, normalizeDeliveryLink } from '@/lib/delivery-link';
 
 function ProductWizardContent() {
@@ -61,6 +61,7 @@ function ProductWizardContent() {
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
   const [isSeasonalPickerOpen, setIsSeasonalPickerOpen] = useState(false);
   const [seasonalTagSearch, setSeasonalTagSearch] = useState('');
+  const seasonalSuggestions = useMemo(() => getSchoolCalendarTagsForMonth(), []);
   const [selectedBnccSkills, setSelectedBnccSkills] = useState<string[]>([]);
   const [usesBncc, setUsesBncc] = useState(false);
   const [bnccSearch, setBnccSearch] = useState('');
@@ -668,7 +669,10 @@ function ProductWizardContent() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Datas e projetos escolares</label>
-                      <p className="mt-1 text-xs text-slate-500">Conecte campanhas e temas para facilitar a descoberta na vitrine.</p>
+                      <p className="mt-1 text-xs text-slate-500">Marque somente temas que realmente aparecem neste material. Isso o conecta às campanhas e à busca pública.</p>
+                      <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Sugestões do mês">
+                        {seasonalSuggestions.map((tag) => { const selected = seasonalTags.includes(tag); return <button key={tag} type="button" onClick={() => setSeasonalTags((current) => selected ? current.filter((item) => item !== tag) : [...current, tag])} className={'rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ' + (selected ? 'border-violet-700 bg-violet-700 text-white' : 'border-violet-200 bg-white text-violet-800 hover:bg-violet-50')}>{selected ? '✓ ' : '+ '}{tag}</button>; })}
+                      </div>
                     </div>
                     <button type="button" onClick={() => setIsSeasonalPickerOpen(true)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700">
                       <Tags className="h-4 w-4" /> Selecionar datas e temas
