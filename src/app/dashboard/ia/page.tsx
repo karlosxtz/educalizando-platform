@@ -24,6 +24,7 @@ export default function IAConfigPage() {
   const [instagramCopy, setInstagramCopy] = useState('');
   const [toolResult, setToolResult] = useState('');
   const [contentProposal, setContentProposal] = useState<any>(null);
+  const [campaignChoiceOpen, setCampaignChoiceOpen] = useState(false);
   const [activeTool, setActiveTool] = useState('');
   const [proposal, setProposal] = useState<any>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -150,12 +151,12 @@ export default function IAConfigPage() {
     toast.success(`Cópia para ${type === 'whatsapp' ? 'WhatsApp' : 'Instagram'} copiada para área de transferência!`);
   };
 
-  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson') => {
+  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', campaignMode: 'product' | 'plr' = 'product') => {
     if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
     const selectedProduct = products.find(product => product.id === selectedProductId);
     setActiveTool(tool); setToolResult(''); setProposal(null); setContentProposal(null);
     try {
-      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool }) });
+      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool, campaignMode }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
       if ((tool === 'seo' || tool === 'description') && payload.proposal) {
@@ -314,7 +315,7 @@ export default function IAConfigPage() {
             <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="títulos, descrições, tags e SEO prontos para revisar" loading={activeTool === 'seo'} onClick={() => void generateProductTool('seo')} />
-              <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => void generateProductTool('campaign')} />
+              <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => activeProduct?.is_plr ? setCampaignChoiceOpen(true) : void generateProductTool('campaign')} />
               <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
             {contentProposal?.type === 'campaign' && <div className="mt-4 grid gap-4 lg:grid-cols-2"><CopyCard title="Mensagem para WhatsApp" description="Pronta para copiar e enviar aos seus contatos." text={contentProposal.whatsapp} /><CopyCard title="Legenda para Instagram" description="Pronta para publicar, incluindo hashtags." text={contentProposal.instagram} /><div className="rounded-2xl border border-violet-100 bg-white p-5 lg:col-span-2"><div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-violet-600" /><h3 className="font-black text-slate-900">Chamadas para Stories</h3></div><p className="mt-1 text-sm text-slate-500">Use uma chamada por tela para criar curiosidade antes do link.</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{(contentProposal.stories || []).map((story: string, index: number) => <div key={`${index}-${story}`} className="rounded-xl bg-violet-50 p-4"><p className="text-xs font-black text-violet-700">STORY {index + 1}</p><p className="mt-2 text-sm font-semibold leading-6 text-slate-800">{story}</p><button type="button" onClick={() => navigator.clipboard.writeText(story).then(() => toast.success('Story copiado.'))} className="mt-3 text-xs font-black text-violet-700">Copiar</button></div>)}</div></div></div>}
@@ -376,6 +377,14 @@ export default function IAConfigPage() {
               )}
             </div>
           )}
+        </div>
+      )}
+      {campaignChoiceOpen && (
+        <div className="fixed inset-0 z-[101] flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wider text-violet-700">Material com licença PLR</p><h2 className="mt-1 text-xl font-black text-slate-900">Qual divulgação você quer criar?</h2><p className="mt-2 text-sm leading-6 text-slate-500">Escolha o público da campanha. A IA ajustará a mensagem, os benefícios e o link de compra.</p></div><button type="button" onClick={() => setCampaignChoiceOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+            <div className="mt-5 grid gap-3"><button type="button" onClick={() => { setCampaignChoiceOpen(false); void generateProductTool('campaign', 'product'); }} className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-left transition hover:border-violet-500"><p className="font-black text-violet-950">Divulgar produto final</p><p className="mt-1 text-sm text-violet-800">Para educadores, famílias e clientes que vão usar o material.</p></button><button type="button" onClick={() => { setCampaignChoiceOpen(false); void generateProductTool('campaign', 'plr'); }} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-500"><p className="font-black text-amber-950">Divulgar licença PLR</p><p className="mt-1 text-sm text-amber-800">Para criadores que querem adquirir a licença para revender o material.</p></button></div>
+          </div>
         </div>
       )}
       {editorOpen && proposal && (
