@@ -12,6 +12,7 @@ type AuditProduct = {
   education_level_id: string | null;
   tags: string[] | null;
   slug: string | null;
+  is_plr: boolean | null;
 };
 
 type BaseReview = {
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
   const [{ data: store }, { data: secret }, { data: products, error: productsError }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
-    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, slug').eq('store_id', storeId).order('id').limit(30),
+    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, slug, is_plr').eq('store_id', storeId).order('id').limit(30),
   ]);
 
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
     tags: product.tags || [],
     problemas_identificados: issues,
   }));
-  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
+  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
   try {
@@ -115,8 +116,11 @@ export async function POST(request: Request) {
       issues: textList(suggestion?.issues).length ? textList(suggestion?.issues) : issues,
       quickWins: textList(suggestion?.quickWins),
       recommendedTitle: typeof suggestion?.recommendedTitle === 'string' ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : '',
+      suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
       keywords: textList(suggestion?.keywords),
+      coverUrl: product.capa_url,
+      isPlr: Boolean(product.is_plr),
     };
   });
 

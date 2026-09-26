@@ -12,6 +12,7 @@ export default function IAConfigPage() {
   const searchParams = useSearchParams();
   const requestedProductId = searchParams.get('produto');
   const requestedTool = searchParams.get('ferramenta');
+  const requestedTarget = searchParams.get('alvo');
   const appliedRequestedProduct = useRef(false);
   const [store, setStore] = useState<Store | null>(null);
   const [apiKey, setApiKey] = useState('');
@@ -191,14 +192,16 @@ export default function IAConfigPage() {
     appliedRequestedProduct.current = true;
     setSelectedProductId(requestedProduct.id);
     if (requestedTool === 'seo') {
-      if (requestedProduct.is_plr) {
+      if (requestedTarget === 'plr' && requestedProduct.is_plr) {
+        void generateProductTool('seo', 'plr', requestedProduct.id);
+      } else if (requestedProduct.is_plr && requestedTarget !== 'final') {
         setOptimizationChoiceOpen(true);
         toast.message('Escolha se deseja otimizar o produto final ou a licença PLR.');
       } else {
         void generateProductTool('seo', 'product', requestedProduct.id);
       }
     }
-  }, [products, requestedProductId, requestedTool]);
+  }, [products, requestedProductId, requestedTool, requestedTarget]);
 
   const applyProposal = async () => {
     if (!selectedProductId) return;
