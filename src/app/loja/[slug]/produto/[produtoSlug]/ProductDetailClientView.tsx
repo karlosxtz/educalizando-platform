@@ -46,6 +46,7 @@ export default function ProductDetailClientView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const isPlrPurchase = searchParams.get('licenca') === 'plr' && product.is_plr;
+  const displayedDescription = isPlrPurchase && product.plr_descricao ? product.plr_descricao : product.descricao;
   const fromPlrMarketplace = isPlrPurchase && searchParams.get('origem') === 'mercado-plr';
   const backHref = fromPlrMarketplace ? '/dashboard/plr' : `/loja/${store.slug}`;
   const backLabel = fromPlrMarketplace ? 'Voltar ao Mercado de PLR' : <>Voltar para a vitrine de <strong>{store.nome_loja}</strong></>;
@@ -446,7 +447,7 @@ export default function ProductDetailClientView({
 
               <p className="text-xs text-slate-500">Descrição informada pelo criador.</p>
               <div className="text-sm sm:text-base text-slate-700 leading-relaxed space-y-3 whitespace-pre-line [overflow-wrap:anywhere]">
-                {product.descricao || 'O criador ainda não adicionou uma descrição detalhada para este produto.'}
+                {displayedDescription || 'O criador ainda não adicionou uma descrição detalhada para este produto.'}
               </div>
             </div>
 

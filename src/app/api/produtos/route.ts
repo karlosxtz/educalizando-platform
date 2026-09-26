@@ -110,6 +110,7 @@ export async function POST(request: Request) {
       gallery_urls,
       is_free = false,
       is_plr = false,
+      plr_descricao = null,
       preco_plr = 0,
       plr_license_url = null,
       allow_affiliates = false,
@@ -155,6 +156,9 @@ export async function POST(request: Request) {
         { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
         { status: 400 }
       );
+    }
+    if (Boolean(is_plr) && (typeof plr_descricao !== 'string' || plr_descricao.trim().length < 20)) {
+      return NextResponse.json({ error: 'A descrição exclusiva da Licença PLR é obrigatória e deve ter pelo menos 20 caracteres.' }, { status: 400 });
     }
     if (status === 'publicado' && !arquivo_url) {
       return NextResponse.json(
@@ -230,6 +234,7 @@ export async function POST(request: Request) {
       education_level_id: sanitizeUUID(education_level_id),
       is_free: Boolean(is_free),
       is_plr: Boolean(is_plr),
+      plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
       preco_plr: Number(preco_plr) || 0,
       has_plr_delivery: Boolean(plr_license_url),
       allow_affiliates: Boolean(allow_affiliates),
@@ -281,6 +286,7 @@ export async function POST(request: Request) {
         status: status || 'publicado',
         is_free: Boolean(is_free),
         is_plr: Boolean(is_plr),
+        plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
         preco_plr: Number(preco_plr) || 0,
         has_plr_delivery: Boolean(plr_license_url),
         allow_affiliates: Boolean(allow_affiliates),

@@ -72,6 +72,7 @@ function ProductWizardContent() {
   const [bnccSubject, setBnccSubject] = useState('all');
   const [isFree, setIsFree] = useState<boolean>(false);
   const [isPlr, setIsPlr] = useState<boolean>(false);
+  const [plrDescricao, setPlrDescricao] = useState('');
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
   const [plrDeliveryMethod, setPlrDeliveryMethod] = useState<'upload' | 'link'>('upload');
@@ -154,6 +155,7 @@ function ProductWizardContent() {
             setProductTags((existing.tags || []).join(', '));
             setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
+            setPlrDescricao(existing.plr_descricao || '');
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             
             setPlrLicenseUrl(existing.plr_license_url || null);
@@ -340,6 +342,10 @@ function ProductWizardContent() {
         return;
       }
       if (isPlr) {
+        if (!editId && plrDescricao.trim().length < 20) {
+          setErrorMsg('Escreva uma descrição exclusiva para a Licença PLR. Ela será exibida somente para quem acessar a oferta de revenda.');
+          return;
+        }
         const numPlrPrice = parseFloat(precoPlr.replace(',', '.'));
         if (isNaN(numPlrPrice) || numPlrPrice <= 0) {
           setErrorMsg('Informe um preço maior que zero para a Licença PLR.');
@@ -416,6 +422,7 @@ function ProductWizardContent() {
           gallery_urls: galleryUrls,
           is_free: isFree,
           is_plr: isPlr,
+          ...(plrDescricao.trim() ? { plr_descricao: plrDescricao.trim() } : {}),
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
           allow_affiliates: allowAffiliates,
@@ -447,6 +454,7 @@ function ProductWizardContent() {
           gallery_urls: galleryUrls,
           is_free: isFree,
           is_plr: isPlr,
+          plr_descricao: isPlr ? plrDescricao.trim() : null,
           preco_plr: numericPrecoPlr,
           plr_license_url: plrLicenseUrl,
           allow_affiliates: allowAffiliates,
@@ -1152,8 +1160,14 @@ function ProductWizardContent() {
                   <motion.div 
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="pt-4 border-t border-blue-200 space-y-5"
+                  className="pt-4 border-t border-blue-200 space-y-5"
                   >
+                    <div className="rounded-2xl border border-blue-200 bg-white p-4">
+                      <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block mb-1.5">Descrição exclusiva da licença PLR {!editId && <span className="text-rose-600">*</span>}</label>
+                      <p className="mb-3 text-xs leading-5 text-slate-500">Esta descrição aparece apenas para quem acessar a oferta de licença para revenda. A descrição principal do produto final não será alterada.</p>
+                      <textarea value={plrDescricao} onChange={(event) => setPlrDescricao(event.target.value)} required={!editId} minLength={!editId ? 20 : undefined} placeholder="Explique o que a licença inclui, para quem ela serve e como funciona a revenda deste material." className="min-h-32 w-full rounded-xl border border-blue-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 outline-none focus:border-blue-600" />
+                      <p className="mt-2 text-[11px] text-blue-700">Use uma explicação voltada a criadores e revendedores. Esta informação é separada do produto final.</p>
+                    </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block mb-1.5">
                         Preço da Licença de Revenda (R$)

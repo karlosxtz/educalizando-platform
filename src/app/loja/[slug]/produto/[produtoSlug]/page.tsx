@@ -17,8 +17,9 @@ interface ProductDetailPageProps {
   searchParams: Promise<{ licenca?: string | string[]; origem?: string | string[] }>;
 }
 
-export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: ProductDetailPageProps): Promise<Metadata> {
   const { produtoSlug, slug } = await params;
+  const query = await searchParams;
   
   let product = await getProductById(produtoSlug);
   const store = await getStoreBySlug(slug);
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   }
 
   const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
-  const description = product.descricao ? (product.descricao.substring(0, 155) + (product.descricao.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
+  const publicDescription = query.licenca === 'plr' && product.is_plr && product.plr_descricao ? product.plr_descricao : product.descricao;
+  const description = publicDescription ? (publicDescription.substring(0, 155) + (publicDescription.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
 
   return {
     title,

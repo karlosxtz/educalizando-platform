@@ -93,6 +93,8 @@ export interface Product {
   is_featured_offer?: boolean;
   is_free?: boolean;
   is_plr?: boolean;
+  /** Descrição exclusiva da página de licença PLR. A descrição principal é do produto final. */
+  plr_descricao?: string | null;
   preco_plr?: number;
   plr_license_url?: string | null;
   has_original_delivery?: boolean;
