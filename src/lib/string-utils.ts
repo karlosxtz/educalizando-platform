@@ -22,7 +22,5 @@ export function generateSlug(text: string | null | undefined): string {
     return `produto-${Math.random().toString(36).substring(2, 8)}`;
   }
 
-  // Gera um sufixo curto para evitar colisões de produtos com o mesmo nome
-  const randomSuffix = Math.random().toString(36).substring(2, 6);
-  return `${slug}-${randomSuffix}`;
+  return slug.replace(/(^-|-$)/g, '');
 }

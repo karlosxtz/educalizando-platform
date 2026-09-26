@@ -36,6 +36,7 @@ function normalizeInstagramVideoUrl(value: unknown): string | null {
 }
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { generateSlug } from '@/lib/string-utils';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -48,6 +49,16 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
   const clean = str.replace(/^store_/i, '');
   return isValidUUID(clean) ? clean : null;
 };
+
+async function uniqueProductSlug(title: string, excludeId?: string) {
+  const base = generateSlug(title).slice(0, 110) || 'produto';
+  const { data } = await supabaseAdmin.from('products').select('id, slug').ilike('slug', `${base}%`);
+  const used = new Set((data || []).filter(product => product.id !== excludeId).map(product => product.slug).filter(Boolean));
+  if (!used.has(base)) return base;
+  let suffix = 2;
+  while (used.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+}
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -110,6 +121,7 @@ export async function POST(request: Request) {
       preview_url = null,
       instagram_video_url = null,
       seasonal_tags = [],
+      tags = [],
       bncc_skill_ids
     } = body;
 
@@ -205,6 +217,7 @@ export async function POST(request: Request) {
 
     const productPayload: Record<string, any> = {
       titulo: titulo.trim(),
+      slug: await uniqueProductSlug(titulo.trim()),
       descricao: descricao || null,
       tipo,
       preco: Number(preco) || 0,
@@ -228,6 +241,7 @@ export async function POST(request: Request) {
       preview_url: normalizedPreviewUrl,
       instagram_video_url: normalizedInstagramVideoUrl,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
+      tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
       created_at: new Date().toISOString()
     };
 
@@ -256,6 +270,7 @@ export async function POST(request: Request) {
       const fallbackPayload = {
         store_id: targetStoreId,
         titulo: titulo.trim(),
+        slug: productPayload.slug,
         descricao: descricao || null,
         tipo,
         preco: Number(preco) || 0,
@@ -276,6 +291,7 @@ export async function POST(request: Request) {
         preview_url: normalizedPreviewUrl,
         instagram_video_url: normalizedInstagramVideoUrl,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
+        tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
         created_at: new Date().toISOString()
       };
 
@@ -390,6 +406,7 @@ export async function PUT(request: Request) {
     if ('titulo' in cleanedUpdates && (typeof cleanedUpdates.titulo !== 'string' || cleanedUpdates.titulo.trim().length < 4 || cleanedUpdates.titulo.trim().length > 160)) {
       return NextResponse.json({ error: 'O título deve ter entre 4 e 160 caracteres.' }, { status: 400 });
     }
+    if (typeof cleanedUpdates.titulo === 'string') cleanedUpdates.slug = await uniqueProductSlug(cleanedUpdates.titulo.trim(), id);
     if ('tipo' in cleanedUpdates && !PRODUCT_TYPES.has(cleanedUpdates.tipo)) {
       return NextResponse.json({ error: 'Tipo de material inválido.' }, { status: 400 });
     }
