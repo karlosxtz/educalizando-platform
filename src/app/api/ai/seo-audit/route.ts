@@ -55,6 +55,28 @@ function textList(value: unknown) {
     : [];
 }
 
+function fallbackTags(product: AuditProduct) {
+  const stopWords = new Set(['para', 'com', 'das', 'dos', 'uma', 'um', 'atividade', 'material', 'jogo', 'tema']);
+  const terms = `${product.titulo || ''} ${product.descricao || ''}`
+    .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .split(/[^a-z0-9]+/).filter(term => term.length > 3 && !stopWords.has(term));
+  return Array.from(new Set([...terms.slice(0, 6), 'material pedagógico', 'atividade educativa'])).slice(0, 10);
+}
+
+function fallbackThemes(product: AuditProduct) {
+  const context = `${product.titulo || ''} ${product.descricao || ''}`.toLowerCase();
+  const matches = [
+    [/silab|alfabet|leitura|letra|palavra/, 'Projeto de Leitura'],
+    [/emoc|sentimento|socioemocional/, 'Educação Socioemocional'],
+    [/movimento|corpo|esporte/, 'Educação Física'],
+    [/aliment|saude|saudável/, 'Alimentação Saudável'],
+    [/transito/, 'Educação no Trânsito'],
+    [/meio ambiente|natureza|reciclagem/, 'Meio Ambiente'],
+    [/matemat|numero|contagem/, 'Projeto de Matemática'],
+  ].filter(([pattern]) => (pattern as RegExp).test(context)).map(([, theme]) => theme as string);
+  return matches.length ? Array.from(new Set(matches)) : ['Projeto Pedagógico'];
+}
+
 export async function POST(request: Request) {
   const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
@@ -90,7 +112,7 @@ export async function POST(request: Request) {
     temas: product.seasonal_tags || [],
     problemas_identificados: issues,
   }));
-  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","description":"descrição de venda pronta, com parágrafos e quebras reais","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
+  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","description":"descrição de venda pronta, com parágrafos e quebras reais","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
   try {
@@ -120,8 +142,8 @@ export async function POST(request: Request) {
       recommendedTitle: typeof suggestion?.recommendedTitle === 'string' ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : '',
       suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
       description: typeof suggestion?.description === 'string' ? suggestion.description.replace(/\*\*/g, '').trim() : product.descricao || '',
-      tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags || [],
-      themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags || [],
+      tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags?.length ? product.tags : fallbackTags(product),
+      themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags?.length ? product.seasonal_tags : fallbackThemes(product),
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
       keywords: textList(suggestion?.keywords),
       coverUrl: product.capa_url,
