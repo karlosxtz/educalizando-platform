@@ -1,80 +1,61 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowUpRight, ChevronLeft, ChevronRight, CheckCircle2, Map, LayoutDashboard, Package, ShoppingCart, ShieldCheck, DollarSign, Store, Gift, MessagesSquare, ChartNoAxesCombined, MessageCircle, Sparkles, X } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import type { LucideIcon } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronLeft, CircleHelp, LayoutDashboard, Map, Package, ShoppingCart, ShieldCheck, DollarSign, Store, Gift, MessagesSquare, ChartNoAxesCombined, MessageCircle, Sparkles, X, PlaySquare, Wrench, Library, FolderCheck, Boxes, Ticket, Tags, Users, Settings } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-type TourStep = { title: string; description: string; task?: string; icon: typeof Map; color: string; href?: string; actionLabel?: string };
-
+type TourStep = { title: string; description: string; task: string; icon: LucideIcon; href: string };
 const TOUR_STEPS: TourStep[] = [
-  { title: 'Bem-vindo ao Tour 360!', description: 'Este é um guia prático do seu painel. A cada etapa, você abre a ferramenta certa e entende exatamente como usá-la.', task: 'Reserve poucos minutos para conhecer as partes essenciais da sua loja.', icon: Map, color: 'from-blue-50 to-indigo-100 border-blue-200' },
-  { title: '1. Visão geral', description: 'Sua central de comando mostra vendas, receita, produtos em destaque e atalhos para o dia a dia.', task: 'Confira os indicadores sempre que quiser saber como sua loja está performando.', icon: LayoutDashboard, color: 'from-indigo-50 to-blue-100 border-indigo-200', href: '/dashboard', actionLabel: 'Abrir visão geral' },
-  { title: '2. Configure sua loja', description: 'Aqui você deixa sua vitrine com a sua identidade: nome, logo, cores, apresentação e condições comerciais.', task: 'Comece preenchendo as informações que seus clientes verão antes de comprar.', icon: Store, color: 'from-cyan-50 to-sky-100 border-cyan-200', href: '/dashboard/loja', actionLabel: 'Configurar minha loja' },
-  { title: '3. Cadastre seu primeiro produto', description: 'Publique apostilas, cursos e materiais digitais. Você define título, preço, capa e o que o cliente receberá.', task: 'Use um nome claro, uma boa capa e descreva o resultado que o material entrega.', icon: Package, color: 'from-emerald-50 to-teal-100 border-emerald-200', href: '/dashboard/produtos', actionLabel: 'Ver meus produtos' },
-  { title: '4. Materiais grátis e kits', description: 'Crie brindes para encantar seus clientes e kits para reunir materiais relacionados em uma oferta maior.', task: 'Use um brinde como bônus de compra ou monte um kit para aumentar o valor do pedido.', icon: Gift, color: 'from-amber-50 to-orange-100 border-amber-200', href: '/dashboard/brindes', actionLabel: 'Abrir materiais grátis' },
-  { title: '5. Conteúdo e entregas', description: 'Revise arquivos, links e liberações para garantir que cada cliente receba o material correto após pagar.', task: 'Antes de divulgar um produto, confira se o arquivo ou link de acesso está preenchido.', icon: ShieldCheck, color: 'from-emerald-50 to-green-100 border-emerald-200', href: '/dashboard/conteudo', actionLabel: 'Revisar entregas' },
-  { title: '6. Pedidos e vendas', description: 'Acompanhe cada transação, o status do pagamento e os acessos liberados para seus alunos.', task: 'Consulte esta área para tirar dúvidas de pedidos e acompanhar as vendas confirmadas.', icon: ShoppingCart, color: 'from-purple-50 to-violet-100 border-purple-200', href: '/dashboard/pedidos', actionLabel: 'Ver pedidos e vendas' },
-  { title: '7. Financeiro e recebimentos', description: 'Veja seus saldos, histórico de movimentações e solicite saques para sua chave PIX.', task: 'Mantenha seus dados de recebimento atualizados para receber suas vendas sem imprevistos.', icon: DollarSign, color: 'from-emerald-50 to-lime-100 border-emerald-200', href: '/dashboard/financeiro', actionLabel: 'Abrir financeiro' },
-  { title: '8. Atendimento guiado', description: 'Organize um atendimento que encontra materiais por tema, série, categoria e ofertas para levar o cliente ao carrinho.', task: 'Use este módulo quando quiser transformar perguntas em recomendações de materiais.', icon: MessagesSquare, color: 'from-teal-50 to-cyan-100 border-teal-200', href: '/dashboard/atendimento', actionLabel: 'Abrir atendimento' },
-  { title: '9. Métricas e anúncios', description: 'Conecte Meta Pixel e Google Analytics à vitrine pública para medir visitas e melhorar suas campanhas.', task: 'Configure as integrações antes de investir em anúncios para acompanhar os resultados.', icon: ChartNoAxesCombined, color: 'from-blue-50 to-sky-100 border-blue-200', href: '/dashboard/metricas-anuncios', actionLabel: 'Abrir métricas' },
-  { title: '10. WhatsApp da loja', description: 'Conecte o WhatsApp por QR Code para centralizar atendimento, confirmações e orientações de compra.', task: 'Ative somente o número que será usado para atender os clientes da sua loja.', icon: MessageCircle, color: 'from-emerald-50 to-green-100 border-emerald-200', href: '/dashboard/whatsapp-loja', actionLabel: 'Configurar WhatsApp' },
-  { title: '11. Tutoriais e IA', description: 'Encontre vídeos de apoio e recursos para criar materiais e operar sua loja com mais agilidade.', task: 'Volte sempre que tiver uma dúvida ou quiser descobrir uma nova ferramenta.', icon: Sparkles, color: 'from-violet-50 to-fuchsia-100 border-violet-200', href: '/dashboard/tutoriais', actionLabel: 'Abrir tutoriais' },
-  { title: 'Tudo pronto para começar!', description: 'Você já conhece o caminho. Seu próximo passo é publicar um material e compartilhar a sua loja.', task: 'Cadastre um produto agora e comece a construir seu catálogo.', icon: CheckCircle2, color: 'from-blue-50 to-indigo-100 border-blue-200', href: '/dashboard/produtos/novo', actionLabel: 'Cadastrar meu produto' },
+  { title: 'Visão geral', description: 'A central de comando da sua loja: vendas, receita e atalhos.', task: 'Comece aqui para entender seus números e encontrar os próximos passos.', icon: LayoutDashboard, href: '/dashboard' },
+  { title: 'Aprenda a usar', description: 'Vídeos e materiais de apoio para operar a plataforma.', task: 'Use este módulo quando quiser rever uma função ou aprender um recurso novo.', icon: PlaySquare, href: '/dashboard/tutoriais' },
+  { title: 'Configuração da loja', description: 'Nome, identidade visual, informações e regras da sua vitrine.', task: 'Preencha primeiro os dados públicos que seus clientes verão.', icon: Store, href: '/dashboard/loja' },
+  { title: 'Meus produtos', description: 'Seu catálogo de apostilas, cursos e materiais digitais.', task: 'Clique em novo produto, defina título, preço, capa e material de entrega.', icon: Package, href: '/dashboard/produtos' },
+  { title: 'Minhas indicações', description: 'Link, criadoras indicadas e bônus de 3% das vendas elegíveis.', task: 'Copie seu link e acompanhe cada indicação e comissão nesta área.', icon: Gift, href: '/dashboard/indicacoes' },
+  { title: 'Material grátis', description: 'Brindes que ajudam você a encantar clientes.', task: 'Crie um material gratuito para usar como bônus ou estratégia de divulgação.', icon: Gift, href: '/dashboard/brindes' },
+  { title: 'Caixa de ferramentas', description: 'Recursos extras para organizar e criar seus materiais.', task: 'Explore as ferramentas conforme sua necessidade de produção.', icon: Wrench, href: '/dashboard/ferramentas' },
+  { title: 'Mercado de PLR', description: 'Materiais com licença para você adquirir e revender.', task: 'Avalie a licença e publique um PLR comprado no seu próprio catálogo.', icon: Library, href: '/dashboard/plr' },
+  { title: 'PLRs comprados', description: 'Histórico dos materiais PLR que já fazem parte do seu acervo.', task: 'Abra uma compra para acessar a licença ou publicar o material na loja.', icon: Package, href: '/dashboard/plr/comprados' },
+  { title: 'Conteúdo e entregas', description: 'Arquivos, links e acessos liberados depois de cada compra.', task: 'Revise as entregas antes de divulgar um produto para evitar falhas ao cliente.', icon: FolderCheck, href: '/dashboard/conteudo' },
+  { title: 'Kits e combos', description: 'Agrupe materiais relacionados em uma oferta maior.', task: 'Crie um kit quando quiser aumentar o valor médio de cada pedido.', icon: Boxes, href: '/dashboard/kits' },
+  { title: 'Cupons de desconto', description: 'Códigos promocionais para campanhas e datas especiais.', task: 'Defina o desconto, validade e produtos participantes antes de compartilhar.', icon: Ticket, href: '/dashboard/cupons' },
+  { title: 'Categorias', description: 'Organização que facilita encontrar seus materiais na vitrine.', task: 'Cadastre categorias claras e relacione os produtos a elas.', icon: Tags, href: '/dashboard/categorias' },
+  { title: 'Pedidos e vendas', description: 'Todas as transações, pagamentos e status dos pedidos.', task: 'Acompanhe vendas confirmadas e use esta tela para investigar um pedido.', icon: ShoppingCart, href: '/dashboard/pedidos' },
+  { title: 'Clientes e acessos', description: 'Pessoas que compraram e os conteúdos liberados para elas.', task: 'Consulte o perfil do cliente e reenvie o acesso quando for necessário.', icon: Users, href: '/dashboard/clientes' },
+  { title: 'Atendimento guiado', description: 'Ajuda para encontrar materiais e orientar clientes até o carrinho.', task: 'Configure assuntos e respostas para tornar o atendimento mais ágil.', icon: MessagesSquare, href: '/dashboard/atendimento' },
+  { title: 'Métricas e anúncios', description: 'Integrações para acompanhar visitas e campanhas.', task: 'Conecte Pixel e Analytics antes de investir em tráfego pago.', icon: ChartNoAxesCombined, href: '/dashboard/metricas-anuncios' },
+  { title: 'WhatsApp da loja', description: 'Conexão por QR Code para atendimento e mensagens da loja.', task: 'Use apenas o número que atenderá seus clientes e conclua a conexão.', icon: MessageCircle, href: '/dashboard/whatsapp-loja' },
+  { title: 'Minhas afiliações', description: 'Programas de afiliação e produtos que você pode divulgar.', task: 'Veja oportunidades, solicite afiliação e acompanhe seus links.', icon: Users, href: '/dashboard/gerenciar-afiliacoes' },
+  { title: 'Financeiro', description: 'Saldo, movimentações e pedidos de saque via PIX.', task: 'Confira seu saldo disponível e mantenha seus dados de recebimento atualizados.', icon: DollarSign, href: '/dashboard/financeiro' },
+  { title: 'Inteligência artificial', description: 'Recursos para acelerar a criação de conteúdos e ideias.', task: 'Use a IA como apoio para criar, revisar e estruturar materiais.', icon: Sparkles, href: '/dashboard/ia' },
+  { title: 'Configurações da conta', description: 'Dados pessoais, segurança e preferências da sua conta.', task: 'Revise seus dados e mantenha suas informações de acesso atualizadas.', icon: Settings, href: '/dashboard/conta' },
 ];
 
-const saveStep = (storageKey: string, step: number) => localStorage.setItem(storageKey, JSON.stringify({ step }));
+type StoredProgress = { step: number };
+const readProgress = (key: string): number => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') as StoredProgress | number; return typeof value === 'number' ? value : value.step || 0; } catch { return Number(localStorage.getItem(key)) || 0; } };
+const writeProgress = (key: string, step: number) => localStorage.setItem(key, JSON.stringify({ step }));
 
 export default function OnboardingTour({ storageKey }: { storageKey: string }) {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const router = useRouter(); const pathname = usePathname(); const searchParams = useSearchParams();
+  const guided = searchParams.get('tour') === '1';
+  const [isOpen, setIsOpen] = useState(false); const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved === 'completed') return;
-    try {
-      const parsed = JSON.parse(saved || '{}');
-      const step = typeof parsed === 'number' ? parsed : parsed.step;
-      if (Number.isInteger(step) && step >= 0 && step < TOUR_STEPS.length) setCurrentStep(step);
-    } catch {
-      const legacyStep = Number(saved);
-      if (Number.isInteger(legacyStep) && legacyStep >= 0 && legacyStep < TOUR_STEPS.length) setCurrentStep(legacyStep);
-    }
-    const timer = window.setTimeout(() => setIsOpen(true), 700);
+    if (localStorage.getItem(storageKey) === 'completed') return;
+    const saved = Math.min(Math.max(readProgress(storageKey), 0), TOUR_STEPS.length - 1);
+    setStepIndex(saved);
+    const timer = window.setTimeout(() => setIsOpen(true), guided ? 80 : 700);
     return () => window.clearTimeout(timer);
-  }, [storageKey]);
+  }, [storageKey, guided, pathname]);
 
-  const goToStep = (nextStep: number) => { saveStep(storageKey, nextStep); setCurrentStep(nextStep); };
-  const finishOnboarding = () => { localStorage.setItem(storageKey, 'completed'); setIsOpen(false); };
-  const visitModule = (step: TourStep) => {
-    if (!step.href) return;
-    saveStep(storageKey, currentStep);
-    setIsOpen(false);
-    router.push(step.href);
-  };
-
+  const closeGuide = () => { setIsOpen(false); if (guided) router.replace(pathname); };
+  const goTo = (nextIndex: number) => { writeProgress(storageKey, nextIndex); setStepIndex(nextIndex); setIsOpen(true); router.push(`${TOUR_STEPS[nextIndex].href}?tour=1`); };
+  const finish = () => { localStorage.setItem(storageKey, 'completed'); setIsOpen(false); router.replace(pathname); };
   if (!isOpen) return null;
-  const step = TOUR_STEPS[currentStep];
-  const Icon = step.icon;
-  const isLastStep = currentStep === TOUR_STEPS.length - 1;
+  const step = TOUR_STEPS[stepIndex]; const Icon = step.icon; const isLast = stepIndex === TOUR_STEPS.length - 1;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm sm:p-6" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-      <AnimatePresence mode="wait">
-        <motion.div key={currentStep} initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: -12 }} transition={{ duration: 0.22 }} className="relative w-full max-w-xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
-          <button onClick={() => setIsOpen(false)} className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-2 text-slate-400 shadow-sm transition hover:bg-white hover:text-slate-700" title="Continuar o tour depois" aria-label="Continuar o tour depois"><X className="h-5 w-5" /></button>
-          <div className={`border-b bg-gradient-to-br ${step.color} px-6 pb-7 pt-10 sm:px-10`}>
-            <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500"><Map className="h-4 w-4" /> Tour interativo · etapa {currentStep + 1} de {TOUR_STEPS.length}</div>
-            <div className="mt-6 flex items-center gap-5"><div className="rounded-3xl bg-white p-5 shadow-lg shadow-slate-900/10"><Icon className="h-10 w-10 text-blue-600" /></div><div><h2 id="tour-title" className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{step.title}</h2><p className="mt-1 text-sm font-semibold text-slate-600">Aprenda no próprio painel, passo a passo.</p></div></div>
-          </div>
-          <div className="space-y-5 px-6 py-7 sm:px-10"><p className="text-sm leading-7 text-slate-600 sm:text-base">{step.description}</p>{step.task && <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4"><p className="text-xs font-black uppercase tracking-wider text-blue-700">O que fazer aqui</p><p className="mt-1 text-sm font-semibold leading-6 text-slate-700">{step.task}</p></div>}</div>
-          <div className="border-t border-slate-100 px-6 py-5 sm:px-10">
-            <div className="mb-5 flex gap-1.5" aria-label={`Etapa ${currentStep + 1} de ${TOUR_STEPS.length}`}>{TOUR_STEPS.map((_, index) => <span key={index} className={`h-1.5 rounded-full transition-all ${index === currentStep ? 'w-7 bg-blue-600' : index < currentStep ? 'w-1.5 bg-blue-300' : 'w-1.5 bg-slate-200'}`} />)}</div>
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between"><button onClick={() => currentStep === 0 ? setIsOpen(false) : goToStep(currentStep - 1)} className="inline-flex min-h-11 items-center justify-center gap-1 rounded-xl px-3 text-sm font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"><ChevronLeft className="h-4 w-4" /> {currentStep === 0 ? 'Continuar depois' : 'Voltar'}</button><div className="flex flex-col gap-2 sm:flex-row">{step.href && <button onClick={() => visitModule(step)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"><ArrowUpRight className="h-4 w-4" /> {step.actionLabel}</button>}<button onClick={() => isLastStep ? finishOnboarding() : goToStep(currentStep + 1)} className="inline-flex min-h-11 items-center justify-center gap-1 rounded-xl border border-slate-200 px-4 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">{isLastStep ? 'Concluir tour' : currentStep === 0 ? 'Começar tour' : 'Próxima etapa'} {!isLastStep && <ChevronRight className="h-4 w-4" />}</button></div></div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
+  if (guided) return <motion.aside initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-4 right-4 z-[90] w-[calc(100vw-2rem)] max-w-md rounded-3xl border border-sky-100 bg-white p-5 shadow-2xl shadow-slate-900/20 sm:bottom-6 sm:right-6" aria-live="polite"><button onClick={closeGuide} className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Pausar tutorial"><X className="h-4 w-4" /></button><div className="flex items-start gap-3"><span className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Icon className="h-6 w-6" /></span><div className="pr-7"><p className="text-[11px] font-black uppercase tracking-[0.14em] text-sky-700">Tutorial guiado · {stepIndex + 1} de {TOUR_STEPS.length}</p><h2 className="mt-1 text-lg font-black text-slate-950">{step.title}</h2></div></div><p className="mt-4 text-sm leading-6 text-slate-600">{step.description}</p><div className="mt-4 rounded-2xl bg-sky-50 p-3.5"><p className="text-xs font-black uppercase tracking-wider text-sky-800">O que fazer nesta tela</p><p className="mt-1 text-sm font-semibold leading-6 text-slate-700">{step.task}</p></div><p className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-500"><CircleHelp className="h-4 w-4 text-sky-600" /> O módulo atual está marcado com “Tour” no menu.</p><div className="mt-5 flex items-center justify-between gap-3"><button onClick={() => stepIndex === 0 ? closeGuide() : goTo(stepIndex - 1)} className="inline-flex min-h-10 items-center gap-1 rounded-xl px-2 text-sm font-bold text-slate-600 hover:bg-slate-100"><ChevronLeft className="h-4 w-4" /> Voltar</button><button onClick={() => isLast ? finish() : goTo(stepIndex + 1)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white shadow-lg shadow-sky-600/20 hover:bg-sky-700">{isLast ? 'Concluir tutorial' : 'Próximo módulo'} {!isLast && <ArrowRight className="h-4 w-4" />}</button></div></motion.aside>;
+
+  return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true"><motion.div initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="relative w-full max-w-lg overflow-hidden rounded-[2rem] bg-white shadow-2xl"><button onClick={closeGuide} className="absolute right-4 top-4 rounded-full bg-slate-100 p-2 text-slate-400 hover:text-slate-700" aria-label="Continuar depois"><X className="h-5 w-5" /></button><div className="bg-gradient-to-br from-sky-50 to-blue-100 px-7 pb-7 pt-10 text-center"><span className="mx-auto inline-flex rounded-3xl bg-white p-5 text-sky-600 shadow-lg"><Map className="h-10 w-10" /></span><h1 className="mt-5 text-2xl font-black text-slate-950">Tutorial completo da Educalizando</h1><p className="mt-3 text-sm leading-6 text-slate-600">Você vai percorrer todos os módulos. Em cada tela, o menu fica destacado e este guia explica exatamente o que fazer.</p></div><div className="p-6"><div className="rounded-2xl border border-sky-100 bg-sky-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-sky-700">Próximo módulo</p><p className="mt-1 font-black text-slate-900">{step.title}</p><p className="mt-1 text-sm text-slate-600">{step.task}</p></div><button onClick={() => goTo(stepIndex)} className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-black text-white shadow-lg shadow-sky-600/20 hover:bg-sky-700">{stepIndex ? 'Retomar tutorial guiado' : 'Começar tutorial guiado'} <ArrowRight className="h-4 w-4" /></button></div></motion.div></div>;
 }

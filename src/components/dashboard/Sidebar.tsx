@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
   Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, FolderCheck, PlaySquare, Library, Gift, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
@@ -20,6 +20,8 @@ interface SidebarProps {
 export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.rico@gmail.com' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tourMode = searchParams.get('tour') === '1';
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -280,6 +282,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                 {group.items.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`));
+              const isTourTarget = tourMode && isActive;
 
               return (
                 <Link
@@ -288,7 +291,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                   onClick={() => closeMobileMenu(false)}
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex min-h-11 items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                    isActive
+                    isTourTarget
+                      ? 'bg-sky-50 text-sky-900 font-bold shadow-md ring-2 ring-sky-400 ring-offset-2 border-l-4 border-sky-600'
+                      : isActive
                       ? 'bg-slate-100 text-brand-navy font-bold shadow-xs border-l-4 border-brand-navy'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-brand-navy'
                   }`}
@@ -298,7 +303,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                     <span className="min-w-0 leading-tight">{item.label}</span>
                   </div>
 
-                  {item.badge ? (
+                  {isTourTarget ? (
+                    <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white animate-pulse">Tour</span>
+                  ) : item.badge ? (
                     <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200">
                       {item.badge}
                     </span>
