@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, Plus, Edit3, Trash2, Eye, EyeOff, 
   FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X, ShieldCheck, Search, RotateCcw
+  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Sparkles, X, ShieldCheck, Search, RotateCcw, CheckCircle2, ArrowUpRight, RefreshCw
 } from 'lucide-react';
 
 import { 
@@ -49,6 +49,10 @@ export default function ProductsManagementPage() {
   const [campaignData, setCampaignData] = useState<string>('');
   const [isGeneratingCampaign, setIsGeneratingCampaign] = useState(false);
   const [showSeo, setShowSeo] = useState(false);
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
+  const [seoAuditing, setSeoAuditing] = useState(false);
+  const [seoAuditError, setSeoAuditError] = useState<string | null>(null);
+  const [seoAudit, setSeoAudit] = useState<{ summary: string; average: number; items: Array<{ id: string; title: string; score: number; issues: string[]; quickWins: string[]; recommendedTitle: string; metaDescription: string; keywords: string[] }> } | null>(null);
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const marketingTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -56,8 +60,17 @@ export default function ProductsManagementPage() {
     try {
       const currentStore = await getCurrentCreatorStore();
       setStore(currentStore);
-      const prods = await getProductsByStoreId(currentStore.id);
+      const [prods, settingsResponse] = await Promise.all([
+        getProductsByStoreId(currentStore.id),
+        fetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
+      ]);
       setProducts(prods);
+      if (settingsResponse?.ok) {
+        const settings = await settingsResponse.json();
+        setAiConfigured(Boolean(settings.configured));
+      } else {
+        setAiConfigured(false);
+      }
 
       const cats = await getCategories(currentStore.id);
       setCategories(cats);
@@ -148,6 +161,46 @@ export default function ProductsManagementPage() {
     }
   };
 
+  const handleSeoAudit = async (force = false) => {
+    if (showSeo && !force) {
+      setShowSeo(false);
+      return;
+    }
+    setShowSeo(true);
+    setSeoAuditError(null);
+    if (!store?.id) return;
+
+    let configured = aiConfigured;
+    if (configured === null) {
+      const settingsResponse = await fetch(`/api/ai/settings?storeId=${encodeURIComponent(store.id)}`).catch(() => null);
+      if (settingsResponse?.ok) {
+        const settings = await settingsResponse.json();
+        configured = Boolean(settings.configured);
+        setAiConfigured(configured);
+      } else {
+        configured = false;
+        setAiConfigured(false);
+      }
+    }
+    if (!configured) return;
+
+    setSeoAuditing(true);
+    try {
+      const response = await fetch('/api/ai/seo-audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: store.id }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a auditoria.');
+      setSeoAudit(data);
+    } catch (error: unknown) {
+      setSeoAuditError(error instanceof Error ? error.message : 'Não foi possível concluir a auditoria.');
+    } finally {
+      setSeoAuditing(false);
+    }
+  };
+
   const filteredProducts = products.filter(p => {
     const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter;
     const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter;
@@ -187,9 +240,9 @@ export default function ProductsManagementPage() {
     const score = Math.round((checks.filter(check => check.ok).length / checks.length) * 100);
     return { product, score, checks, suggestions: checks.filter(check => !check.ok).map(check => check.label) };
   }), [products]);
-  const seoAverage = seoReports.length ? Math.round(seoReports.reduce((sum, report) => sum + report.score, 0) / seoReports.length) : 0;
-  const seoNeedsWork = seoReports.filter(report => report.score < 90);
   const getSeoReport = (productId: string) => seoReports.find(report => report.product.id === productId);
+  const getAiSeoReport = (productId: string) => seoAudit?.items.find(report => report.id === productId);
+  const formatPrice = (price: number | null | undefined) => Number(price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // Build Options for CustomSelect Filter Component
   const categoryFilterOptions: CustomSelectOption[] = [
@@ -253,7 +306,7 @@ export default function ProductsManagementPage() {
             <span>Gerenciar Minhas Categorias</span>
           </button>
 
-          <button onClick={() => setShowSeo(value => !value)} className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"><Sparkles className="w-4 h-4" /> {showSeo ? 'Ocultar SEO' : 'Verificar SEO'}</button><Link
+          <button onClick={() => void handleSeoAudit()} className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"><Sparkles className="w-4 h-4" /> {showSeo ? 'Fechar auditoria' : 'Auditar SEO com IA'}</button><Link
             href="/dashboard/produtos/novo"
             className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl font-extrabold text-xs bg-brand-navy hover:bg-brand-navy-hover text-white shadow-md shadow-brand-navy/20 transition-all flex items-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2"
           >
@@ -270,7 +323,9 @@ export default function ProductsManagementPage() {
         </div>
       )}
 
-      {showSeo && <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 shadow-xs"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">SEO visível nos cards</p><p className="mt-1 text-sm text-slate-600">Média da loja: <strong>{seoAverage}/100</strong> · Cada material mostra sua nota e a primeira melhoria recomendada.</p></div><span className={`rounded-xl px-3 py-2 text-xs font-black ${seoNeedsWork.length ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>{seoNeedsWork.length} para melhorar</span></div></section>}
+      {showSeo && <section className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-4 shadow-xs sm:p-6">
+        {aiConfigured === false ? <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">Conecte a IA para analisar os seus materiais</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">Depois da conexão, esta área encontra os produtos que precisam de ajustes, explica cada oportunidade e prepara sugestões para revisão.</p></div><button type="button" onClick={() => router.push('/dashboard/ia')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-violet-700"><Sparkles className="h-4 w-4" /> Configurar IA</button></div> : seoAuditing ? <div className="flex min-h-32 items-center justify-center gap-3 text-sm font-bold text-blue-800"><Loader2 className="h-5 w-5 animate-spin" /> A IA está analisando títulos, descrições, tags e dados dos materiais...</div> : seoAuditError ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm font-semibold text-rose-700">{seoAuditError}</p><button type="button" onClick={() => void handleSeoAudit(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-3 text-xs font-black text-blue-700 ring-1 ring-blue-200"><RefreshCw className="h-3.5 w-3.5" /> Tentar novamente</button></div> : seoAudit ? <div className="space-y-5"><div className="flex flex-col gap-4 border-b border-blue-100 pb-5 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">O que melhorar para seus materiais aparecerem melhor</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{seoAudit.summary}</p></div><div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm ring-1 ring-blue-100"><span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Saúde da loja</span><strong className="text-2xl font-black text-blue-700">{seoAudit.average}/100</strong></div></div><div className="grid gap-3 lg:grid-cols-2">{seoAudit.items.filter(item => item.score < 100).map(item => <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="line-clamp-1 text-sm font-black text-slate-900">{item.title}</p><p className="mt-1 text-xs font-bold text-amber-700">SEO {item.score}/100</p></div><button type="button" onClick={() => router.push(`/dashboard/ia?produto=${encodeURIComponent(item.id)}&ferramenta=seo`)} className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-xl bg-violet-600 px-3 text-xs font-black text-white transition hover:bg-violet-700">Otimizar <ArrowUpRight className="h-3.5 w-3.5" /></button></div><div className="mt-3 grid gap-3 sm:grid-cols-2"><div><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">O que precisa atenção</p><ul className="mt-1.5 space-y-1 text-xs leading-5 text-slate-600">{item.issues.slice(0, 3).map(issue => <li key={issue}>• {issue}</li>)}</ul></div><div><p className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Sugestões da IA</p><ul className="mt-1.5 space-y-1 text-xs leading-5 text-slate-600">{item.quickWins.slice(0, 3).map(win => <li key={win}>• {win}</li>)}</ul></div></div>{item.recommendedTitle && <p className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-xs leading-5 text-violet-900"><strong>Título sugerido:</strong> {item.recommendedTitle}</p>}{item.metaDescription && <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"><strong>Resumo para busca:</strong> {item.metaDescription}</p>}</article>)}{!seoAudit.items.some(item => item.score < 100) && <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-800 lg:col-span-2"><CheckCircle2 className="mr-2 inline h-5 w-5" /> Seus produtos têm todos os campos essenciais preenchidos. Você pode usar a otimização individual para refinar textos e palavras-chave.</div>}</div></div> : <div className="text-sm text-slate-600">Prepare sua auditoria para visualizar as recomendações da IA.</div>}
+      </section>}
 
       {/* Styled Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
@@ -335,7 +390,7 @@ export default function ProductsManagementPage() {
                 key={prod.id}
                 className="relative min-w-0 flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
               >
-                {showSeo && getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${getSeoReport(prod.id)!.score >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getSeoReport(prod.id)!.score}</span>}
+                {showSeo && getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${(getAiSeoReport(prod.id)?.score ?? getSeoReport(prod.id)!.score) >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getAiSeoReport(prod.id)?.issues.join(' · ') || getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getAiSeoReport(prod.id)?.score ?? getSeoReport(prod.id)!.score}</span>}
                 <div className="space-y-3">
                   {/* Cover Image & Badges */}
                   <div className="h-40 rounded-xl overflow-hidden bg-slate-100 relative">
@@ -393,7 +448,7 @@ export default function ProductsManagementPage() {
                         {prod.descricao}
                       </p>
                     )}
-                    {showSeo && (getSeoReport(prod.id)?.suggestions.length ? <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] font-semibold leading-relaxed text-amber-800">Melhore: {getSeoReport(prod.id)!.suggestions[0]}.</p> : <p className="mt-2 text-[10px] font-semibold text-emerald-700">SEO completo</p>)}
+                    {showSeo && ((getAiSeoReport(prod.id)?.issues || getSeoReport(prod.id)?.suggestions || []).length ? <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[10px] font-semibold leading-relaxed text-amber-800">Melhore: {(getAiSeoReport(prod.id)?.issues || getSeoReport(prod.id)?.suggestions || [])[0]}.</p> : <p className="mt-2 text-[10px] font-semibold text-emerald-700">SEO completo</p>)}
                     <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-slate-500">
                       <Eye className="w-4 h-4 text-slate-400" />
                       <span>{prod.views_count || 0} visualizações</span>
@@ -406,9 +461,7 @@ export default function ProductsManagementPage() {
                   <div className="flex items-center gap-4">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Material</span>
-                      <span className="text-lg font-black text-slate-900">
-                        R$ {prod.preco.toFixed(2).replace('.', ',')}
-                      </span>
+                      <span className="inline-flex items-baseline gap-1 whitespace-nowrap text-lg font-black text-slate-900"><span className="text-sm">R$</span>{formatPrice(prod.preco)}</span>
                     </div>
 
                     {prod.is_plr && prod.preco_plr !== undefined && prod.preco_plr !== null && (
@@ -416,9 +469,7 @@ export default function ProductsManagementPage() {
                         <span className="text-[10px] text-blue-500 uppercase tracking-wider block font-bold flex items-center gap-1">
                           <ShieldCheck className="w-3 h-3" /> Licença PLR
                         </span>
-                        <span className="text-lg font-black text-blue-700">
-                          R$ {prod.preco_plr.toFixed(2).replace('.', ',')}
-                        </span>
+                        <span className="inline-flex items-baseline gap-1 whitespace-nowrap text-lg font-black text-blue-700"><span className="text-sm">R$</span>{formatPrice(prod.preco_plr)}</span>
                       </div>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getCurrentCreatorStore, getProductsByStoreId, updateProduct } from '@/lib/store-service';
 import { Store, Product } from '@/lib/types';
 import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen, X } from 'lucide-react';
@@ -8,6 +9,10 @@ import { toast } from 'sonner';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
 export default function IAConfigPage() {
+  const searchParams = useSearchParams();
+  const requestedProductId = searchParams.get('produto');
+  const requestedTool = searchParams.get('ferramenta');
+  const appliedRequestedProduct = useRef(false);
   const [store, setStore] = useState<Store | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [provider, setProvider] = useState<'primary' | 'alternative'>('primary');
@@ -153,12 +158,13 @@ export default function IAConfigPage() {
     toast.success(`Cópia para ${type === 'whatsapp' ? 'WhatsApp' : 'Instagram'} copiada para área de transferência!`);
   };
 
-  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', targetMode: 'product' | 'plr' = 'product') => {
-    if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
-    const selectedProduct = products.find(product => product.id === selectedProductId);
+  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', targetMode: 'product' | 'plr' = 'product', productIdOverride?: string) => {
+    const productId = productIdOverride || selectedProductId;
+    if (!productId || !store?.id) return toast.error('Selecione um material para continuar.');
+    const selectedProduct = products.find(product => product.id === productId);
     setActiveTool(tool); setToolResult(''); setProposal(null); setContentProposal(null);
     try {
-      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool, targetMode }) });
+      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId, tool, targetMode }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
       if ((tool === 'seo' || tool === 'description') && payload.proposal) {
@@ -177,6 +183,22 @@ export default function IAConfigPage() {
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
   };
+
+  useEffect(() => {
+    if (appliedRequestedProduct.current || !requestedProductId || !products.length) return;
+    const requestedProduct = products.find(product => product.id === requestedProductId);
+    if (!requestedProduct) return;
+    appliedRequestedProduct.current = true;
+    setSelectedProductId(requestedProduct.id);
+    if (requestedTool === 'seo') {
+      if (requestedProduct.is_plr) {
+        setOptimizationChoiceOpen(true);
+        toast.message('Escolha se deseja otimizar o produto final ou a licença PLR.');
+      } else {
+        void generateProductTool('seo', 'product', requestedProduct.id);
+      }
+    }
+  }, [products, requestedProductId, requestedTool]);
 
   const applyProposal = async () => {
     if (!selectedProductId) return;
