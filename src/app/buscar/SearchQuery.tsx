@@ -11,6 +11,7 @@ export default function SearchQuery() {
     event.preventDefault();
     if (pending) return;
     const q = String(new FormData(event.currentTarget).get('q') || '').trim();
+    if (q.length >= 2) void fetch('/api/catalog-search-insights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
     startTransition(() => router.push(searchHref(params.toString(), { q: q || null }), { scroll: false }));
   }}>
     <label htmlFor="catalog-query" className="mb-2 block text-sm font-semibold text-slate-700">Buscar materiais</label>

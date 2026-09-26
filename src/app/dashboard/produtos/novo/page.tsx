@@ -27,6 +27,8 @@ function ProductWizardContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
   const plrProductId = searchParams.get('licenca-plr');
+  const suggestedTheme = searchParams.get('tema');
+  const suggestedTitle = searchParams.get('titulo');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -198,6 +200,9 @@ function ProductWizardContent() {
             setSelectedBnccSkills(Array.isArray(source.bnccSkillIds) ? source.bnccSkillIds : []);
             setUsesBncc(Array.isArray(source.bnccSkillIds) && source.bnccSkillIds.length > 0);
           }
+        } else {
+          if (suggestedTheme && SCHOOL_CALENDAR_TAGS.includes(suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number])) setSeasonalTags([suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number]]);
+          if (suggestedTitle) setTitulo(suggestedTitle.slice(0, 160));
         }
       } catch (err: unknown) {
         console.error(err);
@@ -207,7 +212,7 @@ function ProductWizardContent() {
       }
     }
     initData();
-  }, [editId]);
+  }, [editId, plrProductId, suggestedTheme, suggestedTitle]);
 
   const bnccSubjects = useMemo(() => Array.from(new Set(
     bnccSkillsMaster.map(skill => skill.subject).filter((subject): subject is string => Boolean(subject))
