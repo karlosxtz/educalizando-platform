@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   const [{ data: store }, { data: secret }, { data: products, error: productsError }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
-    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr').eq('store_id', storeId).order('id').limit(30),
+    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr').eq('store_id', storeId).neq('status', 'excluido').is('excluido_em', null).order('id').limit(30),
   ]);
 
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       title: product.titulo || 'Material sem título',
       score,
       issues: textList(suggestion?.issues).length ? textList(suggestion?.issues) : issues,
-      quickWins: textList(suggestion?.quickWins),
+      quickWins: textList(suggestion?.quickWins).length ? textList(suggestion?.quickWins) : ['Revisar o título com a palavra-chave principal.', 'Completar a descrição para deixar os benefícios claros.', 'Aplicar tags específicas para ajudar nas buscas.'],
       recommendedTitle: typeof suggestion?.recommendedTitle === 'string' ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : '',
       suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
       description: typeof suggestion?.description === 'string' ? suggestion.description.replace(/\*\*/g, '').trim() : product.descricao || '',
