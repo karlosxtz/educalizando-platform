@@ -30,8 +30,8 @@ export default function MonthlyCampaignCarousel({ tags, orderClass = '' }: Month
   const visibleCampaigns = Array.from({ length: Math.min(3, campaigns.length) }, (_, offset) => campaigns[(activeIndex + offset) % campaigns.length]);
 
   return (
-    <section className={`${orderClass} mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8`} aria-labelledby="campanhas-do-mes">
-      <div className="rounded-[2rem] border border-indigo-100 bg-white p-5 shadow-lg shadow-indigo-950/5 sm:p-7">
+    <section className={`${orderClass} mx-auto w-full max-w-[1440px] px-4 py-9 sm:px-6 sm:py-12 lg:px-10`} aria-labelledby="campanhas-do-mes">
+      <div className="rounded-[2rem] border border-indigo-100 bg-white p-6 shadow-lg shadow-indigo-950/5 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.14em] text-indigo-700"><Sparkles className="h-4 w-4" /> Datas e campanhas do mês</p>
@@ -44,8 +44,8 @@ export default function MonthlyCampaignCarousel({ tags, orderClass = '' }: Month
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}>
-          {visibleCampaigns.map((campaign, index) => <CampaignTrackedLink key={campaign.tag + '-' + index} href={'/buscar?data=' + encodeURIComponent(campaign.tag)} tag={campaign.tag} surface="homepage_monthly" className={'group relative min-h-48 overflow-hidden rounded-2xl border border-slate-200 bg-indigo-950 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 ' + (index > 0 ? 'hidden md:block' : '')}>
+        <div className="mt-7 grid gap-5 md:grid-cols-3" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}>
+          {visibleCampaigns.map((campaign, index) => <CampaignTrackedLink key={campaign.tag + '-' + index} href={'/buscar?data=' + encodeURIComponent(campaign.tag)} tag={campaign.tag} surface="homepage_monthly" className={'group relative min-h-56 overflow-hidden rounded-2xl border border-slate-200 bg-indigo-950 p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 ' + (index > 0 ? 'hidden md:block' : '')}>
             <Image src={campaign.artwork.src} alt="" fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover object-right opacity-70 transition duration-500 group-hover:scale-105" />
             <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-indigo-950 via-indigo-950/75 to-indigo-900/10" />
             <span className="relative flex h-full flex-col justify-between"><span className="inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wide backdrop-blur-sm">Campanha {index + 1} de {campaigns.length}</span><span><span className="block text-xl font-black leading-tight">{campaign.tag}</span><span className="mt-2 inline-flex items-center gap-1 text-sm font-black text-indigo-100">Explorar materiais <ChevronRight className="h-4 w-4" /></span></span></span>
