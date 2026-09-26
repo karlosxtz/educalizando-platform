@@ -456,7 +456,12 @@ function AIToolButton({ icon: Icon, label, description, loading, onClick }: { ic
 }
 
 function CopyCard({ title, description, text }: { title: string; description: string; text?: string }) {
-  return <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className="border-b border-violet-100 bg-violet-50 px-5 py-4"><h3 className="font-black text-slate-900">{title}</h3><p className="mt-1 text-sm text-slate-500">{description}</p></div><p className="min-h-48 whitespace-pre-line p-5 text-sm leading-7 text-slate-700">{text || 'A IA não retornou este conteúdo. Gere novamente.'}</p><div className="border-t border-slate-100 px-5 py-3"><button type="button" onClick={() => text && navigator.clipboard.writeText(text).then(() => toast.success(`${title} copiada.`))} disabled={!text} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-black text-white disabled:opacity-50"><Copy className="h-3.5 w-3.5" /> Copiar</button></div></div>;
+  const isWhatsapp = title.includes('WhatsApp');
+  const Icon = isWhatsapp ? MessageSquare : Camera;
+  const theme = isWhatsapp
+    ? { header: 'border-emerald-100 bg-emerald-50', icon: 'bg-emerald-500 text-white', title: 'text-emerald-950', button: 'bg-emerald-600 hover:bg-emerald-700' }
+    : { header: 'border-pink-100 bg-gradient-to-r from-pink-50 via-fuchsia-50 to-violet-50', icon: 'bg-gradient-to-br from-amber-400 via-pink-500 to-violet-600 text-white', title: 'text-fuchsia-950', button: 'bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700' };
+  return <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className={`border-b px-5 py-4 ${theme.header}`}><div className="flex items-center gap-3"><span className={`rounded-xl p-2 ${theme.icon}`}><Icon className="h-5 w-5" /></span><div><h3 className={`font-black ${theme.title}`}>{title}</h3><p className="mt-1 text-sm text-slate-500">{description}</p></div></div></div><p className="min-h-48 whitespace-pre-line p-5 text-sm leading-7 text-slate-700">{text || 'A IA não retornou este conteúdo. Gere novamente.'}</p><div className="border-t border-slate-100 px-5 py-3"><button type="button" onClick={() => text && navigator.clipboard.writeText(text).then(() => toast.success(`${title} copiada.`))} disabled={!text} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black text-white disabled:opacity-50 ${theme.button}`}><Copy className="h-3.5 w-3.5" /> Copiar</button></div></div>;
 }
 
 function LessonBlock({ title, items }: { title: string; items?: string[] }) {
