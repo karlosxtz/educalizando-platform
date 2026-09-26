@@ -6,11 +6,12 @@ import { getUpcomingSchoolEvents, SCHOOL_CALENDAR_EVENTS } from '@/lib/school-ca
 
 type UpcomingCalendarDatesProps = {
   products: ReadonlyArray<{ seasonal_tags?: string[] | null }>;
+  orderClass?: string;
 };
 
 const monthFormatter = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long' });
 
-export default function UpcomingCalendarDates({ products }: UpcomingCalendarDatesProps) {
+export default function UpcomingCalendarDates({ products, orderClass = '' }: UpcomingCalendarDatesProps) {
   const events = getUpcomingSchoolEvents(new Date(), 4).map((item) => {
     const event = SCHOOL_CALENDAR_EVENTS.find((candidate) => candidate.searchTerm === item.tag);
     const materials = products.filter((product) => product.seasonal_tags?.includes(item.tag)).length;
@@ -20,7 +21,7 @@ export default function UpcomingCalendarDates({ products }: UpcomingCalendarDate
   if (!events.length) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="proximas-datas">
+    <section className={`${orderClass} mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8`} aria-labelledby="proximas-datas">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-indigo-50/70 to-violet-50 p-5 shadow-lg shadow-indigo-950/5 sm:p-7">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

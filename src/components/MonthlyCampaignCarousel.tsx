@@ -8,9 +8,10 @@ import CampaignTrackedLink from '@/components/CampaignTrackedLink';
 
 type MonthlyCampaignCarouselProps = {
   tags: readonly string[];
+  orderClass?: string;
 };
 
-export default function MonthlyCampaignCarousel({ tags }: MonthlyCampaignCarouselProps) {
+export default function MonthlyCampaignCarousel({ tags, orderClass = '' }: MonthlyCampaignCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const campaigns = tags.map((tag) => ({ tag, artwork: getSchoolCalendarArtworkForTag(tag as SchoolCalendarTag) }));
@@ -29,7 +30,7 @@ export default function MonthlyCampaignCarousel({ tags }: MonthlyCampaignCarouse
   const visibleCampaigns = Array.from({ length: Math.min(3, campaigns.length) }, (_, offset) => campaigns[(activeIndex + offset) % campaigns.length]);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="campanhas-do-mes">
+    <section className={`${orderClass} mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8`} aria-labelledby="campanhas-do-mes">
       <div className="rounded-[2rem] border border-indigo-100 bg-white p-5 shadow-lg shadow-indigo-950/5 sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>

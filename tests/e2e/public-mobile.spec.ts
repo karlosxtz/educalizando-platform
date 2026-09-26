@@ -68,5 +68,24 @@ test('homepage exibe campanha temática conectada ao calendário', async ({ page
   await expect(campaign.getByText('Tema em destaque')).toBeVisible();
   await expect(campaign.getByRole('link', { name: /ver no calendário|ver calendário/i })).toBeVisible();
   await expect(campaign.getByRole('link', { name: /explorar materiais|ver material/i })).toBeVisible();
+  const visualOrder = await page.evaluate(() => {
+    const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+    return {
+      campaign: top('[aria-labelledby="tema-em-destaque"]'),
+      categories: top('[aria-labelledby="home-categorias"]'),
+    };
+  });
+  expect(visualOrder.campaign).toBeLessThan(visualOrder.categories);
+  const featuredProducts = page.getByRole('heading', { name: 'Materiais em destaque' });
+  if (await featuredProducts.count()) {
+    await expect(featuredProducts).toBeVisible();
+    const [campaignTop, productsTop, categoriesTop] = await Promise.all([
+      campaign.evaluate((element) => element.getBoundingClientRect().top),
+      featuredProducts.evaluate((element) => element.getBoundingClientRect().top),
+      page.locator('[aria-labelledby="home-categorias"]').evaluate((element) => element.getBoundingClientRect().top),
+    ]);
+    expect(campaignTop).toBeLessThan(productsTop);
+    expect(productsTop).toBeLessThan(categoriesTop);
+  }
   await expectNoHorizontalOverflow(page);
 });
