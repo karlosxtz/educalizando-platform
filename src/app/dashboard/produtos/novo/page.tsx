@@ -61,6 +61,7 @@ function ProductWizardContent() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
+  const [productTags, setProductTags] = useState('');
   const [isSeasonalPickerOpen, setIsSeasonalPickerOpen] = useState(false);
   const [seasonalTagSearch, setSeasonalTagSearch] = useState('');
   const seasonalSuggestions = useMemo(() => getSchoolCalendarTagsForMonth(), []);
@@ -150,6 +151,7 @@ function ProductWizardContent() {
             setCategoryId(existing.category_id || '');
             setEducationLevelId(existing.education_level_id || '');
             setSeasonalTags(existing.seasonal_tags || []);
+            setProductTags((existing.tags || []).join(', '));
             setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
@@ -409,6 +411,7 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           seasonal_tags: seasonalTags,
+          tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -439,6 +442,7 @@ function ProductWizardContent() {
           category_id: categoryId || null,
           education_level_id: educationLevelId || null,
           seasonal_tags: seasonalTags,
+          tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -686,6 +690,12 @@ function ProductWizardContent() {
                   {seasonalTags.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">
                     {seasonalTags.map((tag) => <button key={tag} type="button" onClick={() => setSeasonalTags((current) => current.filter((item) => item !== tag))} className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100">{tag}<X className="h-3 w-3" /></button>)}
                   </div>}
+                </div>
+
+                <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
+                  <label className="text-xs font-bold uppercase tracking-wider text-violet-900 block">Tags de busca do produto</label>
+                  <p className="mt-1 text-xs text-slate-500">Use palavras que descrevem o material. Separe por vírgulas. Tags não substituem os temas e datas escolares acima.</p>
+                  <input value={productTags} onChange={(event) => setProductTags(event.target.value)} placeholder="Ex.: alfabetização, sílabas simples, jogo educativo" className="mt-3 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-violet-500" />
                 </div>
 
                 {isSeasonalPickerOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">

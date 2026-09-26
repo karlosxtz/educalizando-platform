@@ -22,13 +22,15 @@ function parseProposal(text: string, product: Record<string, unknown>) {
   if (!parsed) return {
     titles: [String(product.titulo || '')].filter(Boolean),
     description: String(product.descricao || ''),
-    tags: strings(product.seasonal_tags),
+    tags: strings(product.tags),
+    descriptionOptions: [String(product.descricao || '')].filter(Boolean),
     analysis: ['A IA respondeu em um formato inesperado. Você ainda pode editar o produto abaixo ou gerar uma nova proposta.'],
   };
   return {
     titles: strings(parsed.titles).length ? strings(parsed.titles) : [String(product.titulo || '')].filter(Boolean),
     description: typeof parsed.description === 'string' && parsed.description.trim() ? parsed.description.trim() : String(product.descricao || ''),
-    tags: strings(parsed.tags).length ? strings(parsed.tags) : strings(product.seasonal_tags),
+    tags: strings(parsed.tags).length ? strings(parsed.tags) : strings(product.tags),
+    descriptionOptions: strings(parsed.descriptionOptions).length ? strings(parsed.descriptionOptions) : [typeof parsed.description === 'string' ? parsed.description.trim() : String(product.descricao || '')].filter(Boolean),
     metaDescription: typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim() : '',
     keywords: strings(parsed.keywords),
     analysis: strings(parsed.analysis),
@@ -42,12 +44,12 @@ export async function POST(request: Request) {
   if (!storeId || !productId || !instructions[tool]) return NextResponse.json({ error: 'Ferramenta ou produto inválido.' }, { status: 400 });
   const [{ data: store }, { data: product }, { data: secret }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
-    supabaseAdmin.from('products').select('titulo, descricao, tipo, preco, seasonal_tags, age_range, format_details').eq('id', productId).eq('store_id', storeId).maybeSingle(),
+    supabaseAdmin.from('products').select('titulo, descricao, tipo, preco, seasonal_tags, tags, age_range, format_details').eq('id', productId).eq('store_id', storeId).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle(),
   ]);
   if (!store || !product) return NextResponse.json({ error: 'Produto não encontrado nesta loja.' }, { status: 403 });
   if (!secret?.google_ai_key) return NextResponse.json({ error: 'Configure sua chave Gemini para usar esta ferramenta.' }, { status: 401 });
-  const prompt = `Você é especialista em marketing e educação. Responda em português do Brasil.\n\nMATERIAL:\nTítulo: ${product.titulo}\nDescrição: ${product.descricao || 'não informada'}\nTipo: ${product.tipo}\nFaixa etária: ${product.age_range || 'não informada'}\nDetalhes: ${product.format_details || 'não informados'}\nTemas: ${(product.seasonal_tags || []).join(', ') || 'não informados'}\n\nTAREFA:\n${instructions[tool]}\n\nPara SEO ou descrição, responda somente com JSON válido, sem markdown e sem texto antes ou depois, neste formato exato: {"titles":["5 títulos diferentes"],"description":"descrição de venda completa em texto pronto para publicar, com parágrafos e listas usando quebras de linha reais","tags":["5 a 10 tags relevantes"],"metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}.`;
+  const prompt = `Você é especialista em marketing e educação. Responda em português do Brasil.\n\nMATERIAL:\nTítulo: ${product.titulo}\nDescrição atual: ${product.descricao || 'não informada'}\nTipo: ${product.tipo}\nFaixa etária: ${product.age_range || 'não informada'}\nDetalhes: ${product.format_details || 'não informados'}\nTemas pedagógicos e datas: ${(product.seasonal_tags || []).join(', ') || 'não informados'}\nTags de busca atuais: ${(product.tags || []).join(', ') || 'não informadas'}\n\nTAREFA:\n${instructions[tool]}\n\nPara SEO ou descrição, responda somente com JSON válido, sem markdown e sem texto antes ou depois, neste formato exato: {"titles":["5 títulos diferentes"],"description":"melhor modelo escolhido","descriptionOptions":["3 descrições de venda completas, diferentes e prontas para publicar, com emojis moderados, parágrafos e listas usando quebras de linha reais"],"tags":["5 a 10 tags de busca curtas e específicas; não inclua datas comemorativas ou temas do calendário"],"metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}.`;
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${secret.google_ai_key.trim().replace(/['"]/g, '')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: tool === 'seo' || tool === 'description' ? { responseMimeType: 'application/json', maxOutputTokens: 4096 } : undefined }) });
   const payload = await response.json().catch(() => null);
   if (!response.ok) return NextResponse.json({ error: payload?.error?.message || 'A Gemini não concluiu a geração.' }, { status: response.status });

@@ -113,6 +113,8 @@ export interface Product {
   category_id?: string | null;
   education_level_id?: string | null;
   seasonal_tags?: string[];
+  /** Tags livres do material usadas na busca; não incluem datas ou temas do calendário escolar. */
+  tags?: string[];
   category?: Category | null;
   education_level?: EducationLevel | null;
   images?: ProductImage[];

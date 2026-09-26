@@ -28,6 +28,8 @@ export default function IAConfigPage() {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedTags, setEditedTags] = useState<string[]>([]);
+  const [editedThemes, setEditedThemes] = useState<string[]>([]);
+  const [tagDraft, setTagDraft] = useState('');
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
@@ -158,7 +160,9 @@ export default function IAConfigPage() {
         setProposal({ ...payload.proposal, tool });
         setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
         setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
-        setEditedTags(payload.proposal.tags?.length ? payload.proposal.tags : selectedProduct?.seasonal_tags || []);
+        setEditedTags(payload.proposal.tags?.length ? payload.proposal.tags : selectedProduct?.tags || []);
+        setEditedThemes(selectedProduct?.seasonal_tags || []);
+        setTagDraft('');
         setEditorOpen(true);
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
@@ -171,7 +175,8 @@ export default function IAConfigPage() {
       const updates: Partial<Product> = {};
       if (editedTitle.trim()) updates.titulo = editedTitle.trim();
       if (editedDescription.trim()) updates.descricao = editedDescription.trim();
-      updates.seasonal_tags = editedTags;
+      updates.tags = editedTags;
+      updates.seasonal_tags = editedThemes;
       await updateProduct(selectedProductId, updates);
       setProducts(current => current.map(product => product.id === selectedProductId ? { ...product, ...updates } : product));
       setEditorOpen(false); toast.success('Produto atualizado com as escolhas da IA.');
@@ -410,15 +415,23 @@ export default function IAConfigPage() {
 
                 <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
                   <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">2. Descrição de venda</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Explique o que o material entrega, para quem serve e como será usado.</p>
+                  <p className="mt-1 text-sm text-slate-500">Escolha um modelo pronto da IA ou ajuste o texto antes de salvar.</p>
+                  {proposal.descriptionOptions?.length ? <div className="mt-3 grid gap-2">{proposal.descriptionOptions.map((description: string, index: number) => <button key={`${index}-${description.slice(0, 24)}`} type="button" onClick={() => setEditedDescription(description)} className={`rounded-xl border p-3 text-left text-sm leading-6 transition ${editedDescription === description ? 'border-violet-600 bg-violet-50 text-violet-950' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300'}`}><span className="mb-1 block text-xs font-black uppercase tracking-wider text-violet-700">Modelo {index + 1}</span><span className="line-clamp-3 whitespace-pre-line">{description}</span></button>)}</div> : null}
                   <textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} placeholder="Descreva o seu material" className="mt-3 min-h-40 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">3. Tags e temas</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">As tags ajudam educadores a encontrar o material por tema e data pedagógica.</p>
+                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">3. Tags de busca</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">Palavras curtas que descrevem o material. Tags não são datas nem temas do calendário.</p>
                   <div className="mt-3 flex flex-wrap gap-2">{editedTags.length ? editedTags.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.filter(item => item !== tag))} className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-800">{tag} ×</button>) : <span className="text-sm text-slate-500">Nenhuma tag selecionada ainda.</span>}</div>
-                  <details className="mt-4 rounded-xl bg-slate-50 p-3"><summary className="cursor-pointer text-sm font-black text-violet-700">Adicionar ou remover tags</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.includes(tag) ? tags.filter(item => item !== tag) : [...tags, tag])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedTags.includes(tag) ? 'border-violet-600 bg-violet-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300'}`}>{tag}</button>)}</div></details>
+                  <div className="mt-3 flex gap-2"><input value={tagDraft} onChange={event => setTagDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); const tag = tagDraft.trim().toLowerCase(); if (tag && !editedTags.includes(tag)) setEditedTags(tags => [...tags, tag]); setTagDraft(''); } }} placeholder="Ex.: alfabetização, jogo educativo" className="min-h-11 flex-1 rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-violet-500" /><button type="button" onClick={() => { const tag = tagDraft.trim().toLowerCase(); if (tag && !editedTags.includes(tag)) setEditedTags(tags => [...tags, tag]); setTagDraft(''); }} className="rounded-xl bg-violet-100 px-4 text-sm font-black text-violet-800">Adicionar</button></div>
+                </div>
+
+                <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-4 sm:p-5">
+                  <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-blue-600" /><h3 className="font-black text-slate-900">4. Temas e datas pedagógicas</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">Esta área é exclusiva para o calendário e os projetos escolares do material.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">{editedThemes.length ? editedThemes.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.filter(item => item !== theme))} className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-800">{theme} ×</button>) : <span className="text-sm text-slate-500">Nenhum tema ou data selecionado.</span>}</div>
+                  <details className="mt-4 rounded-xl bg-white/80 p-3"><summary className="cursor-pointer text-sm font-black text-blue-700">Selecionar temas e datas</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.includes(theme) ? themes.filter(item => item !== theme) : [...themes, theme])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedThemes.includes(theme) ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{theme}</button>)}</div></details>
                 </div>
 
                 {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para busca</p>{proposal.metaDescription ? <p className="mt-2 text-sm leading-6 text-slate-100"><span className="font-bold text-white">Meta descrição sugerida: </span>{proposal.metaDescription}</p> : null}{proposal.keywords?.length ? <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-bold text-white">Palavras-chave: </span>{proposal.keywords.join(', ')}</p> : null}</div> : null}
