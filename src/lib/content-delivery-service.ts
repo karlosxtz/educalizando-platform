@@ -101,6 +101,17 @@ export interface StudentContentAccessGrant {
   accessUntil?: string | null;
 }
 
+function isValidDeliveryUrl(value: string, type: ContentType): boolean {
+  const url = value.trim();
+  if (type === 'ARQUIVO' && /^minio:\/\/[^/]+\/.+/i.test(url)) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
 // 1. Função de Validação de Segurança Dual (MIME + Extensão + Tamanho)
 export function validateContentFileUpload(file: { name: string; size: number; type?: string }): FileValidationResult {
   // A. Verificação de Vídeo por MIME Type e Extensão
@@ -274,6 +285,13 @@ export async function createContentItem(storeId: string, itemData: {
   downloadLimit?: number | null;
   validityDays?: number | null;
 }): Promise<ContentItem> {
+  if (!storeId) throw new Error('Não foi possível identificar a loja deste conteúdo. Atualize a página e tente novamente.');
+  if (!itemData.titulo.trim()) throw new Error('Informe o título do conteúdo.');
+  if (!isValidDeliveryUrl(itemData.url, itemData.tipo)) {
+    throw new Error(itemData.tipo === 'LINK_EXTERNO'
+      ? 'Use um link externo seguro iniciado por https://.'
+      : 'O arquivo enviado não possui uma referência de entrega válida. Envie-o novamente.');
+  }
   // Validação backend extra para tipo Arquivo
   if (itemData.tipo === 'ARQUIVO') {
     if (itemData.fileSizeBytes && itemData.fileSizeBytes > MAX_FILE_SIZE_BYTES) {
@@ -349,17 +367,19 @@ export async function createContentItem(storeId: string, itemData: {
 // 6. Atualizar Conteúdo Existente
 export async function updateContentItem(storeId: string, contentId: string, updates: Partial<ContentItem>): Promise<ContentItem | null> {
   if (isRealSupabaseConfigured()) {
-    const { data, error } = await supabase.from('digital_contents').update({
-      titulo: updates.titulo,
-      descricao: updates.descricao,
-      tipo: updates.tipo,
-      url: updates.url,
-      download_limit: updates.downloadLimit,
-      validity_days: updates.validityDays,
-      active: updates.active,
-      order_index: updates.orderIndex,
-      updated_at: new Date().toISOString()
-    }).eq('id', contentId).eq('store_id', storeId).select().single();
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (Object.hasOwn(updates, 'titulo')) patch.titulo = updates.titulo;
+    if (Object.hasOwn(updates, 'descricao')) patch.descricao = updates.descricao || null;
+    if (Object.hasOwn(updates, 'tipo')) patch.tipo = updates.tipo;
+    if (Object.hasOwn(updates, 'url')) {
+      if (!updates.url || !isValidDeliveryUrl(updates.url, updates.tipo || 'ARQUIVO')) throw new Error('Informe uma referência de entrega válida e segura.');
+      patch.url = updates.url.trim();
+    }
+    if (Object.hasOwn(updates, 'downloadLimit')) patch.download_limit = updates.downloadLimit ?? null;
+    if (Object.hasOwn(updates, 'validityDays')) patch.validity_days = updates.validityDays ?? null;
+    if (Object.hasOwn(updates, 'active')) patch.active = updates.active;
+    if (Object.hasOwn(updates, 'orderIndex')) patch.order_index = updates.orderIndex;
+    const { data, error } = await supabase.from('digital_contents').update(patch).eq('id', contentId).eq('store_id', storeId).select().single();
     if (error || !data) throw new Error(error?.message || 'O conteúdo não foi atualizado no banco de dados.');
     return mapContentRow(data, storeId);
   }

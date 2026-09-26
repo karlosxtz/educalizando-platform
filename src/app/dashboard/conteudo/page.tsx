@@ -18,6 +18,7 @@ import {
 import { getProductsByStoreId, getCurrentCreatorStore } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { isUploadedMaterial } from '@/lib/delivery-link';
 
 export default function ContentDeliveryDashboardPage() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function ContentDeliveryDashboardPage() {
           productId: delivery.productId,
           productTitle: delivery.productTitle || productTitles.get(delivery.productId) || 'Produto',
           titulo: delivery.fileName || `Material principal — ${delivery.productTitle || productTitles.get(delivery.productId) || 'Produto'}`,
-          tipo: 'ARQUIVO' as const,
+          tipo: isUploadedMaterial(delivery.url) ? 'ARQUIVO' as const : 'LINK_EXTERNO' as const,
           url: delivery.url,
           fileName: delivery.fileName || null,
           downloadsCount: 0,

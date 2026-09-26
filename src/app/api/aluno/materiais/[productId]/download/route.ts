@@ -147,15 +147,17 @@ export async function GET(
       if (contentId) {
         const { data: itemData } = await supabaseAdmin
           .from('digital_contents')
-          .select('id, store_id, titulo, url, file_name')
+          .select('id, store_id, titulo, url, file_name, tipo, active')
           .eq('id', contentId)
           .eq('product_id', productId)
           .maybeSingle();
 
-        if (itemData) {
+        if (itemData && itemData.active !== false && itemData.tipo === 'ARQUIVO') {
           if (itemData.titulo) productTitle = itemData.titulo;
           if (itemData.url) fileUrl = itemData.url;
           deliveredContent = { id: itemData.id, storeId: itemData.store_id, title: itemData.titulo || productTitle };
+        } else if (itemData) {
+          return NextResponse.json({ error: 'Este arquivo não está disponível para download.' }, { status: 404 });
         }
       }
 
@@ -216,7 +218,12 @@ export async function GET(
           content_id: deliveredContent.id,
           content_title: deliveredContent.title,
           product_id: productId,
-          event_type: 'FILE_DOWNLOAD',
+          // A entrega principal por URL externa é um acesso ao link, não um
+          // download hospedado pela plataforma. Isso mantém os indicadores do
+          // criador coerentes com o tipo de entrega configurado.
+          event_type: deliveredContent.id.startsWith('main-delivery:') && /^https:\/\//i.test(fileUrl) && !/supabase\.co\//i.test(fileUrl)
+            ? 'EXTERNAL_LINK_ACCESS'
+            : 'FILE_DOWNLOAD',
         });
         if (accessEventError) return NextResponse.json({ error: 'Não foi possível registrar o download.' }, { status: 500 });
       }

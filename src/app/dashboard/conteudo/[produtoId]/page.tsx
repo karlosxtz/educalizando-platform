@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, FolderCheck, Plus, FileText, Link2, Download, ExternalLink, 
   Trash2, AlertCircle, CheckCircle2, Info, VideoOff, ArrowUp, ArrowDown, 
-  Eye, Edit3, Lock, ShieldAlert, Sparkles, Clock, Check, Power 
+  Eye, Edit3, Lock, ShieldAlert, Sparkles, Clock, Check, Power, Settings
 } from 'lucide-react';
 import { 
   getContentByProductId, 
@@ -21,6 +21,7 @@ import { getProductById, getCurrentCreatorStore } from '@/lib/store-service';
 import { Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { toast } from 'sonner';
 
 interface ProductContentPageProps {
   params: Promise<{ produtoId: string }>;
@@ -33,6 +34,8 @@ export default function ProductContentManagementPage({ params }: ProductContentP
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
   const [contents, setContents] = useState<ContentItem[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -66,14 +69,17 @@ export default function ProductContentManagementPage({ params }: ProductContentP
 
   async function loadData() {
     setLoading(true);
+    setLoadError(null);
     try {
       const prod = await getProductById(resolvedParams.produtoId);
+      if (!prod) throw new Error('Produto não encontrado ou você não tem permissão para gerenciá-lo.');
       setProduct(prod);
 
       const items = await getContentByProductId(storeId, resolvedParams.produtoId);
       setContents(items);
     } catch (err) {
       console.error('Erro ao carregar conteúdos do produto:', err);
+      setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar os conteúdos deste produto.');
     } finally {
       setLoading(false);
     }
@@ -150,6 +156,7 @@ export default function ProductContentManagementPage({ params }: ProductContentP
 
       setModalOpen(false);
       await loadData();
+      toast.success(editingContent ? 'Conteúdo atualizado.' : 'Conteúdo adicionado à entrega.');
     } catch (err: any) {
       setFormError(err.message || 'Erro ao salvar conteúdo.');
     } finally {
@@ -159,14 +166,26 @@ export default function ProductContentManagementPage({ params }: ProductContentP
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este conteúdo?')) {
-      await deleteContentItem(storeId, id);
-      await loadData();
+      setActionId(id);
+      try {
+        await deleteContentItem(storeId, id);
+        await loadData();
+        toast.success('Conteúdo excluído.');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Não foi possível excluir o conteúdo.');
+      } finally { setActionId(null); }
     }
   };
 
   const handleToggleActive = async (item: ContentItem) => {
-    await updateContentItem(storeId, item.id, { active: !item.active });
-    await loadData();
+    setActionId(item.id);
+    try {
+      await updateContentItem(storeId, item.id, { active: !item.active });
+      await loadData();
+      toast.success(item.active ? 'Conteúdo pausado. Compradores não terão acesso enquanto estiver pausado.' : 'Conteúdo ativado para compradores.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível alterar o status do conteúdo.');
+    } finally { setActionId(null); }
   };
 
   const handleMove = async (index: number, direction: 'up' | 'down') => {
@@ -180,7 +199,12 @@ export default function ProductContentManagementPage({ params }: ProductContentP
     newContents[targetIndex] = temp;
 
     setContents(newContents);
-    await reorderContents(storeId, newContents.map(c => c.id));
+    try {
+      await reorderContents(storeId, newContents.map(c => c.id));
+    } catch (error) {
+      await loadData();
+      toast.error(error instanceof Error ? error.message : 'Não foi possível salvar a nova ordem.');
+    }
   };
 
   if (loading) {
@@ -192,6 +216,8 @@ export default function ProductContentManagementPage({ params }: ProductContentP
   }
 
   const productTitle = product?.titulo || 'Produto Digital';
+  const mainDeliveryUrl = product?.arquivo_url || null;
+  const mainDeliveryName = product?.arquivo_nome || 'Material principal do produto';
 
   return (
     <div className="space-y-8 font-sans pb-12">
@@ -221,7 +247,7 @@ export default function ProductContentManagementPage({ params }: ProductContentP
               Gerencie a lista de materiais digitais e videoaulas entregues automaticamente aos compradores deste produto.
             </p>
             <div className="flex items-center gap-4 text-xs font-bold text-slate-600 pt-1">
-              <span>{contents.length} {contents.length === 1 ? 'conteúdo cadastrado' : 'conteúdos cadastrados'}</span>
+              <span>{contents.length + (mainDeliveryUrl ? 1 : 0)} {(contents.length + (mainDeliveryUrl ? 1 : 0)) === 1 ? 'entrega configurada' : 'entregas configuradas'}</span>
               <span className="text-slate-300">•</span>
               <span className="text-brand-navy">
                 {contents.filter(c => c.tipo === 'ARQUIVO').length} Arquivos (≤15MB) | {contents.filter(c => c.tipo === 'LINK_EXTERNO').length} Links
@@ -238,6 +264,12 @@ export default function ProductContentManagementPage({ params }: ProductContentP
           <span>+ Adicionar Conteúdo</span>
         </button>
       </div>
+
+      {loadError && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-800"><div className="flex flex-wrap items-center justify-between gap-3"><span>{loadError}</span><button type="button" onClick={() => void loadData()} className="rounded-xl bg-rose-600 px-3 py-2 text-xs font-black text-white">Tentar novamente</button></div></div>}
+
+      <section className={`rounded-3xl border p-5 sm:p-6 ${mainDeliveryUrl ? 'border-emerald-200 bg-emerald-50/60' : 'border-amber-200 bg-amber-50/60'}`}>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div className="flex gap-3"><div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${mainDeliveryUrl ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-800'}`}><FolderCheck className="h-5 w-5" /></div><div><p className="text-xs font-black uppercase tracking-wider text-slate-600">Entrega principal do produto</p><h2 className="mt-1 font-black text-slate-900">{mainDeliveryUrl ? mainDeliveryName : 'Nenhum arquivo ou link principal configurado'}</h2><p className="mt-1 text-sm leading-6 text-slate-600">{mainDeliveryUrl ? 'Esta é a entrega criada no cadastro do produto e já fica disponível ao comprador após o pagamento.' : 'Defina a entrega principal no cadastro do produto. Os conteúdos adicionais abaixo complementam essa entrega.'}</p></div></div><button type="button" onClick={() => router.push(`/dashboard/produtos/novo?edit=${resolvedParams.produtoId}`)} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-black text-white hover:bg-slate-800"><Settings className="h-4 w-4" />{mainDeliveryUrl ? 'Editar entrega principal' : 'Configurar entrega'}</button></div>
+      </section>
 
       {/* Requirement 33: Empty State if no content attached to product */}
       {contents.length === 0 ? (
@@ -356,13 +388,14 @@ export default function ProductContentManagementPage({ params }: ProductContentP
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleToggleActive(item)}
+                      onClick={() => void handleToggleActive(item)}
+                      disabled={actionId === item.id}
                       className={`p-2 rounded-xl border text-xs font-bold transition-colors ${
                         item.active ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'
                       }`}
                       title={item.active ? 'Desativar Conteúdo' : 'Ativar Conteúdo'}
                     >
-                      <Power className="w-4 h-4" />
+                      <Power className={`w-4 h-4 ${actionId === item.id ? 'animate-pulse' : ''}`} />
                     </button>
 
                     <button
@@ -374,7 +407,8 @@ export default function ProductContentManagementPage({ params }: ProductContentP
                     </button>
 
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => void handleDelete(item.id)}
+                      disabled={actionId === item.id}
                       className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition-colors"
                       title="Excluir Conteúdo"
                     >
