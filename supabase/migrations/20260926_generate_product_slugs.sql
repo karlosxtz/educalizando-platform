@@ -5,7 +5,7 @@ with normalized as (
     coalesce(nullif(trim(both '-' from regexp_replace(lower(unaccent(titulo)), '[^a-z0-9]+', '-', 'g')), ''), 'produto') as base_slug
   from public.products
 ), ranked as (
-  select id, base_slug, row_number() over (partition by base_slug order by created_at, id) as position
+  select id, base_slug, row_number() over (partition by base_slug order by id) as position
   from normalized
 )
 update public.products product
