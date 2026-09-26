@@ -158,7 +158,7 @@ export default function IAConfigPage() {
         setProposal({ ...payload.proposal, tool });
         setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
         setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
-        setEditedTags(selectedProduct?.seasonal_tags || []);
+        setEditedTags(payload.proposal.tags?.length ? payload.proposal.tags : selectedProduct?.seasonal_tags || []);
         setEditorOpen(true);
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
@@ -189,7 +189,7 @@ export default function IAConfigPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6 px-3 sm:px-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
@@ -367,7 +367,7 @@ export default function IAConfigPage() {
         </div>
       )}
       {editorOpen && proposal && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/60 p-3 sm:p-6">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/60 p-3 sm:p-6 lg:pl-16">
           <div className="mx-auto my-4 w-full max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
             <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-5 text-white sm:px-7">
               <div>
@@ -404,7 +404,7 @@ export default function IAConfigPage() {
                 <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
                   <div className="flex items-center gap-2"><Search className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">1. Título do produto</h3></div>
                   <p className="mt-1 text-sm text-slate-500">Escolha uma sugestão ou escreva um título que descreva seu material com clareza.</p>
-                  {proposal.titles?.length ? <div className="mt-3 grid gap-2">{proposal.titles.slice(0, 3).map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`rounded-xl border p-3 text-left text-sm font-bold transition ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700 hover:border-violet-300'}`}>{title}</button>)}</div> : null}
+                  {proposal.titles?.length ? <div className="mt-3 grid gap-2">{proposal.titles.map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`rounded-xl border p-3 text-left text-sm font-bold transition ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700 hover:border-violet-300'}`}>{title}</button>)}</div> : null}
                   <input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} placeholder="Título do seu material" className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
                 </div>
 
