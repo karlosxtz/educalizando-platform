@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
 
-  const cleanKey = String(apiKey || '').trim().replace(/['"]/g, '');
+  const cleanKey = String(apiKey || '').trim().replace(/['"]/g, '').replace(/^Bearer\s+/i, '');
   if (!cleanKey) return NextResponse.json({ error: 'Informe uma chave válida.' }, { status: 400 });
 
   const selectedProvider = provider === 'alternative' ? 'alternative' : 'primary';
