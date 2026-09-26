@@ -25,6 +25,8 @@ export default function IAConfigPage() {
   const [toolResult, setToolResult] = useState('');
   const [contentProposal, setContentProposal] = useState<any>(null);
   const [campaignChoiceOpen, setCampaignChoiceOpen] = useState(false);
+  const [optimizationChoiceOpen, setOptimizationChoiceOpen] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<'product' | 'plr'>('product');
   const [activeTool, setActiveTool] = useState('');
   const [proposal, setProposal] = useState<any>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -151,15 +153,16 @@ export default function IAConfigPage() {
     toast.success(`Cópia para ${type === 'whatsapp' ? 'WhatsApp' : 'Instagram'} copiada para área de transferência!`);
   };
 
-  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', campaignMode: 'product' | 'plr' = 'product') => {
+  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', targetMode: 'product' | 'plr' = 'product') => {
     if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
     const selectedProduct = products.find(product => product.id === selectedProductId);
     setActiveTool(tool); setToolResult(''); setProposal(null); setContentProposal(null);
     try {
-      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool, campaignMode }) });
+      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool, targetMode }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
       if ((tool === 'seo' || tool === 'description') && payload.proposal) {
+        setEditingTarget(targetMode);
         setToolResult('');
         setProposal({ ...payload.proposal, tool });
         setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
@@ -180,10 +183,14 @@ export default function IAConfigPage() {
     setApplying(true);
     try {
       const updates: Partial<Product> = {};
-      if (editedTitle.trim()) updates.titulo = editedTitle.trim();
-      if (editedDescription.trim()) updates.descricao = editedDescription.trim();
-      updates.tags = editedTags;
-      updates.seasonal_tags = editedThemes;
+      if (editingTarget === 'plr') {
+        if (editedDescription.trim()) updates.plr_descricao = editedDescription.trim();
+      } else {
+        if (editedTitle.trim()) updates.titulo = editedTitle.trim();
+        if (editedDescription.trim()) updates.descricao = editedDescription.trim();
+        updates.tags = editedTags;
+        updates.seasonal_tags = editedThemes;
+      }
       await updateProduct(selectedProductId, updates);
       setProducts(current => current.map(product => product.id === selectedProductId ? { ...product, ...updates } : product));
       setEditorOpen(false); toast.success('Produto atualizado com as escolhas da IA.');
@@ -314,7 +321,7 @@ export default function IAConfigPage() {
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5">
             <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="títulos, descrições, tags e SEO prontos para revisar" loading={activeTool === 'seo'} onClick={() => void generateProductTool('seo')} />
+              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="títulos, descrições, tags e SEO prontos para revisar" loading={activeTool === 'seo'} onClick={() => activeProduct?.is_plr ? setOptimizationChoiceOpen(true) : void generateProductTool('seo')} />
               <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => activeProduct?.is_plr ? setCampaignChoiceOpen(true) : void generateProductTool('campaign')} />
               <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
@@ -379,6 +386,14 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
+      {optimizationChoiceOpen && (
+        <div className="fixed inset-0 z-[101] flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wider text-violet-700">Material com licença PLR</p><h2 className="mt-1 text-xl font-black text-slate-900">O que você quer otimizar?</h2><p className="mt-2 text-sm leading-6 text-slate-500">Escolha a oferta. Cada descrição será trabalhada e salva no campo correto, sem misturar produto final e licença.</p></div><button type="button" onClick={() => setOptimizationChoiceOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+            <div className="mt-5 grid gap-3"><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'product'); }} className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-left transition hover:border-violet-500"><p className="font-black text-violet-950">Otimizar produto final</p><p className="mt-1 text-sm text-violet-800">Melhora título, descrição, tags e SEO da oferta para o cliente final.</p></button><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'plr'); }} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-500"><p className="font-black text-amber-950">Otimizar licença PLR</p><p className="mt-1 text-sm text-amber-800">Melhora apenas a descrição exclusiva da licença para revendedores.</p></button></div>
+          </div>
+        </div>
+      )}
       {campaignChoiceOpen && (
         <div className="fixed inset-0 z-[101] flex items-center justify-center bg-slate-950/60 p-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
@@ -422,21 +437,23 @@ export default function IAConfigPage() {
                   </div>
                 ) : null}
 
-                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                {editingTarget === 'plr' ? <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><p className="font-black">Você está editando a licença PLR</p><p className="mt-1">Esta alteração será salva somente na descrição para revendedores. O título, as tags e os temas do produto final permanecem como estão.</p></div> : null}
+
+                {editingTarget !== 'plr' ? <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
                   <div className="flex items-center gap-2"><Search className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">1. Título do produto</h3></div>
                   <p className="mt-1 text-sm text-slate-500">Escolha uma sugestão ou escreva um título que descreva seu material com clareza.</p>
                   {proposal.titles?.length ? <div className="mt-3 grid gap-2">{proposal.titles.map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`rounded-xl border p-3 text-left text-sm font-bold transition ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700 hover:border-violet-300'}`}>{title}</button>)}</div> : null}
                   <input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} placeholder="Título do seu material" className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
-                </div>
+                </div> : null}
 
                 <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">2. Descrição de venda</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Escolha um modelo pronto da IA ou ajuste o texto antes de salvar.</p>
+                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">{editingTarget === 'plr' ? 'Descrição da licença PLR' : '2. Descrição de venda'}</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">{editingTarget === 'plr' ? 'Escolha ou ajuste o texto que será mostrado apenas para quem compra a licença para revenda.' : 'Escolha um modelo pronto da IA ou ajuste o texto antes de salvar.'}</p>
                   {proposal.descriptionOptions?.length ? <div className="mt-3 grid gap-2">{proposal.descriptionOptions.map((description: string, index: number) => <button key={`${index}-${description.slice(0, 24)}`} type="button" onClick={() => setEditedDescription(description)} className={`rounded-xl border p-3 text-left text-sm leading-6 transition ${editedDescription === description ? 'border-violet-600 bg-violet-50 text-violet-950' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300'}`}><span className="mb-1 block text-xs font-black uppercase tracking-wider text-violet-700">Modelo {index + 1}</span><span className="line-clamp-3 whitespace-pre-line">{description}</span></button>)}</div> : null}
                   <textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} placeholder="Descreva o seu material" className="mt-3 min-h-40 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                {editingTarget !== 'plr' ? <><div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
                   <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">3. Tags de busca</h3></div>
                   <p className="mt-1 text-sm text-slate-500">Palavras curtas que descrevem o material. Tags não são datas nem temas do calendário.</p>
                   <div className="mt-3 flex flex-wrap gap-2">{editedTags.length ? editedTags.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.filter(item => item !== tag))} className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-800">{tag} ×</button>) : <span className="text-sm text-slate-500">Nenhuma tag selecionada ainda.</span>}</div>
@@ -448,13 +465,13 @@ export default function IAConfigPage() {
                   <p className="mt-1 text-sm text-slate-500">Esta área é exclusiva para o calendário e os projetos escolares do material.</p>
                   <div className="mt-3 flex flex-wrap gap-2">{editedThemes.length ? editedThemes.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.filter(item => item !== theme))} className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-800">{theme} ×</button>) : <span className="text-sm text-slate-500">Nenhum tema ou data selecionado.</span>}</div>
                   <details className="mt-4 rounded-xl bg-white/80 p-3"><summary className="cursor-pointer text-sm font-black text-blue-700">Selecionar temas e datas</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.includes(theme) ? themes.filter(item => item !== theme) : [...themes, theme])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedThemes.includes(theme) ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{theme}</button>)}</div></details>
-                </div>
+                </div></> : null}
 
                 {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para aparecer melhor nas buscas</p><p className="mt-1 text-sm text-slate-300">Estas sugestões ajudam você a divulgar o material. Copie quando for usar em redes, anúncios ou páginas de busca.</p>{proposal.metaDescription ? <div className="mt-4 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Resumo sugerido</p><p className="mt-1 text-sm leading-6 text-white">{proposal.metaDescription}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.metaDescription); toast.success('Resumo copiado.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar resumo</button></div> : null}{proposal.keywords?.length ? <div className="mt-3 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Palavras que ajudam a encontrar este material</p><p className="mt-1 text-sm leading-6 text-slate-100">{proposal.keywords.join(', ')}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.keywords.join(', ')); toast.success('Palavras-chave copiadas.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar palavras-chave</button></div> : null}</div> : null}
               </section>
             </div>
 
-            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">Ao salvar, título, descrição e tags serão atualizados neste produto.</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
+            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">{editingTarget === 'plr' ? 'Ao salvar, apenas a descrição exclusiva da licença PLR será atualizada.' : 'Ao salvar, título, descrição e tags serão atualizados neste produto.'}</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
           </div>
         </div>
       )}
