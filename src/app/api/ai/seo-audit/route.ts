@@ -13,6 +13,7 @@ type AuditProduct = {
   tags: string[] | null;
   slug: string | null;
   is_plr: boolean | null;
+  seasonal_tags: string[] | null;
 };
 
 type BaseReview = {
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
   const [{ data: store }, { data: secret }, { data: products, error: productsError }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
-    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, slug, is_plr').eq('store_id', storeId).order('id').limit(30),
+    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr').eq('store_id', storeId).order('id').limit(30),
   ]);
 
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
@@ -86,9 +87,10 @@ export async function POST(request: Request) {
     titulo: product.titulo || 'Sem título',
     descricao: (product.descricao || '').slice(0, 350),
     tags: product.tags || [],
+    temas: product.seasonal_tags || [],
     problemas_identificados: issues,
   }));
-  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
+  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","description":"descrição de venda pronta, com parágrafos e quebras reais","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
   try {
@@ -117,6 +119,9 @@ export async function POST(request: Request) {
       quickWins: textList(suggestion?.quickWins),
       recommendedTitle: typeof suggestion?.recommendedTitle === 'string' ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : '',
       suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
+      description: typeof suggestion?.description === 'string' ? suggestion.description.replace(/\*\*/g, '').trim() : product.descricao || '',
+      tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags || [],
+      themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags || [],
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
       keywords: textList(suggestion?.keywords),
       coverUrl: product.capa_url,
