@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { generateSlug } from '@/lib/string-utils';
 
 type Change = { id?: unknown; titulo?: unknown; descricao?: unknown; tags?: unknown; seasonal_tags?: unknown };
 
@@ -23,8 +25,9 @@ export async function POST(request: Request) {
 
   for (const change of changes as Change[]) {
     if (typeof change.id !== 'string' || !ownedIds.has(change.id)) continue;
+    const nextTitle = typeof change.titulo === 'string' && change.titulo.trim().length >= 4 ? change.titulo.trim().slice(0, 160) : null;
     const update = {
-      ...(typeof change.titulo === 'string' && change.titulo.trim().length >= 4 ? { titulo: change.titulo.trim().slice(0, 160) } : {}),
+      ...(nextTitle ? { titulo: nextTitle, slug: generateSlug(nextTitle) } : {}),
       ...(typeof change.descricao === 'string' && change.descricao.trim() ? { descricao: change.descricao.trim().slice(0, 8000) } : {}),
       tags: strings(change.tags, 20).map(tag => tag.toLowerCase()),
       seasonal_tags: strings(change.seasonal_tags, 48),
@@ -34,5 +37,7 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: `Não foi possível salvar um dos materiais: ${error.message}` }, { status: 500 });
     updated.push(change.id);
   }
+  revalidatePath('/', 'layout');
+  revalidatePath('/dashboard/produtos', 'page');
   return NextResponse.json({ success: true, updatedIds: updated });
 }

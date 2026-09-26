@@ -77,6 +77,19 @@ function fallbackThemes(product: AuditProduct) {
   return matches.length ? Array.from(new Set(matches)) : ['Projeto Pedagógico'];
 }
 
+function fallbackTitle(product: AuditProduct) {
+  const clean = (product.titulo || 'Material didático').replace(/[\p{Extended_Pictographic}]/gu, '').replace(/\s+/g, ' ').trim();
+  if (clean.length < 30) return `${clean} – Atividade Pedagógica para Imprimir`.slice(0, 65);
+  if (clean.length > 65) return clean.slice(0, 62).replace(/\s+\S*$/, '').trim();
+  return clean;
+}
+
+function fallbackDescription(product: AuditProduct) {
+  const current = (product.descricao || '').trim();
+  const base = current || `Material pedagógico criado para apoiar educadores e famílias em atividades práticas e significativas.`;
+  return `${base}\n\n✨ O que este material oferece:\n• Proposta prática e pronta para usar.\n• Aprendizagem leve, organizada e envolvente.\n• Ideal para sala de aula, reforço escolar ou atividades em casa.`.slice(0, 8000);
+}
+
 export async function POST(request: Request) {
   const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
@@ -139,9 +152,9 @@ export async function POST(request: Request) {
       score,
       issues: textList(suggestion?.issues).length ? textList(suggestion?.issues) : issues,
       quickWins: textList(suggestion?.quickWins).length ? textList(suggestion?.quickWins) : ['Revisar o título com a palavra-chave principal.', 'Completar a descrição para deixar os benefícios claros.', 'Aplicar tags específicas para ajudar nas buscas.'],
-      recommendedTitle: typeof suggestion?.recommendedTitle === 'string' ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : '',
+      recommendedTitle: typeof suggestion?.recommendedTitle === 'string' && suggestion.recommendedTitle.replace(/\*\*/g, '').trim() !== (product.titulo || '').trim() ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : fallbackTitle(product),
       suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
-      description: typeof suggestion?.description === 'string' ? suggestion.description.replace(/\*\*/g, '').trim() : product.descricao || '',
+      description: typeof suggestion?.description === 'string' && suggestion.description.replace(/\*\*/g, '').trim() !== (product.descricao || '').trim() ? suggestion.description.replace(/\*\*/g, '').trim() : fallbackDescription(product),
       tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags?.length ? product.tags : fallbackTags(product),
       themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags?.length ? product.seasonal_tags : fallbackThemes(product),
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
