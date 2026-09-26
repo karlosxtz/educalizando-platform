@@ -37,6 +37,22 @@ function cleanGeneratedValue(value: unknown): unknown {
   return value;
 }
 
+function attachProductLink(content: Record<string, unknown> | null, productUrl: string) {
+  if (!content) return null;
+  const stories = content.stories;
+  const includeLink = (value: unknown) => {
+    if (typeof value !== 'string') return value;
+    const replaced = value.replace(/\[(?:SEU )?(?:LINK(?: PARA COMPRA)?|LINK AQUI)\]/gi, productUrl);
+    return replaced.includes(productUrl) ? replaced : `${replaced}\n\n🔗 Acesse o material: ${productUrl}`;
+  };
+  return {
+    ...content,
+    whatsapp: includeLink(content.whatsapp),
+    instagram: includeLink(content.instagram),
+    stories: Array.isArray(stories) ? stories.map((story, index) => index === stories.length - 1 ? includeLink(story) : story) : stories,
+  };
+}
+
 function parseProposal(text: string, product: Record<string, unknown>) {
   const parsed = extractJson(text);
   const strings = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map(item => cleanGeneratedText(item)) : [];
@@ -65,7 +81,7 @@ export async function POST(request: Request) {
   if (!storeId || !productId || !instructions[tool]) return NextResponse.json({ error: 'Ferramenta ou produto inválido.' }, { status: 400 });
   const [{ data: store }, { data: product }, { data: secret }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
-    supabaseAdmin.from('products').select('titulo, descricao, tipo, preco, seasonal_tags, tags, age_range, format_details').eq('id', productId).eq('store_id', storeId).maybeSingle(),
+    supabaseAdmin.from('products').select('titulo, descricao, tipo, preco, slug, seasonal_tags, tags, age_range, format_details').eq('id', productId).eq('store_id', storeId).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
   ]);
   if (!store || !product) return NextResponse.json({ error: 'Produto não encontrado nesta loja.' }, { status: 403 });
@@ -76,10 +92,12 @@ export async function POST(request: Request) {
     campaign: '{"whatsapp":"mensagem pronta para WhatsApp","instagram":"legenda pronta para Instagram com hashtags","stories":["3 chamadas curtas para Stories"]}',
     lesson: '{"objective":"objetivo de aprendizagem","preparation":["materiais e preparação"],"steps":["passo a passo"],"adaptations":["adaptações por nível"],"extension":"atividade complementar"}',
   };
-  const prompt = `Você é especialista em marketing e educação. Responda em português do Brasil.\n\nMATERIAL:\nTítulo: ${product.titulo}\nDescrição atual: ${product.descricao || 'não informada'}\nTipo: ${product.tipo}\nFaixa etária: ${product.age_range || 'não informada'}\nDetalhes: ${product.format_details || 'não informados'}\nTemas pedagógicos e datas: ${(product.seasonal_tags || []).join(', ') || 'não informados'}\nTags de busca atuais: ${(product.tags || []).join(', ') || 'não informadas'}\n\nTAREFA:\n${instructions[tool]}\n\nResponda somente com JSON válido, sem markdown e sem texto antes ou depois, neste formato exato: ${formats[tool]}.`;
+  const productUrl = `https://www.educalizando.com.br/produto/${product.slug || productId}`;
+  const prompt = `Você é especialista em marketing e educação. Responda em português do Brasil.\n\nMATERIAL:\nTítulo: ${product.titulo}\nDescrição atual: ${product.descricao || 'não informada'}\nTipo: ${product.tipo}\nFaixa etária: ${product.age_range || 'não informada'}\nDetalhes: ${product.format_details || 'não informados'}\nTemas pedagógicos e datas: ${(product.seasonal_tags || []).join(', ') || 'não informados'}\nTags de busca atuais: ${(product.tags || []).join(', ') || 'não informadas'}\nLink público oficial do produto: ${productUrl}\n\nTAREFA:\n${instructions[tool]}\nPara divulgação, use exatamente o Link público oficial do produto na chamada final de WhatsApp, Instagram e no último Story. Nunca use link de loja privada ou texto de preenchimento.\n\nResponda somente com JSON válido, sem markdown e sem texto antes ou depois, neste formato exato: ${formats[tool]}.`;
   let text = '';
   try { text = await generateAiContent(secret, prompt, true); } catch (error: any) { return NextResponse.json({ error: error.message || 'A IA não concluiu a geração.' }, { status: 502 }); }
   const proposal = tool === 'seo' || tool === 'description' ? parseProposal(text || '', product) : null;
-  const content = tool === 'campaign' || tool === 'lesson' ? cleanGeneratedValue(extractJson(text || '')) : null;
+  const rawContent = tool === 'campaign' || tool === 'lesson' ? cleanGeneratedValue(extractJson(text || '')) as Record<string, unknown> | null : null;
+  const content = tool === 'campaign' ? attachProductLink(rawContent, productUrl) : rawContent;
   return NextResponse.json({ result: text || 'A IA não retornou conteúdo. Tente novamente.', proposal, content });
 }
