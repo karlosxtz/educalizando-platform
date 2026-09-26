@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Store, Package, DollarSign, TrendingUp, Sparkles,
   ArrowRight, ExternalLink, Plus, CheckCircle2, Percent, Wallet,
-  Landmark, ReceiptText, CircleDollarSign
+  Landmark, ReceiptText, CircleDollarSign, CalendarDays, Lightbulb, Search, UsersRound
 } from 'lucide-react';
 import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { calculateCreatorWallet, CreatorWalletSummary } from '@/lib/wallet-service';
@@ -14,6 +14,8 @@ import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
 import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
+import { getSalesDataByPeriod } from '@/lib/sales-service';
+import { getUpcomingSchoolEvents } from '@/lib/school-calendar';
 
 const emptyWallet: CreatorWalletSummary = {
   totalVendido: 0,
@@ -36,24 +38,36 @@ export default function DashboardOverviewPage() {
   const [wallet, setWallet] = useState<CreatorWalletSummary>(emptyWallet);
   const [chartTotalSalesCount, setChartTotalSalesCount] = useState<number>(0);
   const [chartConversionRate, setChartConversionRate] = useState<number>(0);
+  const [monthRevenue, setMonthRevenue] = useState(0);
+  const [monthSalesCount, setMonthSalesCount] = useState(0);
+  const [referralCount, setReferralCount] = useState(0);
 
   useEffect(() => {
     async function loadData() {
       const s = await getCurrentCreatorStore();
       setStore(s);
       if (s) {
-        const [prods, walletSummary] = await Promise.all([
+        const [prods, walletSummary, monthSales, referrals] = await Promise.all([
           getProductsByStoreId(s.id),
           calculateCreatorWallet(s.id),
+          getSalesDataByPeriod(s.id, 'month'),
+          fetch('/api/creator-referrals', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null),
         ]);
         setProducts(prods);
         setWallet(walletSummary);
+        setMonthRevenue(monthSales.chartData.reduce((total, point) => total + point.revenue, 0));
+        setMonthSalesCount(monthSales.chartData.reduce((total, point) => total + point.salesCount, 0));
+        setReferralCount(referrals?.referrals?.length || 0);
       }
     }
     loadData();
   }, []);
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const newMaterialsThisMonth = products.filter(product => new Date(product.created_at) >= monthStart).length;
+  const upcomingEvents = getUpcomingSchoolEvents(new Date(), 3);
+  const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date());
 
   const handleChartDataLoaded = useCallback((_rev: number, count: number, conversionRate: number) => {
     setChartTotalSalesCount(count);
@@ -70,54 +84,11 @@ export default function DashboardOverviewPage() {
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-4 sm:p-8 -m-4 sm:-m-8">
-      {/* Mural Pedagógico Banner */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-4 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-yellow-300" /> Foco Pedagógico & Engajamento
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-              Dica da Semana: BNCC e Ludicidade
-            </h1>
-            <p className="text-base text-blue-100 leading-relaxed font-medium">
-              Alinhamento de atividades lúdicas com as competências da Base. Utilize o nosso <strong>gerador de IA</strong> para transformar rascunhos de temas sazonais em descrições de alta conversão para outros professores.
-            </p>
-
-            <div className="pt-4 flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/produtos"
-                className="px-5 py-3 rounded-xl font-extrabold text-xs bg-white text-blue-600 hover:bg-blue-50 shadow-lg flex items-center gap-2 transition-all animate-pulse"
-              >
-                <Plus className="w-4 h-4" /> Cadastrar Novo Material
-              </Link>
-              <Link
-                href="/dashboard/ia"
-                className="px-5 py-3 rounded-xl font-bold text-xs bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center gap-2 transition-all"
-              >
-                <Sparkles className="w-4 h-4" /> Gerador de Campanhas
-              </Link>
-            </div>
-          </div>
-          
-          <div className="hidden lg:flex items-center justify-center bg-white/10 p-6 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner min-w-[200px]">
-             <div className="text-center">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-2">Loja Pública</p>
-                <Link
-                  href={`/loja/${store?.slug || 'prof-ricardo'}`}
-                  target="_blank"
-                  className="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5 shadow-sm"
-                >
-                  Visualizar <ExternalLink className="w-3.5 h-3.5" />
-                </Link>
-             </div>
-          </div>
-        </div>
-      </div>
+      <section className="grid gap-4 xl:grid-cols-[1.05fr_1fr_1fr]">
+        <article className="relative overflow-hidden rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-lime-50 p-6 shadow-sm"><div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-lime-200/60 blur-2xl" /><div className="relative"><div className="flex items-center gap-2 text-emerald-800"><CalendarDays className="h-5 w-5" /><p className="font-black">Ritmo da sua loja</p></div><p className="mt-3 text-sm text-slate-600">Acompanhe seus resultados em <span className="font-black capitalize text-slate-900">{monthLabel}</span>.</p><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-white/85 p-3"><p className="text-xs font-semibold text-slate-500">Vendas do mês</p><p className="mt-1 text-xl font-black text-slate-950">{monthSalesCount}</p><p className="text-xs text-emerald-700">{formatCurrency(monthRevenue)}</p></div><div className="rounded-2xl bg-white/85 p-3"><p className="text-xs font-semibold text-slate-500">Materiais novos</p><p className="mt-1 text-xl font-black text-slate-950">{newMaterialsThisMonth}</p><p className="text-xs text-slate-500">{publishedCount} publicados</p></div></div><Link href="/dashboard/produtos/novo" className="mt-5 inline-flex items-center gap-2 text-sm font-black text-emerald-800 hover:text-emerald-950">Criar material agora <ArrowRight className="h-4 w-4" /></Link></div></article>
+        <article className="rounded-3xl border border-sky-100 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><div className="flex items-center gap-2 text-sky-800"><Search className="h-5 w-5" /><p className="font-black">Próximas oportunidades</p></div><Lightbulb className="h-5 w-5 text-amber-500" /></div><p className="mt-3 text-sm text-slate-600">Datas pedagógicas para planejar antes da procura aumentar.</p><div className="mt-4 space-y-2.5">{upcomingEvents.map(event => { const hasMaterial = products.some(product => product.status === 'publicado' && product.seasonal_tags?.includes(event.tag)); return <div key={event.tag} className="flex items-center justify-between gap-3 rounded-2xl bg-sky-50/70 p-3"><div className="min-w-0"><p className="truncate text-sm font-black text-slate-900">{event.tag}</p><p className="text-xs text-slate-500">{event.daysUntil === 0 ? 'É hoje' : `Faltam ${event.daysUntil} dias`}</p></div><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${hasMaterial ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`}>{hasMaterial ? 'Você já tem' : 'Criar material'}</span></div>; })}</div></article>
+        <article className="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-6 shadow-sm"><div className="flex items-center gap-2 text-violet-800"><UsersRound className="h-5 w-5" /><p className="font-black">Comunidade e crescimento</p></div><p className="mt-3 text-sm text-slate-600">Ações rápidas para expandir sua loja hoje.</p><div className="mt-5 space-y-3"><Link href="/dashboard/indicacoes" className="group flex items-center justify-between rounded-2xl border border-violet-100 bg-white/80 p-3.5 transition hover:border-violet-300 hover:shadow-sm"><div><p className="text-sm font-black text-slate-900">{referralCount} indicação{referralCount === 1 ? '' : 'ões'} ativa{referralCount === 1 ? '' : 's'}</p><p className="mt-0.5 text-xs text-slate-500">Compartilhe seu link e acompanhe bônus.</p></div><ArrowRight className="h-4 w-4 text-violet-600 transition group-hover:translate-x-0.5" /></Link><Link href={`/loja/${store?.slug || 'prof-ricardo'}`} target="_blank" className="group flex items-center justify-between rounded-2xl border border-sky-100 bg-white/80 p-3.5 transition hover:border-sky-300 hover:shadow-sm"><div><p className="text-sm font-black text-slate-900">Sua vitrine pública</p><p className="mt-0.5 text-xs text-slate-500">Confira como seus materiais aparecem.</p></div><ExternalLink className="h-4 w-4 text-sky-600" /></Link></div></article>
+      </section>
 
       {/* WhatsApp Group Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
