@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ShoppingBag, Star, CheckCircle2, XCircle, Megaphone } from 'lucide-react';
+import { X, ShoppingBag, Star, CheckCircle2, XCircle, Megaphone, Gift } from 'lucide-react';
 import {
   subscribeToNotifications,
   formatRelativeTime,
@@ -26,6 +26,7 @@ const ICON_MAP: Record<NotificationType, React.ComponentType<{ className?: strin
   WITHDRAWAL_FAILED:   XCircle,
   NEW_REVIEW:          Star,
   AFFILIATE_PENDING:   CheckCircle2, // or import something else, but CheckCircle2 is fine or maybe Link2? CheckCircle2 is already imported
+  CREATOR_REFERRAL:    Gift,
   SYSTEM:              Megaphone,
 };
 
@@ -56,7 +57,7 @@ export default function SaleToast({ storeId }: SaleToastProps) {
   // Adicionar novo toast ao receber notificação via Realtime
   const addToast = useCallback((notif: Notification) => {
     // Só mostrar toast para tipos relevantes
-    const showFor: NotificationType[] = ['SALE_CONFIRMED', 'WITHDRAWAL_APPROVED', 'WITHDRAWAL_FAILED'];
+    const showFor: NotificationType[] = ['SALE_CONFIRMED', 'WITHDRAWAL_APPROVED', 'WITHDRAWAL_FAILED', 'CREATOR_REFERRAL'];
     if (!showFor.includes(notif.type)) return;
 
     setToasts(prev => {

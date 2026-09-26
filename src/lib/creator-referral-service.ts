@@ -1,5 +1,6 @@
 import { supabaseAdmin } from './supabase';
 import { sendWelcomeCreatorEmail } from './mail-service';
+import { createNotification } from './notification-service';
 
 export const CREATOR_REFERRAL_RATE_PERCENT = 3;
 export const CREATOR_REFERRAL_MONTHS = 12;
@@ -80,12 +81,26 @@ export async function attributeCreatorReferral(referredCreatorId: string, referr
   });
   if (insertError?.code === '23505') return { attributed: false, reason: 'already_attributed' as const };
   if (insertError) throw insertError;
-  const { data: referredUser } = await supabaseAdmin.auth.admin.getUserById(referredCreatorId);
+  const [{ data: referredUser }, { data: referringStore }] = await Promise.all([
+    supabaseAdmin.auth.admin.getUserById(referredCreatorId),
+    supabaseAdmin.from('stores').select('nome_loja').eq('id', referralCodeRow.store_id).maybeSingle(),
+  ]);
+  const referredCreatorName = referredUser?.user?.user_metadata?.full_name || 'Uma nova criadora';
+  const referringStoreName = referringStore?.nome_loja || 'sua loja';
+  await createNotification({
+    storeId: referralCodeRow.store_id,
+    creatorId: referralCodeRow.creator_id,
+    type: 'CREATOR_REFERRAL',
+    title: 'Nova criadora indicada!',
+    body: `${referredCreatorName} criou uma conta pelo seu link de indicação para a loja ${referringStoreName}.`,
+    metadata: { referredCreatorId, referredCreatorName, referralCode: normalizedCode },
+  });
   if (referredUser?.user?.email) {
-    await sendWelcomeCreatorEmail({
-      producerEmail: referredUser.user.email,
-      producerName: referredUser.user.user_metadata?.full_name || 'Criador(a)',
-    });
+    try {
+      await sendWelcomeCreatorEmail({ producerEmail: referredUser.user.email, producerName: referredCreatorName });
+    } catch (error) {
+      console.error('[Creator Referral] Não foi possível enviar o e-mail de boas-vindas:', error);
+    }
   }
   return { attributed: true, eligibleUntil: eligibleUntil.toISOString() };
 }

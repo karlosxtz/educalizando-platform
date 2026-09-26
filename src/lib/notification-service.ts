@@ -12,6 +12,7 @@ export type NotificationType =
   | 'WITHDRAWAL_FAILED'
   | 'NEW_REVIEW'
   | 'AFFILIATE_PENDING'
+  | 'CREATOR_REFERRAL'
   | 'SYSTEM';
 
 export interface Notification {
@@ -54,6 +55,7 @@ export const NOTIFICATION_META: Record<NotificationType, {
   WITHDRAWAL_FAILED:   { emoji: '❌', color: 'text-red-700',     bgColor: 'bg-red-50',     label: 'Saque Recusado' },
   NEW_REVIEW:          { emoji: '⭐', color: 'text-yellow-700',  bgColor: 'bg-yellow-50',  label: 'Nova Avaliação' },
   AFFILIATE_PENDING:   { emoji: '🤝', color: 'text-indigo-700',  bgColor: 'bg-indigo-50',  label: 'Nova Afiliação' },
+  CREATOR_REFERRAL:    { emoji: '🎉', color: 'text-violet-700', bgColor: 'bg-violet-50', label: 'Nova Indicação' },
   SYSTEM:              { emoji: '📢', color: 'text-slate-700',   bgColor: 'bg-slate-50',   label: 'Aviso do Sistema' },
 };
 
