@@ -8,7 +8,6 @@ import MonthlyCampaignCarousel from '@/components/MonthlyCampaignCarousel';
 import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
-import SearchBar from '@/components/SearchBar';
 
 type MarketplaceProduct = Product & { store?: StoreData };
 
@@ -51,10 +50,6 @@ export default function HomepageMarketplace({
   return (
     <main className="flex flex-col flex-1 pb-16 sm:pb-20">
       <h1 className="sr-only">Materiais didáticos digitais para professores e educadores</h1>
-
-      <section className="order-1 border-b border-violet-100 bg-white px-4 py-3 sm:px-6 lg:px-8" aria-label="Buscar materiais na homepage">
-        <div className="mx-auto max-w-[1440px]"><SearchBar /></div>
-      </section>
 
       <section className="order-11 border-b border-violet-100 bg-[radial-gradient(circle_at_90%_0%,#e0e7ff_0,transparent_34%),linear-gradient(130deg,#f8fafc_10%,#f5f3ff_58%,#ecfeff)]" aria-labelledby="home-proposta">
         <div className="mx-auto grid max-w-[1440px] gap-8 px-4 py-9 sm:px-6 sm:py-14 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-10 lg:px-10 lg:py-20">

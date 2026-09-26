@@ -8,6 +8,10 @@ import ProductCard from '@/components/ProductCard';
 import type { Product, Store } from '@/lib/types';
 import { getSchoolCalendarTagsForMonth, getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_EVENTS, type SchoolCalendarTag } from '@/lib/school-calendar';
 
+function normalizeTheme(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR');
+}
+
 export default function FeaturedMonthlyCampaign({ products, initialTags }: {
   products: (Product & { store?: Store })[];
   initialTags: readonly string[];
@@ -59,7 +63,7 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
   const featuredCalendarEvent = SCHOOL_CALENDAR_EVENTS.find((event) => event.searchTerm === featuredThemeSearchTerm);
   const featuredThemeName = featuredCalendarEvent?.name || featuredThemeSearchTerm;
   const featuredThemeProducts = featuredThemeSearchTerm
-    ? products.filter((product) => product.seasonal_tags?.includes(featuredThemeSearchTerm)).slice(0, 4)
+    ? products.filter((product) => product.seasonal_tags?.some((tag) => normalizeTheme(tag) === normalizeTheme(featuredThemeSearchTerm))).slice(0, 4)
     : [];
   const featuredThemeFreeProducts = featuredThemeProducts.filter((product) => product.is_free || Number(product.preco) === 0).slice(0, 2);
   const featuredThemeProductHref = featuredThemeProducts.length === 1
