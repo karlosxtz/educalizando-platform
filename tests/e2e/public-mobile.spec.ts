@@ -60,3 +60,13 @@ test.describe('header mobile público', () => {
     await expect(page.getByRole('textbox', { name: /o que você procura hoje/i }).first()).toBeVisible();
   });
 });
+
+test('homepage exibe campanha temática conectada ao calendário', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const campaign = page.locator('[aria-labelledby="tema-em-destaque"]');
+  await expect(campaign).toBeVisible();
+  await expect(campaign.getByText('Tema em destaque')).toBeVisible();
+  await expect(campaign.getByRole('link', { name: /ver no calendário|ver calendário/i })).toBeVisible();
+  await expect(campaign.getByRole('link', { name: /explorar materiais|ver material/i })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
