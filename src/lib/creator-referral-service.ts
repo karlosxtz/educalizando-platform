@@ -3,20 +3,38 @@ import { supabaseAdmin } from './supabase';
 export const CREATOR_REFERRAL_RATE_PERCENT = 3;
 export const CREATOR_REFERRAL_MONTHS = 12;
 
-function code(): string {
-  return crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
+function code(storeName?: string): string {
+  const base = (storeName || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 15);
+  return `${base}LOJAEDUCALIZANDO`.slice(0, 20);
 }
 
-export async function getOrCreateCreatorReferralCode(creatorId: string, storeId: string) {
+export async function getOrCreateCreatorReferralCode(creatorId: string, storeId: string, storeName?: string) {
   const { data: existing, error: existingError } = await supabaseAdmin
-    .from('creator_referral_codes').select('code').eq('creator_id', creatorId).maybeSingle();
+    .from('creator_referral_codes').select('id, code').eq('creator_id', creatorId).maybeSingle();
   if (existingError) throw existingError;
-  if (existing) return existing.code as string;
+  if (existing) {
+    // Enquanto o código ainda não foi usado, trocamos o identificador técnico
+    // pelo nome amigável da loja. Depois da primeira indicação ele é preservado.
+    const preferredCode = code(storeName);
+    if (storeName && existing.code !== preferredCode) {
+      const { count } = await supabaseAdmin.from('creator_referrals')
+        .select('id', { count: 'exact', head: true }).eq('referral_code_id', existing.id);
+      if (!count) {
+        const { data: updated, error: updateError } = await supabaseAdmin.from('creator_referral_codes')
+          .update({ code: preferredCode, updated_at: new Date().toISOString() }).eq('id', existing.id).select('code').maybeSingle();
+        if (updated?.code) return updated.code as string;
+        if (updateError?.code !== '23505') throw updateError;
+      }
+    }
+    return existing.code as string;
+  }
 
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const { data, error } = await supabaseAdmin
       .from('creator_referral_codes')
-      .insert({ creator_id: creatorId, store_id: storeId, code: code() })
+      .insert({ creator_id: creatorId, store_id: storeId, code: attempt === 0 ? code(storeName) : `${code(storeName).slice(0, 15)}${crypto.randomUUID().replace(/-/g, '').slice(0, 5).toUpperCase()}` })
       .select('code').maybeSingle();
     if (data?.code) return data.code as string;
     if (error?.code !== '23505') throw error;
@@ -114,7 +132,8 @@ export async function reverseCreatorReferralCommission(orderId: string) {
 }
 
 export async function getCreatorReferralDashboard(creatorId: string, storeId: string) {
-  const codeValue = await getOrCreateCreatorReferralCode(creatorId, storeId);
+  const { data: store } = await supabaseAdmin.from('stores').select('nome_loja').eq('id', storeId).maybeSingle();
+  const codeValue = await getOrCreateCreatorReferralCode(creatorId, storeId, store?.nome_loja);
   const { data: referrals, error } = await supabaseAdmin.from('creator_referrals')
     .select('id, referred_store_id, eligible_until, status').eq('referrer_creator_id', creatorId).order('created_at', { ascending: false });
   if (error) throw error;
@@ -123,4 +142,15 @@ export async function getCreatorReferralDashboard(creatorId: string, storeId: st
     .select('commission_amount, status').in('referral_id', referralIds) : { data: [] as Array<{ commission_amount: number; status: string }> };
   const total = (commissions || []).reduce((sum, item) => sum + Number(item.commission_amount || 0), 0);
   return { code: codeValue, referrals: referrals || [], totalCommission: Number(total.toFixed(2)) };
+}
+
+export async function getCreatorReferralPreview(referralCode: string) {
+  const normalizedCode = referralCode.trim().toUpperCase();
+  if (!/^[A-Z0-9]{8,20}$/.test(normalizedCode)) return null;
+  const { data: referralCodeRow } = await supabaseAdmin.from('creator_referral_codes')
+    .select('creator_id, store:stores(nome_loja)').eq('code', normalizedCode).eq('is_active', true).maybeSingle();
+  if (!referralCodeRow) return null;
+  const { data: user } = await supabaseAdmin.auth.admin.getUserById(referralCodeRow.creator_id);
+  const store = Array.isArray(referralCodeRow.store) ? referralCodeRow.store[0] : referralCodeRow.store;
+  return { creatorName: user.user?.user_metadata?.full_name || store?.nome_loja || 'uma criadora', storeName: store?.nome_loja || null };
 }

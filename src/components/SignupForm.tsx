@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +21,16 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+  const referralCode = searchParams.get('ref');
+
+  useEffect(() => {
+    if (!referralCode) return;
+    fetch(`/api/creator-referrals/preview?ref=${encodeURIComponent(referralCode)}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setReferrerName(payload?.referral?.creatorName || null))
+      .catch(() => setReferrerName(null));
+  }, [referralCode]);
 
   const {
     register,
@@ -67,7 +77,6 @@ export default function SignupForm() {
         whatsapp: data.whatsapp
       });
 
-      const referralCode = searchParams.get('ref');
       if (referralCode) {
         const { data: sessionData } = await (await import('@/lib/supabase')).supabase.auth.getSession();
         await fetch('/api/creator-referrals', {
@@ -115,6 +124,13 @@ export default function SignupForm() {
         <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs flex items-center gap-3 font-semibold">
           <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
           <span>{serverError}</span>
+        </div>
+      )}
+
+      {referrerName && (
+        <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-900">
+          <p>🎉 Você foi indicada por <strong>{referrerName}</strong>.</p>
+          <p className="mt-1 text-xs font-medium text-emerald-800">Crie sua loja gratuitamente. Ela receberá a bonificação da plataforma pelas suas vendas, sem desconto no seu valor.</p>
         </div>
       )}
 
