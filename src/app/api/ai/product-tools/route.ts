@@ -6,7 +6,7 @@ import { generateAiContent, getAiKey } from '@/lib/ai-provider';
 const instructions: Record<string, string> = {
   seo: 'Crie uma proposta completa de SEO para este produto. Priorize termos que educadores realmente buscariam e mantenha todas as sugestões fiéis ao material informado.',
   description: 'Crie uma proposta completa de apresentação e venda para este produto. A descrição deve ter parágrafos e listas claras, benefícios pedagógicos, o que está incluso, para quem serve e uma chamada final. Não invente páginas, arquivos ou certificações.',
-  campaign: 'Crie uma campanha separada por canal. A mensagem de WhatsApp deve ser direta e pronta para enviar; a legenda do Instagram deve ter emojis moderados e hashtags; Stories devem ser chamadas curtas.',
+  campaign: 'Crie uma campanha separada por canal. A mensagem de WhatsApp precisa ser uma mensagem de venda completa, calorosa e pronta para enviar: abertura que chama atenção, problema que o material resolve, benefícios, o que está incluso, convite claro e espaço para o link. Use 5 a 7 blocos curtos com emojis moderados. A legenda do Instagram deve ter emojis moderados e hashtags. Crie 3 Stories em sequência: o primeiro apresenta uma dor ou pergunta, o segundo explica o benefício e o terceiro faz a chamada para ação; cada Story deve ter 2 a 3 linhas, não apenas uma frase.',
   lesson: 'Crie um roteiro pedagógico claro e prático com objetivo de aprendizagem, preparação, passo a passo em sala, adaptação por nível e atividade complementar.',
 };
 
@@ -21,9 +21,25 @@ function extractJson(text: string): Record<string, unknown> | null {
   return null;
 }
 
+function cleanGeneratedText(value: string) {
+  return value
+    .replace(/\*\*/g, '')
+    .replace(/^\s*#{1,6}\s*/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function cleanGeneratedValue(value: unknown): unknown {
+  if (typeof value === 'string') return cleanGeneratedText(value);
+  if (Array.isArray(value)) return value.map(cleanGeneratedValue);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, cleanGeneratedValue(item)]));
+  return value;
+}
+
 function parseProposal(text: string, product: Record<string, unknown>) {
   const parsed = extractJson(text);
-  const strings = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map(item => item.trim()) : [];
+  const strings = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map(item => cleanGeneratedText(item)) : [];
   if (!parsed) return {
     titles: [String(product.titulo || '')].filter(Boolean),
     description: String(product.descricao || ''),
@@ -33,10 +49,10 @@ function parseProposal(text: string, product: Record<string, unknown>) {
   };
   return {
     titles: strings(parsed.titles).length ? strings(parsed.titles) : [String(product.titulo || '')].filter(Boolean),
-    description: typeof parsed.description === 'string' && parsed.description.trim() ? parsed.description.trim() : String(product.descricao || ''),
+    description: typeof parsed.description === 'string' && parsed.description.trim() ? cleanGeneratedText(parsed.description) : String(product.descricao || ''),
     tags: strings(parsed.tags).length ? strings(parsed.tags) : strings(product.tags),
     descriptionOptions: strings(parsed.descriptionOptions).length ? strings(parsed.descriptionOptions) : [typeof parsed.description === 'string' ? parsed.description.trim() : String(product.descricao || '')].filter(Boolean),
-    metaDescription: typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim() : '',
+    metaDescription: typeof parsed.metaDescription === 'string' ? cleanGeneratedText(parsed.metaDescription) : '',
     keywords: strings(parsed.keywords),
     analysis: strings(parsed.analysis),
   };
@@ -64,6 +80,6 @@ export async function POST(request: Request) {
   let text = '';
   try { text = await generateAiContent(secret, prompt, true); } catch (error: any) { return NextResponse.json({ error: error.message || 'A IA não concluiu a geração.' }, { status: 502 }); }
   const proposal = tool === 'seo' || tool === 'description' ? parseProposal(text || '', product) : null;
-  const content = tool === 'campaign' || tool === 'lesson' ? extractJson(text || '') : null;
+  const content = tool === 'campaign' || tool === 'lesson' ? cleanGeneratedValue(extractJson(text || '')) : null;
   return NextResponse.json({ result: text || 'A IA não retornou conteúdo. Tente novamente.', proposal, content });
 }
