@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { Store, Product } from '@/lib/types';
-import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2 } from 'lucide-react';
+import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function IAConfigPage() {
@@ -20,6 +20,8 @@ export default function IAConfigPage() {
   const [generating, setGenerating] = useState(false);
   const [whatsappCopy, setWhatsappCopy] = useState('');
   const [instagramCopy, setInstagramCopy] = useState('');
+  const [toolResult, setToolResult] = useState('');
+  const [activeTool, setActiveTool] = useState('');
 
   useEffect(() => {
     async function loadData() {
@@ -134,6 +136,17 @@ export default function IAConfigPage() {
     if (!text) return;
     navigator.clipboard.writeText(text);
     toast.success(`Cópia para ${type === 'whatsapp' ? 'WhatsApp' : 'Instagram'} copiada para área de transferência!`);
+  };
+
+  const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson') => {
+    if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
+    setActiveTool(tool); setToolResult('');
+    try {
+      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
+      setToolResult(payload.result || '');
+    } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
   };
 
   if (loading) {
@@ -255,6 +268,17 @@ export default function IAConfigPage() {
             </div>
           </div>
 
+          <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5">
+            <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <AIToolButton icon={Search} label="Títulos e SEO" description="títulos, meta e palavras-chave" loading={activeTool === 'seo'} onClick={() => void generateProductTool('seo')} />
+              <AIToolButton icon={FileText} label="Descrição de venda" description="benefícios e estrutura" loading={activeTool === 'description'} onClick={() => void generateProductTool('description')} />
+              <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => void generateProductTool('campaign')} />
+              <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
+            </div>
+            {toolResult && <div className="mt-4 overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className="flex items-center justify-between border-b border-violet-100 bg-violet-50 px-4 py-3"><p className="text-sm font-black text-violet-900">Conteúdo gerado pela IA</p><button onClick={() => navigator.clipboard.writeText(toolResult).then(() => toast.success('Conteúdo copiado.'))} className="inline-flex items-center gap-1.5 text-xs font-black text-violet-700"><Copy className="w-3.5 h-3.5" /> Copiar</button></div><pre className="whitespace-pre-wrap p-4 font-sans text-sm leading-6 text-slate-700">{toolResult}</pre></div>}
+          </div>
+
           {/* Results Area */}
           {(whatsappCopy || instagramCopy) && (
             <div className="grid md:grid-cols-2 gap-6 pt-4 animate-in fade-in zoom-in-95">
@@ -313,4 +337,8 @@ export default function IAConfigPage() {
       )}
     </div>
   );
+}
+
+function AIToolButton({ icon: Icon, label, description, loading, onClick }: { icon: any; label: string; description: string; loading: boolean; onClick: () => void }) {
+  return <button type="button" onClick={onClick} disabled={loading} className="group min-h-24 rounded-xl border border-violet-100 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md disabled:opacity-60"><div className="flex items-center gap-2"><span className="rounded-lg bg-violet-100 p-1.5 text-violet-700">{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}</span><span className="text-sm font-black text-slate-900">{label}</span></div><p className="mt-2 text-xs leading-5 text-slate-500">{loading ? 'A IA está preparando...' : description}</p></button>;
 }
