@@ -5,6 +5,7 @@ import { getCurrentCreatorStore, getProductsByStoreId, updateProduct } from '@/l
 import { Store, Product } from '@/lib/types';
 import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 
 export default function IAConfigPage() {
   const [store, setStore] = useState<Store | null>(null);
@@ -26,6 +27,7 @@ export default function IAConfigPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
+  const [editedTags, setEditedTags] = useState<string[]>([]);
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
@@ -156,6 +158,7 @@ export default function IAConfigPage() {
         setProposal({ ...payload.proposal, tool });
         setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
         setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
+        setEditedTags(selectedProduct?.seasonal_tags || []);
         setEditorOpen(true);
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
@@ -166,13 +169,16 @@ export default function IAConfigPage() {
     setApplying(true);
     try {
       const updates: Partial<Product> = {};
-      if (proposal?.tool === 'seo' && editedTitle.trim()) updates.titulo = editedTitle.trim();
-      if (proposal?.tool === 'description' && editedDescription.trim()) updates.descricao = editedDescription.trim();
+      if (editedTitle.trim()) updates.titulo = editedTitle.trim();
+      if (editedDescription.trim()) updates.descricao = editedDescription.trim();
+      updates.seasonal_tags = editedTags;
       await updateProduct(selectedProductId, updates);
       setProducts(current => current.map(product => product.id === selectedProductId ? { ...product, ...updates } : product));
       setEditorOpen(false); toast.success('Produto atualizado com as escolhas da IA.');
     } catch (error: any) { toast.error(error.message || 'Não foi possível salvar o produto.'); } finally { setApplying(false); }
   };
+
+  const activeProduct = products.find(product => product.id === selectedProductId) || null;
 
   if (loading) {
     return (
@@ -360,7 +366,69 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
-      {editorOpen && proposal && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wider text-violet-700">Editor assistido por IA</p><h2 className="mt-1 text-xl font-black text-slate-950">Revise antes de aplicar ao produto</h2></div><button onClick={() => setEditorOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X className="w-5 h-5" /></button></div>{proposal.analysis?.length ? <div className="mt-5 rounded-2xl bg-amber-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-amber-800">Análise SEO</p><ul className="mt-2 space-y-1 text-sm leading-6 text-amber-950">{proposal.analysis.map((item: string) => <li key={item}>• {item}</li>)}</ul></div> : null}{proposal.tool === 'seo' ? <><label className="mt-5 block text-sm font-black text-slate-800">Escolha ou ajuste o título</label><div className="mt-2 space-y-2">{proposal.titles?.map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`w-full rounded-xl border p-3 text-left text-sm font-semibold ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700'}`}>{title}</button>)}</div><input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} className="mt-3 w-full rounded-xl border border-slate-300 p-3 text-sm font-semibold outline-none focus:border-violet-500" /><div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><strong>Meta descrição:</strong> {proposal.metaDescription}<br /><strong className="mt-2 inline-block">Palavras-chave:</strong> {proposal.keywords?.join(', ')}</div></> : <><label className="mt-5 block text-sm font-black text-slate-800">Descrição sugerida</label><textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} className="mt-2 min-h-64 w-full rounded-2xl border border-slate-300 p-4 text-sm leading-6 outline-none focus:border-violet-500" /></>}<div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600">Cancelar</button><button onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white disabled:opacity-60">{applying && <Loader2 className="w-4 h-4 animate-spin" />} Aplicar ao produto</button></div></div></div>}
+      {editorOpen && proposal && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/60 p-3 sm:p-6">
+          <div className="mx-auto my-4 w-full max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+            <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-5 text-white sm:px-7">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-100">Editor do material com IA</p>
+                <h2 className="mt-1 text-xl font-black sm:text-2xl">Revise e salve as melhorias no seu produto</h2>
+                <p className="mt-1 text-sm text-violet-100">Você controla cada informação antes de publicar a alteração.</p>
+              </div>
+              <button type="button" aria-label="Fechar editor" onClick={() => setEditorOpen(false)} className="rounded-xl bg-white/15 p-2 text-white transition hover:bg-white/25"><X className="h-5 w-5" /></button>
+            </header>
+
+            <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[240px_minmax(0,1fr)]">
+              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-black uppercase tracking-wider text-slate-500">Material selecionado</p>
+                {activeProduct?.capa_url ? (
+                  <img src={activeProduct.capa_url} alt={`Capa de ${activeProduct.titulo}`} className="mt-3 aspect-[4/3] w-full rounded-xl object-cover shadow-sm" />
+                ) : (
+                  <div className="mt-3 flex aspect-[4/3] items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-600"><BookOpen className="h-10 w-10" /></div>
+                )}
+                <h3 className="mt-4 line-clamp-3 text-base font-black text-slate-900">{activeProduct?.titulo || 'Material selecionado'}</h3>
+                <p className="mt-1 text-sm text-slate-500">{activeProduct?.tipo || 'Material digital'}</p>
+                <div className="mt-4 rounded-xl bg-white p-3 text-xs leading-5 text-slate-600">
+                  A capa e o contexto ficam visíveis aqui para você editar o produto certo.
+                </div>
+              </aside>
+
+              <section className="min-w-0 space-y-6">
+                {proposal.analysis?.length ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-wider text-amber-800">Diagnóstico da IA</p>
+                    <ul className="mt-2 space-y-1 text-sm leading-6 text-amber-950">{proposal.analysis.map((item: string) => <li key={item}>• {item}</li>)}</ul>
+                  </div>
+                ) : null}
+
+                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                  <div className="flex items-center gap-2"><Search className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">1. Título do produto</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">Escolha uma sugestão ou escreva um título que descreva seu material com clareza.</p>
+                  {proposal.titles?.length ? <div className="mt-3 grid gap-2">{proposal.titles.slice(0, 3).map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`rounded-xl border p-3 text-left text-sm font-bold transition ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700 hover:border-violet-300'}`}>{title}</button>)}</div> : null}
+                  <input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} placeholder="Título do seu material" className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">2. Descrição de venda</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">Explique o que o material entrega, para quem serve e como será usado.</p>
+                  <textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} placeholder="Descreva o seu material" className="mt-3 min-h-40 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">3. Tags e temas</h3></div>
+                  <p className="mt-1 text-sm text-slate-500">As tags ajudam educadores a encontrar o material por tema e data pedagógica.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">{editedTags.length ? editedTags.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.filter(item => item !== tag))} className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-800">{tag} ×</button>) : <span className="text-sm text-slate-500">Nenhuma tag selecionada ainda.</span>}</div>
+                  <details className="mt-4 rounded-xl bg-slate-50 p-3"><summary className="cursor-pointer text-sm font-black text-violet-700">Adicionar ou remover tags</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.includes(tag) ? tags.filter(item => item !== tag) : [...tags, tag])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedTags.includes(tag) ? 'border-violet-600 bg-violet-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300'}`}>{tag}</button>)}</div></details>
+                </div>
+
+                {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para busca</p>{proposal.metaDescription ? <p className="mt-2 text-sm leading-6 text-slate-100"><span className="font-bold text-white">Meta descrição sugerida: </span>{proposal.metaDescription}</p> : null}{proposal.keywords?.length ? <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-bold text-white">Palavras-chave: </span>{proposal.keywords.join(', ')}</p> : null}</div> : null}
+              </section>
+            </div>
+
+            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">Ao salvar, título, descrição e tags serão atualizados neste produto.</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
