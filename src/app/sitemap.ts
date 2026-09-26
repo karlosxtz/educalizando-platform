@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${baseUrl}/vender`,
+      url: `${baseUrl}/cadastro/produtor`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,

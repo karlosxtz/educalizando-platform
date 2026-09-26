@@ -137,7 +137,7 @@ export default function SobrePage() {
               </Link>
               
               <Link 
-                href="/vender" 
+                href="/cadastro/produtor"
                 className="w-full sm:w-auto px-8 py-4 bg-transparent hover:bg-white/10 text-white border border-white/30 rounded-2xl font-bold text-base transition-colors flex items-center justify-center gap-2 group"
               >
                 Comece a Vender

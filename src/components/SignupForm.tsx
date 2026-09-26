@@ -130,7 +130,7 @@ export default function SignupForm() {
       {referrerName && (
         <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-900">
           <p>🎉 Você foi indicada por <strong>{referrerName}</strong>.</p>
-          <p className="mt-1 text-xs font-medium text-emerald-800">Crie sua loja gratuitamente. Ela receberá a bonificação da plataforma pelas suas vendas, sem desconto no seu valor.</p>
+          <p className="mt-1 text-xs font-medium text-emerald-800">Crie sua loja gratuitamente e comece a vender seus materiais didáticos.</p>
         </div>
       )}
 

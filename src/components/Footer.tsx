@@ -62,7 +62,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Vendedores</h4>
             <ul className="space-y-4">
-              <li><Link href="/vender" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Comece a Vender</Link></li>
+              <li><Link href="/cadastro/produtor" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Comece a Vender</Link></li>
               <li><Link href="/painel" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Painel do Vendedor</Link></li>
               <li><Link href="/afiliados" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Área do Afiliado</Link></li>
             </ul>

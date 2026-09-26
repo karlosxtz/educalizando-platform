@@ -200,7 +200,7 @@ function MarketplaceHeaderInner() {
                   <button type="button" onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }} aria-label="Fechar menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><X className="h-5 w-5" /></button>
                 </div>
                 <nav className="grid gap-1 py-3" aria-label="Links principais">
-                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/materiais-gratis','Materiais gratuitos'],['/vender','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
                 </nav>
                 <div className="border-t border-slate-100 pt-3">
                   <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Categorias rápidas</p>

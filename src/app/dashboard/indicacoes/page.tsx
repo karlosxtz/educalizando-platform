@@ -12,7 +12,7 @@ export default function CreatorReferralsPage() {
   useEffect(() => { fetch('/api/creator-referrals', { cache: 'no-store' }).then(async response => {
     const payload = await response.json(); if (!response.ok) throw new Error(payload.error); setData(payload);
   }).catch(() => setError('Não foi possível carregar suas indicações agora.')); }, []);
-  const link = useMemo(() => data ? `${typeof window === 'undefined' ? '' : window.location.origin}/vender?ref=${data.code}` : '', [data]);
+  const link = useMemo(() => data ? `${typeof window === 'undefined' ? '' : window.location.origin}/cadastro/produtor?ref=${data.code}` : '', [data]);
   const copy = async () => { await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1800); };
   const shareWhatsApp = () => window.open(`https://wa.me/?text=${encodeURIComponent(`Crie sua loja grátis na Educalizando pelo meu link e comece a vender materiais: ${link}`)}`, '_blank', 'noopener,noreferrer');
   const money = (amount: number) => amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
