@@ -155,8 +155,8 @@ export default function IAConfigPage() {
       const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
-      setToolResult(payload.result || '');
       if ((tool === 'seo' || tool === 'description') && payload.proposal) {
+        setToolResult('');
         setProposal({ ...payload.proposal, tool });
         setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
         setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
@@ -164,6 +164,8 @@ export default function IAConfigPage() {
         setEditedThemes(selectedProduct?.seasonal_tags || []);
         setTagDraft('');
         setEditorOpen(true);
+      } else {
+        setToolResult(payload.result || '');
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
   };
@@ -307,8 +309,7 @@ export default function IAConfigPage() {
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5">
             <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AIToolButton icon={Search} label="Títulos e SEO" description="títulos, meta e palavras-chave" loading={activeTool === 'seo'} onClick={() => void generateProductTool('seo')} />
-              <AIToolButton icon={FileText} label="Descrição de venda" description="benefícios e estrutura" loading={activeTool === 'description'} onClick={() => void generateProductTool('description')} />
+              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="títulos, descrições, tags e SEO prontos para revisar" loading={activeTool === 'seo'} onClick={() => void generateProductTool('seo')} />
               <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => void generateProductTool('campaign')} />
               <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
@@ -434,7 +435,7 @@ export default function IAConfigPage() {
                   <details className="mt-4 rounded-xl bg-white/80 p-3"><summary className="cursor-pointer text-sm font-black text-blue-700">Selecionar temas e datas</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.includes(theme) ? themes.filter(item => item !== theme) : [...themes, theme])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedThemes.includes(theme) ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{theme}</button>)}</div></details>
                 </div>
 
-                {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para busca</p>{proposal.metaDescription ? <p className="mt-2 text-sm leading-6 text-slate-100"><span className="font-bold text-white">Meta descrição sugerida: </span>{proposal.metaDescription}</p> : null}{proposal.keywords?.length ? <p className="mt-2 text-sm leading-6 text-slate-300"><span className="font-bold text-white">Palavras-chave: </span>{proposal.keywords.join(', ')}</p> : null}</div> : null}
+                {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para aparecer melhor nas buscas</p><p className="mt-1 text-sm text-slate-300">Estas sugestões ajudam você a divulgar o material. Copie quando for usar em redes, anúncios ou páginas de busca.</p>{proposal.metaDescription ? <div className="mt-4 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Resumo sugerido</p><p className="mt-1 text-sm leading-6 text-white">{proposal.metaDescription}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.metaDescription); toast.success('Resumo copiado.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar resumo</button></div> : null}{proposal.keywords?.length ? <div className="mt-3 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Palavras que ajudam a encontrar este material</p><p className="mt-1 text-sm leading-6 text-slate-100">{proposal.keywords.join(', ')}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.keywords.join(', ')); toast.success('Palavras-chave copiadas.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar palavras-chave</button></div> : null}</div> : null}
               </section>
             </div>
 
