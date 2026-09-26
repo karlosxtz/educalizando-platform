@@ -22,6 +22,7 @@ export default function IAConfigPage() {
   const [whatsappCopy, setWhatsappCopy] = useState('');
   const [instagramCopy, setInstagramCopy] = useState('');
   const [toolResult, setToolResult] = useState('');
+  const [contentProposal, setContentProposal] = useState<any>(null);
   const [activeTool, setActiveTool] = useState('');
   const [proposal, setProposal] = useState<any>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -150,7 +151,7 @@ export default function IAConfigPage() {
   const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson') => {
     if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
     const selectedProduct = products.find(product => product.id === selectedProductId);
-    setActiveTool(tool); setToolResult(''); setProposal(null);
+    setActiveTool(tool); setToolResult(''); setProposal(null); setContentProposal(null);
     try {
       const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool }) });
       const payload = await response.json();
@@ -165,7 +166,8 @@ export default function IAConfigPage() {
         setTagDraft('');
         setEditorOpen(true);
       } else {
-        setToolResult(payload.result || '');
+        if (payload.content) setContentProposal({ ...payload.content, type: tool });
+        else setToolResult(payload.result || '');
       }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
   };
@@ -313,6 +315,8 @@ export default function IAConfigPage() {
               <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => void generateProductTool('campaign')} />
               <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
+            {contentProposal?.type === 'campaign' && <div className="mt-4 grid gap-4 lg:grid-cols-2"><CopyCard title="Mensagem para WhatsApp" description="Pronta para copiar e enviar aos seus contatos." text={contentProposal.whatsapp} /><CopyCard title="Legenda para Instagram" description="Pronta para publicar, incluindo hashtags." text={contentProposal.instagram} /><div className="rounded-2xl border border-violet-100 bg-white p-5 lg:col-span-2"><div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-violet-600" /><h3 className="font-black text-slate-900">Chamadas para Stories</h3></div><p className="mt-1 text-sm text-slate-500">Use uma chamada por tela para criar curiosidade antes do link.</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{(contentProposal.stories || []).map((story: string, index: number) => <div key={`${index}-${story}`} className="rounded-xl bg-violet-50 p-4"><p className="text-xs font-black text-violet-700">STORY {index + 1}</p><p className="mt-2 text-sm font-semibold leading-6 text-slate-800">{story}</p><button type="button" onClick={() => navigator.clipboard.writeText(story).then(() => toast.success('Story copiado.'))} className="mt-3 text-xs font-black text-violet-700">Copiar</button></div>)}</div></div></div>}
+            {contentProposal?.type === 'lesson' && <div className="mt-4 rounded-2xl border border-violet-100 bg-white p-5"><div className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-violet-600" /><div><h3 className="font-black text-slate-900">Roteiro pedagógico pronto para usar</h3><p className="text-sm text-slate-500">Organizado para orientar a aplicação do material em sala.</p></div></div><div className="mt-5 grid gap-4 md:grid-cols-2"><LessonBlock title="Objetivo de aprendizagem" items={[contentProposal.objective]} /><LessonBlock title="Preparação" items={contentProposal.preparation} /><LessonBlock title="Passo a passo" items={contentProposal.steps} /><LessonBlock title="Adaptações" items={contentProposal.adaptations} /><LessonBlock title="Atividade complementar" items={[contentProposal.extension]} /></div><button type="button" onClick={() => navigator.clipboard.writeText([contentProposal.objective, ...(contentProposal.preparation || []), ...(contentProposal.steps || []), ...(contentProposal.adaptations || []), contentProposal.extension].filter(Boolean).join('\n\n')).then(() => toast.success('Roteiro copiado.'))} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black text-white"><Copy className="h-4 w-4" /> Copiar roteiro completo</button></div>}
             {toolResult && <div className="mt-4 overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className="flex items-center justify-between border-b border-violet-100 bg-violet-50 px-4 py-3"><p className="text-sm font-black text-violet-900">Conteúdo gerado pela IA</p><button onClick={() => navigator.clipboard.writeText(toolResult).then(() => toast.success('Conteúdo copiado.'))} className="inline-flex items-center gap-1.5 text-xs font-black text-violet-700"><Copy className="w-3.5 h-3.5" /> Copiar</button></div><pre className="whitespace-pre-wrap p-4 font-sans text-sm leading-6 text-slate-700">{toolResult}</pre></div>}
           </div>
 
@@ -449,4 +453,13 @@ export default function IAConfigPage() {
 
 function AIToolButton({ icon: Icon, label, description, loading, onClick }: { icon: any; label: string; description: string; loading: boolean; onClick: () => void }) {
   return <button type="button" onClick={onClick} disabled={loading} className="group min-h-24 rounded-xl border border-violet-100 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md disabled:opacity-60"><div className="flex items-center gap-2"><span className="rounded-lg bg-violet-100 p-1.5 text-violet-700">{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}</span><span className="text-sm font-black text-slate-900">{label}</span></div><p className="mt-2 text-xs leading-5 text-slate-500">{loading ? 'A IA está preparando...' : description}</p></button>;
+}
+
+function CopyCard({ title, description, text }: { title: string; description: string; text?: string }) {
+  return <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className="border-b border-violet-100 bg-violet-50 px-5 py-4"><h3 className="font-black text-slate-900">{title}</h3><p className="mt-1 text-sm text-slate-500">{description}</p></div><p className="min-h-48 whitespace-pre-line p-5 text-sm leading-7 text-slate-700">{text || 'A IA não retornou este conteúdo. Gere novamente.'}</p><div className="border-t border-slate-100 px-5 py-3"><button type="button" onClick={() => text && navigator.clipboard.writeText(text).then(() => toast.success(`${title} copiada.`))} disabled={!text} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-black text-white disabled:opacity-50"><Copy className="h-3.5 w-3.5" /> Copiar</button></div></div>;
+}
+
+function LessonBlock({ title, items }: { title: string; items?: string[] }) {
+  const validItems = (items || []).filter(Boolean);
+  return <section className="rounded-xl bg-slate-50 p-4"><h4 className="text-sm font-black text-violet-800">{title}</h4>{validItems.length ? <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-700">{validItems.map((item, index) => <li key={`${index}-${item}`}>• {item}</li>)}</ul> : <p className="mt-2 text-sm text-slate-500">Não informado.</p>}</section>;
 }
