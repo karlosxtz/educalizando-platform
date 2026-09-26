@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarDays, ChevronLeft, ChevronRight, Gift, Pause, Play } from 'lucide-react';
@@ -15,7 +15,8 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
   const [monthlyTags, setMonthlyTags] = useState(initialTags);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const elapsed = useRef(0);
+  const [progress, setProgress] = useState(0);
   const [focused, setFocused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(true);
 
@@ -40,12 +41,18 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
   }, []);
 
   useEffect(() => {
-    if (paused || hovered || focused || reducedMotion || monthlyTags.length < 2) return;
+    if (paused || focused || reducedMotion || monthlyTags.length < 2) return;
     const timer = window.setInterval(() => {
-      if (!document.hidden) setIndex((value) => (value + 1) % monthlyTags.length);
-    }, 8000);
+      if (document.hidden) return;
+      elapsed.current += 100;
+      if (elapsed.current >= 8000) {
+        elapsed.current = 0;
+        setIndex((value) => (value + 1) % monthlyTags.length);
+      }
+      setProgress(elapsed.current / 8000);
+    }, 100);
     return () => window.clearInterval(timer);
-  }, [paused, hovered, focused, reducedMotion, monthlyTags]);
+  }, [paused, focused, reducedMotion, monthlyTags]);
 
   const activeIndex = index % (monthlyTags.length || 1);
   const featuredThemeSearchTerm = monthlyTags[activeIndex];
@@ -65,13 +72,16 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
   const dateLabel = featuredCalendarEvent
     ? featuredCalendarEvent.day + ' de ' + new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date(2026, featuredCalendarEvent.month - 1, 1))
     : 'Tema do mês';
-  const select = (value: number) => { setIndex((value + monthlyTags.length) % monthlyTags.length); setPaused(true); };
+  const select = (value: number) => {
+    elapsed.current = 0;
+    setProgress(0);
+    setIndex((value + monthlyTags.length) % monthlyTags.length);
+  };
   const buttonClass = 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/30 px-3 text-white hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
   return (
     <section className="order-2 mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10" aria-labelledby="tema-em-destaque"
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+      onFocusCapture={(event) => setFocused(event.target.matches(':focus-visible'))} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
       <div className="homepage-featured-campaign overflow-hidden rounded-[2rem] border border-indigo-100 bg-white shadow-lg">
         <div className="relative bg-violet-950 text-white">
           <div className="grid md:grid-cols-2">
@@ -99,7 +109,7 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
               {!reducedMotion && <button type="button" className={buttonClass} onClick={() => setPaused(!paused)} aria-label={paused ? 'Retomar campanhas' : 'Pausar campanhas'}>{paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button>}
             </div>
             <div className="flex min-w-0 flex-1 flex-wrap gap-2" aria-label="Selecionar tema do mês">
-              {monthlyTags.map((tag, itemIndex) => <button key={tag} type="button" onClick={() => select(itemIndex)} aria-pressed={activeIndex === itemIndex} className={`min-h-11 max-w-full rounded-2xl border px-3 py-2 text-left text-xs font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${activeIndex === itemIndex ? 'border-lime-300 bg-white/20 text-lime-100' : 'border-white/20 text-white hover:bg-white/10'}`}>{tag}</button>)}
+              {monthlyTags.map((tag, itemIndex) => <button key={tag} type="button" onClick={() => select(itemIndex)} aria-pressed={activeIndex === itemIndex} className={`relative min-h-11 max-w-full overflow-hidden rounded-2xl border px-3 py-3 text-left text-xs font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${activeIndex === itemIndex ? 'border-lime-300 bg-white/20 text-lime-100' : 'border-white/20 text-white hover:bg-white/10'}`}><span className="relative z-10">{tag}</span>{activeIndex === itemIndex && !reducedMotion && <span aria-hidden="true" data-campaign-progress className="pointer-events-none absolute inset-x-0 bottom-0 h-1 origin-left bg-lime-300" style={{ transform: `scaleX(${progress})` }} />}</button>)}
             </div>
             <span className="text-xs text-violet-100" aria-live={paused ? 'polite' : 'off'}>{activeIndex + 1} / {monthlyTags.length}</span>
           </div>
@@ -109,4 +119,3 @@ export default function FeaturedMonthlyCampaign({ products, initialTags }: {
     </section>
   );
 }
-
