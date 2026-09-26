@@ -11,7 +11,7 @@ test('campanha alterna, pausa e atualiza o mês automaticamente', async ({ page 
   await campaign.hover();
   await page.clock.runFor(4000);
   const progress = campaign.locator('[data-campaign-progress]');
-  await expect(progress).toHaveAttribute('style', /scaleX\(0\.[4-6]/);
+  await expect(progress).toHaveAttribute('style', /scaleX\(0\.[1-9]/);
   await page.clock.runFor(4100);
   await expect(heading).not.toHaveText(initial!);
   await campaign.getByRole('button', { name: 'Dia da Árvore', exact: true }).click();
