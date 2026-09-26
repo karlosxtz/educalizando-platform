@@ -158,13 +158,57 @@ export async function getCreatorReferralDashboard(creatorId: string, storeId: st
   const { data: store } = await supabaseAdmin.from('stores').select('nome_loja').eq('id', storeId).maybeSingle();
   const codeValue = await getOrCreateCreatorReferralCode(creatorId, storeId, store?.nome_loja);
   const { data: referrals, error } = await supabaseAdmin.from('creator_referrals')
-    .select('id, referred_store_id, eligible_until, status').eq('referrer_creator_id', creatorId).order('created_at', { ascending: false });
+    .select('id, referred_creator_id, referred_store_id, attributed_at, eligible_until, status, rate_percent').eq('referrer_creator_id', creatorId).order('created_at', { ascending: false });
   if (error) throw error;
   const referralIds = (referrals || []).map((item) => item.id);
   const { data: commissions } = referralIds.length ? await supabaseAdmin.from('creator_referral_commissions')
-    .select('commission_amount, status').in('referral_id', referralIds) : { data: [] as Array<{ commission_amount: number; status: string }> };
-  const total = (commissions || []).reduce((sum, item) => sum + Number(item.commission_amount || 0), 0);
-  return { code: codeValue, referrals: referrals || [], totalCommission: Number(total.toFixed(2)) };
+    .select('referral_id, commission_amount, sale_subtotal_amount, status, created_at, available_at').in('referral_id', referralIds) : { data: [] as Array<{ referral_id: string; commission_amount: number; sale_subtotal_amount: number; status: string; created_at: string; available_at: string }> };
+  const referredStoreIds = [...new Set((referrals || []).map(item => item.referred_store_id))];
+  const { data: referredStores } = referredStoreIds.length
+    ? await supabaseAdmin.from('stores').select('id, nome_loja').in('id', referredStoreIds)
+    : { data: [] as Array<{ id: string; nome_loja: string | null }> };
+  const storeNames = new Map((referredStores || []).map(item => [item.id, item.nome_loja || 'Loja em configuração']));
+  const users = await Promise.all((referrals || []).map(async item => {
+    const { data } = await supabaseAdmin.auth.admin.getUserById(item.referred_creator_id);
+    return [item.referred_creator_id, data.user?.user_metadata?.full_name || null] as const;
+  }));
+  const creatorNames = new Map(users);
+  const commissionByReferral = new Map<string, Array<{ commission_amount: number; sale_subtotal_amount: number; status: string }>>();
+  for (const commission of commissions || []) {
+    const list = commissionByReferral.get(commission.referral_id) || [];
+    list.push(commission);
+    commissionByReferral.set(commission.referral_id, list);
+  }
+  const detailedReferrals = (referrals || []).map(referral => {
+    const entries = commissionByReferral.get(referral.id) || [];
+    const available = entries.filter(item => item.status === 'available');
+    const reversed = entries.filter(item => item.status === 'reversed');
+    const commissionAvailable = available.reduce((sum, item) => sum + Number(item.commission_amount || 0), 0);
+    const commissionReversed = reversed.reduce((sum, item) => sum + Number(item.commission_amount || 0), 0);
+    const eligibleSalesAmount = available.reduce((sum, item) => sum + Number(item.sale_subtotal_amount || 0), 0);
+    return {
+      id: referral.id,
+      creatorName: creatorNames.get(referral.referred_creator_id) || storeNames.get(referral.referred_store_id) || 'Criadora indicada',
+      storeName: storeNames.get(referral.referred_store_id) || 'Loja em configuração',
+      attributedAt: referral.attributed_at,
+      eligibleUntil: referral.eligible_until,
+      status: referral.status,
+      ratePercent: Number(referral.rate_percent),
+      eligibleSalesAmount: Number(eligibleSalesAmount.toFixed(2)),
+      eligibleSalesCount: available.length,
+      commissionAvailable: Number(commissionAvailable.toFixed(2)),
+      commissionReversed: Number(commissionReversed.toFixed(2)),
+      commissionGenerated: Number((commissionAvailable + commissionReversed).toFixed(2)),
+    };
+  });
+  const totals = detailedReferrals.reduce((summary, referral) => ({
+    eligibleSalesAmount: summary.eligibleSalesAmount + referral.eligibleSalesAmount,
+    eligibleSalesCount: summary.eligibleSalesCount + referral.eligibleSalesCount,
+    commissionAvailable: summary.commissionAvailable + referral.commissionAvailable,
+    commissionReversed: summary.commissionReversed + referral.commissionReversed,
+    commissionGenerated: summary.commissionGenerated + referral.commissionGenerated,
+  }), { eligibleSalesAmount: 0, eligibleSalesCount: 0, commissionAvailable: 0, commissionReversed: 0, commissionGenerated: 0 });
+  return { code: codeValue, referrals: detailedReferrals, totals: Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, Number(value.toFixed(2))])) };
 }
 
 export async function getCreatorReferralPreview(referralCode: string) {
