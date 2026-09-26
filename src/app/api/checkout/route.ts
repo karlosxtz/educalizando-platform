@@ -373,6 +373,11 @@ export async function POST(request: Request) {
 
     const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
+    // Indicação de criador é uma bonificação da plataforma: 3 pontos dos 13%
+    // da Educalizando. Nunca entra no cálculo do líquido da loja indicada.
+    const { getActiveCreatorReferralForStore } = await import('@/lib/creator-referral-service');
+    const creatorReferral = await getActiveCreatorReferralForStore(effectiveStoreId, baseSubtotal);
+
     // Calcular as taxas para fornecer a base líquida correta ao motor de afiliados
     const { calculateOrderFinancials } = await import('@/lib/order-service');
     // Na conta InfinitePay, as taxas do cartão devem ser configuradas como repassadas ao comprador.
@@ -428,6 +433,8 @@ export async function POST(request: Request) {
         isPlrPurchase,
         affiliateId: affiliateId || undefined,
         affiliateCommissionAmount: affiliateCommissionAmount > 0 ? affiliateCommissionAmount : undefined,
+        creatorReferralId: creatorReferral?.referralId,
+        creatorReferralCommissionAmount: creatorReferral?.commissionAmount,
         couponId: appliedCouponId || undefined,
         platformSettings: platformSettings || undefined
       });

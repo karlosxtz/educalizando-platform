@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import confetti from 'canvas-confetti';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 
 export default function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -65,6 +66,15 @@ export default function SignupForm() {
         category: data.category,
         whatsapp: data.whatsapp
       });
+
+      const referralCode = searchParams.get('ref');
+      if (referralCode) {
+        const { data: sessionData } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+        await fetch('/api/creator-referrals', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(sessionData.session?.access_token ? { Authorization: `Bearer ${sessionData.session.access_token}` } : {}) },
+          body: JSON.stringify({ referralCode })
+        });
+      }
 
       confetti({
         particleCount: 120,

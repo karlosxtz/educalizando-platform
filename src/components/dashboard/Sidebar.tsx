@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
-  LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart, 
+  LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
   Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, FolderCheck, PlaySquare, Library, Gift, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
@@ -78,6 +78,12 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       href: '/dashboard/produtos',
       icon: Package,
       badge: null
+    },
+    {
+      label: 'Minhas Indicações',
+      href: '/dashboard/indicacoes',
+      icon: Gift,
+      badge: '3%'
     },
     {
       label: 'Material Grátis',
@@ -178,7 +184,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados', '/dashboard/conteudo'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
-    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },
+    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
   ].map((group) => ({ ...group, items: NAV_ITEMS.filter((item) => group.hrefs.includes(item.href)) }));
 

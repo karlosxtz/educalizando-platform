@@ -53,6 +53,8 @@ export interface OrderRecord {
   is_plr_purchase?: boolean;
   affiliateId?: string | null;
   affiliateCommissionAmount?: number | null;
+  creatorReferralId?: string | null;
+  creatorReferralCommissionAmount?: number | null;
   couponId?: string | null;
   createdAt: string;
   paidAt?: string | null;
@@ -214,6 +216,8 @@ export async function createOrderRecord(data: {
   isPlrPurchase?: boolean;
   affiliateId?: string;
   affiliateCommissionAmount?: number;
+  creatorReferralId?: string;
+  creatorReferralCommissionAmount?: number;
   couponId?: string;
   platformSettings?: { platform_fee_percentage: number; platform_fixed_fee: number };
 }): Promise<OrderRecord> {
@@ -271,6 +275,8 @@ export async function createOrderRecord(data: {
     is_plr_purchase: data.isPlrPurchase || false,
     affiliateId: data.affiliateId || null,
     affiliateCommissionAmount: data.affiliateCommissionAmount || null,
+    creatorReferralId: data.creatorReferralId || null,
+    creatorReferralCommissionAmount: data.creatorReferralCommissionAmount || null,
     couponId: data.couponId || null,
     createdAt: now,
     paidAt: null
@@ -306,6 +312,8 @@ export async function createOrderRecord(data: {
         is_plr_purchase: newOrder.is_plr_purchase,
         affiliate_id: newOrder.affiliateId,
         affiliate_commission_amount: newOrder.affiliateCommissionAmount,
+        creator_referral_id: newOrder.creatorReferralId,
+        creator_referral_commission_amount: newOrder.creatorReferralCommissionAmount || 0,
         coupon_id: newOrder.couponId,
         created_at: newOrder.createdAt
       }]);
@@ -432,6 +440,8 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           is_plr_purchase: data.is_plr_purchase === true,
           affiliateId: data.affiliate_id || null,
           affiliateCommissionAmount: Number(data.affiliate_commission_amount || 0),
+          creatorReferralId: data.creator_referral_id || null,
+          creatorReferralCommissionAmount: Number(data.creator_referral_commission_amount || 0),
           couponId: data.coupon_id || null,
           createdAt: data.created_at,
           paidAt: data.paid_at || null
@@ -560,6 +570,30 @@ export async function updateOrderStatus(
         netAmount: updatedCreatorNet,
         description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
       });
+
+      // A indicação de criador é registrada em tabela própria e na carteira do
+      // indicador. A comissão foi reservada no pedido e não reduz a vendedora.
+      if (order.creatorReferralId && Number(order.creatorReferralCommissionAmount) > 0 && isRealSupabaseConfigured()) {
+        const { createCreatorReferralCommission } = await import('./creator-referral-service');
+        const referralCommission = await createCreatorReferralCommission(order);
+        if (referralCommission) {
+          await recordWalletTransaction({
+            storeId: referralCommission.beneficiary_store_id,
+            creatorId: referralCommission.beneficiary_creator_id,
+            orderId: order.id,
+            buyerName: order.buyerName,
+            productTitle: order.items[0]?.productTitle || 'Material digital',
+            type: 'CREATOR_REFERRAL_COMMISSION',
+            grossAmount: Number(referralCommission.commission_amount),
+            platformFixedFeeAmount: 0,
+            platformPercentageFeeAmount: 0,
+            platformFeeAmount: 0,
+            asaasFeeAmount: 0,
+            netAmount: Number(referralCommission.commission_amount),
+            description: `Bônus por indicação de criador - Pedido #${order.id.substring(4, 10).toUpperCase()}`
+          });
+        }
+      }
 
       // 1B. Registrar transação AFFILIATE_COMMISSION no ledger se houver afiliado
       if (order.affiliateId && affComission > 0) {
@@ -730,6 +764,28 @@ export async function updateOrderStatus(
         netAmount: -updatedCreatorNet,
         description: `Estorno / Reembolso do Pedido #${order.id.substring(4, 10).toUpperCase()}`
       });
+
+      if (order.creatorReferralId && isRealSupabaseConfigured()) {
+        const { reverseCreatorReferralCommission } = await import('./creator-referral-service');
+        const referralCommission = await reverseCreatorReferralCommission(order.id);
+        if (referralCommission) {
+          await recordWalletTransaction({
+            storeId: referralCommission.beneficiary_store_id,
+            creatorId: referralCommission.beneficiary_creator_id,
+            orderId: order.id,
+            buyerName: order.buyerName,
+            productTitle: order.items[0]?.productTitle || 'Material digital',
+            type: 'CREATOR_REFERRAL_COMMISSION_REFUND',
+            grossAmount: -Number(referralCommission.commission_amount),
+            platformFixedFeeAmount: 0,
+            platformPercentageFeeAmount: 0,
+            platformFeeAmount: 0,
+            asaasFeeAmount: 0,
+            netAmount: -Number(referralCommission.commission_amount),
+            description: `Estorno de bônus por indicação - Pedido #${order.id.substring(4, 10).toUpperCase()}`
+          });
+        }
+      }
 
       // 2B. Estornar também a comissão do afiliado se houver
       if (order.affiliateId && affComission > 0) {

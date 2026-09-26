@@ -2,7 +2,7 @@ import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
 
-export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL' | 'AFFILIATE_COMMISSION' | 'AFFILIATE_COMMISSION_REFUND';
+export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL' | 'AFFILIATE_COMMISSION' | 'AFFILIATE_COMMISSION_REFUND' | 'CREATOR_REFERRAL_COMMISSION' | 'CREATOR_REFERRAL_COMMISSION_REFUND';
 export type WalletTransactionStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
 
 export interface WalletTransaction {

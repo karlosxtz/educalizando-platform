@@ -13,6 +13,7 @@
     "test:infinitepay-webhook": "ts-node -P tsconfig.test.json scripts/verify-infinitepay-webhook.ts",
     "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts",
     "test:search-matching": "ts-node -P tsconfig.test.json scripts/verify-search-matching.ts",
+    "test:creator-referral-foundation": "ts-node -P tsconfig.test.json scripts/verify-creator-referral-foundation.ts",
     "test:e2e:mobile": "playwright test"
   },
   "dependencies": {
