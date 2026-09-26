@@ -1,4 +1,5 @@
 import { supabaseAdmin } from './supabase';
+import { sendWelcomeCreatorEmail } from './mail-service';
 
 export const CREATOR_REFERRAL_RATE_PERCENT = 3;
 export const CREATOR_REFERRAL_MONTHS = 12;
@@ -79,6 +80,13 @@ export async function attributeCreatorReferral(referredCreatorId: string, referr
   });
   if (insertError?.code === '23505') return { attributed: false, reason: 'already_attributed' as const };
   if (insertError) throw insertError;
+  const { data: referredUser } = await supabaseAdmin.auth.admin.getUserById(referredCreatorId);
+  if (referredUser?.user?.email) {
+    await sendWelcomeCreatorEmail({
+      producerEmail: referredUser.user.email,
+      producerName: referredUser.user.user_metadata?.full_name || 'Criador(a)',
+    });
+  }
   return { attributed: true, eligibleUntil: eligibleUntil.toISOString() };
 }
 

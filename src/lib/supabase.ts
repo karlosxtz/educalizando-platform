@@ -58,6 +58,7 @@ export async function registerCreatorInSupabase({
   storeName,
   category,
   whatsapp
+  ,referralCode
 }: {
   email: string;
   password: string;
@@ -66,6 +67,7 @@ export async function registerCreatorInSupabase({
   storeName: string;
   category: string;
   whatsapp: string;
+  referralCode?: string | null;
 }) {
   const cleanCpf = cpf.replace(/\D/g, '');
   
@@ -112,6 +114,7 @@ export async function registerCreatorInSupabase({
           whatsapp: whatsapp.replace(/\D/g, ''),
           role: 'creator',
           is_creator: true
+          ,creator_referral_code: referralCode || undefined
         }
       }
     });
@@ -194,7 +197,7 @@ export async function registerCreatorInSupabase({
       await sendWelcomeWhatsApp(whatsapp, fullName, 'creator', authData.session?.access_token);
     }
 
-    if (authData.session?.access_token) {
+    if (authData.session?.access_token && !referralCode) {
       void fetch('/api/email-automations/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authData.session.access_token}` },

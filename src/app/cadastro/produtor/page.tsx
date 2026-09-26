@@ -1,52 +1,26 @@
 import Link from 'next/link';
-import { ArrowLeft, Store } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle2, PenLine, Sparkles } from 'lucide-react';
 import SignupForm from '@/components/SignupForm';
 
 export default function ProducerSignupPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8 font-sans relative overflow-x-hidden">
-      {/* Glow Effect */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-6">
-        <Link href="/" className="inline-flex items-center justify-center group mb-2">
-          <img
-            src="/branding/logo-educalizando.png?v=3"
-            alt="Educalizando"
-            className="h-12 sm:h-14 w-auto object-contain mx-auto"
-            style={{ width: 'auto', height: '56px' }}
-          />
-        </Link>
-
-        <div className="bg-blue-50 px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-blue-100 text-blue-700 text-xs font-bold mx-auto">
-          <Store className="w-4 h-4 text-blue-600" />
-          <span>Cadastro de Loja Didática</span>
-        </div>
-
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-          Crie sua loja e comece a vender
-        </h1>
-        <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
-          Junte-se a milhares de educadores e monetize seus materiais didáticos.
-        </p>
+    <div className="signup-scene min-h-screen overflow-hidden bg-slate-50 px-4 py-7 font-sans sm:px-6 sm:py-10 lg:px-8">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="signup-orb signup-orb-one" /><div className="signup-orb signup-orb-two" />
+        <BookOpen className="signup-notebook signup-notebook-one" /><BookOpen className="signup-notebook signup-notebook-two" /><PenLine className="signup-pen" />
       </div>
-
-      <div className="relative z-10 w-full max-w-5xl mx-auto">
-         <SignupForm />
-      </div>
-
-      <div className="mt-8 text-center relative z-10 flex flex-col items-center gap-4">
-        <p className="text-sm text-slate-600 font-medium">
-          Já tem uma loja?{' '}
-          <Link href="/login" className="text-blue-600 font-bold hover:text-blue-700 hover:underline transition-all">
-            Faça Login no Painel
-          </Link>
-        </p>
-
-        <Link href="/cadastro" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-6 py-3 rounded-full border border-slate-200 shadow-sm hover:bg-slate-50">
-          <ArrowLeft className="w-4 h-4" /> Voltar para Opções de Cadastro
-        </Link>
-      </div>
+      <main className="relative z-10 mx-auto w-full max-w-6xl">
+        <header className="mx-auto max-w-2xl text-center">
+          <Link href="/" className="inline-flex items-center justify-center rounded-2xl bg-white/80 px-4 py-2 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md"><img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-10 w-auto sm:h-12" /></Link>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/85 px-4 py-2 text-xs font-black text-violet-800 shadow-sm"><Sparkles className="h-4 w-4" /> Seu espaço para criar, ensinar e vender</div>
+          <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">Sua próxima aula pode virar uma grande ideia.</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">Abra sua loja gratuitamente, publique materiais didáticos e alcance educadores de todo o Brasil.</p>
+          <div className="mx-auto mt-6 grid max-w-2xl grid-cols-1 gap-2 text-left sm:grid-cols-3"><p className="flex items-center gap-2 rounded-xl bg-white/85 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Cadastro gratuito</p><p className="flex items-center gap-2 rounded-xl bg-white/85 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Loja personalizada</p><p className="flex items-center gap-2 rounded-xl bg-white/85 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Venda com segurança</p></div>
+        </header>
+        <div className="mx-auto mt-5 w-full max-w-5xl"><SignupForm /></div>
+        <footer className="mt-4 flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-center sm:gap-6"><p className="text-sm font-medium text-slate-600">Já tem uma loja? <Link href="/login" className="font-black text-violet-700 hover:underline">Entrar no painel</Link></p><Link href="/cadastro" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"><ArrowLeft className="h-4 w-4" /> Opções de cadastro</Link></footer>
+      </main>
+      <style>{`@keyframes signupFloat{0%,100%{transform:translate3d(0,0,0) rotate(-10deg)}50%{transform:translate3d(0,-18px,0) rotate(6deg)}}@keyframes signupDrift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(34px,18px,0)}}.signup-scene{position:relative;background:linear-gradient(140deg,#f8faff 0%,#eff6ff 48%,#f5f3ff 100%)}.signup-orb{position:absolute;border-radius:999px;filter:blur(38px);opacity:.65}.signup-orb-one{top:8%;left:-9%;width:26rem;height:26rem;background:#bfdbfe;animation:signupDrift 9s ease-in-out infinite}.signup-orb-two{right:-10%;top:35%;width:28rem;height:28rem;background:#ddd6fe;animation:signupDrift 11s ease-in-out infinite reverse}.signup-notebook,.signup-pen{position:absolute;color:#7c3aed;opacity:.16;animation:signupFloat 7s ease-in-out infinite}.signup-notebook-one{top:17rem;left:5%;width:6.5rem;height:6.5rem}.signup-notebook-two{right:5%;top:31rem;width:8rem;height:8rem;animation-delay:-3s}.signup-pen{right:14%;top:13rem;width:4.5rem;height:4.5rem;animation-delay:-1s}@media(max-width:640px){.signup-notebook-one{left:-2.5rem;top:24rem}.signup-notebook-two{right:-3.5rem;top:45rem}.signup-pen{right:1rem;top:15rem;width:3rem;height:3rem}}`}</style>
     </div>
   );
 }

@@ -27,6 +27,7 @@ export default function DashboardLayout({
   const [creatorName, setCreatorName] = useState('');
   const [activeContext, setActiveContext] = useState<'creator' | 'affiliate'>('creator');
   const [roles, setRoles] = useState<UserRoles | null>(null);
+  const [pendingReferralCode, setPendingReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
     async function verifyAuthAndLoadStore() {
@@ -53,6 +54,9 @@ export default function DashboardLayout({
 
         const fullName = user?.user_metadata?.full_name || '';
         setCreatorName(fullName);
+        const referralCode = typeof user?.user_metadata?.creator_referral_code === 'string'
+          ? user.user_metadata.creator_referral_code : null;
+        setPendingReferralCode(referralCode);
 
         if (user) {
           // Resolver papéis REAIS consultando o banco (identidade de negócio)
@@ -99,6 +103,14 @@ export default function DashboardLayout({
     verifyAuthAndLoadStore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Executa apenas no mount para evitar loop de recarregamento
+
+  useEffect(() => {
+    if (!pendingReferralCode || !store?.id) return;
+    fetch('/api/creator-referrals', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ referralCode: pendingReferralCode }),
+    }).finally(() => setPendingReferralCode(null));
+  }, [pendingReferralCode, store?.id]);
 
   // Reagir a mudanças de rota após a autenticação já ter carregado
   useEffect(() => {

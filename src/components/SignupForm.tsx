@@ -74,7 +74,8 @@ export default function SignupForm() {
         cpf: data.cpf,
         storeName: data.storeName,
         category: data.category,
-        whatsapp: data.whatsapp
+        whatsapp: data.whatsapp,
+        referralCode
       });
 
       if (referralCode) {
