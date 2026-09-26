@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { generateAiContent, getAiKey } from '@/lib/ai-provider';
 
 export async function POST(req: Request) {
   try {
@@ -26,13 +27,12 @@ export async function POST(req: Request) {
     if (storeError || !storeData) {
       return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
     }
-    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle();
-    if (!secret?.google_ai_key) {
-      return NextResponse.json({ error: 'Chave da API Gemini não configurada nesta loja.' }, { status: 401 });
+    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle();
+    if (!secret || !getAiKey(secret).key) {
+      return NextResponse.json({ error: 'Chave de IA não configurada nesta loja.' }, { status: 401 });
     }
 
-    const apiKey = secret.google_ai_key;
-    const cleanApiKey = apiKey.trim().replace(/['"]/g, '');
+    const cleanApiKey = secret.google_ai_key?.trim().replace(/['"]/g, '') || '';
 
     const prompt = `Você é um especialista em copywriting educacional, SEO para plataformas de ensino e marketing de conversão para criadores de conteúdos pedagógicos.
 O usuário fornecerá um título rascunho contendo o tema central do material didático.
@@ -51,6 +51,12 @@ REGRAS OBRIGATÓRIAS:
 (seu titulo aqui)
 [DESCRICAO]
 (sua descricao aqui)`;
+
+    if (secret.ai_provider === 'alternative') {
+      const text = await generateAiContent(secret, prompt);
+      const event = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\ndata: [DONE]\n\n`;
+      return new Response(event, { headers: { 'Content-Type': 'text/event-stream' } });
+    }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${cleanApiKey}`, {
       method: 'POST',

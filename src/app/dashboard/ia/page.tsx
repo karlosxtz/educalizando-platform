@@ -10,6 +10,7 @@ import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 export default function IAConfigPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [apiKey, setApiKey] = useState('');
+  const [provider, setProvider] = useState<'primary' | 'alternative'>('primary');
   const [hasApiKey, setHasApiKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +43,7 @@ export default function IAConfigPage() {
         if (settingsResponse.ok) {
           const settings = await settingsResponse.json();
           setHasApiKey(Boolean(settings.configured));
+          setProvider(settings.provider === 'alternative' ? 'alternative' : 'primary');
           if (settings.configured) setShowConfig(false);
         }
 
@@ -72,7 +74,7 @@ export default function IAConfigPage() {
       const response = await fetch('/api/ai/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, apiKey })
+        body: JSON.stringify({ storeId: store.id, apiKey, provider })
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -117,7 +119,7 @@ export default function IAConfigPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Falha ao comunicar com a API do Gemini.');
+        throw new Error(data.error || 'Falha ao comunicar com a inteligência artificial.');
       }
 
       const campaignText = data.campaign || '';
@@ -226,7 +228,7 @@ export default function IAConfigPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg font-bold text-slate-900">Conectar Google Gemini</h2>
+                <h2 className="text-lg font-bold text-slate-900">Conectar inteligência artificial</h2>
               </div>
               {hasApiKey && (
                 <button onClick={() => setShowConfig(false)} className="text-xs font-bold text-purple-600 hover:underline">
@@ -235,29 +237,29 @@ export default function IAConfigPage() {
               )}
             </div>
             <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-              Ao configurar sua chave do Google Gemini, nossa Inteligência Artificial será habilitada. 
-              Ela gerará <strong>copys persuasivas para grupos VIPs</strong> e 
-              <strong>enquetes para o Instagram</strong> automaticamente.
+              Configure a chave fornecida pelo suporte para habilitar as ferramentas de texto, divulgação e planejamento pedagógico.
             </p>
           </div>
           
           <form onSubmit={handleSave} className="p-6 space-y-4 bg-white">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">
-                Chave API do Google Gemini
+                Integração de IA
               </label>
+              <select value={provider} onChange={(event) => setProvider(event.target.value === 'alternative' ? 'alternative' : 'primary')} className="mb-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-purple-500">
+                <option value="primary">Integração principal</option>
+                <option value="alternative">Integração alternativa</option>
+              </select>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Chave de acesso</label>
               <input
                 type="password"
-                placeholder="AIzaSy..."
+                placeholder="Cole a chave fornecida pelo suporte"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none text-sm font-mono"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Sua chave é armazenada de forma segura. Ela nunca será exibida publicamente.
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline ml-1 font-semibold">
-                  Obter minha chave gratuita
-                </a>
+                Sua chave é armazenada de forma segura e nunca é exibida publicamente. Para obter ou alterar uma chave, fale com o suporte.
               </p>
             </div>
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { GEMINI_MARKETING_SYSTEM_PROMPT } from '@/lib/ai-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { generateAiContent, getAiKey } from '@/lib/ai-provider';
 
 export async function POST(req: Request) {
   try {
@@ -24,12 +25,10 @@ export async function POST(req: Request) {
     if (storeError || !storeData) {
       return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
     }
-    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key').eq('store_id', storeId).maybeSingle();
-    if (!secret?.google_ai_key) {
-      return NextResponse.json({ error: 'Chave da API Gemini não configurada nesta loja.' }, { status: 401 });
+    const { data: secret } = await supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle();
+    if (!secret || !getAiKey(secret).key) {
+      return NextResponse.json({ error: 'Chave de IA não configurada nesta loja.' }, { status: 401 });
     }
-
-    const apiKey = secret.google_ai_key;
     
     // Regra Restrita de Prompt (Backend)
     const strictConstraint = `RESTRICAO ABSOLUTA DE TEMPO: A IA está estritamente proibida de incluir referências a horários, períodos de ausência ou justificativas de tempo nas mensagens e roteiros gerados. As campanhas devem ser diretas, atemporais e focadas no material pedagógico.`;
@@ -42,23 +41,7 @@ Preciso de duas opções separadas:
 2. Uma legenda de Instagram com uma sugestão de enquete para o Stories e 5 a 10 hashtags.
 Separe claramente as seções usando "--- WHATSAPP ---" e "--- INSTAGRAM ---". Retorne apenas o texto final.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: fullSystemPrompt }] },
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro da API Gemini (Campanha):', errorText);
-      throw new Error(`Erro Gemini: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-    const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const textResponse = await generateAiContent(secret, `${fullSystemPrompt}\n\n${prompt}`);
 
     return NextResponse.json({ campaign: textResponse });
 
