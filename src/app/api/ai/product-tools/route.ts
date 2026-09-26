@@ -3,8 +3,8 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 const instructions: Record<string, string> = {
-  seo: 'Crie 5 títulos SEO, uma meta descrição de até 155 caracteres, uma sugestão de slug e 8 palavras-chave. Use títulos claros, sem promessas enganosas.',
-  description: 'Crie uma descrição de venda completa: abertura, benefícios pedagógicos, o que está incluso, para quem é e chamada final. Use informações reais do material, sem inventar páginas, arquivos ou certificações.',
+  seo: 'RESPONDA APENAS JSON válido no formato {"titles":["..."],"metaDescription":"...","keywords":["..."],"analysis":["..."]}. Crie 5 títulos SEO, uma meta descrição de até 155 caracteres, palavras-chave e uma análise objetiva do que melhorar. Use títulos claros, sem promessas enganosas.',
+  description: 'RESPONDA APENAS JSON válido no formato {"description":"...","analysis":["..."]}. Crie uma descrição de venda completa: abertura, benefícios pedagógicos, o que está incluso, para quem é e chamada final. Use informações reais do material, sem inventar páginas, arquivos ou certificações.',
   campaign: 'Crie uma campanha com uma mensagem para WhatsApp, legenda para Instagram, 5 hashtags e 3 chamadas curtas para Stories.',
   lesson: 'Crie um roteiro pedagógico com objetivo de aprendizagem, sugestões de uso em sala, adaptação por nível e uma atividade complementar.',
 };
@@ -26,5 +26,9 @@ export async function POST(request: Request) {
   const payload = await response.json().catch(() => null);
   if (!response.ok) return NextResponse.json({ error: payload?.error?.message || 'A Gemini não concluiu a geração.' }, { status: response.status });
   const text = payload?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || '').join('\n').trim();
-  return NextResponse.json({ result: text || 'A IA não retornou conteúdo. Tente novamente.' });
+  let proposal = null;
+  if (tool === 'seo' || tool === 'description') {
+    try { proposal = JSON.parse((text || '').replace(/^```json\s*|\s*```$/g, '').trim()); } catch { /* Mantém o resultado como texto se o provedor não devolver JSON válido. */ }
+  }
+  return NextResponse.json({ result: text || 'A IA não retornou conteúdo. Tente novamente.', proposal });
 }

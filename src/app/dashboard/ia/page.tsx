@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
+import { getCurrentCreatorStore, getProductsByStoreId, updateProduct } from '@/lib/store-service';
 import { Store, Product } from '@/lib/types';
-import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen } from 'lucide-react';
+import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function IAConfigPage() {
@@ -22,6 +22,11 @@ export default function IAConfigPage() {
   const [instagramCopy, setInstagramCopy] = useState('');
   const [toolResult, setToolResult] = useState('');
   const [activeTool, setActiveTool] = useState('');
+  const [proposal, setProposal] = useState<any>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -140,13 +145,33 @@ export default function IAConfigPage() {
 
   const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson') => {
     if (!selectedProductId || !store?.id) return toast.error('Selecione um material para continuar.');
-    setActiveTool(tool); setToolResult('');
+    const selectedProduct = products.find(product => product.id === selectedProductId);
+    setActiveTool(tool); setToolResult(''); setProposal(null);
     try {
       const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId: selectedProductId, tool }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
       setToolResult(payload.result || '');
+      if ((tool === 'seo' || tool === 'description') && payload.proposal) {
+        setProposal({ ...payload.proposal, tool });
+        setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
+        setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
+        setEditorOpen(true);
+      }
     } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
+  };
+
+  const applyProposal = async () => {
+    if (!selectedProductId) return;
+    setApplying(true);
+    try {
+      const updates: Partial<Product> = {};
+      if (proposal?.tool === 'seo' && editedTitle.trim()) updates.titulo = editedTitle.trim();
+      if (proposal?.tool === 'description' && editedDescription.trim()) updates.descricao = editedDescription.trim();
+      await updateProduct(selectedProductId, updates);
+      setProducts(current => current.map(product => product.id === selectedProductId ? { ...product, ...updates } : product));
+      setEditorOpen(false); toast.success('Produto atualizado com as escolhas da IA.');
+    } catch (error: any) { toast.error(error.message || 'Não foi possível salvar o produto.'); } finally { setApplying(false); }
   };
 
   if (loading) {
@@ -335,6 +360,7 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
+      {editorOpen && proposal && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4"><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wider text-violet-700">Editor assistido por IA</p><h2 className="mt-1 text-xl font-black text-slate-950">Revise antes de aplicar ao produto</h2></div><button onClick={() => setEditorOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X className="w-5 h-5" /></button></div>{proposal.analysis?.length ? <div className="mt-5 rounded-2xl bg-amber-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-amber-800">Análise SEO</p><ul className="mt-2 space-y-1 text-sm leading-6 text-amber-950">{proposal.analysis.map((item: string) => <li key={item}>• {item}</li>)}</ul></div> : null}{proposal.tool === 'seo' ? <><label className="mt-5 block text-sm font-black text-slate-800">Escolha ou ajuste o título</label><div className="mt-2 space-y-2">{proposal.titles?.map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`w-full rounded-xl border p-3 text-left text-sm font-semibold ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700'}`}>{title}</button>)}</div><input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} className="mt-3 w-full rounded-xl border border-slate-300 p-3 text-sm font-semibold outline-none focus:border-violet-500" /><div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><strong>Meta descrição:</strong> {proposal.metaDescription}<br /><strong className="mt-2 inline-block">Palavras-chave:</strong> {proposal.keywords?.join(', ')}</div></> : <><label className="mt-5 block text-sm font-black text-slate-800">Descrição sugerida</label><textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} className="mt-2 min-h-64 w-full rounded-2xl border border-slate-300 p-4 text-sm leading-6 outline-none focus:border-violet-500" /></>}<div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600">Cancelar</button><button onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white disabled:opacity-60">{applying && <Loader2 className="w-4 h-4 animate-spin" />} Aplicar ao produto</button></div></div></div>}
     </div>
   );
 }
