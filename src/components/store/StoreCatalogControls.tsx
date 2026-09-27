@@ -21,10 +21,10 @@ interface StoreCatalogControlsProps {
 }
 
 const collectionTitles: Record<StoreCollection, string> = {
-  all: 'Encontre o material ideal',
-  popular: 'Materiais em alta',
+  all: 'Produtos finais da loja',
+  popular: 'Materiais mais procurados',
   new: 'Novidades da loja',
-  plr: 'Licenças PLR',
+  plr: 'Licenças PLR para revenda',
 };
 
 export default function StoreCatalogControls({
@@ -64,12 +64,13 @@ export default function StoreCatalogControls({
       : 'sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(220px,.8fr)]';
 
   return (
-    <section className={`border-y p-4 sm:p-6 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white/95 border-slate-200'}`} aria-label="Explorar materiais">
+    <section className={`border-y p-4 sm:p-6 shadow-sm ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-gradient-to-b from-white via-white to-blue-50/60 border-slate-200'}`} aria-label="Explorar materiais">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className={`text-[10px] font-black uppercase tracking-[0.16em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Explorar materiais</span>
-            <h2 className={`mt-1 text-lg sm:text-xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{collectionTitles[selectedCollection]}</h2>
+            <span className={`text-[10px] font-black uppercase tracking-[0.16em] ${isDark ? 'text-slate-400' : 'text-blue-700'}`}>Catálogo do criador</span>
+            <h2 className={`mt-1 text-xl sm:text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{collectionTitles[selectedCollection]}</h2>
+            <p className={`mt-1 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Escolha uma coleção ou combine filtros para encontrar o material certo.</p>
           </div>
           {hasFilters && (
             <button
@@ -89,7 +90,7 @@ export default function StoreCatalogControls({
 
         <StoreCollections active={selectedCollection} onChange={setSelectedCollection} variant={variant} />
 
-        <div className={`grid gap-2 rounded-2xl p-2 ${controlColumns} ${isDark ? 'bg-slate-950/70' : 'bg-slate-50 border border-slate-100'}`}>
+        <div className={`grid gap-2 rounded-2xl p-2.5 ${controlColumns} ${isDark ? 'bg-slate-950/70' : 'bg-white border border-blue-100 shadow-sm'}`}>
           <label className="relative block">
             <span className="sr-only">Buscar material</span>
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -107,7 +108,7 @@ export default function StoreCatalogControls({
         </div>
 
         <p className={`flex items-center gap-1.5 text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Use as coleções e filtros para descobrir materiais com mais rapidez.
+          <SlidersHorizontal className="h-3.5 w-3.5" /> A busca considera nome, descrição, tags e temas cadastrados pelo criador.
         </p>
       </div>
     </section>

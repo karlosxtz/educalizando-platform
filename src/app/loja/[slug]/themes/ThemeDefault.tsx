@@ -526,6 +526,22 @@ export default function ThemeDefault(props: StoreThemeProps) {
           </section>
         )}
 
+        {/* Current catalog section: final products and PLR are deliberately separated by the selected collection. */}
+        <section className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: primaryColor }}>Vitrine organizada</span>
+            <h2 className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">
+              {selectedCollection === 'plr' ? 'Licenças PLR disponíveis' : selectedCollection === 'popular' ? 'Materiais mais procurados' : selectedCollection === 'new' ? 'Novidades para explorar' : 'Materiais para sua aula'}
+            </h2>
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              {selectedCollection === 'plr' ? 'Produtos com licença para revenda, exibidos separadamente dos materiais finais.' : 'Materiais finais prontos para comprar e utilizar.'}
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm">
+            <Layers className="h-4 w-4" style={{ color: primaryColor }} /> {filteredProducts.length} {filteredProducts.length === 1 ? 'material encontrado' : 'materiais encontrados'}
+          </span>
+        </section>
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">

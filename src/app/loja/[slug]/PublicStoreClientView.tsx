@@ -78,6 +78,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     const matchingFilters = products.filter((product) => {
       const matchSearch = !term || normalize(product.titulo).includes(term) ||
         (product.descricao && normalize(product.descricao).includes(term)) ||
+        Boolean(product.tags?.some((tag) => normalize(tag).includes(term))) ||
         Boolean(product.seasonal_tags?.some((tag) => normalize(tag).includes(term)));
       const matchCategory = selectedCategory === 'all' || product.category_id === selectedCategory;
       const matchEducation = selectedEducation === 'all' || product.education_level_id === selectedEducation;
