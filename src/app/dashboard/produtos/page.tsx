@@ -187,6 +187,18 @@ export default function ProductsManagementPage() {
     }
     if (!configured) return;
 
+    const cacheKey = `educalizando_seo_audit_${store.id}`;
+    if (!force) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (cached?.items && Array.isArray(cached.items)) {
+          setSeoAudit(cached);
+          setSelectedSeoIds(cached.items.filter((item: { score: number }) => item.score < 100).map((item: { id: string }) => item.id));
+          return;
+        }
+      } catch { localStorage.removeItem(cacheKey); }
+    }
+
     setSeoAuditing(true);
     try {
       const response = await fetch('/api/ai/seo-audit', {
@@ -198,6 +210,7 @@ export default function ProductsManagementPage() {
       if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a auditoria.');
       setSeoAudit(data);
       setSelectedSeoIds((data.items || []).filter((item: { score: number }) => item.score < 100).map((item: { id: string }) => item.id));
+      localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error: unknown) {
       setSeoAuditError(error instanceof Error ? error.message : 'Não foi possível concluir a auditoria.');
     } finally {
@@ -262,6 +275,7 @@ export default function ProductsManagementPage() {
       if (!response.ok || !result.success) throw new Error(result.error || 'Não foi possível salvar as otimizações.');
       await loadData();
       setSeoAudit(current => current ? { ...current, items: current.items.map(item => result.updatedIds?.includes(item.id) ? { ...item, score: 100, issues: [], quickWins: ['Sugestões aplicadas e salvas neste material.'] } : item), average: Math.round((current.items.reduce((sum, item) => sum + (result.updatedIds?.includes(item.id) ? 100 : item.score), 0)) / Math.max(current.items.length, 1)) } : current);
+      localStorage.removeItem(`educalizando_seo_audit_${store.id}`);
       setBulkPreviewOpen(false);
       setActionError(null);
     } catch (error: unknown) {

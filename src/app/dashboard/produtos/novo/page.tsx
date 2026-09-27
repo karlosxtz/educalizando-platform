@@ -84,6 +84,7 @@ function ProductWizardContent() {
   // Order Bump
   const [orderBumpId, setOrderBumpId] = useState<string>('');
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const formatOptions = ['PDF colorido, pronto para imprimir', 'PDF em preto e branco, pronto para imprimir', 'Arquivo digital em PDF', 'E-book digital com atividades', 'Kit de atividades para recortar e montar', 'Cartas e fichas pedagógicas em PDF', 'Material editável + PDF para impressão'];
 
   useEffect(() => {
     async function initData() {
@@ -205,6 +206,13 @@ function ProductWizardContent() {
             setUsesBncc(Array.isArray(source.bnccSkillIds) && source.bnccSkillIds.length > 0);
           }
         } else {
+          const savedDraft = localStorage.getItem('educalizando_product_draft_v1');
+          if (savedDraft) {
+            try {
+              const draft = JSON.parse(savedDraft);
+              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryId(draft.categoryId || ''); setEducationLevelId(draft.educationLevelId || ''); setSeasonalTags(draft.seasonalTags || []); setProductTags(draft.productTags || ''); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
+            } catch { localStorage.removeItem('educalizando_product_draft_v1'); }
+          }
           if (suggestedTheme && SCHOOL_CALENDAR_TAGS.includes(suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number])) setSeasonalTags([suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number]]);
           if (suggestedTitle) setTitulo(suggestedTitle.slice(0, 160));
         }
@@ -217,6 +225,12 @@ function ProductWizardContent() {
     }
     initData();
   }, [editId, plrProductId, suggestedTheme, suggestedTitle]);
+
+  useEffect(() => {
+    if (loading || editId || plrProductId) return;
+    const draft = { titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryId, educationLevelId, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep };
+    if (Object.values(draft).some(value => Array.isArray(value) ? value.length : Boolean(value))) localStorage.setItem('educalizando_product_draft_v1', JSON.stringify(draft));
+  }, [loading, editId, plrProductId, titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryId, educationLevelId, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep]);
 
   const bnccSubjects = useMemo(() => Array.from(new Set(
     bnccSkillsMaster.map(skill => skill.subject).filter((subject): subject is string => Boolean(subject))
@@ -463,6 +477,7 @@ function ProductWizardContent() {
         });
       }
 
+      if (!editId) localStorage.removeItem('educalizando_product_draft_v1');
       router.push('/dashboard/produtos');
     } catch (err: unknown) {
       console.error(err);
@@ -702,8 +717,8 @@ function ProductWizardContent() {
 
                 <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
                   <label className="text-xs font-bold uppercase tracking-wider text-violet-900 block">Tags de busca do produto</label>
-                  <p className="mt-1 text-xs text-slate-500">Use palavras que descrevem o material. Separe por vírgulas. Tags não substituem os temas e datas escolares acima.</p>
-                  <input value={productTags} onChange={(event) => setProductTags(event.target.value)} placeholder="Ex.: alfabetização, sílabas simples, jogo educativo" className="mt-3 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-violet-500" />
+                  <p className="mt-1 text-xs text-slate-500">As tags ajudam a alocar seu produto nas consultas do marketplace. Use até 10 tags, cada uma separada por vírgula. Tags não substituem os temas e datas escolares acima.</p>
+                  <input value={productTags} onChange={(event) => setProductTags(event.target.value.split(',').slice(0, 10).join(','))} placeholder="Ex.: alfabetização, sílabas simples, jogo educativo" className="mt-3 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-violet-500" />
                 </div>
 
                 {isSeasonalPickerOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
@@ -725,14 +740,8 @@ function ProductWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
                       Detalhes do formato
                     </label>
-                    <input
-                      type="text"
-                      maxLength={180}
-                      value={formatDetails}
-                      onChange={(event) => setFormatDetails(event.target.value)}
-                      placeholder="Ex.: PDF colorido, pronto para imprimir"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
-                    />
+                    <select value={formatDetails} onChange={(event) => setFormatDetails(event.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"><option value="">Escolha o formato do material</option>{formatOptions.map(option => <option key={option} value={option}>{option}</option>)}</select>
+                    <p className="mt-1 text-[11px] text-slate-500">Escolha uma opção para deixar a apresentação do produto mais clara.</p>
                   </div>
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
