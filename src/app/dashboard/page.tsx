@@ -78,6 +78,7 @@ export default function DashboardOverviewPage() {
   }, []);
 
   const netGenerated = Math.max(0, wallet.totalVendido - wallet.totalTaxas);
+  const hasFirstSale = wallet.totalVendido > 0 || wallet.totalRecebido > 0 || wallet.saldoDisponivel > 0 || wallet.saldoPendente > 0 || monthSalesCount > 0 || chartTotalSalesCount > 0;
   const financialDistributionTotal = wallet.saldoDisponivel + wallet.totalRecebido + wallet.saldoPendente;
   const financialDistribution = [
     { label: 'Disponível para saque', value: wallet.saldoDisponivel, className: 'bg-emerald-500' },
@@ -117,7 +118,7 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Gamification Onboarding Progress */}
-      {chartTotalSalesCount === 0 && (
+      {!hasFirstSale && (
         <div className="glass-panel p-5 relative overflow-hidden">
           <div className="flex justify-between items-end mb-3">
             <div>
