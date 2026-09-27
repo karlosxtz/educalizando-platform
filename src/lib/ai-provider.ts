@@ -11,11 +11,14 @@ export async function generateAiContent(secret: AiSecret, prompt: string, json =
   if (!key) throw new Error('Configure uma chave de IA para usar esta ferramenta.');
   if (alternative) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': 'https://educalizando.com.br', 'X-Title': 'EducaliZando' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': 'https://educalizando.com.br', 'X-OpenRouter-Title': 'EducaliZando' },
       // A instrução de JSON já faz parte do prompt. Alguns modelos disponíveis
       // pela integração alternativa recusam `response_format`, mesmo com uma
       // chave válida, e respondiam como se a credencial estivesse errada.
-      body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }),
+      // O roteador tenta modelos compatíveis em ordem. Isso evita que uma
+      // indisponibilidade temporária de um modelo interrompa as ferramentas
+      // da loja, sem exigir que o criador troque ou informe outra chave.
+      body: JSON.stringify({ models: ['~google/gemini-flash-latest', 'google/gemini-2.5-flash'], messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }),
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
