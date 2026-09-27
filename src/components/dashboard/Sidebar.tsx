@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
-  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, FolderCheck, PlaySquare, Library, Gift, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
+  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
@@ -112,12 +112,6 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
-      label: 'Conteúdo & Entregas',
-      href: '/dashboard/conteudo',
-      icon: FolderCheck,
-      badge: null
-    },
-    {
       label: 'Kits (Combos)',
       href: '/dashboard/kits',
       icon: Boxes,
@@ -183,7 +177,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
   const NAV_GROUPS = [
     { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
-    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados', '/dashboard/conteudo'] },
+    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
     { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },

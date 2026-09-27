@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowRight, CheckCircle2, ChevronLeft, CircleHelp, LayoutDashboard, Map, Package, ShoppingCart, ShieldCheck, DollarSign, Store, Gift, MessagesSquare, ChartNoAxesCombined, MessageCircle, Sparkles, X, PlaySquare, Wrench, Library, FolderCheck, Boxes, Ticket, Tags, Users, Settings } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronLeft, CircleHelp, LayoutDashboard, Map, Package, ShoppingCart, ShieldCheck, DollarSign, Store, Gift, MessagesSquare, ChartNoAxesCombined, MessageCircle, Sparkles, X, PlaySquare, Wrench, Library, Boxes, Ticket, Tags, Users, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type TourStep = { title: string; description: string; task: string; icon: LucideIcon; href: string };
@@ -17,7 +17,6 @@ const TOUR_STEPS: TourStep[] = [
   { title: 'Caixa de ferramentas', description: 'Recursos extras para organizar e criar seus materiais.', task: 'Explore as ferramentas conforme sua necessidade de produção.', icon: Wrench, href: '/dashboard/ferramentas' },
   { title: 'Mercado de PLR', description: 'Materiais com licença para você adquirir e revender.', task: 'Avalie a licença e publique um PLR comprado no seu próprio catálogo.', icon: Library, href: '/dashboard/plr' },
   { title: 'PLRs comprados', description: 'Histórico dos materiais PLR que já fazem parte do seu acervo.', task: 'Abra uma compra para acessar a licença ou publicar o material na loja.', icon: Package, href: '/dashboard/plr/comprados' },
-  { title: 'Conteúdo e entregas', description: 'Arquivos, links e acessos liberados depois de cada compra.', task: 'Revise as entregas antes de divulgar um produto para evitar falhas ao cliente.', icon: FolderCheck, href: '/dashboard/conteudo' },
   { title: 'Kits e combos', description: 'Agrupe materiais relacionados em uma oferta maior.', task: 'Crie um kit quando quiser aumentar o valor médio de cada pedido.', icon: Boxes, href: '/dashboard/kits' },
   { title: 'Cupons de desconto', description: 'Códigos promocionais para campanhas e datas especiais.', task: 'Defina o desconto, validade e produtos participantes antes de compartilhar.', icon: Ticket, href: '/dashboard/cupons' },
   { title: 'Categorias', description: 'Organização que facilita encontrar seus materiais na vitrine.', task: 'Cadastre categorias claras e relacione os produtos a elas.', icon: Tags, href: '/dashboard/categorias' },
