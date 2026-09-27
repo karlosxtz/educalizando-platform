@@ -447,9 +447,9 @@ export default function FinancialWalletDashboardPage() {
             <DollarSign className="w-6 h-6 text-emerald-600" />
           </div>
           <div className="space-y-1 text-center sm:text-left">
-            <h3 className="font-extrabold text-slate-900">Checkout InfinitePay: <span className="text-emerald-600">custos do pagamento identificados separadamente.</span></h3>
+            <h3 className="font-extrabold text-slate-900">Pagamento seguro: <span className="text-emerald-600">custos identificados separadamente.</span></h3>
             <p className="text-sm text-slate-500 font-medium">
-              Quando a InfinitePay repassa a taxa ao comprador, o lançamento do criador fica sem desconto do gateway. A taxa da plataforma continua detalhada no pedido e no extrato.
+              Quando o custo do processamento é repassado ao comprador, o lançamento do criador fica sem desconto desse custo. A taxa da plataforma continua detalhada no pedido e no extrato.
             </p>
           </div>
         </div>
