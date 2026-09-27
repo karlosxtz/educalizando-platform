@@ -43,7 +43,10 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
     title,
     description,
     alternates: {
-      canonical: `https://www.educalizando.com.br/loja/${store?.slug || slug}/produto/${product.slug || product.id}`,
+      // O produto pode ser acessado pela vitrine e pelo catálogo público. As
+      // duas telas exibem o mesmo material, portanto concentramos a indexação
+      // na URL global para não dividir relevância entre páginas duplicadas.
+      canonical: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
     },
     openGraph: {
       title,
