@@ -9,7 +9,10 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'Googlebot-Image', allow: '/' },
       {
         userAgent: '*',
-        allow: '/',
+        // As telas de autenticação precisam ser rastreáveis para que o
+        // `noindex` seja respeitado. As demais rotas de aluno continuam
+        // bloqueadas por conterem conteúdo privado.
+        allow: ['/', '/aluno/login', '/aluno/cadastro'],
         disallow: [
           '/admin/',
           '/dashboard/',

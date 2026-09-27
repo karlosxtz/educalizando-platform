@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
 import { getCategories, getEducationLevels, getBnccSkillsByIds } from '@/lib/category-service';
 import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
@@ -18,9 +18,15 @@ import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 
+// URLs antigas já rastreadas antes da padronização dos slugs. Manter este
+// mapa evita páginas 404 e transfere a autoridade da URL antiga para a atual.
+const LEGACY_PRODUCT_SLUGS: Record<string, string> = {
+  'kit-das-caixinhas-da-alfabetizacao-yvy5': 'kit-das-caixinhas-da-alfabetizacao',
+};
+
 export async function generateMetadata({ params }: GlobalProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductById(slug);
+  const product = await getProductById(LEGACY_PRODUCT_SLUGS[slug] || slug);
   
   if (!product) {
     return { title: 'Produto não encontrado | Educalizando' };
@@ -55,14 +61,19 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   const { slug } = await params;
   const { licenca } = await searchParams;
 
+  const legacySlug = LEGACY_PRODUCT_SLUGS[slug];
+  if (legacySlug) {
+    permanentRedirect(`/produto/${legacySlug}${licenca === 'plr' ? '?licenca=plr' : ''}`);
+  }
+
   const product = await getProductById(slug);
   if (!product) {
     notFound();
   }
 
-  // Redirecionamento SEO (301) se a URL atual não for o slug oficial (acesso via UUID)
+  // Redirecionamento SEO permanente se a URL atual não for o slug oficial (acesso via UUID).
   if (product.slug && slug !== product.slug) {
-    redirect(`/produto/${product.slug}${licenca === 'plr' ? '?licenca=plr' : ''}`);
+    permanentRedirect(`/produto/${product.slug}${licenca === 'plr' ? '?licenca=plr' : ''}`);
   }
 
   const store = await getStoreById(product.store_id);
