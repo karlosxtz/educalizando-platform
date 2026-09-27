@@ -3,7 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
 
 export async function GET(request: Request) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   const { data: reminders, error } = await supabaseAdmin.from('abandoned_cart_reminders').select('id, customer_name, phone_e164, store_slug, recovery_token, cart_items, total_amount, order_id').eq('status', 'pending').lte('send_after', new Date().toISOString()).limit(50);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   let sent = 0;
