@@ -47,12 +47,8 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         .eq('status', 'publicado')
         .is('excluido_em', null);
 
-      // 1. Busca direta por título. Caso não exista resultado, o fallback
-      // abaixo amplia a consulta usando dados reais do material.
-      if (filters.q) {
-        const queryLimpo = normalizeSearchText(filters.q);
-        query = query.ilike('titulo_limpo', `%${queryLimpo}%`);
-      }
+      // A busca com termo é aplicada depois de carregar o catálogo filtrado.
+      // Isso inclui tags, descrição, formato e tema, não somente o título.
 
       // 2. Categoria
       if (filters.categoria) {
@@ -131,6 +127,24 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         if (filters.formato === 'word') query = query.ilike('format_details', '%word%');
         if (filters.formato === 'ppt') query = query.or('format_details.ilike.%powerpoint%,format_details.ilike.%ppt%,format_details.ilike.%slides%');
         if (filters.formato === 'planilha') query = query.or('format_details.ilike.%planilha%,format_details.ilike.%excel%');
+      }
+
+      if (filters.q) {
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(500);
+        if (!error && data) {
+          const matching = (data as (Product & { store?: Store })[])
+            .filter(product => searchMatchScore(product, filters.q as string) > 0)
+            .sort((a, b) => {
+              const score = searchMatchScore(b, filters.q as string) - searchMatchScore(a, filters.q as string);
+              return score || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+          return {
+            data: matching.slice(from, to + 1),
+            count: matching.length,
+            totalPages: Math.ceil(matching.length / ITEMS_PER_PAGE),
+            matchMode: 'expanded',
+          };
+        }
       }
 
       // 7. Ordenação

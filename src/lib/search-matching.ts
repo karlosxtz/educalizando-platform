@@ -17,7 +17,7 @@ export function getSearchTerms(value: string) {
   return [...new Set(normalized.split(' ').filter((term) => term.length > 1 && !SEARCH_STOP_WORDS.has(term)))];
 }
 
-type SearchableProduct = Pick<Product, 'titulo' | 'descricao' | 'format_details' | 'seasonal_tags'> & {
+type SearchableProduct = Pick<Product, 'titulo' | 'descricao' | 'format_details' | 'seasonal_tags' | 'tags'> & {
   category?: Pick<Category, 'nome' | 'slug'> | null;
 };
 
@@ -26,6 +26,7 @@ function productSearchText(product: SearchableProduct) {
     product.titulo,
     product.descricao,
     product.format_details,
+    ...(product.tags || []),
     ...(product.seasonal_tags || []),
     product.category?.nome,
     product.category?.slug,
