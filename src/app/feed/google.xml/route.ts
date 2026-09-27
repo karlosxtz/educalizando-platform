@@ -30,12 +30,9 @@ function merchantText(value: string, maxLength: number) {
 }
 
 /**
- * Feed para o Google Merchant Center. A URL pode ser cadastrada como uma
- * fonte programada no Merchant Center: /feed/google.xml.
- *
- * Mantemos apenas a oferta final do material. Licenças PLR possuem regra de
- * entrega e preço próprios, portanto não podem ser misturadas com o catálogo
- * comprado por alunos e educadores.
+ * Feed XML para o Google Merchant Center: /feed/google.xml.
+ * Somente produtos finais pagos entram na fonte. PLR e materiais grátis têm
+ * regras próprias e não devem aparecer em anúncios ou listagens de compra.
  */
 export async function GET() {
   const products = await getAllPublicMarketplaceProducts(5000);
@@ -47,10 +44,9 @@ export async function GET() {
   );
 
   const xmlItems = items.map((product) => {
-    const id = product.id;
     const link = `${SITE_URL}/produto/${product.slug || product.id}`;
     const image = absoluteUrl(product.capa_url!);
-    product.titulo = merchantText(product.titulo, 150);
+    const title = merchantText(product.titulo, 150);
     const description = merchantText(
       product.descricao || `Material didático digital: ${product.titulo}`,
       5000,
@@ -60,10 +56,39 @@ export async function GET() {
       ? `Materiais didáticos digitais > ${product.category.nome}`
       : 'Materiais didáticos digitais';
 
-    return `\n    <item>\n      <g:id>${escapeXml(id)}</g:id>\n      <g:title>${escapeXml(product.titulo.slice(0, 150))}</g:title>\n      <g:description>${escapeXml(description)}</g:description>\n      <g:link>${escapeXml(link)}</g:link>\n      <g:image_link>${escapeXml(image)}</g:image_link>\n      <g:availability>in_stock</g:availability>\n      <g:condition>new</g:condition>\n      <g:price>${Number(product.preco).toFixed(2)} BRL</g:price>\n      <g:brand>${escapeXml(brand)}</g:brand>\n      <g:product_type>${escapeXml(productType)}</g:product_type>\n      <g:identifier_exists>false</g:identifier_exists>\n    </item>`;
+    return `
+    <item>
+      <g:id>${escapeXml(product.id)}</g:id>
+      <g:title>${escapeXml(title)}</g:title>
+      <g:description>${escapeXml(description)}</g:description>
+      <g:link>${escapeXml(link)}</g:link>
+      <g:image_link>${escapeXml(image)}</g:image_link>
+      <g:availability>in_stock</g:availability>
+      <g:condition>new</g:condition>
+      <g:price>${Number(product.preco).toFixed(2)} BRL</g:price>
+      <g:brand>${escapeXml(brand)}</g:brand>
+      <g:product_type>${escapeXml(productType)}</g:product_type>
+      <g:identifier_exists>false</g:identifier_exists>
+      <g:shipping>
+        <g:country>BR</g:country>
+        <g:service>Entrega digital imediata</g:service>
+        <g:price>0 BRL</g:price>
+        <g:min_handling_time>0</g:min_handling_time>
+        <g:max_handling_time>0</g:max_handling_time>
+        <g:min_transit_time>0</g:min_transit_time>
+        <g:max_transit_time>0</g:max_transit_time>
+      </g:shipping>
+    </item>`;
   }).join('');
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n  <channel>\n    <title>Educalizando — Materiais Didáticos</title>\n    <link>${SITE_URL}</link>\n    <description>Materiais didáticos digitais publicados na Educalizando.</description>${xmlItems}\n  </channel>\n</rss>`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+  <channel>
+    <title>Educalizando — Materiais Didáticos</title>
+    <link>${SITE_URL}</link>
+    <description>Materiais didáticos digitais publicados na Educalizando.</description>${xmlItems}
+  </channel>
+</rss>`;
 
   return new Response(xml, {
     headers: {
