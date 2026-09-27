@@ -82,10 +82,10 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
-      label: 'Indique e ganhe 3%',
+      label: 'Indique e ganhe',
       href: '/dashboard/indicacoes',
       icon: Flame,
-      badge: '3%'
+      badge: '🔥'
     },
     {
       label: 'Material Grátis',
