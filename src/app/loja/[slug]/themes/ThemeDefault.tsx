@@ -238,7 +238,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
         {/* Store Profile Bar with Floating Circle Logo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-6 sm:pb-8">
-          <Link href="/" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 text-xs font-black text-blue-700 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+          <Link href="/" className="relative z-20 mt-3 mb-14 inline-flex min-h-10 items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 text-xs font-black text-blue-700 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 sm:z-auto sm:mb-0">
             <Search className="h-4 w-4" /> Acessar marketplace
           </Link>
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
