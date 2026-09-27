@@ -54,6 +54,9 @@ export default function Footer() {
               <li><Link href="/atividades-por-ano" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>
               <li><Link href="/buscar?categoria=combo" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Kits e Combos</Link></li>
               <li><Link href="/materiais-gratis" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Materiais Gratuitos</Link></li>
+              <li><Link href="/atividades-para-imprimir" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades para Imprimir</Link></li>
+              <li><Link href="/jogos-pedagogicos" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Jogos Pedagógicos</Link></li>
+              <li><Link href="/educacao-infantil" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Educação Infantil</Link></li>
               <li><Link href="/cliente/materiais" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
             </ul>
           </div>

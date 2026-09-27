@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import IntentLandingPage from '@/components/seo/IntentLandingPage';
 import { intentLandingMetadata, seoLandings } from '@/lib/seo-landings';
-const landing = seoLandings['educacao-infantil'];
+
+const landing = seoLandings['jogos-pedagogicos'];
 export const metadata: Metadata = intentLandingMetadata(landing);
 export default function Page() { return <IntentLandingPage landing={landing} />; }
