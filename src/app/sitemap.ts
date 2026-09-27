@@ -122,7 +122,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(post.updated_at || post.published_at || post.created_at),
         changeFrequency: 'monthly',
         priority: 0.65,
-        ...(post.cover_url ? { images: [post.cover_url] } : {}),
       });
     });
 
@@ -146,7 +145,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: product.updated_at || product.created_at ? new Date(product.updated_at || product.created_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
-        ...(product.capa_url ? { images: [product.capa_url] } : {}),
       });
     });
   } catch (error) {
