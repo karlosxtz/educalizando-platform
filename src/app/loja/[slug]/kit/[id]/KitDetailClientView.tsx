@@ -85,10 +85,9 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
-      {/* Top Educalizando Security & Guarantee Bar */}
-      <div className="bg-slate-900 py-2 px-4 text-center text-xs text-slate-300 flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-        <span>Pagamento Seguro via PIX • Combo com Acesso Imediato a Todos os Materiais • Garantia Educalizando</span>
+      {/* Informativo de compra: leve para combinar com a navegação pública. */}
+      <div className="border-b border-blue-100 bg-gradient-to-r from-blue-50 via-violet-50 to-emerald-50 px-4 py-2.5 text-center text-xs font-semibold text-slate-700">
+        <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1"><ShieldCheck className="h-4 w-4 text-emerald-600" /><span>Pagamento seguro via PIX</span><span className="text-slate-300">•</span><span>Acesso aos arquivos finais incluídos no combo</span><span className="text-slate-300">•</span><span>Garantia Educalizando</span></span>
       </div>
 
       {/* Navigation Breadcrumb Bar */}
@@ -514,16 +513,10 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
         </button>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">
+      {!marketplaceView && <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 mb-16 lg:mb-0">
         <p>© {new Date().getFullYear()} {store.nome_loja} — Todos os direitos reservados.</p>
-        <div className="flex items-center justify-center gap-2 text-slate-500">
-          <span>Tecnologia e Entrega por</span>
-          <Link href="/">
-            <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
-          </Link>
-        </div>
-      </footer>
+        <div className="flex items-center justify-center gap-2 text-slate-500"><span>Tecnologia e Entrega por</span><Link href="/"><img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} /></Link></div>
+      </footer>}
     </div>
   );
 }
