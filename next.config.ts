@@ -20,6 +20,17 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // URL histórica já registrada pelo Google antes da padronização do slug.
+      // A regra é aplicada antes da página para responder com 308 a todo crawler.
+      {
+        source: '/produto/kit-das-caixinhas-da-alfabetizacao-yvy5',
+        destination: '/produto/kit-das-caixinhas-da-alfabetizacao',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: '/cliente', destination: '/aluno' },
