@@ -42,11 +42,14 @@ export const metadata: Metadata = {
     'área de membros com certificado'
   ],
   authors: [{ name: 'Educalizando Plataforma Digital' }],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'Educalizando — Plataforma Digital Educacional',
     description:
       'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais.',
-    url: 'https://educalizando.com.br',
+    url: 'https://www.educalizando.com.br',
     siteName: 'Educalizando',
     images: [
       {
@@ -95,12 +98,31 @@ export default function RootLayout({
     },
   };
 
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Educalizando',
+    url: 'https://www.educalizando.com.br',
+    logo: 'https://www.educalizando.com.br/branding/logo-og.png?v=3',
+    description: 'Marketplace brasileiro de materiais didáticos digitais para educadores.',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      telephone: '+55-21-96500-8441',
+      availableLanguage: 'Portuguese',
+    },
+  };
+
   return (
     <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <CartProvider>
           <CartSidebar />
