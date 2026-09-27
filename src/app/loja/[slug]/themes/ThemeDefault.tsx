@@ -198,7 +198,12 @@ export default function ThemeDefault(props: StoreThemeProps) {
         <div className="h-36 sm:h-64 relative overflow-hidden bg-slate-950">
           {store.banner_url ? (
             <>
-              <img src={store.banner_url} alt={store.nome_loja} className="h-full w-full object-cover sm:object-contain" />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 hidden bg-cover bg-center blur-2xl scale-110 opacity-70 sm:block"
+                style={{ backgroundImage: `url(${store.banner_url})` }}
+              />
+              <img src={store.banner_url} alt={store.nome_loja} className="relative h-full w-full object-cover sm:object-contain" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
             </>
           ) : (
