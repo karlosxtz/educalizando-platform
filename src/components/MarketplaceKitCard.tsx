@@ -6,7 +6,7 @@ export default function MarketplaceKitCard({ kit }: { kit: MarketplaceKit }) {
   const products = kit.products || [];
   const total = products.reduce((sum, product) => sum + Number(product.preco || 0), 0);
   const saving = Math.max(0, total - Number(kit.preco_kit || 0));
-  const href = kit.store?.slug ? `/loja/${kit.store.slug}/kit/${kit.id}` : '#';
+  const href = `/kit/${kit.id}`;
   return <Link href={href} className="group overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-700">
     <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-violet-900 to-indigo-950">
       {kit.capa_url ? <img src={kit.capa_url} alt={kit.titulo} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full flex-col items-center justify-center gap-2 text-white"><Boxes className="h-10 w-10 text-lime-300" /><span className="text-sm font-black">Combo de materiais</span></div>}

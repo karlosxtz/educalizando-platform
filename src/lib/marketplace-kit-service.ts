@@ -27,3 +27,19 @@ export async function getPublicMarketplaceKits(limit = 24): Promise<MarketplaceK
     items: kit.kit_items || [],
   })) as MarketplaceKit[];
 }
+
+export async function getPublicMarketplaceKitById(id: string): Promise<MarketplaceKit | null> {
+  const { data, error } = await supabaseAdmin
+    .from('kits')
+    .select('*, store:stores(*), kit_items(id, kit_id, product_id, products(*))')
+    .eq('id', id)
+    .eq('status', 'publicado')
+    .is('excluido_em', null)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    ...data,
+    products: (data.kit_items || []).map((item: any) => item.products).filter((product: Product | null) => product && product.status === 'publicado' && !product.excluido_em),
+    items: data.kit_items || [],
+  } as MarketplaceKit;
+}
