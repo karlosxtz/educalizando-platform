@@ -128,10 +128,15 @@ export async function POST(request: Request) {
   const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","description":"descrição de venda pronta, com parágrafos e quebras reais","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
+  let usedSavedSuggestions = false;
   try {
     generated = await generateAiContent(secret, prompt, true);
   } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'A IA não concluiu a auditoria.' }, { status: 502 });
+    // A auditoria não pode desaparecer só porque uma geração pontual falhou.
+    // As sugestões determinísticas abaixo continuam completas e podem ser
+    // revisadas/aplicadas; a próxima auditoria pode enriquecer o texto com IA.
+    console.error('[SEO audit generation]', error);
+    usedSavedSuggestions = true;
   }
 
   const parsed = extractJson(generated);
@@ -165,7 +170,11 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({
-    summary: typeof parsed?.summary === 'string' ? parsed.summary.replace(/\*\*/g, '').trim() : 'A IA encontrou oportunidades para melhorar como seus materiais aparecem nas buscas.',
+    summary: typeof parsed?.summary === 'string'
+      ? parsed.summary.replace(/\*\*/g, '').trim()
+      : usedSavedSuggestions
+        ? 'Esta auditoria foi mantida com sugestões prontas para título, descrição, tags e temas. Você pode revisá-las e salvá-las normalmente.'
+        : 'A IA encontrou oportunidades para melhorar como seus materiais aparecem nas buscas.',
     average: reviews.length ? Math.round(reviews.reduce((sum, review) => sum + review.score, 0) / reviews.length) : 0,
     items,
   });

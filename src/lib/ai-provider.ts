@@ -12,12 +12,15 @@ export async function generateAiContent(secret: AiSecret, prompt: string, json =
   if (alternative) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': 'https://educalizando.com.br', 'X-Title': 'EducaliZando' },
-      body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages: [{ role: 'user', content: prompt }], response_format: json ? { type: 'json_object' } : undefined, max_tokens: 4096 }),
+      // A instrução de JSON já faz parte do prompt. Alguns modelos disponíveis
+      // pela integração alternativa recusam `response_format`, mesmo com uma
+      // chave válida, e respondiam como se a credencial estivesse errada.
+      body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }),
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
       console.error('[AI alternative provider]', response.status, payload?.error?.message || payload);
-      throw new Error('Não foi possível validar a chave da integração alternativa. Confirme a chave fornecida pelo suporte e tente novamente.');
+      throw new Error('A integração de IA não conseguiu concluir esta solicitação agora. Tente novamente em instantes.');
     }
     return payload?.choices?.[0]?.message?.content?.trim() || '';
   }
