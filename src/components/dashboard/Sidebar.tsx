@@ -288,22 +288,22 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                   className={`flex min-h-11 items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                     isTourTarget
                       ? 'bg-sky-50 text-sky-900 font-bold shadow-md ring-2 ring-sky-400 ring-offset-2 border-l-4 border-sky-600'
+                      : isReferralItem
+                      ? 'bg-gradient-to-r from-fuchsia-600 via-orange-500 to-amber-400 text-white border border-orange-300 shadow-lg shadow-orange-200/70 animate-pulse hover:brightness-110'
                       : isActive
                       ? 'bg-slate-100 text-brand-navy font-bold shadow-xs border-l-4 border-brand-navy'
-                      : isReferralItem
-                      ? 'bg-orange-50 text-orange-900 border border-orange-200 shadow-sm hover:bg-orange-100 hover:text-orange-950'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-brand-navy'
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-brand-navy' : isReferralItem ? 'text-orange-500 animate-pulse' : 'text-slate-400'}`} />
+                    <Icon className={`w-5 h-5 ${isReferralItem ? 'text-white drop-shadow-sm' : isActive ? 'text-brand-navy' : 'text-slate-400'}`} />
                     <span className="min-w-0 leading-tight">{item.label}</span>
                   </div>
 
                   {isTourTarget ? (
                     <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white animate-pulse">Tour</span>
                   ) : item.badge ? (
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isReferralItem ? 'bg-orange-500 text-white border-orange-500 animate-pulse' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                    <span className={`text-2xl leading-none ${isReferralItem ? 'drop-shadow-md' : 'text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200'}`}>
                       {item.badge}
                     </span>
                   ) : (
