@@ -14,6 +14,7 @@ import { createKit, updateKit, getKitById } from '@/lib/kit-service';
 import { Product, Store, Kit } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import { toast } from 'sonner';
+import KitCoverMosaic from '@/components/KitCoverMosaic';
 
 function KitWizardContent() {
   const router = useRouter();
@@ -167,7 +168,7 @@ function KitWizardContent() {
         return;
       }
     }
-    if (currentStep === 3) {
+    if (currentStep === 2) {
       if (selectedProductIds.length < 2) {
         setErrorMsg('Selecione pelo menos 2 produtos para compor o combo.');
         return;
@@ -270,8 +271,8 @@ function KitWizardContent() {
 
           {[
             { step: 1, title: 'Título & Descrição' },
-            { step: 2, title: 'Capa do Kit' },
-            { step: 3, title: 'Seleção de Produtos' },
+            { step: 2, title: 'Seleção de Produtos' },
+            { step: 3, title: 'Capa do Kit' },
             { step: 4, title: 'Preço & Economia' }
           ].map((item) => {
             const isCompleted = currentStep > item.step;
@@ -359,13 +360,24 @@ function KitWizardContent() {
             </motion.div>
           )}
 
-          {/* STEP 2: Kit Cover Upload */}
+          {/* STEP 2: Product Selection Checklist */}
           {currentStep === 2 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2"><Package className="w-5 h-5 text-blue-600" />2. Seleção de Produtos da Loja</h2>
+                <p className="text-xs text-slate-500 mt-1 font-medium">Selecione quais produtos publicados da sua própria loja farão parte deste combo. A compra do combo libera somente os arquivos finais de cada material; arquivos e links de PLR nunca são entregues.</p>
+              </div>
+              {availableProducts.length === 0 ? <div className="bg-amber-50 border border-amber-200 text-amber-900 p-6 rounded-2xl text-center space-y-2"><AlertCircle className="w-8 h-8 text-amber-600 mx-auto" /><h4 className="font-bold text-sm">Nenhum produto publicado</h4><p className="text-xs text-amber-700">Você ainda não possui produtos publicados nesta loja para agrupar em um kit.</p></div> : <div className="space-y-4"><div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-center justify-between text-xs font-bold text-blue-900"><span>{selectedProductIds.length} produto(s) selecionado(s)</span><span>Soma Individual: <strong className="text-sm">R$ {selectedProductsSum.toFixed(2).replace('.', ',')}</strong></span></div><div className="grid gap-3 max-h-96 overflow-y-auto pr-1">{availableProducts.map(prod => { const isSelected = selectedProductIds.includes(prod.id); return <div key={prod.id} onClick={() => toggleProductSelection(prod.id)} className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${isSelected ? 'bg-blue-50/70 border-blue-600 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'}`}><div className="flex items-center gap-3.5 min-w-0"><div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 border transition-all ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-slate-300'}`}>{isSelected && <Check className="w-4 h-4" />}</div><div className="w-12 h-14 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">{prod.capa_url ? <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">PDF</div>}</div><div className="min-w-0"><h4 className="text-sm font-bold text-slate-900 truncate">{prod.titulo}</h4><span className="text-[10px] font-extrabold text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">{prod.tipo}</span></div></div><div className="text-right flex-shrink-0"><span className="text-sm font-black text-slate-900">R$ {prod.preco.toFixed(2).replace('.', ',')}</span></div></div>; })}</div></div>}
+            </motion.div>
+          )}
+
+          {/* STEP 3: Kit Cover Upload */}
+          {currentStep === 3 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div>
                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                   <UploadCloud className="w-5 h-5 text-blue-600" />
-                  2. Imagem de Capa do Kit
+                  3. Imagem de Capa do Kit
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
                   Selecione uma imagem promocional que represente o pacote completo de materiais.
@@ -384,87 +396,7 @@ function KitWizardContent() {
                 isImage={true}
                 aspectRatio="3:4"
               />
-            </motion.div>
-          )}
-
-          {/* STEP 3: Product Selection Checklist */}
-          {currentStep === 3 && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <Package className="w-5 h-5 text-blue-600" />
-                  3. Seleção de Produtos da Loja
-                </h2>
-                <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Selecione quais produtos publicados da sua própria loja farão parte deste combo. A compra do combo libera somente os arquivos finais de cada material; arquivos e links de PLR nunca são entregues.
-                </p>
-              </div>
-
-              {availableProducts.length === 0 ? (
-                <div className="bg-amber-50 border border-amber-200 text-amber-900 p-6 rounded-2xl text-center space-y-2">
-                  <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
-                  <h4 className="font-bold text-sm">Nenhum produto publicado</h4>
-                  <p className="text-xs text-amber-700">
-                    Você ainda não possui produtos publicados nesta loja para agrupar em um kit.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-center justify-between text-xs font-bold text-blue-900">
-                    <span>{selectedProductIds.length} produto(s) selecionado(s)</span>
-                    <span>Soma Individual: <strong className="text-sm">R$ {selectedProductsSum.toFixed(2).replace('.', ',')}</strong></span>
-                  </div>
-
-                  <div className="grid gap-3 max-h-96 overflow-y-auto pr-1">
-                    {availableProducts.map(prod => {
-                      const isSelected = selectedProductIds.includes(prod.id);
-
-                      return (
-                        <div
-                          key={prod.id}
-                          onClick={() => toggleProductSelection(prod.id)}
-                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
-                            isSelected
-                              ? 'bg-blue-50/70 border-blue-600 shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3.5 min-w-0">
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 border transition-all ${
-                              isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-slate-300'
-                            }`}>
-                              {isSelected && <Check className="w-4 h-4" />}
-                            </div>
-
-                            <div className="w-12 h-14 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
-                              {prod.capa_url ? (
-                                <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">
-                                  PDF
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-bold text-slate-900 truncate">{prod.titulo}</h4>
-                              <span className="text-[10px] font-extrabold text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                                {prod.tipo}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-right flex-shrink-0">
-                            <span className="text-sm font-black text-slate-900">
-                              R$ {prod.preco.toFixed(2).replace('.', ',')}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4"><p className="text-xs font-black text-violet-900">Capa automática do combo</p><p className="mt-1 text-xs leading-5 text-violet-700">Se não enviar uma capa exclusiva, esta composição usará somente as capas dos {selectedProductIds.length} produtos selecionados acima.</p><div className="mt-3 aspect-[16/9] max-w-md overflow-hidden rounded-xl shadow-sm"><KitCoverMosaic products={availableProducts.filter(product => selectedProductIds.includes(product.id))} /></div></div>
             </motion.div>
           )}
 

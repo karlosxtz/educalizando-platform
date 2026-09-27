@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Boxes, FileText, Package } from 'lucide-react';
 import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
+import KitCoverMosaic from '@/components/KitCoverMosaic';
 
 export default function MarketplaceKitCard({ kit }: { kit: MarketplaceKit }) {
   const products = kit.products || [];
@@ -9,7 +10,7 @@ export default function MarketplaceKitCard({ kit }: { kit: MarketplaceKit }) {
   const href = `/kit/${kit.id}`;
   return <Link href={href} className="group overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-700">
     <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-violet-900 to-indigo-950">
-      {kit.capa_url ? <img src={kit.capa_url} alt={kit.titulo} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full flex-col items-center justify-center gap-2 text-white"><Boxes className="h-10 w-10 text-lime-300" /><span className="text-sm font-black">Combo de materiais</span></div>}
+      {kit.capa_url ? <img src={kit.capa_url} alt={kit.titulo} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <KitCoverMosaic products={products} />}
       <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-violet-950/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white"><Boxes className="h-3.5 w-3.5 text-lime-300" /> Combo</span>
       <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-violet-800"><Package className="h-3.5 w-3.5" /> {products.length} materiais</span>
     </div>

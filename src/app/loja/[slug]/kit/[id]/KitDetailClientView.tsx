@@ -12,6 +12,7 @@ import { validateCouponCode } from '@/lib/coupon-service';
 // import { getReviews } from '@/lib/review-service'; // Kits no longer have direct reviews
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
+import KitCoverMosaic from '@/components/KitCoverMosaic';
 
 interface KitDetailClientViewProps {
   store: Store;
@@ -154,12 +155,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
               <div className="aspect-[16/9] max-w-2xl mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                 {kit.capa_url ? (
                   <img src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-sm font-semibold p-8 text-center bg-gradient-to-tr from-slate-900 to-slate-800 text-white">
-                    <Boxes className="w-12 h-12 text-blue-400 mb-2" />
-                    <span>Combo de Materiais Didáticos</span>
-                  </div>
-                )}
+                ) : <KitCoverMosaic products={includedProducts} />}
               </div>
             </div>
 
