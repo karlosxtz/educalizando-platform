@@ -86,7 +86,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Páginas de descoberta permanentes: importantes para quem pesquisa por
     // disciplina ou etapa de ensino, mesmo antes de conhecer uma loja.
-    categories.forEach((category) => {
+    // Não enviamos páginas de coleção vazias: elas exibem apenas um estado de
+    // ausência de produtos e diluem o orçamento de rastreamento do Google.
+    // Assim que um criador publicar um material na categoria ou nível, a URL
+    // passa a entrar automaticamente no sitemap na próxima leitura.
+    const categoryIdsWithProducts = new Set(
+      products.map((product) => product.category_id).filter(Boolean),
+    );
+    const educationLevelIdsWithProducts = new Set(
+      products.map((product) => product.education_level_id).filter(Boolean),
+    );
+
+    categories.filter((category) => categoryIdsWithProducts.has(category.id)).forEach((category) => {
       if (!category.slug) return;
       sitemapEntries.push({
         url: `${baseUrl}/categorias/${category.slug}`,
@@ -96,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
-    educationLevels.forEach((level) => {
+    educationLevels.filter((level) => educationLevelIdsWithProducts.has(level.id)).forEach((level) => {
       if (!level.slug) return;
       sitemapEntries.push({
         url: `${baseUrl}/atividades-por-ano/${level.slug}`,
