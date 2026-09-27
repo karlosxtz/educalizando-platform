@@ -8,6 +8,8 @@ import MonthlyCampaignCarousel from '@/components/MonthlyCampaignCarousel';
 import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
+import MarketplaceKitCard from '@/components/MarketplaceKitCard';
+import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
 
 type MarketplaceProduct = Product & { store?: StoreData };
 
@@ -35,11 +37,13 @@ export default function HomepageMarketplace({
   banners,
   products,
   stores,
+  kits,
   monthlyTags,
 }: {
   banners: MainBanner[];
   products: MarketplaceProduct[];
   stores: StoreData[];
+  kits: MarketplaceKit[];
   monthlyTags: readonly string[];
 }) {
   const featured = products.slice(0, 4);
@@ -87,6 +91,7 @@ export default function HomepageMarketplace({
       <UpcomingCalendarDates products={products} orderClass="order-14" />
 
       <Shelf priority title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar?sort=popular" products={featured} />
+      {kits.length > 0 && <section className="order-3 mx-auto w-full max-w-[1440px] px-4 py-9 sm:px-6 sm:py-12 lg:px-10" aria-labelledby="home-combos"><div className="mb-6 flex items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[.14em] text-violet-700">Pacotes completos</p><h2 id="home-combos" className="mt-1 text-2xl font-black text-slate-950 sm:text-3xl">Combos para aproveitar mais</h2><p className="mt-1 text-sm text-slate-600">Materiais finais organizados em um único pedido, com acesso individual a cada arquivo.</p></div><Link href="/buscar?categoria=combo" className="shrink-0 text-sm font-black text-violet-700 hover:underline">Ver todos</Link></div><div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">{kits.slice(0, 4).map(kit => <MarketplaceKitCard key={kit.id} kit={kit} />)}</div></section>}
 
       <section className="order-9 mx-auto w-full max-w-[1440px] px-4 py-9 sm:px-6 sm:py-12 lg:px-10" aria-labelledby="home-calendario">
         <div className="home-calendar-panel relative isolate overflow-hidden rounded-[2rem] border border-indigo-100 bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 p-5 text-white shadow-xl shadow-violet-950/20 sm:p-8">

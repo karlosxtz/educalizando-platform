@@ -222,6 +222,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Um ou mais produtos não existem ou estão indisponíveis.' }, { status: 400 });
     }
 
+    // Um combo sempre é uma compra do produto final. Antes de cobrar, garanta
+    // que todos os itens possuem entrega final própria; nenhuma URL de licença
+    // PLR entra neste fluxo, mesmo que o produto também ofereça PLR.
+    if (kitContext) {
+      const { data: finalDeliveries, error: deliveryError } = await supabaseAdmin
+        .from('product_deliveries')
+        .select('product_id, arquivo_url')
+        .in('product_id', productIds);
+      const deliverableIds = new Set((finalDeliveries || []).filter((delivery: { arquivo_url?: string | null }) => Boolean(delivery.arquivo_url)).map((delivery: { product_id: string }) => delivery.product_id));
+      if (deliveryError || deliverableIds.size !== productIds.length) {
+        return NextResponse.json({ success: false, error: 'Este combo possui um material sem arquivo final configurado. A compra não foi realizada.' }, { status: 400 });
+      }
+    }
+
     const checkoutItems = kitContext
       ? productIds.map((productId: string) => ({ productId, quantity: 1 }))
       : items;

@@ -396,7 +396,7 @@ function KitWizardContent() {
                   3. Seleção de Produtos da Loja
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Selecione quais produtos publicados da sua própria loja farão parte deste combo.
+                  Selecione quais produtos publicados da sua própria loja farão parte deste combo. A compra do combo libera somente os arquivos finais de cada material; arquivos e links de PLR nunca são entregues.
                 </p>
               </div>
 

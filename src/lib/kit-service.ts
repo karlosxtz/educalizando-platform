@@ -69,6 +69,15 @@ function saveLocalKits(kits: Kit[]) {
 // 1. Obter todos os Kits de uma loja (Painel do Criador)
 // 1. Obter Todos os Kits da Loja (Dashboard)
 export async function getKitsByStoreId(storeId: string): Promise<Kit[]> {
+  // The creator dashboard uses the authenticated server endpoint. This avoids
+  // an RLS read failure making a successfully created combo appear to vanish.
+  try {
+    const response = await fetch(`/api/kits?storeId=${encodeURIComponent(storeId)}`);
+    if (response.ok) {
+      const payload = await response.json();
+      if (Array.isArray(payload.kits)) return payload.kits as Kit[];
+    }
+  } catch { /* fallback below supports local development */ }
   const deletedIds = getDeletedKitIds();
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -237,6 +246,11 @@ export async function createKit(
   );
 
   if (isRealSupabase) {
+    const response = await fetch('/api/kits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: kitData.store_id, titulo: kitData.titulo, descricao: kitData.descricao, capa_url: kitData.capa_url, preco_kit: kitData.preco_kit, status: kitData.status, productIds }) });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Não foi possível salvar o combo.');
+    return payload.kit as Kit;
+    /*
     // Insere Kit
     const { data: newKit, error: kitError } = await supabase
       .from('kits')
@@ -270,6 +284,7 @@ export async function createKit(
     }
 
     return getKitById(newKit.id) as Promise<Kit>;
+    */
   }
 
   // Fallback Local

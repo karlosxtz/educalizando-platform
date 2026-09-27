@@ -15,6 +15,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import type { Metadata } from 'next';
+import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
+import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 
 export const revalidate = 0;
 
@@ -33,6 +35,7 @@ export default async function BuscarPage({
   const resolvedParams = await searchParams;
   const { q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data } = resolvedParams;
   const isPlrMarketplace = filter === 'plr';
+  const isComboMarketplace = categoria === 'combo';
   const page = searchPage(resolvedParams.page);
   const query = new URLSearchParams(Object.entries(resolvedParams).filter((entry): entry is [string, string] => typeof entry[1] === 'string')).toString();
   const disciplines = await getDisciplines();
@@ -48,9 +51,14 @@ export default async function BuscarPage({
   ].filter(item => item.value);
 
   // Realiza a busca no service
-  const { data: products, count, totalPages, matchMode } = await searchProducts({
-    q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data, page
-  });
+  const productResult = isComboMarketplace
+    ? { data: [], count: 0, totalPages: 0, matchMode: 'exact' as const }
+    : await searchProducts({ q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data, page });
+  const kits = isComboMarketplace ? (await getPublicMarketplaceKits(100)).filter(kit => !q || `${kit.titulo} ${kit.descricao || ''}`.toLocaleLowerCase('pt-BR').includes(q.toLocaleLowerCase('pt-BR'))) : [];
+  const products = productResult.data;
+  const count = isComboMarketplace ? kits.length : productResult.count;
+  const totalPages = productResult.totalPages;
+  const matchMode = productResult.matchMode;
 
   // Resolve título dinâmico da página
   let pageTitle = "Todos os Materiais";
@@ -143,13 +151,13 @@ export default async function BuscarPage({
               {count > 0 ? (
                 <>
                   <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 xl:grid-cols-3">
-                    {products.map(product => (
+                    {isComboMarketplace ? kits.map(kit => <MarketplaceKitCard key={kit.id} kit={kit} />) : products.map(product => (
                       <ProductCard key={product.id} product={product} purchaseMode={isPlrMarketplace ? 'plr' : 'standard'} />
                     ))}
                   </div>
 
                   {/* Paginação */}
-                  {totalPages > 1 && (
+                  {!isComboMarketplace && totalPages > 1 && (
                     <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
                       {page > 1 && <Link href={searchHref(query, { page: String(page - 1) })} className="px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-600 font-bold">Anterior</Link>}
                       <span className="px-4 py-2 text-sm font-bold text-slate-900">
