@@ -177,6 +177,9 @@ function MarketplaceHeaderInner() {
               <Link href="/ofertas" className="whitespace-nowrap text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">
                 Ofertas
               </Link>
+              <Link href="/buscar?categoria=combo" className="whitespace-nowrap text-sm font-bold text-violet-700 hover:text-violet-900 transition-colors">
+                Combos
+              </Link>
             </div>
 
             {/* Direita: Pills Elegantes */}
@@ -192,6 +195,7 @@ function MarketplaceHeaderInner() {
               <div className="flex shrink-0 items-center justify-center"><CategoryDropdown /></div>
               <Link href="/lojas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-slate-600">Lojas</Link>
               <Link href="/ofertas" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-orange-600">Ofertas</Link>
+              <Link href="/buscar?categoria=combo" className="flex min-w-0 flex-1 items-center justify-center px-1 text-center text-[11px] font-extrabold text-violet-700">Combos</Link>
             </div>
             {mobileMenuOpen && (
               <div id="marketplace-mobile-menu" role="dialog" aria-label="Menu principal" className="fixed inset-x-0 top-0 z-[60] flex max-h-[100dvh] flex-col overflow-y-auto bg-white px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 shadow-2xl">
@@ -200,7 +204,7 @@ function MarketplaceHeaderInner() {
                   <button type="button" onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }} aria-label="Fechar menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><X className="h-5 w-5" /></button>
                 </div>
                 <nav className="grid gap-1 py-3" aria-label="Links principais">
-                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/buscar?categoria=combo','Combos'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
                 </nav>
                 <div className="border-t border-slate-100 pt-3">
                   <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Categorias rápidas</p>
