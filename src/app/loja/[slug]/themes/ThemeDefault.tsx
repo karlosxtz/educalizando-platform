@@ -7,7 +7,7 @@ import {
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
-  Globe, ArrowLeft
+  Globe
 } from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
@@ -238,8 +238,8 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
         {/* Store Profile Bar with Floating Circle Logo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-6 sm:pb-8">
-          <Link href="/lojas" className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-1 text-xs font-bold text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
-            <ArrowLeft className="h-4 w-4" /> Voltar para lojas
+          <Link href="/" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 text-xs font-black text-blue-700 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+            <Search className="h-4 w-4" /> Acessar marketplace
           </Link>
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
             
@@ -564,6 +564,17 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   : 'Volte em breve! Este criador está preparando novidades e materiais exclusivos.'}
               </p>
             </div>
+
+            <Link
+              href={searchFilter.trim() ? `/buscar?q=${encodeURIComponent(searchFilter.trim())}` : '/buscar'}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-black text-white shadow-md transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <Search className="h-4 w-4" /> Procurar no marketplace da Educalizando
+            </Link>
+            <p className="mx-auto max-w-md text-[11px] font-medium leading-relaxed text-slate-500">
+              O material que você procura pode estar no marketplace público da Educalizando, com materiais de todos os criadores.
+            </p>
 
           {(searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' || selectedCollection !== 'all') && products.length > 0 && (
               <div className="pt-2">
