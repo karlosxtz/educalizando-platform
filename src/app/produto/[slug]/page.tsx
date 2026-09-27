@@ -125,11 +125,24 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     description: product.descricao || 'Material didático digital.',
     image: product.capa_url ? [product.capa_url] : [],
     sku: product.id,
+    brand: {
+      '@type': 'Brand',
+      name: store.nome_loja,
+    },
+    ...(category ? { category: category.nome } : {}),
+    ...(product.format_details || product.age_range || product.tags?.length ? {
+      additionalProperty: [
+        ...(product.format_details ? [{ '@type': 'PropertyValue', name: 'Formato', value: product.format_details }] : []),
+        ...(product.age_range ? [{ '@type': 'PropertyValue', name: 'Faixa etária', value: product.age_range }] : []),
+        ...(product.tags?.length ? [{ '@type': 'PropertyValue', name: 'Temas de busca', value: product.tags.join(', ') }] : []),
+      ],
+    } : {}),
     offers: {
       '@type': 'Offer',
       price: product.preco,
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
       url: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
     },
     ...(product.average_rating && product.review_count ? {
