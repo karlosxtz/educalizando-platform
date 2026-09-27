@@ -17,6 +17,19 @@ function absoluteUrl(value: string) {
 }
 
 /**
+ * A vitrine usa emojis para conversar com educadores. O Merchant Center exige
+ * texto editorial sem caracteres chamativos. Esta limpeza existe apenas no
+ * feed e nunca altera os dados nem a apresentação do produto na plataforma.
+ */
+function merchantText(value: string, maxLength: number) {
+  return value
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/**
  * Feed para o Google Merchant Center. A URL pode ser cadastrada como uma
  * fonte programada no Merchant Center: /feed/google.xml.
  *
@@ -37,7 +50,11 @@ export async function GET() {
     const id = product.id;
     const link = `${SITE_URL}/produto/${product.slug || product.id}`;
     const image = absoluteUrl(product.capa_url!);
-    const description = (product.descricao || `Material didático digital: ${product.titulo}`).replace(/\s+/g, ' ').trim().slice(0, 5000);
+    product.titulo = merchantText(product.titulo, 150);
+    const description = merchantText(
+      product.descricao || `Material didático digital: ${product.titulo}`,
+      5000,
+    );
     const brand = product.store?.nome_loja || 'Educalizando';
     const productType = product.category?.nome
       ? `Materiais didáticos digitais > ${product.category.nome}`
