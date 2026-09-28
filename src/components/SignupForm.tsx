@@ -240,6 +240,9 @@ export default function SignupForm() {
               </label>
               <input
                 type="text"
+                required
+                inputMode="tel"
+                autoComplete="tel"
                 {...register('whatsapp')}
                 placeholder="(00) 00000-0000"
                 maxLength={15}

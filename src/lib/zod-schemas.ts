@@ -24,8 +24,11 @@ export const creatorSignupSchema = z.object({
     .max(40, { message: 'O nome da loja não pode ter mais que 40 caracteres.' }),
   whatsapp: z
     .string()
-    .min(10, { message: 'Informe um número de WhatsApp válido com DDD.' })
-    .max(15),
+    .min(1, { message: 'Informe seu WhatsApp com DDD.' })
+    .refine((value) => {
+      const digits = value.replace(/\D/g, '');
+      return digits.length === 10 || digits.length === 11;
+    }, { message: 'Informe um WhatsApp válido com DDD.' }),
   category: z.enum([
     'Educação Infantil',
     'Ensino Fundamental',

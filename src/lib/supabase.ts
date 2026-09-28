@@ -70,6 +70,10 @@ export async function registerCreatorInSupabase({
   referralCode?: string | null;
 }) {
   const cleanCpf = cpf.replace(/\D/g, '');
+  const cleanWhatsapp = whatsapp.replace(/\D/g, '');
+  if (cleanWhatsapp.length < 10 || cleanWhatsapp.length > 11) {
+    throw new Error('Informe um WhatsApp válido com DDD para criar sua loja.');
+  }
   
   // Garantir que o nome da loja seja humano e não o e-mail
   let realStoreName = storeName && !storeName.includes('@') ? storeName.trim() : `Loja de ${fullName.split(' ')[0]}`;
@@ -111,7 +115,7 @@ export async function registerCreatorInSupabase({
           cpf: cleanCpf,
           store_name: realStoreName,
           store_slug: storeSlug,
-          whatsapp: whatsapp.replace(/\D/g, ''),
+          whatsapp: cleanWhatsapp,
           role: 'creator',
           is_creator: true
           ,creator_referral_code: referralCode || undefined
@@ -136,7 +140,7 @@ export async function registerCreatorInSupabase({
           slug: storeSlug,
           descricao: `Loja oficial de infoprodutos de ${fullName}.`,
           cor_primaria: '#ff5722',
-          whatsapp: whatsapp.replace(/\D/g, ''),
+          whatsapp: cleanWhatsapp,
           created_at: new Date().toISOString()
         }
       ])
@@ -193,9 +197,7 @@ export async function registerCreatorInSupabase({
       }
     }
 
-    if (whatsapp) {
-      await sendWelcomeWhatsApp(whatsapp, fullName, 'creator', authData.session?.access_token);
-    }
+    await sendWelcomeWhatsApp(cleanWhatsapp, fullName, 'creator', authData.session?.access_token);
 
     if (authData.session?.access_token && !referralCode) {
       void fetch('/api/email-automations/welcome', {
@@ -217,6 +219,7 @@ export async function registerCreatorInSupabase({
       slug: storeSlug,
       descricao: `Loja oficial de infoprodutos de ${fullName}.`,
       cor_primaria: '#ff5722',
+      whatsapp: cleanWhatsapp,
       created_at: new Date().toISOString()
     };
 
