@@ -23,9 +23,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ re
   const user = await getRequestUser(request); const { requestId } = await params;
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   const item = await findRequest(requestId); if (!item || item.customer_id !== user.id) return NextResponse.json({ error: 'Somente o cliente pode responder à proposta.' }, { status: 403 });
-  const { proposalId, action } = await request.json();
+  const { proposalId, action, amount, deliveryDays, scope } = await request.json();
   const { data: proposal } = await supabaseAdmin.from('exclusive_material_proposals').select('*').eq('id', proposalId).eq('request_id', requestId).eq('status', 'sent').maybeSingle();
   if (!proposal) return NextResponse.json({ error: 'Esta proposta não está mais disponível.' }, { status: 409 });
+  if (action === 'counter') {
+    const counterAmount = Number(amount);
+    const counterDays = Number(deliveryDays);
+    const counterScope = String(scope || '').trim();
+    if (!Number.isFinite(counterAmount) || counterAmount <= 0 || !Number.isInteger(counterDays) || counterDays < 1 || !counterScope) {
+      return NextResponse.json({ error: 'Informe valor, prazo e os detalhes da sua contraproposta.' }, { status: 400 });
+    }
+    await supabaseAdmin.from('exclusive_material_proposals').update({ status: 'superseded', responded_at: new Date().toISOString() }).eq('id', proposal.id);
+    await supabaseAdmin.from('exclusive_material_requests').update({ accepted_proposal_id: null, status: 'negotiating', updated_at: new Date().toISOString() }).eq('id', requestId);
+    await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'customer', body: `Contraproposta do cliente:\nValor sugerido: R$ ${counterAmount.toFixed(2).replace('.', ',')}.\nPrazo desejado: ${counterDays} ${counterDays === 1 ? 'dia' : 'dias'}.\n\nDetalhes:\n${counterScope}` });
+    await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: user.id, request_id: requestId, type: 'counter_proposal', title: 'Sua contraproposta foi enviada', body: `A contraproposta para “${item.title}” foi registrada e enviada ao criador.` });
+    return NextResponse.json({ countered: true });
+  }
   const accepted = action === 'accept';
   await supabaseAdmin.from('exclusive_material_proposals').update({ status: accepted ? 'accepted' : 'declined', responded_at: new Date().toISOString() }).eq('id', proposal.id);
   await supabaseAdmin.from('exclusive_material_requests').update({ accepted_proposal_id: accepted ? proposal.id : null, status: accepted ? 'awaiting_payment' : 'negotiating', updated_at: new Date().toISOString() }).eq('id', requestId);
