@@ -17,13 +17,12 @@ export async function GET(request: Request) {
   if (isCreator && !store) return NextResponse.json({ error: 'Apenas criadores podem acessar esta área.' }, { status: 403 });
   let query = supabaseAdmin
     .from('exclusive_material_requests')
-    .select('*, store:stores(id,nome_loja,slug,logo_url), proposals:exclusive_material_proposals(*), payments:exclusive_material_payments(*), deliveries:exclusive_material_deliveries(*)')
+    .select('*, store:stores(id,nome_loja,slug,logo_url), proposals:exclusive_material_proposals!exclusive_material_proposals_request_id_fkey(*), payments:exclusive_material_payments(*), deliveries:exclusive_material_deliveries(*)')
     .order('updated_at', { ascending: false });
-  // customer_email mantém a caixa acessível em contas antigas que receberam
-  // uma nova identidade Supabase com o mesmo e-mail.
+  // A identidade autenticada determina o acesso; e-mail não substitui ownership.
   query = isCreator
     ? query.eq('creator_id', user.id)
-    : query.or(`customer_id.eq.${user.id},customer_email.eq.${(user.email || '').replace(/[,()]/g, '')}`);
+    : query.eq('customer_id', user.id);
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: `Não foi possível listar solicitações: ${error.message}` }, { status: 500 });
   const { data: notifications } = !isCreator ? await supabaseAdmin.from('exclusive_material_notifications').select('*').eq('customer_id', user.id).is('read_at', null).order('created_at', { ascending: false }) : { data: [] };
