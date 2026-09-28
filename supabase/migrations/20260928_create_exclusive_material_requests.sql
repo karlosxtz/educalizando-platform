@@ -1,7 +1,7 @@
 -- Encomendas particulares entre clientes e criadores.
 CREATE TABLE IF NOT EXISTS public.exclusive_material_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id VARCHAR(64) NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
+  store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
   creator_id UUID NOT NULL,
   customer_id UUID NOT NULL,
   title TEXT NOT NULL,
