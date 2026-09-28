@@ -182,7 +182,7 @@ export default function DashboardOverviewPage() {
           </div>
           <div>
             <span className="text-3xl font-black text-slate-900">{formatCurrency(wallet.totalVendido)}</span>
-            <span className="text-xs font-medium text-emerald-600 block mt-1">Somente pedidos confirmados</span>
+            <span className="text-xs font-medium text-emerald-600 block mt-1">Produtos finais, PLR e exclusivos pagos</span>
           </div>
         </motion.div>
 
@@ -243,7 +243,7 @@ export default function DashboardOverviewPage() {
             </div>
             <h2 className="mt-2 text-xl font-black text-slate-900">Entenda o dinheiro da sua loja</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Os valores consideram pedidos confirmados, taxas registradas, saldo da carteira e saques concluídos.
+              Os valores consideram produtos finais, licenças PLR, materiais exclusivos pagos, taxas registradas, saldo da carteira e saques concluídos.
             </p>
           </div>
           <Link href="/dashboard/financeiro" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-slate-700">
@@ -255,7 +255,7 @@ export default function DashboardOverviewPage() {
           <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
             <div className="flex items-center gap-2 text-xs font-bold text-blue-700"><DollarSign className="h-4 w-4" /> Receita bruta</div>
             <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(wallet.totalVendido)}</p>
-            <p className="mt-1 text-xs text-slate-500">Total dos pagamentos aprovados</p>
+            <p className="mt-1 text-xs text-slate-500">Catálogo, PLR e materiais exclusivos aprovados</p>
           </div>
           <div className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4">
             <div className="flex items-center gap-2 text-xs font-bold text-rose-700"><ReceiptText className="h-4 w-4" /> Taxas aplicadas</div>
@@ -270,7 +270,7 @@ export default function DashboardOverviewPage() {
           <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
             <div className="flex items-center gap-2 text-xs font-bold text-amber-700"><Percent className="h-4 w-4" /> Em processamento</div>
             <p className="mt-2 text-2xl font-black text-slate-900">{formatCurrency(wallet.saldoPendente)}</p>
-            <p className="mt-1 text-xs text-slate-500">Pedidos aguardando confirmação</p>
+            <p className="mt-1 text-xs text-slate-500">Pedidos e propostas aguardando confirmação</p>
           </div>
         </div>
 
@@ -310,7 +310,7 @@ export default function DashboardOverviewPage() {
               </div>
               <div>
                 <p className="text-2xl font-black text-slate-900">{chartConversionRate.toFixed(1)}%</p>
-                <p className="mt-1 text-xs font-medium text-slate-500">Conversão de visitas</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">Pagamentos confirmados</p>
               </div>
             </div>
             <p className="mt-5 border-t border-indigo-100 pt-4 text-xs leading-relaxed text-slate-600">

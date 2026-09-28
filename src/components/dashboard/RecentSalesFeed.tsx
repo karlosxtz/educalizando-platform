@@ -34,13 +34,13 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
       case 'pago':
         return (
           <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> PIX Confirmado
+            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Pagamento confirmado
           </span>
         );
       case 'pendente_pix':
         return (
           <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1">
-            <Clock className="w-3 h-3 text-amber-600 animate-pulse" /> Aguardando PIX
+            <Clock className="w-3 h-3 text-amber-600 animate-pulse" /> Aguardando pagamento
           </span>
         );
       case 'expirado':
@@ -57,7 +57,7 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="min-w-0">
           <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 mb-0.5">
-            <QrCode className="w-4 h-4" /> Vendas & Entregas PIX
+            <QrCode className="w-4 h-4" /> Vendas e entregas
           </span>
           <h3 className="text-lg font-bold text-slate-900">Feed de Pedidos Recentes</h3>
         </div>
@@ -100,6 +100,7 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
                   <p className="text-[11px] text-slate-500 truncate font-medium mt-0.5">
                     {ord.produtoTitulo}
                   </p>
+                  {ord.saleSource && <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${ord.saleSource === 'exclusive' ? 'bg-violet-100 text-violet-700' : ord.saleSource === 'plr' ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-sky-700'}`}>{ord.saleSource === 'exclusive' ? 'Material exclusivo' : ord.saleSource === 'plr' ? 'Licença PLR' : 'Produto final'}</span>}
                   <span className="block truncate text-[10px] text-slate-400 mt-0.5">
                     {ord.dataCompra} • {ord.clienteEmail}
                   </span>

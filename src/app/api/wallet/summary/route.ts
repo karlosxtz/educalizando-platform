@@ -22,7 +22,6 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const storeId = url.searchParams.get('storeId');
-    const forceRefresh = url.searchParams.get('force') === 'true';
 
     if (!storeId) {
       return NextResponse.json({ error: 'storeId é obrigatório.' }, { status: 400 });
@@ -50,8 +49,12 @@ export async function GET(request: Request) {
     }
 
     // Pedidos, livro-caixa e saques são a fonte de verdade do resumo.
-    const [ordersResult, txResult, withdrawalsResult] = await Promise.all([
+    const [ordersResult, exclusivePaymentsResult, txResult, withdrawalsResult] = await Promise.all([
       supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
+      supabaseAdmin
+        .from('exclusive_material_payments')
+        .select('gross_amount,platform_fee_amount,creator_net_amount,status,request:exclusive_material_requests!inner(store_id)')
+        .eq('request.store_id', storeId),
       supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId),
       supabaseAdmin.from('withdrawals').select('amount, status').eq('store_id', storeId)
     ]);
@@ -62,11 +65,15 @@ export async function GET(request: Request) {
     if (txResult.error) {
       console.error('[API Wallet Summary] Erro wallet_transactions:', txResult.error);
     }
+    if (exclusivePaymentsResult.error) {
+      console.error('[API Wallet Summary] Erro exclusive_material_payments:', exclusivePaymentsResult.error);
+    }
     if (withdrawalsResult.error) {
       console.error('[API Wallet Summary] Erro withdrawals:', withdrawalsResult.error);
     }
 
     const allOrders = ordersResult.data || [];
+    const allExclusivePayments = exclusivePaymentsResult.data || [];
     const allTx = txResult.data || [];
     const completedWithdrawals = (withdrawalsResult.data || []).filter((withdrawal: any) =>
       String(withdrawal.status || '').toUpperCase() === 'COMPLETED'
@@ -85,9 +92,12 @@ export async function GET(request: Request) {
 
     const paidOrders = allOrders.filter(isOrderPaid);
     const pendingOrders = allOrders.filter(isOrderPending);
+    const paidExclusivePayments = allExclusivePayments.filter((payment: any) => payment.status === 'paid');
+    const pendingExclusivePayments = allExclusivePayments.filter((payment: any) => payment.status === 'pending');
 
     const totalVendido = paidOrders.reduce((sum: number, o: any) =>
-      sum + Number(o.total_amount || o.subtotal_amount || 0), 0);
+      sum + Number(o.total_amount || o.subtotal_amount || 0), 0) + paidExclusivePayments.reduce((sum: number, payment: any) =>
+      sum + Number(payment.gross_amount || 0), 0);
 
     let taxasEducalizando = 0;
     let taxasAsaas = 0;
@@ -124,6 +134,15 @@ export async function GET(request: Request) {
       saldoPendente += net;
     });
 
+    paidExclusivePayments.forEach((payment: any) => {
+      taxasEducalizando += Number(payment.platform_fee_amount || 0);
+      saldoDisponivel += Math.max(0, Number(payment.creator_net_amount || 0));
+    });
+
+    pendingExclusivePayments.forEach((payment: any) => {
+      saldoPendente += Math.max(0, Number(payment.creator_net_amount || 0));
+    });
+
     // Se há transações consolidadas no ledger, preferir esse saldo
     if (allTx.length > 0) {
       const ledgerNet = allTx
@@ -149,14 +168,8 @@ export async function GET(request: Request) {
       totalTaxas
     };
 
-    // Cache HTTP: 60s no CDN/Vercel Edge, 30s stale-while-revalidate
-    // ?force=true bypassa o cache (útil após nova venda)
-    const cacheControl = forceRefresh
-      ? 'no-store'
-      : 's-maxage=60, stale-while-revalidate=30';
-
     return NextResponse.json({ summary }, {
-      headers: { 'Cache-Control': cacheControl }
+      headers: { 'Cache-Control': 'no-store' }
     });
 
   } catch (err: any) {

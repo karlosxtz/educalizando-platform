@@ -1,6 +1,29 @@
 import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
 import { PeriodFilter, SalesDataPoint, TopProductStat, RecentOrder, Product } from './types';
 
+type DashboardAnalyticsResponse = {
+  chartData?: SalesDataPoint[];
+  totalGeneratedCount?: number;
+  recentOrders?: RecentOrder[];
+  exclusivePerformance?: { salesCount?: number; revenue?: number };
+};
+
+const dashboardAnalyticsRequests = new Map<string, Promise<DashboardAnalyticsResponse>>();
+
+async function getDashboardAnalytics(storeId: string, period: PeriodFilter) {
+  const key = `${storeId}:${period}`;
+  const existing = dashboardAnalyticsRequests.get(key);
+  if (existing) return existing;
+  const pending = fetch(`/api/dashboard/sales-analytics?storeId=${encodeURIComponent(storeId)}&period=${period}`, { cache: 'no-store' })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Falha ao consolidar vendas (${response.status}).`);
+      return response.json() as Promise<DashboardAnalyticsResponse>;
+    })
+    .finally(() => window.setTimeout(() => dashboardAnalyticsRequests.delete(key), 3000));
+  dashboardAnalyticsRequests.set(key, pending);
+  return pending;
+}
+
 // Helper to retrieve real orders from LocalStorage when offline
 export function getLocalOrders(): RecentOrder[] {
   if (typeof window === 'undefined') return [];
@@ -38,6 +61,14 @@ function getPeriodDates(period: PeriodFilter): { startDate: string, endDate: str
 
 // 1. Fetch Real Sales Analytics by Period
 export async function getSalesDataByPeriod(storeId: string, period: PeriodFilter): Promise<{ chartData: SalesDataPoint[], totalGeneratedCount: number }> {
+  if (typeof window !== 'undefined' && storeId) {
+    try {
+      const result = await getDashboardAnalytics(storeId, period);
+      if (Array.isArray(result.chartData)) return { chartData: result.chartData, totalGeneratedCount: Number(result.totalGeneratedCount || 0) };
+    } catch (error) {
+      console.error('[getSalesDataByPeriod] Erro ao consolidar vendas:', error);
+    }
+  }
   let realOrders: RecentOrder[] = [];
   const { startDate, endDate } = getPeriodDates(period);
   let totalGeneratedCount = 0;
@@ -190,6 +221,19 @@ export async function getTopProductsReport(storeId: string, products: Product[],
   const { startDate, endDate } = getPeriodDates(period);
   const productMetrics = new Map<string, { units: number; revenue: number }>();
   let loadedFromOrderItems = false;
+  let exclusivePerformance = { salesCount: 0, revenue: 0 };
+
+  if (typeof window !== 'undefined' && storeId) {
+    try {
+      const result = await getDashboardAnalytics(storeId, period);
+      exclusivePerformance = {
+        salesCount: Number(result.exclusivePerformance?.salesCount || 0),
+        revenue: Number(result.exclusivePerformance?.revenue || 0),
+      };
+    } catch (error) {
+      console.error('[getTopProductsReport] Erro ao carregar materiais exclusivos:', error);
+    }
+  }
 
   if (isRealSupabaseConfigured()) {
     try {
@@ -231,9 +275,10 @@ export async function getTopProductsReport(storeId: string, products: Product[],
     realOrders = realOrders.filter(o => o.statusPagamento === 'pago');
   }
 
-  const totalStoreRevenue = loadedFromOrderItems
+  const catalogRevenue = loadedFromOrderItems
     ? Array.from(productMetrics.values()).reduce((sum, metric) => sum + metric.revenue, 0)
     : realOrders.reduce((acc, o) => acc + o.valorTotal, 0);
+  const totalStoreRevenue = catalogRevenue + exclusivePerformance.revenue;
 
   const stats: TopProductStat[] = products.map(p => {
     const metric = productMetrics.get(p.id);
@@ -256,12 +301,33 @@ export async function getTopProductsReport(storeId: string, products: Product[],
     };
   });
 
+  if (exclusivePerformance.salesCount > 0) {
+    stats.push({
+      id: 'exclusive-materials',
+      titulo: 'Materiais exclusivos personalizados',
+      tipo: 'pdf',
+      preco: Number((exclusivePerformance.revenue / exclusivePerformance.salesCount).toFixed(2)),
+      unidadesVendidas: exclusivePerformance.salesCount,
+      faturamentoTotal: exclusivePerformance.revenue,
+      porcentagem: totalStoreRevenue > 0 ? Math.round((exclusivePerformance.revenue / totalStoreRevenue) * 100) : 0,
+      capa_url: null,
+    });
+  }
+
   // Sort by revenue descending
   return stats.sort((a, b) => b.faturamentoTotal - a.faturamentoTotal);
 }
 
 // 3. Fetch Real Orders Feed
 export async function getRecentOrdersFeed(storeId: string): Promise<RecentOrder[]> {
+  if (typeof window !== 'undefined' && storeId) {
+    try {
+      const result = await getDashboardAnalytics(storeId, '30d');
+      if (Array.isArray(result.recentOrders)) return result.recentOrders;
+    } catch (error) {
+      console.error('[getRecentOrdersFeed] Erro ao consolidar vendas:', error);
+    }
+  }
   if (isRealSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
