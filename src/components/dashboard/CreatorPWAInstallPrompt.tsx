@@ -8,6 +8,12 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+declare global {
+  interface Window {
+    __creatorPwaInstallPrompt?: InstallPromptEvent;
+  }
+}
+
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
 
 export default function CreatorPWAInstallPrompt() {
@@ -30,6 +36,7 @@ export default function CreatorPWAInstallPrompt() {
     await installPrompt.prompt();
     const choice = await installPrompt.userChoice;
     if (choice.outcome === 'accepted') setIsInstalled(true);
+    delete window.__creatorPwaInstallPrompt;
     setInstallPrompt(null);
   }, [installPrompt, isIos]);
 
@@ -42,23 +49,23 @@ export default function CreatorPWAInstallPrompt() {
     const appleDevice = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
     setIsIos(appleDevice);
 
-    // Remove o worker legado de escopo global caso ele tenha sido instalado em
-    // versões antigas. A PWA do criador passa a cobrir somente /dashboard.
+    // O worker também é registrado antes da hidratação no layout raiz. Esta
+    // segunda chamada mantém a PWA disponível em navegações internas.
     if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.getRegistrations()
-        .then((registrations) => Promise.all(
-          registrations
-            .filter((registration) => new URL(registration.scope).pathname === '/')
-            .map((registration) => registration.unregister()),
-        ))
-        .finally(() => navigator.serviceWorker.register('/dashboard-sw.js', { scope: '/dashboard' }));
+      void navigator.serviceWorker.register('/dashboard-sw.js', { scope: '/dashboard' });
     }
+
+    const cachedPrompt = window.__creatorPwaInstallPrompt;
+    if (cachedPrompt) setInstallPrompt(cachedPrompt);
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
-      setInstallPrompt(event as InstallPromptEvent);
+      const prompt = event as InstallPromptEvent;
+      window.__creatorPwaInstallPrompt = prompt;
+      setInstallPrompt(prompt);
     };
     const handleInstalled = () => {
+      delete window.__creatorPwaInstallPrompt;
       setInstallPrompt(null);
       setIsInstalled(true);
       setShowIosGuide(false);
@@ -67,9 +74,16 @@ export default function CreatorPWAInstallPrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleInstalled);
 
+    const handleInstallReady = () => {
+      const prompt = window.__creatorPwaInstallPrompt;
+      if (prompt) setInstallPrompt(prompt);
+    };
+    window.addEventListener('creator-pwa-install-ready', handleInstallReady);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleInstalled);
+      window.removeEventListener('creator-pwa-install-ready', handleInstallReady);
     };
   }, []);
 

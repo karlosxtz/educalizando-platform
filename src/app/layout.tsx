@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { Toaster } from 'sonner';
 import WhatsAppButton from '@/components/WhatsAppButton';
@@ -116,6 +117,21 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
+        <Script id="creator-pwa-install-capture" strategy="beforeInteractive">{`
+          (() => {
+            if (!/^\\/dashboard(?:\\/|$)/.test(window.location.pathname)) return;
+
+            window.addEventListener('beforeinstallprompt', (event) => {
+              event.preventDefault();
+              window.__creatorPwaInstallPrompt = event;
+              window.dispatchEvent(new Event('creator-pwa-install-ready'));
+            });
+
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/dashboard-sw.js', { scope: '/dashboard' }).catch(() => {});
+            }
+          })();
+        `}</Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
