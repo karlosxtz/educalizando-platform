@@ -18,6 +18,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ req
   const user = await getRequestUser(request); const { requestId } = await params;
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   const item = await access(requestId, user.id); if (!item) return NextResponse.json({ error: 'Sem acesso.' }, { status: 403 });
+  if (['delivered', 'cancelled', 'rejected'].includes(item.status)) return NextResponse.json({ error: 'Esta solicitação foi finalizada e a conversa está encerrada.' }, { status: 409 });
   const { body, attachments = [] } = await request.json();
   if (!String(body || '').trim()) return NextResponse.json({ error: 'Escreva uma mensagem.' }, { status: 400 });
   const senderRole = item.creator_id === user.id ? 'creator' : 'customer';

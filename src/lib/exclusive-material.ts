@@ -2,7 +2,7 @@ export type ExclusiveMaterialStatus = 'open' | 'negotiating' | 'awaiting_payment
 
 export const EXCLUSIVE_MATERIAL_STATUS_LABEL: Record<ExclusiveMaterialStatus, string> = {
   open: 'Nova solicitação', negotiating: 'Em negociação', awaiting_payment: 'Aguardando pagamento',
-  paid: 'Pagamento confirmado', in_production: 'Em produção', delivered: 'Entregue',
+  paid: 'Pagamento confirmado', in_production: 'Em produção', delivered: 'Finalizada com sucesso',
   cancelled: 'Cancelada', rejected: 'Recusada'
 };
 
