@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import { CalendarDays, Check, CircleUserRound, FileText, FileUp, Link2, Loader2, MessageCircle, PackageCheck, Send, WalletCards } from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { CalendarDays, Check, ChevronRight, CircleUserRound, FileText, FileUp, Link2, Loader2, MessageCircle, PackageCheck, Search, Send, WalletCards } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { EXCLUSIVE_MATERIAL_STATUS_LABEL } from '@/lib/exclusive-material';
 import { supabase } from '@/lib/supabase';
@@ -56,10 +56,27 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
   const [counterProposalId, setCounterProposalId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
   const [paying, setPaying] = useState(false);
+  const [search, setSearch] = useState('');
   const notify = (message: string, tone: 'success' | 'error' = 'success') => {
     setNotice({ message, tone });
     window.setTimeout(() => setNotice(null), 4200);
   };
+  const conversations = useMemo(() => {
+    const grouped = new Map<string, { key: string; name: string; subtitle: string; avatar?: string | null; requests: Item[] }>();
+    for (const item of items) {
+      const key = view === 'creator' ? item.customer_id || item.customer_email : item.store?.id || item.store_id;
+      const current = grouped.get(key);
+      grouped.set(key, {
+        key,
+        name: view === 'creator' ? item.customer_name || 'Cliente Educalizando' : item.store?.nome_loja || 'Loja Educalizando',
+        subtitle: view === 'creator' ? item.customer_email || 'Conta identificada' : 'Criador de conteúdo',
+        avatar: view === 'creator' ? item.customer_avatar_url : item.store?.logo_url,
+        requests: [...(current?.requests || []), item],
+      });
+    }
+    const term = search.trim().toLocaleLowerCase('pt-BR');
+    return Array.from(grouped.values()).filter((conversation) => !term || conversation.name.toLocaleLowerCase('pt-BR').includes(term) || conversation.requests.some((item) => item.title.toLocaleLowerCase('pt-BR').includes(term)));
+  }, [items, search, view]);
 
   const authHeaders = async (): Promise<Record<string, string>> => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -212,18 +229,18 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
   if (loading) return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-blue-600" /></div>;
   if (error && !items.length) return <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900"><h2 className="font-bold">Não foi possível carregar as solicitações</h2><p className="mt-2 text-sm">{error}</p><button type="button" onClick={() => { setError(''); void load(); }} className="mt-4 rounded-xl bg-rose-700 px-4 py-2 font-bold text-white">Tentar novamente</button></div>;
 
-  return <><div className="grid gap-5 lg:grid-cols-[.8fr_1.2fr]">
-    <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-black text-slate-950">{view === 'creator' ? 'Solicitações recebidas' : 'Minhas solicitações'}</h2>
-      <div className="mt-4 space-y-2">
-        {items.length === 0 && <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Nenhuma solicitação ainda.</p>}
-        {items.map((item) => <button key={item.id} onClick={() => void open(item)} className={`w-full rounded-2xl border p-4 text-left transition ${active?.id === item.id ? 'border-blue-400 bg-blue-50 shadow-sm' : 'border-slate-200 hover:bg-slate-50'}`}><p className="line-clamp-2 font-black text-slate-900">{item.title}</p><p className="mt-1 text-xs text-slate-500">{item.quantity} {item.quantity === 1 ? 'item' : 'itens'} · {EXCLUSIVE_MATERIAL_STATUS_LABEL[item.status as keyof typeof EXCLUSIVE_MATERIAL_STATUS_LABEL] || item.status}</p><p className="mt-2 text-xs font-bold text-blue-700">{view === 'creator' ? item.customer_name || 'Cliente Educalizando' : item.store?.nome_loja}</p></button>)}
+  return <><div className="grid min-h-[680px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[360px_minmax(0,1fr)]">
+    <aside className="border-b border-slate-200 bg-white lg:border-b-0 lg:border-r">
+      <div className="border-b border-slate-100 p-5"><p className="text-xs font-black uppercase tracking-widest text-blue-600">Central de mensagens</p><h2 className="mt-1 text-xl font-black text-slate-950">{view === 'creator' ? 'Seus clientes' : 'Seus criadores'}</h2><div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-100 px-3"><Search className="h-4 w-4 text-slate-400"/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar pessoa ou solicitação" className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"/></div></div>
+      <div className="max-h-[620px] overflow-y-auto p-3">
+        {conversations.length === 0 && <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">Nenhuma conversa encontrada.</p>}
+        {conversations.map((conversation) => <div key={conversation.key} className="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="flex items-center gap-3 border-b border-slate-100 p-3">{conversation.avatar ? <img src={conversation.avatar} alt={`Foto de ${conversation.name}`} className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100"/> : <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue-100 to-violet-100 text-blue-700"><CircleUserRound className="h-6 w-6"/></span>}<div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-slate-950">{conversation.name}</p><p className="truncate text-xs text-slate-500">{conversation.subtitle}</p></div><span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-black text-blue-700">{conversation.requests.length}</span></div><div className="p-1.5">{conversation.requests.map((item) => <button key={item.id} onClick={() => void open(item)} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition ${active?.id === item.id ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'hover:bg-slate-50'}`}><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{item.title}</span><span className={`mt-0.5 block truncate text-[11px] ${active?.id === item.id ? 'text-blue-100' : 'text-slate-500'}`}>{EXCLUSIVE_MATERIAL_STATUS_LABEL[item.status as keyof typeof EXCLUSIVE_MATERIAL_STATUS_LABEL] || item.status}</span></span><ChevronRight className="h-4 w-4 shrink-0"/></button>)}</div></div>)}
       </div>
-    </section>
-    <section className="min-h-96 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    </aside>
+    <section className="min-h-96 bg-white p-5">
       {!active ? <div className="flex h-full min-h-72 items-center justify-center text-center text-sm text-slate-500">Selecione uma solicitação para visualizar o briefing, conversar, negociar e acompanhar a entrega.</div> : <>
-        <div className="border-b border-slate-100 pb-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-blue-600">Material exclusivo</p><h2 className="mt-1 text-xl font-black text-slate-950">{active.title}</h2></div><span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{EXCLUSIVE_MATERIAL_STATUS_LABEL[active.status as keyof typeof EXCLUSIVE_MATERIAL_STATUS_LABEL] || active.status}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{active.description}</p></div>
-        {view === 'creator' && <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Quem solicitou</p><div className="mt-3 flex items-center gap-3">{active.customer_avatar_url ? <img src={active.customer_avatar_url} alt="Foto do cliente" className="h-11 w-11 rounded-full object-cover" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-white text-slate-400"><CircleUserRound className="h-7 w-7" /></span>}<div className="min-w-0"><p className="truncate font-black text-slate-950">{active.customer_name || 'Cliente Educalizando'}</p><p className="truncate text-sm text-slate-500">{active.customer_email || 'E-mail não informado'}</p></div></div></div>}
+        <div className="-mx-5 -mt-5 border-b border-slate-200 bg-white px-5 py-4"><div className="flex items-center gap-3">{(view === 'creator' ? active.customer_avatar_url : active.store?.logo_url) ? <img src={view === 'creator' ? active.customer_avatar_url : active.store.logo_url} alt="Foto do perfil" className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100"/> : <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue-100 to-violet-100 text-blue-700"><CircleUserRound className="h-6 w-6"/></span>}<div className="min-w-0 flex-1"><p className="truncate font-black text-slate-950">{view === 'creator' ? active.customer_name || 'Cliente Educalizando' : active.store?.nome_loja || 'Criador Educalizando'}</p><p className="truncate text-xs text-slate-500">{view === 'creator' ? active.customer_email || 'Conta verificada' : 'Conversa protegida pela plataforma'}</p></div><span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{EXCLUSIVE_MATERIAL_STATUS_LABEL[active.status as keyof typeof EXCLUSIVE_MATERIAL_STATUS_LABEL] || active.status}</span></div></div>
+        <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-black uppercase tracking-widest text-blue-600">Solicitação selecionada</p><h2 className="mt-1 text-xl font-black text-slate-950">{active.title}</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{active.description}</p></div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><Detail label="Quantidade" value={`${active.quantity || 1} ${active.quantity === 1 ? 'material' : 'materiais'}`} icon={<PackageCheck className="h-4 w-4" />} /><Detail label="Tema ou gênero" value={active.genre || 'Não informado'} icon={<FileText className="h-4 w-4" />} /><Detail label="Formato esperado" value={active.file_type || 'Não informado'} icon={<FileText className="h-4 w-4" />} /><Detail label="Público ou ano escolar" value={active.target_audience || 'Não informado'} icon={<MessageCircle className="h-4 w-4" />} /><Detail label="Prazo desejado" value={formatDate(active.deadline)} icon={<CalendarDays className="h-4 w-4" />} /><Detail label="Orçamento estimado" value={formatMoney(active.budget)} icon={<WalletCards className="h-4 w-4" />} /></div>
         {Array.isArray(active.reference_links) && active.reference_links.length > 0 && <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-4"><p className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-blue-700"><Link2 className="h-4 w-4" />Referências enviadas pelo cliente</p><div className="mt-2 space-y-1">{active.reference_links.map((link: string) => <a key={link} href={link} target="_blank" rel="noreferrer" className="block truncate text-sm font-semibold text-blue-700 underline">{link}</a>)}</div></div>}
         <div className="mt-5 border-t border-slate-100 pt-5"><div className="flex items-center justify-between gap-3"><div><h3 className="font-black text-slate-950">Conversa da solicitação</h3><p className="mt-1 text-xs text-slate-500">Mensagens e negociações ficam organizadas neste histórico.</p></div><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">Atualização automática</span></div><div className="mt-3 max-h-80 space-y-3 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/80 p-4">{messages.length === 0 && <p className="p-3 text-sm text-slate-500">Ainda não há mensagens. Envie uma mensagem para iniciar a conversa.</p>}{messages.map((message) => <ConversationMessage key={message.id} message={message} view={view} />)}</div><form onSubmit={postMessage} className="mt-3 flex items-end gap-2 rounded-2xl border border-slate-200 bg-white p-2"><textarea name="body" rows={2} placeholder={view === 'creator' ? 'Escreva uma mensagem para o cliente' : 'Escreva uma mensagem para o criador'} className="min-w-0 flex-1 resize-none border-0 px-2 py-2 text-sm outline-none"/><button aria-label="Enviar mensagem" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-600 text-white"><Send className="h-4 w-4"/></button></form></div>
