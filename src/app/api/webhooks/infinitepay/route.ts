@@ -3,7 +3,6 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
-import { recordWalletTransaction } from '@/lib/wallet-service';
 import {
   assertConfirmedInfinitePayPayment,
   InfinitePayWebhookValidationError,
@@ -14,6 +13,30 @@ import {
 
 function webhookError(status: number, message: string) {
   return NextResponse.json({ success: false, message }, { status });
+}
+
+async function creditExclusiveMaterialCreator(exclusivePayment: any) {
+  const transactionId = `exclusive_${exclusivePayment.id}`;
+  const { error } = await supabaseAdmin.from('wallet_transactions').insert({
+    id: transactionId,
+    store_id: String(exclusivePayment.request.store_id),
+    creator_id: String(exclusivePayment.request.creator_id),
+    order_id: null,
+    type: 'SALE',
+    status: 'COMPLETED',
+    gross_amount: Number(exclusivePayment.gross_amount),
+    platform_fixed_fee_amount: 0,
+    platform_percentage_fee_amount: Number(exclusivePayment.platform_fee_amount),
+    platform_fee_amount: Number(exclusivePayment.platform_fee_amount),
+    asaas_fee_amount: 0,
+    net_amount: Number(exclusivePayment.creator_net_amount),
+    description: `Material exclusivo: ${exclusivePayment.request.title} — repasse de 87% ao criador.`,
+    created_at: new Date().toISOString(),
+  });
+
+  // A chave determinística faz o webhook ser idempotente: reenvios do gateway
+  // não duplicam o saldo, mas conseguem concluir um crédito que tenha falhado.
+  if (error && error.code !== '23505') throw error;
 }
 
 export async function POST(request: Request) {
@@ -71,7 +94,10 @@ export async function POST(request: Request) {
     if (exclusivePaymentError) throw exclusivePaymentError;
     if (exclusivePayment) {
       if (exclusivePayment.status === 'paid') {
-        if (exclusivePayment.transaction_nsu === payload.transactionNsu) return NextResponse.json({ success: true, message: null });
+        if (exclusivePayment.transaction_nsu === payload.transactionNsu) {
+          await creditExclusiveMaterialCreator(exclusivePayment);
+          return NextResponse.json({ success: true, message: null });
+        }
         return webhookError(409, 'Evento incompatível com o estado atual.');
       }
       const payment = await checkInfinitePayPayment({ orderNsu: payload.orderNsu, transactionNsu: payload.transactionNsu, slug: payload.invoiceSlug });
@@ -83,15 +109,7 @@ export async function POST(request: Request) {
       if (!markedPaid) return webhookError(409, 'Evento incompatível com o estado atual.');
       await supabaseAdmin.from('exclusive_material_requests').update({ status: 'in_production', updated_at: new Date().toISOString() }).eq('id', exclusivePayment.request_id);
       await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: exclusivePayment.request_id, sender_id: exclusivePayment.request.creator_id, sender_role: 'system', body: 'Pagamento confirmado pela plataforma. O criador já pode iniciar a produção e enviar a entrega aqui.' });
-      await recordWalletTransaction({
-        // Encomendas não possuem order_items de catálogo. A transação é gravada
-        // no ledger pela confirmação atômica acima, sem forçar uma FK de produto.
-        storeId: exclusivePayment.request.store_id, creatorId: exclusivePayment.request.creator_id,
-        buyerName: 'Cliente de material exclusivo', productTitle: `Material exclusivo: ${exclusivePayment.request.title}`,
-        type: 'SALE', grossAmount: Number(exclusivePayment.gross_amount), platformFixedFeeAmount: 0,
-        platformPercentageFeeAmount: Number(exclusivePayment.platform_fee_amount), platformFeeAmount: Number(exclusivePayment.platform_fee_amount),
-        asaasFeeAmount: 0, netAmount: Number(exclusivePayment.creator_net_amount), description: 'Venda de material exclusivo — repasse de 87% ao criador.'
-      });
+      await creditExclusiveMaterialCreator(exclusivePayment);
       return NextResponse.json({ success: true, message: null });
     }
 

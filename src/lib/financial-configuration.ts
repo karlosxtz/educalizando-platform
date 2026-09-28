@@ -1,5 +1,3 @@
-import crypto from 'crypto';
-
 export type FinancialConfigurationState = 'configured' | 'not_configured' | 'invalid';
 export type FinancialEnvironment = 'production' | 'development' | 'test';
 
@@ -19,8 +17,6 @@ export class FinancialConfigurationError extends Error {
   }
 }
 
-// Digest only: the historical value itself is never kept in source code.
-const LEGACY_HANDLE_DIGEST = '66dc3a33051501c2683141e780e3e0510baadc56b2f103669bbd59f8852a3464';
 const UNSAFE_VALUE_PATTERN = /(placeholder|dummy|example|change[-_ ]?me|your[-_ ]?|legacy|default|test|mock|undefined|null)/i;
 
 function normalize(value: string | undefined): string {
@@ -39,7 +35,7 @@ function stateForHandle(value: string, environment: FinancialEnvironment): Finan
   const isControlledTestValue = environment === 'test' && value === 'test-infinitepay-handle';
   if (
     !isControlledTestValue &&
-    (UNSAFE_VALUE_PATTERN.test(value) || crypto.createHash('sha256').update(value).digest('hex') === LEGACY_HANDLE_DIGEST)
+    UNSAFE_VALUE_PATTERN.test(value)
   ) {
     return 'invalid';
   }
