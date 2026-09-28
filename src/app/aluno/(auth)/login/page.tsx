@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { GraduationCap, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, ShieldCheck, UserCheck, UserPlus, Phone } from 'lucide-react';
+import { GraduationCap, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, ShieldCheck, UserCheck, UserPlus, Phone, Sparkles, CheckCircle2, Download } from 'lucide-react';
 import { signInStudent, registerStudentInSupabase } from '@/lib/student-service';
 
 function StudentLoginForm() {
@@ -88,7 +88,7 @@ function StudentLoginForm() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-100"
+        className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-2xl shadow-blue-950/15 space-y-6 border border-white"
       >
         {/* Banner Contextual da Compra (Item 5 da Especificação) */}
         {isBuyAction && (
@@ -154,7 +154,7 @@ function StudentLoginForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu.email@exemplo.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-xl text-slate-900 text-sm font-medium focus:outline-none transition"
                 />
               </div>
             </div>
@@ -171,7 +171,7 @@ function StudentLoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-brand-navy rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-xl text-slate-900 text-sm font-medium focus:outline-none transition"
                 />
               </div>
             </div>
@@ -179,7 +179,7 @@ function StudentLoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-brand-navy hover:bg-brand-navy-hover text-white shadow-lg shadow-brand-navy/25 flex items-center justify-center gap-2 active:scale-95 transition-all"
+              className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-blue-700 via-brand-navy to-violet-700 hover:brightness-110 text-white shadow-lg shadow-blue-900/25 flex items-center justify-center gap-2 active:scale-95 transition-all"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -294,10 +294,17 @@ function StudentLoginForm() {
 
 export default function StudentLoginPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-8 sm:py-12 sm:px-6 lg:px-8 relative overflow-x-hidden font-sans">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-navy/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-8">
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f8ff] px-4 py-5 font-sans sm:px-6 sm:py-10 lg:flex lg:items-center lg:justify-center lg:p-8">
+      <div className="pointer-events-none fixed -left-28 top-20 h-72 w-72 rounded-full bg-cyan-300/35 blur-3xl motion-safe:animate-pulse" />
+      <div className="pointer-events-none fixed -right-28 bottom-0 h-80 w-80 rounded-full bg-violet-300/35 blur-3xl motion-safe:animate-pulse" />
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/80 bg-white/60 shadow-2xl shadow-blue-950/10 lg:grid-cols-[1.05fr_.95fr]">
+        <aside className="relative hidden overflow-hidden bg-gradient-to-br from-[#073b83] via-[#125ac0] to-[#6c36d7] p-10 text-white lg:block">
+          <div className="absolute -right-16 -top-12 h-56 w-56 rounded-full border-[28px] border-white/10" />
+          <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-cyan-300/20 blur-2xl" />
+          <div className="relative flex h-full flex-col justify-between"><div><div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black backdrop-blur"><Sparkles className="h-4 w-4 text-amber-300"/>Sua área de materiais</div><h2 className="mt-7 max-w-md text-4xl font-black leading-tight">Tudo o que você compra fica organizado em um só lugar.</h2><p className="mt-5 max-w-md text-base leading-relaxed text-blue-100">Acesse materiais, acompanhe pedidos exclusivos e converse com criadores pela Educalizando.</p></div><div className="space-y-3">{[[ShieldCheck,'Compra protegida e acesso seguro'],[Download,'Materiais prontos para baixar'],[CheckCircle2,'Pedidos e entregas acompanhados']].map(([Icon,label]) => { const FeatureIcon = Icon as typeof ShieldCheck; return <div key={label as string} className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur"><FeatureIcon className="h-5 w-5 text-cyan-200"/><span className="text-sm font-bold">{label as string}</span></div>; })}</div></div>
+        </aside>
+        <div className="flex min-h-[620px] flex-col justify-center px-1 py-8 sm:px-10 lg:px-12">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4 text-center mb-7">
         <Link href="/" className="inline-flex items-center justify-center group mb-2">
           <img
             src="/branding/logo-educalizando.png?v=3"
@@ -324,7 +331,7 @@ export default function StudentLoginPage() {
         <div role="status" className="text-center text-slate-600 text-xs">Carregando formulário...</div>
       }>
         <StudentLoginForm />
-      </Suspense>
+      </Suspense></div></div>
     </div>
   );
 }
