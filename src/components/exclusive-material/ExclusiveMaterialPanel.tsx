@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 type Item = any;
 export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'customer' }) {
   const [items, setItems] = useState<Item[]>([]); const [active, setActive] = useState<Item | null>(null); const [messages, setMessages] = useState<Item[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
-  const authHeaders = async () => { const { data: { session } } = await supabase.auth.getSession(); return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}; };
+  const authHeaders = async (): Promise<Record<string, string>> => { const { data: { session } } = await supabase.auth.getSession(); return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}; };
   const load = async () => { setLoading(true); try { const response = await fetch(`/api/exclusive-material?view=${view}`, { headers: await authHeaders() }); const data = await response.json(); if (!response.ok) throw new Error(data.error); setItems(data.requests || []); if (active) setActive((data.requests || []).find((item: Item) => item.id === active.id) || null); } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível carregar.'); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
   const open = async (item: Item) => { setActive(item); const response = await fetch(`/api/exclusive-material/${item.id}/messages`, { headers: await authHeaders() }); const data = await response.json(); setMessages(data.messages || []); };
