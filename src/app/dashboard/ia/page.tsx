@@ -281,7 +281,7 @@ export default function IAConfigPage() {
               </label>
               <select value={provider} onChange={(event) => setProvider(event.target.value === 'alternative' ? 'alternative' : 'primary')} className="mb-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-purple-500">
                 <option value="primary">Integração principal</option>
-                <option value="alternative">Integração alternativa</option>
+                <option value="alternative">Groq ou OpenRouter</option>
               </select>
               <label className="block text-sm font-bold text-slate-700 mb-2">Chave de acesso</label>
               <input
@@ -292,7 +292,7 @@ export default function IAConfigPage() {
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none text-sm font-mono"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Sua chave é armazenada de forma segura e nunca é exibida publicamente. Para obter ou alterar uma chave, fale com o suporte.
+                Use uma chave do Groq (começa com <strong>gsk_</strong>) ou do OpenRouter. Sua chave é armazenada de forma segura e nunca é exibida publicamente.
               </p>
             </div>
 

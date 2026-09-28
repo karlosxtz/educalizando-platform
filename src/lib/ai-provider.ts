@@ -10,7 +10,13 @@ export async function generateAiContent(secret: AiSecret, prompt: string, json =
   const { alternative, key } = getAiKey(secret);
   if (!key) throw new Error('Configure uma chave de IA para usar esta ferramenta.');
   if (alternative) {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // As chaves do Groq começam com gsk_. Elas usam o formato compatível com
+    // OpenAI, porém em um endpoint diferente do OpenRouter. Antes deste
+    // tratamento, uma chave válida do Groq era enviada ao OpenRouter e toda
+    // geração falhava com uma mensagem genérica de integração.
+    const isGroq = key.startsWith('gsk_');
+    const providerName = isGroq ? 'Groq' : 'OpenRouter';
+    const response = await fetch(isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': 'https://educalizando.com.br', 'X-OpenRouter-Title': 'EducaliZando' },
       // A instrução de JSON já faz parte do prompt. Alguns modelos disponíveis
       // pela integração alternativa recusam `response_format`, mesmo com uma
@@ -18,12 +24,20 @@ export async function generateAiContent(secret: AiSecret, prompt: string, json =
       // O roteador tenta modelos compatíveis em ordem. Isso evita que uma
       // indisponibilidade temporária de um modelo interrompa as ferramentas
       // da loja, sem exigir que o criador troque ou informe outra chave.
-      body: JSON.stringify({ models: ['~google/gemini-flash-latest', 'google/gemini-2.5-flash'], messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }),
+      body: JSON.stringify(isGroq
+        ? { model: 'openai/gpt-oss-20b', messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }
+        : { models: ['~google/gemini-flash-latest', 'google/gemini-2.5-flash'], messages: [{ role: 'user', content: prompt }], max_tokens: 4096 }),
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
-      console.error('[AI alternative provider]', response.status, payload?.error?.message || payload);
-      throw new Error('A integração de IA não conseguiu concluir esta solicitação agora. Tente novamente em instantes.');
+      console.error(`[AI ${providerName}]`, response.status, payload?.error?.message || payload);
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(`${providerName} não aceitou esta chave. Confira se a integração selecionada corresponde à chave salva.`);
+      }
+      if (response.status === 429) {
+        throw new Error(`${providerName} atingiu o limite temporário de solicitações. Aguarde alguns instantes e tente novamente.`);
+      }
+      throw new Error(`${providerName} não conseguiu concluir esta solicitação agora. Tente novamente em instantes.`);
     }
     return payload?.choices?.[0]?.message?.content?.trim() || '';
   }
