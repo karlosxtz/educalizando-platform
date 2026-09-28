@@ -3,7 +3,8 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 async function creatorStore(userId: string) {
-  const { data } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug').eq('creator_id', userId).maybeSingle();
+  // Um criador pode operar mais de uma loja; basta comprovar que ele possui ao menos uma.
+  const { data } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug').eq('creator_id', userId).limit(1).maybeSingle();
   return data;
 }
 
@@ -50,5 +51,7 @@ export async function POST(request: Request) {
   }).select('*').single();
   if (error) throw error;
   await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: data.id, sender_id: user.id, sender_role: 'customer', body: 'Solicitação criada. Aguardo a proposta do criador.' });
-  return NextResponse.json({ request: data }, { status: 201 });
+  // O painel do criador filtra por creator_id, o mesmo valor copiado da loja
+  // validada acima. Assim a solicitação não pode cair em outro painel.
+  return NextResponse.json({ request: data, creatorDashboardPath: '/dashboard/materiais-exclusivos' }, { status: 201 });
 }
