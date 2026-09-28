@@ -37,8 +37,8 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
   };
   const request = async (url: string, init: RequestInit = {}) => fetch(url, { ...init, credentials: 'include', headers: { ...(await authHeaders()), ...init.headers } });
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (silently = false) => {
+    if (!silently) setLoading(true);
     try {
       const response = await request(`/api/exclusive-material?view=${view}`, { cache: 'no-store' });
       const data = await response.json();
@@ -49,7 +49,9 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
       setError('');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível carregar.');
-    } finally { setLoading(false); }
+    } finally {
+      if (!silently) setLoading(false);
+    }
   };
   const open = async (item: Item) => {
     setActive(item);
@@ -59,13 +61,29 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
   };
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 15000);
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void load(true);
+    }, 15000);
     return () => window.clearInterval(timer);
   }, [view, requestedId]);
   useEffect(() => {
     const selected = items.find((item) => item.id === requestedId);
     if (selected) void open(selected);
   }, [items, requestedId]);
+  useEffect(() => {
+    if (!active?.id) return;
+    const refreshMessages = async () => {
+      const response = await request(`/api/exclusive-material/${active.id}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
+      }
+    };
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void refreshMessages();
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [active?.id]);
 
   const postMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -74,19 +92,19 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     const body = String(form.get('body') || '');
     if (!body.trim()) return;
     const response = await request(`/api/exclusive-material/${active.id}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body }) });
-    if (response.ok) { event.currentTarget.reset(); await open(active); await load(); }
+    if (response.ok) { event.currentTarget.reset(); await open(active); await load(true); }
   };
   const proposal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!active) return;
     const form = new FormData(event.currentTarget);
     const response = await request(`/api/exclusive-material/${active.id}/proposals`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: Number(form.get('amount')), deliveryDays: Number(form.get('deliveryDays')), revisions: Number(form.get('revisions')), scope: form.get('scope') }) });
-    if (response.ok) { await load(); await open(active); } else { const data = await response.json(); setError(data.error || 'Não foi possível enviar a proposta.'); }
+    if (response.ok) { await load(true); await open(active); } else { const data = await response.json(); setError(data.error || 'Não foi possível enviar a proposta.'); }
   };
   const accept = async (proposalId: string) => {
     if (!active) return;
     const response = await request(`/api/exclusive-material/${active.id}/proposals`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proposalId, action: 'accept' }) });
-    if (response.ok) await load();
+    if (response.ok) await load(true);
   };
   const checkout = async () => {
     if (!active) return;
@@ -122,7 +140,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
       for (const file of uploaded) files.push({ url: await upload(file), name: file.name, contentType: file.type, size: file.size });
       if (!files.length) throw new Error('Anexe um arquivo ou informe um link.');
       const response = await request(`/api/exclusive-material/${active.id}/deliveries`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files, note: form.get('note') }) });
-      if (response.ok) { await load(); await open(active); } else { const data = await response.json(); setError(data.error || 'Não foi possível registrar a entrega.'); }
+      if (response.ok) { await load(true); await open(active); } else { const data = await response.json(); setError(data.error || 'Não foi possível registrar a entrega.'); }
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível enviar os arquivos.'); }
   };
 
@@ -146,7 +164,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
         <div className="mt-5 border-t border-slate-100 pt-5"><div className="flex items-center justify-between gap-3"><h3 className="font-black text-slate-950">Conversa da solicitação</h3><span className="text-xs text-slate-500">Mensagens ficam registradas aqui</span></div><div className="mt-3 max-h-52 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3">{messages.length === 0 && <p className="p-3 text-sm text-slate-500">Ainda não há mensagens. Envie uma mensagem para iniciar a conversa.</p>}{messages.map((message) => <div key={message.id} className={`rounded-xl p-3 text-sm ${message.sender_role === 'creator' ? 'bg-blue-100 text-blue-950' : message.sender_role === 'system' ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-slate-700 shadow-sm'}`}><strong className="text-xs">{message.sender_role === 'creator' ? 'Criador' : message.sender_role === 'customer' ? 'Cliente' : 'Plataforma'}</strong><p className="mt-1 whitespace-pre-wrap">{message.body}</p></div>)}</div><form onSubmit={postMessage} className="mt-3 flex gap-2"><input name="body" placeholder="Escreva uma mensagem para o cliente" className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"/><button aria-label="Enviar mensagem" className="rounded-xl bg-blue-600 px-3 text-white"><Send className="h-4 w-4"/></button></form></div>
         {view === 'creator' && !['delivered', 'cancelled', 'rejected'].includes(active.status) && <form onSubmit={proposal} className="mt-5 rounded-2xl border border-violet-200 bg-violet-50 p-4"><div><h3 className="font-black text-violet-950">Enviar proposta</h3><p className="mt-1 text-sm text-violet-800">O cliente receberá esta proposta na área dele e só seguirá para pagamento quando aceitá-la.</p></div><div className="mt-4 grid gap-3 sm:grid-cols-3"><Field label="Valor da proposta (R$)"><input name="amount" type="number" step="0.01" min="1" required placeholder="Ex.: 80,00" className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm" /></Field><Field label="Prazo de produção (dias)"><input name="deliveryDays" type="number" min="1" required placeholder="Ex.: 7" className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm" /></Field><Field label="Revisões incluídas"><input name="revisions" type="number" min="0" defaultValue="1" required className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm" /></Field></div><label className="mt-3 block text-xs font-black uppercase tracking-wide text-violet-900">O que está incluso na entrega<textarea name="scope" required rows={3} placeholder="Ex.: arquivo em PDF, capa personalizada, atividades, gabarito e 1 revisão." className="mt-1.5 w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal" /></label><button className="mt-3 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-black text-white"><WalletCards className="h-4 w-4"/>Enviar proposta</button></form>}
         {view === 'customer' && active.accepted_proposal_id && active.status === 'awaiting_payment' && <button onClick={() => void checkout()} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white"><Check className="h-4 w-4"/>Pagar proposta aceita</button>}
-        {view === 'customer' && active.proposals?.filter((item: Item) => item.status === 'sent').map((item: Item) => <div key={item.id} className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="font-black text-emerald-950">Proposta: {formatMoney(item.amount)}</p><p className="mt-1 text-sm text-emerald-800">{item.scope} · {item.delivery_days} dias</p><button onClick={() => void accept(item.id)} className="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white">Aceitar proposta</button></div>)}
+        {view === 'customer' && active.proposals?.filter((item: Item) => item.status === 'sent').map((item: Item) => <div key={item.id} className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p className="font-black text-emerald-950">Proposta: {formatMoney(item.amount)}</p><div className="mt-3 grid gap-2 text-sm text-emerald-900 sm:grid-cols-2"><p><strong>Prazo de entrega:</strong> {item.delivery_days} {item.delivery_days === 1 ? 'dia' : 'dias'}</p><p><strong>Revisões incluídas:</strong> {item.revisions ?? 0}</p></div><div className="mt-3 rounded-xl bg-white/70 p-3 text-sm leading-6 text-emerald-950"><strong>O que será entregue</strong><p className="mt-1 whitespace-pre-wrap">{item.scope}</p></div><button onClick={() => void accept(item.id)} className="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white">Aceitar proposta</button></div>)}
         {view === 'creator' && ['paid', 'in_production'].includes(active.status) && <form onSubmit={deliver} className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><h3 className="font-black text-emerald-950">Entregar arquivos</h3><textarea name="files" rows={3} placeholder="Cole um link por linha para cada arquivo enviado ao armazenamento" className="mt-3 w-full rounded-xl border px-3 py-2 text-sm"/><input name="uploadFiles" type="file" multiple className="mt-2 w-full rounded-xl border bg-white px-3 py-2 text-sm"/><input name="note" placeholder="Mensagem de entrega" className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"/><button className="mt-2 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white"><FileUp className="h-4 w-4"/>Confirmar entrega</button></form>}
         {error && <p className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
       </>}

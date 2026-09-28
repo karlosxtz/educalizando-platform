@@ -43,6 +43,22 @@ export async function POST(request: Request) {
   const { data: store } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug, exclusive_material_requests_enabled').eq('id', storeId).maybeSingle();
   if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
   if (!store.exclusive_material_requests_enabled) return NextResponse.json({ error: 'Este criador não está aceitando solicitações de materiais exclusivos no momento.' }, { status: 403 });
+  // Cada cliente mantém uma única negociação ativa por loja. Isso evita pedidos
+  // paralelos, conversas duplicadas e propostas concorrentes para o mesmo criador.
+  const { data: existingRequests, error: existingRequestsError } = await supabaseAdmin
+    .from('exclusive_material_requests')
+    .select('id, title, status')
+    .eq('store_id', store.id)
+    .eq('customer_id', user.id)
+    .order('updated_at', { ascending: false });
+  if (existingRequestsError) return NextResponse.json({ error: 'Não foi possível verificar seus pedidos em andamento.' }, { status: 500 });
+  const activeRequest = (existingRequests || []).find((item) => !['delivered', 'cancelled', 'rejected'].includes(item.status));
+  if (activeRequest) {
+    return NextResponse.json({
+      error: `Você já possui o pedido “${activeRequest.title}” em andamento nesta loja. Finalize ou cancele esse pedido antes de criar outro.`,
+      requestId: activeRequest.id,
+    }, { status: 409 });
+  }
   const customerName = String(user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Cliente Educalizando').trim();
   const customerAvatarUrl = typeof user.user_metadata?.avatar_url === 'string' ? user.user_metadata.avatar_url : typeof user.user_metadata?.picture === 'string' ? user.user_metadata.picture : null;
   const { data, error } = await supabaseAdmin.from('exclusive_material_requests').insert({
