@@ -17,7 +17,8 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const action = form.get('action');
-    const bucket = resolveBucket('product-files');
+    const logicalBucket = form.get('bucket') === 'plr-files' ? 'plr-files' : 'product-files';
+    const bucket = resolveBucket(logicalBucket);
     if (action === 'init') {
       const size = Number(form.get('size'));
       const name = String(form.get('name') || '');

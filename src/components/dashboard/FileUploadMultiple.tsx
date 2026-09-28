@@ -9,7 +9,7 @@ interface FileUploadMultipleProps {
   label: string;
   helperText?: string;
   recommendationText?: string;
-  bucket: 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars';
+  bucket: 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars';
   accept: string;
   maxSizeMB?: number;
   value?: string[];

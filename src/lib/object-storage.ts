@@ -3,7 +3,7 @@ import 'server-only';
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-export type LegacyUploadBucket = 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars' | 'main-banners';
+export type LegacyUploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars' | 'main-banners';
 
 const PRIVATE_URI_PREFIX = 'minio://';
 
@@ -31,6 +31,9 @@ function client() {
 }
 
 export function resolveBucket(legacyBucket: LegacyUploadBucket) {
+  if (legacyBucket === 'plr-files') {
+    return process.env.OBJECT_STORAGE_BUCKET_PRIVATE_PLR || 'private-plr';
+  }
   if (legacyBucket === 'product-files') {
     return process.env.OBJECT_STORAGE_BUCKET_PRIVATE_MATERIALS || 'private-materials';
   }

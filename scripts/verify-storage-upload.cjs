@@ -12,7 +12,7 @@ function load(file, mocks) {
   return exports;
 }
 const storage = {
-  resolveBucket: () => 'private-materials',
+  resolveBucket: bucket => bucket === 'plr-files' ? 'private-plr' : 'private-materials',
   uploadObject: async ({ key, body }) => {
     if (denied) { const error = new Error(); error.name = 'AccessDenied'; throw error; }
     objects.set(key, Buffer.from(body));
@@ -57,6 +57,13 @@ async function call(fields) {
   }
   const ticket = (await call({ action: 'init', name: 'cancel.pdf', size: '2' })).data;
   assert.equal((await call({ action: 'cancel', id: ticket.id })).status, 200);
+  const plrBytes = Buffer.from('licenca-plr');
+  const plrTicket = (await call({ action: 'init', bucket: 'plr-files', name: 'licenca.pdf', size: String(plrBytes.length), contentType: 'application/pdf' })).data;
+  assert.equal((await call({ action: 'chunk', bucket: 'plr-files', id: plrTicket.id, index: '0', file: new Blob([plrBytes]) })).status, 200);
+  const plrResult = await call({ action: 'complete', bucket: 'plr-files', id: plrTicket.id });
+  assert.equal(plrResult.status, 200);
+  assert.match(plrResult.data.value, /^minio:\/\/private-plr\//);
+  assert.deepEqual(objects.get(plrResult.data.value.replace('minio://private-plr/', '')), plrBytes);
   denied = true;
   const failure = await call({ action: 'init', name: 'test.pdf', size: '2' });
   assert.equal(failure.status, 502);
@@ -66,5 +73,5 @@ async function call(fields) {
   assert.equal(links.isUploadedMaterial('https://drive.google.com/file/d/123'), false);
   assert.equal(links.normalizeDeliveryLink(' https://drive.google.com/file/d/123 '), 'https://drive.google.com/file/d/123');
   assert.throws(() => links.normalizeDeliveryLink('javascript:alert(1)'));
-  console.log('PASS: file integrity (2 B, 3 MB + 1 B, 15 MB), authentication, user isolation, invalid chunks, cleanup, credential errors, external links.');
+  console.log('PASS: MinIO integrity, private materials/PLR routing, authentication, isolation, cleanup, credential errors, external links.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

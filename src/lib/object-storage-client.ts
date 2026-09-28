@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export type UploadBucket = 'product-covers' | 'product-files' | 'store-assets' | 'student-avatars' | 'main-banners';
+export type UploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars' | 'main-banners';
 
 type ImageUploadResult = { value: string };
 
@@ -15,7 +15,7 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
 
   // Imagens são comprimidas no navegador para até 1,5 MB. Enviá-las pela API
   // da própria plataforma evita bloqueios de CSP/CORS em logos, capas e fotos.
-  if (bucket !== 'product-files') {
+  if (bucket !== 'product-files' && bucket !== 'plr-files') {
     const form = new FormData();
     form.append('bucket', bucket);
     form.append('file', file);
@@ -34,7 +34,7 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
   // Each request stays below Vercel's body limit, including for 15 MB files.
   const send = async (fields: Record<string, string | Blob>) => {
     const form = new FormData();
-    Object.entries(fields).forEach(([key, value]) => form.append(key, value));
+    Object.entries({ bucket, ...fields }).forEach(([key, value]) => form.append(key, value));
     let response: Response;
     try {
       response = await fetch('/api/storage/upload-file', {

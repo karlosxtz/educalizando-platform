@@ -5,7 +5,7 @@ import { createUploadUrl, publicObjectUrl, resolveBucket, type LegacyUploadBucke
 
 export const runtime = 'nodejs';
 
-const uploadBuckets = new Set<LegacyUploadBucket>(['product-covers', 'product-files', 'store-assets', 'student-avatars', 'main-banners']);
+const uploadBuckets = new Set<LegacyUploadBucket>(['product-covers', 'product-files', 'plr-files', 'store-assets', 'student-avatars', 'main-banners']);
 const maxUploadBytes = 15 * 1024 * 1024;
 
 function extension(fileName: string) {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const bucket = resolveBucket(body.bucket);
     const key = `uploads/${user.id}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${extension(body.fileName)}`;
     const uploadUrl = await createUploadUrl({ bucket, key, contentType: body.contentType });
-    const isPrivate = body.bucket === 'product-files';
+    const isPrivate = body.bucket === 'product-files' || body.bucket === 'plr-files';
 
     return NextResponse.json({
       uploadUrl,

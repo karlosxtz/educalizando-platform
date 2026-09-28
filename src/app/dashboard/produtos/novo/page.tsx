@@ -1230,7 +1230,7 @@ function ProductWizardContent() {
 
                       {plrDeliveryMethod === 'upload' ? (
                         <FileUpload
-                          bucket="product-files"
+                          bucket="plr-files"
                           accept=".pdf,.png,.jpg,.jpeg"
                           maxSizeMB={5}
                           value={plrLicenseUrl}
