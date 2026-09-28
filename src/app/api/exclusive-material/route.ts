@@ -38,8 +38,11 @@ export async function POST(request: Request) {
   const { data: store } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug, exclusive_material_requests_enabled').eq('id', storeId).maybeSingle();
   if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
   if (!store.exclusive_material_requests_enabled) return NextResponse.json({ error: 'Este criador não está aceitando solicitações de materiais exclusivos no momento.' }, { status: 403 });
+  const customerName = String(user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Cliente Educalizando').trim();
+  const customerAvatarUrl = typeof user.user_metadata?.avatar_url === 'string' ? user.user_metadata.avatar_url : typeof user.user_metadata?.picture === 'string' ? user.user_metadata.picture : null;
   const { data, error } = await supabaseAdmin.from('exclusive_material_requests').insert({
     store_id: store.id, creator_id: store.creator_id, customer_id: user.id, title, quantity,
+    customer_name: customerName, customer_email: user.email, customer_avatar_url: customerAvatarUrl,
     genre: String(body.genre || '').trim() || null, file_type: String(body.fileType || '').trim() || null,
     target_audience: String(body.targetAudience || '').trim() || null, deadline: body.deadline || null,
     budget: body.budget ? Number(body.budget) : null, description,
