@@ -10,10 +10,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ req
   if (!['paid','in_production','delivered'].includes(item.status)) return NextResponse.json({ error: 'A entrega só pode ser enviada depois do pagamento.' }, { status: 409 });
   const body = await request.json(); const files = Array.isArray(body.files) ? body.files : [];
   if (!files.length) return NextResponse.json({ error: 'Anexe pelo menos um arquivo.' }, { status: 400 });
-  const rows = files.slice(0, 20).map((file: any) => ({ request_id: requestId, creator_id: user.id, file_name: String(file.name || 'material'), file_url: String(file.url || ''), content_type: String(file.contentType || ''), file_size: Number(file.size || 0), note: String(body.note || '') || null })).filter((file: any) => file.file_url);
+  const metadata = {
+    title: String(body.title || item.title).trim(),
+    description: String(body.description || '').trim(),
+    educationYear: String(body.educationYear || '').trim(),
+    theme: String(body.theme || '').trim(),
+    tags: String(body.tags || '').split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 20),
+    pages: Math.max(0, Number(body.pages || 0)),
+    fileFormat: String(body.fileFormat || '').trim(),
+    coverUrl: typeof body.coverUrl === 'string' ? body.coverUrl : null,
+  };
+  if (!metadata.title || !metadata.description || !metadata.educationYear || !metadata.theme || !metadata.fileFormat) return NextResponse.json({ error: 'Preencha os dados essenciais do material antes de entregar.' }, { status: 400 });
+  const rows = files.slice(0, 20).map((file: any) => ({ request_id: requestId, creator_id: user.id, file_name: String(file.name || 'material'), file_url: String(file.url || ''), content_type: String(file.contentType || ''), file_size: Number(file.size || 0), note: JSON.stringify(metadata) })).filter((file: any) => file.file_url);
   if (!rows.length) return NextResponse.json({ error: 'Arquivos inválidos.' }, { status: 400 });
   const { error } = await supabaseAdmin.from('exclusive_material_deliveries').insert(rows); if (error) throw error;
   await supabaseAdmin.from('exclusive_material_requests').update({ status: 'delivered', delivered_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', requestId);
   await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: item.customer_id, request_id: requestId, type: 'delivered', title: 'Material exclusivo entregue', body: `Seu material “${item.title}” já está disponível para acessar.` });
-  return NextResponse.json({ ok: true });
+  await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'system', body: `Material exclusivo entregue: ${metadata.title}. O arquivo já está disponível em Meus Materiais e nesta solicitação.` });
+  return NextResponse.json({ ok: true, libraryPath: `/cliente/loja/${item.store_id}` });
 }

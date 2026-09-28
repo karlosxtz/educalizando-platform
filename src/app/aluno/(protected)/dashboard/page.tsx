@@ -33,7 +33,18 @@ export default function StudentDashboardStoresPage() {
         setStudentSession(session);
 
         const stores = await getStudentStoresGrouped(session.id);
-        setGroupedStores(stores);
+        const exclusiveResponse = await fetch('/api/aluno/materiais-exclusivos', { cache: 'no-store' });
+        const exclusivePayload = await exclusiveResponse.json().catch(() => ({}));
+        const merged = new Map(stores.map((entry) => [entry.store.id, entry]));
+        if (exclusiveResponse.ok) {
+          for (const material of exclusivePayload.materials || []) {
+            if (!material.store?.id) continue;
+            const current = merged.get(material.store.id);
+            if (current) current.purchasesCount += 1;
+            else merged.set(material.store.id, { store: material.store, purchasesCount: 1 });
+          }
+        }
+        setGroupedStores(Array.from(merged.values()));
       } catch (err) {
         console.error(err);
       } finally {

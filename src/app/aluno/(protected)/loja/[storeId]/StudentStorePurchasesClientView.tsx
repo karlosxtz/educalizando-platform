@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, X
+  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, X, Sparkles
 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -29,6 +29,21 @@ interface RefundEligibility {
   request: { id: string; status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'; review_note?: string | null } | null;
 }
 
+interface ExclusiveMaterial {
+  id: string;
+  requestId: string;
+  title: string;
+  description: string;
+  coverUrl?: string | null;
+  educationYear?: string;
+  theme?: string;
+  tags?: string[];
+  pages?: number;
+  fileFormat?: string;
+  store?: Store;
+  files: Array<{ id: string; name: string; downloadUrl: string }>;
+}
+
 export default function StudentStorePurchasesClientView({ storeId }: StudentStorePurchasesClientViewProps) {
   const router = useRouter();
 
@@ -36,6 +51,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [exclusiveMaterials, setExclusiveMaterials] = useState<ExclusiveMaterial[]>([]);
   const [materialSearch, setMaterialSearch] = useState('');
   const normalizeSearch = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const visiblePurchases = purchases.filter(purchase => normalizeSearch(purchase.product?.titulo || purchase.kit?.titulo || 'Material Didático').includes(normalizeSearch(materialSearch.trim())));
@@ -62,6 +78,12 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
         const data = await getStudentPurchasesByStoreId(session.id, storeId);
         setStore(data.store);
         setPurchases(data.purchases);
+        const exclusiveResponse = await fetch(`/api/aluno/materiais-exclusivos?storeId=${encodeURIComponent(storeId)}`, { cache: 'no-store' });
+        const exclusivePayload = await exclusiveResponse.json().catch(() => ({}));
+        if (exclusiveResponse.ok) {
+          setExclusiveMaterials(exclusivePayload.materials || []);
+          if (!data.purchases.length && exclusivePayload.materials?.[0]?.store) setStore(exclusivePayload.materials[0].store);
+        }
         
         const revs = await getStudentReviewsByStore(session.id, storeId);
         setMyReviews(revs);
@@ -332,6 +354,8 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           </div>
         </div>
 
+        {exclusiveMaterials.length > 0 && <section className="rounded-3xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 via-white to-blue-50 p-5 shadow-sm"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200"><Sparkles className="h-5 w-5"/></span><div><p className="text-xs font-black uppercase tracking-widest text-violet-700">Feito especialmente para você</p><h2 className="text-xl font-black text-slate-950">Materiais exclusivos</h2></div></div><div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{exclusiveMaterials.map((material) => <motion.article key={material.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-md ring-4 ring-violet-100/60"><span className="absolute right-3 top-3 z-10 inline-flex animate-pulse items-center gap-1 rounded-full bg-violet-600 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white"><Sparkles className="h-3 w-3"/>Exclusivo</span><div className="aspect-[4/3] bg-gradient-to-br from-violet-100 to-blue-100">{material.coverUrl ? <img src={material.coverUrl} alt={material.title} className="h-full w-full object-contain"/> : <div className="grid h-full place-items-center text-violet-400"><BookOpen className="h-12 w-12"/></div>}</div><div className="p-4"><h3 className="text-base font-black text-slate-950">{material.title}</h3><p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{material.description}</p><div className="mt-3 flex flex-wrap gap-1.5 text-[10px] font-bold text-violet-700">{material.educationYear && <span className="rounded-full bg-violet-50 px-2 py-1">{material.educationYear}</span>}{material.theme && <span className="rounded-full bg-violet-50 px-2 py-1">{material.theme}</span>}{material.pages ? <span className="rounded-full bg-violet-50 px-2 py-1">{material.pages} páginas</span> : null}</div><div className="mt-4 space-y-2">{material.files.map((file) => <a key={file.id} href={file.downloadUrl} target="_blank" rel="noreferrer" className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-sm font-black text-white hover:bg-violet-700"><Download className="h-4 w-4"/>Baixar {material.files.length > 1 ? file.name : 'material'}</a>)}</div></div></motion.article>)}</div></section>}
+
         {purchases.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5">
           <label htmlFor="purchased-material-search" className="block text-sm font-bold text-slate-800">Buscar nos meus materiais</label>
           <input id="purchased-material-search" type="search" value={materialSearch} onChange={event => setMaterialSearch(event.target.value)} placeholder="Digite o nome do material ou combo" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:ring-2 focus:ring-blue-100" />
@@ -340,7 +364,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
           {visiblePurchases.length === 0 && <p className="text-sm text-slate-600">Nenhum material encontrado. Tente uma parte do nome ou limpe a busca.</p>}
         </section>}
         {/* Store's Purchased Products & Kits Grid */}
-        {purchases.length === 0 ? (
+        {purchases.length === 0 && exclusiveMaterials.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
             <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-500 border border-slate-200 flex items-center justify-center mx-auto shadow-inner">
               <BookOpen className="w-8 h-8" />
