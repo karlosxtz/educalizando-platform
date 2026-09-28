@@ -35,6 +35,7 @@ function normalizeInstagramVideoUrl(value: unknown): string | null {
   return isInstagram && hasPublicPostPath ? normalized : null;
 }
 import { supabaseAdmin } from '@/lib/supabase';
+import { getProductDeletionProtection, productDeletionBlockedMessage } from '@/lib/product-deletion-policy';
 import { getRequestUser } from '@/lib/api-auth';
 import { generateSlug } from '@/lib/string-utils';
 
@@ -641,11 +642,24 @@ export async function DELETE(request: Request) {
     }
 
     // Validar se o produto pertence de fato à loja sendo administrada
-    const { data: product } = await supabaseAdmin.from('products').select('store_id').eq('id', validUUID).maybeSingle();
-    if (product) {
-      if (product.store_id !== cleanRequestStoreId) {
-         return NextResponse.json({ error: 'Este produto pertence a outra loja e não pode ser excluído por aqui.' }, { status: 403 });
-      }
+    const { data: product, error: productError } = await supabaseAdmin.from('products').select('store_id').eq('id', validUUID).maybeSingle();
+    if (productError) {
+      return NextResponse.json({ error: 'Não foi possível validar o produto antes da exclusão.' }, { status: 500 });
+    }
+    if (!product) {
+      return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
+    }
+    if (product.store_id !== cleanRequestStoreId) {
+      return NextResponse.json({ error: 'Este produto pertence a outra loja e não pode ser excluído por aqui.' }, { status: 403 });
+    }
+
+    const deletionProtection = await getProductDeletionProtection(validUUID);
+    if (deletionProtection.blocked) {
+      return NextResponse.json({
+        error: productDeletionBlockedMessage(deletionProtection),
+        code: 'PRODUCT_HAS_PURCHASES',
+        protection: deletionProtection,
+      }, { status: 409 });
     }
 
     console.log(`[API /api/produtos DELETE] Executando Soft Delete. ID bruto: "${id}", validUUID: "${validUUID}"`);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isSuperAdmin } from '@/lib/api-auth';
+import { getProductDeletionProtection, productDeletionBlockedMessage } from '@/lib/product-deletion-policy';
 
 export async function GET(request: Request) {
   try {
@@ -32,6 +33,15 @@ export async function DELETE(request: Request) {
 
     if (!productId) {
       return NextResponse.json({ error: 'ID do produto obrigatório' }, { status: 400 });
+    }
+
+    const deletionProtection = await getProductDeletionProtection(productId);
+    if (deletionProtection.blocked) {
+      return NextResponse.json({
+        error: productDeletionBlockedMessage(deletionProtection),
+        code: 'PRODUCT_HAS_PURCHASES',
+        protection: deletionProtection,
+      }, { status: 409 });
     }
 
     // Nunca removemos fisicamente: pedidos pagos, acessos e lançamentos

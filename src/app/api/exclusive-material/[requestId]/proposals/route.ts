@@ -49,7 +49,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ re
   const accepted = action === 'accept';
   await supabaseAdmin.from('exclusive_material_proposals').update({ status: accepted ? 'accepted' : 'declined', responded_at: new Date().toISOString() }).eq('id', proposal.id);
   await supabaseAdmin.from('exclusive_material_requests').update({ accepted_proposal_id: accepted ? proposal.id : null, status: accepted ? 'awaiting_payment' : 'negotiating', updated_at: new Date().toISOString() }).eq('id', requestId);
-  if (accepted) await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'system', body: `Proposta aceita pelo cliente. Prazo contratado: ${proposal.delivery_days} ${proposal.delivery_days === 1 ? 'dia' : 'dias'}. A contagem para entrega foi iniciada.` });
+  if (accepted) await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'system', body: `Proposta aceita pelo cliente. Prazo contratado: ${proposal.delivery_days} ${proposal.delivery_days === 1 ? 'dia' : 'dias'}. A contagem para entrega começará somente após a confirmação do pagamento.` });
   return NextResponse.json({ accepted });
 }
 
@@ -58,7 +58,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ r
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   const item = await findRequest(requestId);
   if (!item || (item.customer_id !== user.id && item.creator_id !== user.id)) return NextResponse.json({ error: 'Sem acesso.' }, { status: 403 });
-  if (['paid', 'in_production', 'delivered'].includes(item.status)) return NextResponse.json({ error: 'Após o pagamento, o cancelamento exige um processo de estorno.' }, { status: 409 });
+  const { data: paidPayment, error: paymentError } = await supabaseAdmin.from('exclusive_material_payments').select('id').eq('request_id', requestId).eq('status', 'paid').limit(1);
+  if (paymentError) return NextResponse.json({ error: 'Não foi possível confirmar o pagamento desta solicitação.' }, { status: 500 });
+  if (paidPayment?.length || ['paid', 'in_production', 'delivered'].includes(item.status)) return NextResponse.json({ error: 'Após o pagamento, a proposta não pode ser cancelada. Qualquer encerramento financeiro exige um processo de estorno.' }, { status: 409 });
   const { proposalId } = await request.json();
   const { data: proposal } = await supabaseAdmin.from('exclusive_material_proposals').select('id,status').eq('id', proposalId).eq('request_id', requestId).in('status', ['sent', 'accepted']).maybeSingle();
   if (!proposal) return NextResponse.json({ error: 'Esta proposta não está mais disponível.' }, { status: 404 });

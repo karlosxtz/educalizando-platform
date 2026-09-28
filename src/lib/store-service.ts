@@ -891,57 +891,13 @@ export async function deleteProduct(productId: string, storeId: string): Promise
     console.log(`[deleteProduct] Soft delete confirmado pela API para ${productId}`);
     backendSuccess = true;
   } catch (e: any) {
-    // Se for um erro de rede (fetch falhou), tentar fallback direto
-    if (e.name === 'TypeError' || e.message?.includes('fetch')) {
-      console.warn('[deleteProduct] Erro de rede, tentando fallback direto via Supabase client...');
-      
-      const isRealSupabase = Boolean(
-        process.env.NEXT_PUBLIC_SUPABASE_URL && 
-        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-      );
-
-      if (isRealSupabase) {
-        const targetUUID = isValidUUID(cleanId) ? cleanId : (isValidUUID(productId) ? productId : null);
-        if (targetUUID) {
-          // Tentar excluido_em + status
-          const { data, error } = await supabase
-            .from('products')
-            .update({
-              excluido_em: new Date().toISOString(),
-              status: 'excluido',
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', targetUUID)
-            .select('id')
-            .maybeSingle();
-
-          if (!error && data) {
-            backendSuccess = true;
-          } else {
-            // Tentar apenas excluido_em
-            const { data: d2, error: e2 } = await supabase
-              .from('products')
-              .update({
-                excluido_em: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', targetUUID)
-              .select('id')
-              .maybeSingle();
-
-            if (!e2 && d2) {
-              backendSuccess = true;
-            } else {
-              console.error('[deleteProduct] Fallback direto Supabase também falhou:', e2?.message);
-              throw new Error('Falha de conexão com o banco para excluir produto.');
-            }
-          }
-        }
-      }
-    } else {
-      // Re-lançar erros reais da API
-      throw e;
+    // A decisão de exclusão pertence exclusivamente ao servidor, que verifica
+    // compras finais, licenças PLR e acessos antigos antes de alterar o produto.
+    // Nunca contorne essa política com uma escrita direta pelo navegador.
+    if (e?.name === 'TypeError' || e?.message?.includes('fetch')) {
+      throw new Error('Não foi possível confirmar com segurança se este produto pode ser excluído. Verifique a conexão e tente novamente.');
     }
+    throw e;
   }
 
   // 2. Apenas se o backend foi bem sucedido, limpamos do UI (Fim da Deleção Fake)

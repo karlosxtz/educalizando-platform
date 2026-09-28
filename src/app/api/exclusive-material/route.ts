@@ -99,10 +99,21 @@ export async function DELETE(request: Request) {
   const { data: item } = await supabaseAdmin.from('exclusive_material_requests').select('*').eq('id', requestId).maybeSingle();
   if (!item || (item.customer_id !== user.id && item.creator_id !== user.id)) return NextResponse.json({ error: 'Sem acesso.' }, { status: 403 });
   const isCreator = item.creator_id === user.id;
-  if (['paid', 'in_production'].includes(item.status)) return NextResponse.json({ error: 'Esta solicitação já foi paga. Cancele somente por um processo de estorno antes de removê-la.' }, { status: 409 });
-
   const now = new Date().toISOString();
   const isFinished = ['delivered', 'cancelled', 'rejected'].includes(item.status);
+  if (!isFinished) {
+    const { data: paidPayment, error: paymentError } = await supabaseAdmin
+      .from('exclusive_material_payments')
+      .select('id')
+      .eq('request_id', requestId)
+      .eq('status', 'paid')
+      .limit(1);
+    if (paymentError) return NextResponse.json({ error: 'Não foi possível confirmar o pagamento desta solicitação.' }, { status: 500 });
+    if (paidPayment?.length || ['paid', 'in_production'].includes(item.status)) {
+      return NextResponse.json({ error: 'Esta solicitação já foi paga e não pode mais ser cancelada. Qualquer encerramento financeiro exige um processo de estorno.' }, { status: 409 });
+    }
+  }
+
   const updates: Record<string, string> = { [isCreator ? 'hidden_by_creator_at' : 'hidden_by_customer_at']: now, updated_at: now };
   if (!isFinished) {
     updates.status = 'cancelled';
