@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
-  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Flame, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined
+  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Flame, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined, MonitorDown
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
@@ -49,6 +49,11 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
   const handleLogout = async () => {
     await signOutUser();
     router.push('/login');
+  };
+
+  const openCreatorAppInstall = () => {
+    window.dispatchEvent(new Event('creator-pwa-install'));
+    closeMobileMenu(false);
   };
 
 
@@ -312,6 +317,19 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
                 </Link>
               );
                 })}
+                {group.label === 'Outros recursos' && storeId && (
+                  <button
+                    type="button"
+                    onClick={openCreatorAppInstall}
+                    className="flex min-h-11 w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 sm:text-sm"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <MonitorDown className="h-5 w-5 text-blue-600" />
+                      <span className="min-w-0 leading-tight">Instalar aplicativo</span>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-blue-600" />
+                  </button>
+                )}
               </div>
             ))}
           </nav>

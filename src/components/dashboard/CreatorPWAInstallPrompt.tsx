@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Download, Menu, MonitorDown, Share, Smartphone, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Download, Menu, Share, Smartphone, X } from 'lucide-react';
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -15,10 +15,29 @@ export default function CreatorPWAInstallPrompt() {
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [showBrowserGuide, setShowBrowserGuide] = useState(false);
   const [isIos, setIsIos] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  const install = useCallback(async () => {
+    if (isIos) {
+      setShowIosGuide(true);
+      return;
+    }
+    if (!installPrompt) {
+      setShowBrowserGuide(true);
+      return;
+    }
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') setIsInstalled(true);
+    setInstallPrompt(null);
+  }, [installPrompt, isIos]);
 
   useEffect(() => {
-    if (isStandalone()) return;
+    if (isStandalone()) {
+      setIsInstalled(true);
+      return;
+    }
 
     const appleDevice = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
     setIsIos(appleDevice);
@@ -38,65 +57,32 @@ export default function CreatorPWAInstallPrompt() {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as InstallPromptEvent);
-      setIsVisible(true);
     };
     const handleInstalled = () => {
       setInstallPrompt(null);
-      setIsVisible(false);
+      setIsInstalled(true);
       setShowIosGuide(false);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleInstalled);
 
-    // O botão fica sempre acessível. Alguns navegadores não expõem o evento
-    // beforeinstallprompt logo na primeira visita, mas ainda permitem instalar
-    // pelo menu do navegador.
-    setIsVisible(true);
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleInstalled);
     };
   }, []);
 
-  const install = async () => {
-    if (isIos) {
-      setShowIosGuide(true);
-      return;
-    }
-    if (!installPrompt) {
-      setShowBrowserGuide(true);
-      return;
-    }
+  useEffect(() => {
+    const handleInstallRequest = () => void install();
+    window.addEventListener('creator-pwa-install', handleInstallRequest);
+    return () => window.removeEventListener('creator-pwa-install', handleInstallRequest);
+  }, [install]);
 
-    await installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
-    if (choice.outcome === 'accepted') setIsVisible(false);
-    setInstallPrompt(null);
-  };
-
-  if (!isVisible) return null;
+  if (isInstalled) return null;
 
   return (
     <>
-      <aside className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-2xl border border-blue-200 bg-white p-4 shadow-2xl sm:left-auto sm:right-6" aria-label="Instalar painel do criador">
-        <div className="flex gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm">
-            <MonitorDown className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-black text-slate-900">Instale o Painel do Criador</p>
-            <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-600">Acesse sua loja, produtos, vendas e financeiro direto pela tela inicial.</p>
-          </div>
-          <button type="button" onClick={() => setIsVisible(false)} className="-mr-1 -mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Fechar aviso de instalação">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <button type="button" onClick={() => void install()} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white transition hover:bg-blue-800">
-          <Download className="h-4 w-4" /> Instalar aplicativo
-        </button>
-      </aside>
-
       {showIosGuide && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="creator-pwa-ios-title">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
