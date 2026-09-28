@@ -16,7 +16,6 @@ export default function IAConfigPage() {
   const appliedRequestedProduct = useRef(false);
   const [store, setStore] = useState<Store | null>(null);
   const [apiKey, setApiKey] = useState('');
-  const [provider, setProvider] = useState<'primary' | 'alternative'>('primary');
   const [hasApiKey, setHasApiKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,7 +51,6 @@ export default function IAConfigPage() {
         if (settingsResponse.ok) {
           const settings = await settingsResponse.json();
           setHasApiKey(Boolean(settings.configured));
-          setProvider(settings.provider === 'alternative' ? 'alternative' : 'primary');
           if (settings.configured) setShowConfig(false);
         }
 
@@ -83,7 +81,7 @@ export default function IAConfigPage() {
       const response = await fetch('/api/ai/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, apiKey, provider })
+        body: JSON.stringify({ storeId: store.id, apiKey })
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -276,13 +274,6 @@ export default function IAConfigPage() {
           
           <form onSubmit={handleSave} className="p-6 space-y-4 bg-white">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                Integração de IA
-              </label>
-              <select value={provider} onChange={(event) => setProvider(event.target.value === 'alternative' ? 'alternative' : 'primary')} className="mb-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-purple-500">
-                <option value="primary">Integração principal</option>
-                <option value="alternative">Groq ou OpenRouter</option>
-              </select>
               <label className="block text-sm font-bold text-slate-700 mb-2">Chave de acesso</label>
               <input
                 type="password"
@@ -292,7 +283,7 @@ export default function IAConfigPage() {
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none text-sm font-mono"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Use uma chave do Groq (começa com <strong>gsk_</strong>) ou do OpenRouter. Sua chave é armazenada de forma segura e nunca é exibida publicamente.
+                Cole a sua chave de IA. A plataforma identifica a integração compatível automaticamente, seleciona a melhor opção disponível e nunca exibe sua chave publicamente.
               </p>
             </div>
 

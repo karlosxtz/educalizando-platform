@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getAiKey } from '@/lib/ai-provider';
 
 async function getOwnedStore(request: Request, storeId: string) {
   const user = await getRequestUser(request);
@@ -21,12 +22,11 @@ export async function GET(request: Request) {
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
 
   const { data } = await supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle();
-  const provider = data?.ai_provider === 'alternative' ? 'alternative' : 'primary';
-  return NextResponse.json({ configured: Boolean(provider === 'alternative' ? data?.openrouter_ai_key : data?.google_ai_key), provider });
+  return NextResponse.json({ configured: Boolean(data && getAiKey(data).key) });
 }
 
 export async function PUT(request: Request) {
-  const { storeId, apiKey, provider } = await request.json();
+  const { storeId, apiKey } = await request.json();
   const { user, store } = await getOwnedStore(request, String(storeId || ''));
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
@@ -34,10 +34,10 @@ export async function PUT(request: Request) {
   const cleanKey = String(apiKey || '').trim().replace(/['"]/g, '').replace(/^Bearer\s+/i, '');
   if (!cleanKey) return NextResponse.json({ error: 'Informe uma chave válida.' }, { status: 400 });
 
-  const selectedProvider = provider === 'alternative' ? 'alternative' : 'primary';
-  const secrets = selectedProvider === 'alternative'
-    ? { store_id: storeId, openrouter_ai_key: cleanKey, ai_provider: selectedProvider }
-    : { store_id: storeId, google_ai_key: cleanKey, ai_provider: selectedProvider };
+  const isGoogleKey = cleanKey.startsWith('AIza');
+  const secrets = isGoogleKey
+    ? { store_id: storeId, google_ai_key: cleanKey, ai_provider: 'primary' }
+    : { store_id: storeId, openrouter_ai_key: cleanKey, ai_provider: 'alternative' };
   const { error } = await supabaseAdmin.from('store_secrets').upsert(secrets as any, { onConflict: 'store_id' });
   if (error) return NextResponse.json({ error: 'Não foi possível salvar a chave.' }, { status: 500 });
   return NextResponse.json({ success: true });
