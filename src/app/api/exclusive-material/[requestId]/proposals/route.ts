@@ -36,7 +36,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ re
     await supabaseAdmin.from('exclusive_material_proposals').update({ status: 'superseded', responded_at: new Date().toISOString() }).eq('id', proposal.id);
     await supabaseAdmin.from('exclusive_material_requests').update({ accepted_proposal_id: null, status: 'negotiating', updated_at: new Date().toISOString() }).eq('id', requestId);
     await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'customer', body: `Contraproposta do cliente:\nValor sugerido: R$ ${counterAmount.toFixed(2).replace('.', ',')}.\nPrazo desejado: ${counterDays} ${counterDays === 1 ? 'dia' : 'dias'}.\n\nDetalhes:\n${counterScope}` });
-    await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: user.id, request_id: requestId, type: 'counter_proposal', title: 'Sua contraproposta foi enviada', body: `A contraproposta para “${item.title}” foi registrada e enviada ao criador.` });
+    await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: user.id, request_id: requestId, type: 'message', title: 'Sua contraproposta foi enviada', body: `A contraproposta para “${item.title}” foi registrada e enviada ao criador.` });
     return NextResponse.json({ countered: true });
   }
   const accepted = action === 'accept';
