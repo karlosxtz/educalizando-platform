@@ -1,0 +1,110 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Download, MonitorDown, Share, Smartphone, X } from 'lucide-react';
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+};
+
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+
+export default function CreatorPWAInstallPrompt() {
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+  const [isIos, setIsIos] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isStandalone()) return;
+
+    const appleDevice = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
+    setIsIos(appleDevice);
+
+    // Remove o worker legado de escopo global caso ele tenha sido instalado em
+    // versões antigas. A PWA do criador passa a cobrir somente /dashboard.
+    if ('serviceWorker' in navigator) {
+      void navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(
+          registrations
+            .filter((registration) => new URL(registration.scope).pathname === '/')
+            .map((registration) => registration.unregister()),
+        ))
+        .finally(() => navigator.serviceWorker.register('/dashboard-sw.js', { scope: '/dashboard' }));
+    }
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+      setIsVisible(true);
+    };
+    const handleInstalled = () => {
+      setInstallPrompt(null);
+      setIsVisible(false);
+      setShowIosGuide(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    if (appleDevice) setIsVisible(true);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  const install = async () => {
+    if (isIos) {
+      setShowIosGuide(true);
+      return;
+    }
+    if (!installPrompt) return;
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') setIsVisible(false);
+    setInstallPrompt(null);
+  };
+
+  if (!isVisible) return null;
+
+  return (
+    <>
+      <aside className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-2xl border border-blue-200 bg-white p-4 shadow-2xl sm:left-auto sm:right-6" aria-label="Instalar painel do criador">
+        <div className="flex gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm">
+            <MonitorDown className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black text-slate-900">Instale o Painel do Criador</p>
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-600">Acesse sua loja, produtos, vendas e financeiro direto pela tela inicial.</p>
+          </div>
+          <button type="button" onClick={() => setIsVisible(false)} className="-mr-1 -mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Fechar aviso de instalação">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <button type="button" onClick={() => void install()} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white transition hover:bg-blue-800">
+          <Download className="h-4 w-4" /> Instalar aplicativo
+        </button>
+      </aside>
+
+      {showIosGuide && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="creator-pwa-ios-title">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div><p className="text-xs font-black uppercase tracking-wider text-blue-700">iPhone e iPad</p><h2 id="creator-pwa-ios-title" className="mt-1 text-xl font-black text-slate-900">Instale o Painel do Criador</h2></div>
+              <button type="button" onClick={() => setShowIosGuide(false)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100" aria-label="Fechar instruções"><X className="h-5 w-5" /></button>
+            </div>
+            <ol className="mt-5 space-y-3 text-sm font-medium leading-relaxed text-slate-700">
+              <li className="flex gap-3"><Share className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" /><span>1. No Safari, toque em <strong>Compartilhar</strong>.</span></li>
+              <li className="flex gap-3"><Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" /><span>2. Escolha <strong>Adicionar à Tela de Início</strong>.</span></li>
+            </ol>
+            <button type="button" onClick={() => setShowIosGuide(false)} className="mt-6 min-h-11 w-full rounded-xl bg-slate-900 px-4 text-sm font-black text-white">Entendi</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

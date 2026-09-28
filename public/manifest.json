@@ -1,10 +1,11 @@
 {
-  "name": "Educalizando",
-  "short_name": "Educalizando",
-  "description": "A Educalizando é uma plataforma de compra e venda de materiais e produtos digitais educacionais.",
-  "start_url": "/",
+  "name": "Educalizando para Criadores",
+  "short_name": "Painel Criador",
+  "description": "Painel do criador para publicar materiais, acompanhar vendas e administrar sua loja na Educalizando.",
+  "start_url": "/dashboard",
+  "scope": "/dashboard",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#f8fafc",
   "theme_color": "#093b6c",
   "icons": [
@@ -42,6 +43,6 @@
   "categories": [
     "education",
     "business",
-    "shopping"
+    "productivity"
   ]
 }

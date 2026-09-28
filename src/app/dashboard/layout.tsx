@@ -13,6 +13,7 @@ import { resolveUserRoles, resolveContextForRoute, canAccessAffiliateCenter, Use
 import { supabase } from '@/lib/supabase';
 import SystemBanners from '@/components/dashboard/SystemBanners';
 import OnboardingTour from '@/components/dashboard/OnboardingTour';
+import CreatorPWAInstallPrompt from '@/components/dashboard/CreatorPWAInstallPrompt';
 
 export default function DashboardLayout({
   children,
@@ -190,6 +191,9 @@ export default function DashboardLayout({
 
       {/* Exibido em qualquer área do criador até a conclusão explícita do tour. */}
       {store?.id && !isAffiliateMode && <OnboardingTour storageKey={`educalizando_tour360_${store.id}`} />}
+
+      {/* A instalação é oferecida apenas a quem possui uma loja de criador. */}
+      {store?.id && !isAffiliateMode && <CreatorPWAInstallPrompt />}
     </div>
   );
 }
