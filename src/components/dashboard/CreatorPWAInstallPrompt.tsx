@@ -111,7 +111,9 @@ export default function CreatorPWAInstallPrompt() {
               <li className="flex gap-3"><Menu className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" /><span>2. No celular, abra o menu do navegador e escolha <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela inicial</strong>.</span></li>
             </ol>
             <p className="mt-4 rounded-xl bg-blue-50 p-3 text-xs font-medium leading-relaxed text-blue-900">Quando o navegador concluir a preparação, este botão abrirá a instalação automaticamente.</p>
-            <button type="button" onClick={() => setShowBrowserGuide(false)} className="mt-5 min-h-11 w-full rounded-xl bg-slate-900 px-4 text-sm font-black text-white">Entendi</button>
+            <button type="button" onClick={() => void install()} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
+              <Download className="h-5 w-5" /> Instalar aplicativo
+            </button>
           </div>
         </div>
       )}
