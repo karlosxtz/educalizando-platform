@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { 
   Store, Package, DollarSign, TrendingUp, Sparkles,
   ArrowRight, ExternalLink, Plus, CheckCircle2, Percent, Wallet,
-  Landmark, ReceiptText, CircleDollarSign, CalendarDays, Lightbulb, Search, UsersRound
+  Landmark, ReceiptText, CircleDollarSign, CalendarDays, Lightbulb, Search, UsersRound,
+  MessageSquareText, Handshake, PackageCheck, BadgeDollarSign, Clock3
 } from 'lucide-react';
 import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
 import { calculateCreatorWallet, CreatorWalletSummary } from '@/lib/wallet-service';
@@ -14,7 +15,7 @@ import { Store as StoreType, Product } from '@/lib/types';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
 import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
-import { getSalesDataByPeriod } from '@/lib/sales-service';
+import { emptyExclusiveSalesOverview, getExclusiveSalesOverview, getSalesDataByPeriod, type ExclusiveSalesOverview } from '@/lib/sales-service';
 import { getUpcomingSchoolEvents } from '@/lib/school-calendar';
 
 const emptyWallet: CreatorWalletSummary = {
@@ -42,16 +43,18 @@ export default function DashboardOverviewPage() {
   const [monthSalesCount, setMonthSalesCount] = useState(0);
   const [referralCount, setReferralCount] = useState(0);
   const [popularTerms, setPopularTerms] = useState<Array<{ term: string; count: number }>>([]);
+  const [exclusiveOverview, setExclusiveOverview] = useState<ExclusiveSalesOverview>(emptyExclusiveSalesOverview);
 
   useEffect(() => {
     async function loadData() {
       const s = await getCurrentCreatorStore();
       setStore(s);
       if (s) {
-        const [prods, walletSummary, monthSales, referrals, searchInsights] = await Promise.all([
+        const [prods, walletSummary, monthSales, exclusiveSales, referrals, searchInsights] = await Promise.all([
           getProductsByStoreId(s.id),
           calculateCreatorWallet(s.id),
           getSalesDataByPeriod(s.id, 'month'),
+          getExclusiveSalesOverview(s.id),
           fetch('/api/creator-referrals', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null),
           fetch('/api/catalog-search-insights', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null),
         ]);
@@ -59,6 +62,7 @@ export default function DashboardOverviewPage() {
         setWallet(walletSummary);
         setMonthRevenue(monthSales.chartData.reduce((total, point) => total + point.revenue, 0));
         setMonthSalesCount(monthSales.chartData.reduce((total, point) => total + point.salesCount, 0));
+        setExclusiveOverview(exclusiveSales);
         setReferralCount(referrals?.referrals?.length || 0);
         setPopularTerms(searchInsights?.terms || []);
       }
@@ -233,6 +237,26 @@ export default function DashboardOverviewPage() {
           </div>
         </motion.div>
       </div>
+
+      <section className="overflow-hidden rounded-3xl border border-violet-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 bg-gradient-to-r from-violet-700 via-purple-700 to-indigo-700 p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+          <div><div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-violet-100"><Sparkles className="h-4 w-4"/>Canal de encomendas personalizadas</div><h2 className="mt-2 text-2xl font-black">Desempenho dos materiais exclusivos</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-violet-100">Acompanhe todo o caminho, desde a primeira solicitação até o pagamento e a entrega ao cliente.</p></div>
+          <Link href="/dashboard/materiais-exclusivos" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-black text-violet-700 shadow-lg shadow-violet-950/20 transition hover:bg-violet-50">Abrir central de exclusivos<ArrowRight className="h-4 w-4"/></Link>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[{ label: 'Solicitações recebidas', value: exclusiveOverview.received, detail: `${exclusiveOverview.negotiating} em conversa`, icon: MessageSquareText, color: 'blue' }, { label: 'Propostas aceitas', value: exclusiveOverview.accepted, detail: `${exclusiveOverview.acceptanceRate.toFixed(1)}% das solicitações`, icon: Handshake, color: 'violet' }, { label: 'Pagamentos confirmados', value: exclusiveOverview.paid, detail: `${exclusiveOverview.inProduction} em produção`, icon: BadgeDollarSign, color: 'emerald' }, { label: 'Materiais entregues', value: exclusiveOverview.delivered, detail: `${exclusiveOverview.deliveryRate.toFixed(1)}% dos pagos`, icon: PackageCheck, color: 'amber' }].map((item) => <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{item.label}</p><p className="mt-2 text-3xl font-black text-slate-950">{item.value}</p><p className="mt-1 text-xs font-semibold text-slate-500">{item.detail}</p></div><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${item.color === 'blue' ? 'bg-blue-100 text-blue-700' : item.color === 'violet' ? 'bg-violet-100 text-violet-700' : item.color === 'emerald' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}><item.icon className="h-5 w-5"/></span></div></div>)}
+          </div>
+
+          <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5"><div className="flex items-center gap-2"><BadgeDollarSign className="h-5 w-5 text-violet-700"/><h3 className="font-black text-slate-950">Financeiro exclusivo</h3></div><div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><div><p className="text-xs font-semibold text-slate-500">Vendido somente em exclusivos</p><p className="mt-1 text-xl font-black text-violet-800">{formatCurrency(exclusiveOverview.grossRevenue)}</p></div><div><p className="text-xs font-semibold text-slate-500">Seu repasse líquido</p><p className="mt-1 text-xl font-black text-emerald-700">{formatCurrency(exclusiveOverview.creatorNet)}</p></div><div><p className="text-xs font-semibold text-slate-500">Taxa da plataforma</p><p className="mt-1 text-xl font-black text-slate-900">{formatCurrency(exclusiveOverview.platformFees)}</p></div><div><p className="text-xs font-semibold text-slate-500">Ticket médio exclusivo</p><p className="mt-1 text-xl font-black text-slate-900">{formatCurrency(exclusiveOverview.averageTicket)}</p></div></div></div>
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5"><div className="flex items-center gap-2"><Clock3 className="h-5 w-5 text-slate-700"/><h3 className="font-black text-slate-950">Situação das solicitações</h3></div><div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-white p-3"><p className="text-xs text-slate-500">Em negociação</p><p className="mt-1 font-black text-slate-900">{exclusiveOverview.negotiating}</p></div><div className="rounded-xl bg-white p-3"><p className="text-xs text-slate-500">Aguardando pagamento</p><p className="mt-1 font-black text-slate-900">{exclusiveOverview.awaitingPayment}</p></div><div className="rounded-xl bg-white p-3"><p className="text-xs text-slate-500">Em produção</p><p className="mt-1 font-black text-slate-900">{exclusiveOverview.inProduction}</p></div><div className="rounded-xl bg-white p-3"><p className="text-xs text-slate-500">Canceladas</p><p className="mt-1 font-black text-slate-900">{exclusiveOverview.cancelled}</p></div></div></div>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">{[{ label: 'Aceite das propostas', value: exclusiveOverview.acceptanceRate, tone: 'bg-violet-600' }, { label: 'Conversão em pagamento', value: exclusiveOverview.paymentRate, tone: 'bg-emerald-500' }, { label: 'Conclusão das entregas', value: exclusiveOverview.deliveryRate, tone: 'bg-amber-500' }].map((step) => <div key={step.label}><div className="mb-1.5 flex items-center justify-between text-xs"><span className="font-bold text-slate-600">{step.label}</span><span className="font-black text-slate-900">{step.value.toFixed(1)}%</span></div><div className="h-2.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${step.tone}`} style={{ width: `${Math.min(100, step.value)}%` }}/></div></div>)}</div>
+        </div>
+      </section>
 
       {/* Financial snapshot - all values originate from paid orders, wallet ledger and completed withdrawals */}
       <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 shadow-sm">

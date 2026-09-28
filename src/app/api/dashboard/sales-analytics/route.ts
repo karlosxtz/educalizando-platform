@@ -78,15 +78,19 @@ export async function GET(request: Request) {
   const { data: store } = await supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle();
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
 
-  const [ordersResult, exclusiveResult] = await Promise.all([
+  const [ordersResult, exclusiveResult, exclusiveRequestsResult] = await Promise.all([
     supabaseAdmin.from('orders').select('id,buyer_name,buyer_email,total_amount,subtotal_amount,status,created_at,paid_at,is_plr_purchase,payment_method,items:order_items(product_title)').eq('store_id', storeId),
     supabaseAdmin
       .from('exclusive_material_payments')
-      .select('id,gross_amount,status,created_at,paid_at,request:exclusive_material_requests!inner(store_id,title,customer_name,customer_email)')
+      .select('id,gross_amount,platform_fee_amount,creator_net_amount,status,created_at,paid_at,request:exclusive_material_requests!inner(store_id,title,customer_name,customer_email)')
       .eq('request.store_id', storeId),
+    supabaseAdmin
+      .from('exclusive_material_requests')
+      .select('id,status,accepted_proposal_id,created_at,delivered_at')
+      .eq('store_id', storeId),
   ]);
-  if (ordersResult.error || exclusiveResult.error) {
-    console.error('[Dashboard Sales Analytics]', ordersResult.error || exclusiveResult.error);
+  if (ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error) {
+    console.error('[Dashboard Sales Analytics]', ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error);
     return NextResponse.json({ error: 'Não foi possível consolidar as vendas da loja.' }, { status: 500 });
   }
 
@@ -141,6 +145,13 @@ export async function GET(request: Request) {
       saleSource: sale.source,
     }));
   const exclusivePaid = periodSales.filter((sale) => sale.source === 'exclusive' && sale.status === 'paid');
+  const allExclusiveRequests = exclusiveRequestsResult.data || [];
+  const allPaidExclusivePayments = (exclusiveResult.data || []).filter((payment) => payment.status === 'paid');
+  const acceptedRequests = allExclusiveRequests.filter((item) => Boolean(item.accepted_proposal_id));
+  const exclusiveGrossRevenue = allPaidExclusivePayments.reduce((sum, payment) => sum + Number(payment.gross_amount || 0), 0);
+  const exclusiveCreatorNet = allPaidExclusivePayments.reduce((sum, payment) => sum + Number(payment.creator_net_amount || 0), 0);
+  const exclusivePlatformFees = allPaidExclusivePayments.reduce((sum, payment) => sum + Number(payment.platform_fee_amount || 0), 0);
+  const countStatus = (...statuses: string[]) => allExclusiveRequests.filter((item) => statuses.includes(item.status)).length;
 
   return NextResponse.json({
     chartData: buildChart(periodSales, period, now),
@@ -149,6 +160,23 @@ export async function GET(request: Request) {
     exclusivePerformance: {
       salesCount: exclusivePaid.length,
       revenue: Number(exclusivePaid.reduce((sum, sale) => sum + sale.amount, 0).toFixed(2)),
+    },
+    exclusiveOverview: {
+      received: allExclusiveRequests.length,
+      accepted: acceptedRequests.length,
+      paid: allPaidExclusivePayments.length,
+      delivered: countStatus('delivered'),
+      negotiating: countStatus('open', 'negotiating'),
+      awaitingPayment: countStatus('awaiting_payment'),
+      inProduction: countStatus('paid', 'in_production'),
+      cancelled: countStatus('cancelled', 'rejected'),
+      grossRevenue: Number(exclusiveGrossRevenue.toFixed(2)),
+      creatorNet: Number(exclusiveCreatorNet.toFixed(2)),
+      platformFees: Number(exclusivePlatformFees.toFixed(2)),
+      averageTicket: allPaidExclusivePayments.length ? Number((exclusiveGrossRevenue / allPaidExclusivePayments.length).toFixed(2)) : 0,
+      acceptanceRate: allExclusiveRequests.length ? Number(((acceptedRequests.length / allExclusiveRequests.length) * 100).toFixed(1)) : 0,
+      paymentRate: acceptedRequests.length ? Number(((allPaidExclusivePayments.length / acceptedRequests.length) * 100).toFixed(1)) : 0,
+      deliveryRate: allPaidExclusivePayments.length ? Number(((countStatus('delivered') / allPaidExclusivePayments.length) * 100).toFixed(1)) : 0,
     },
   }, { headers: { 'Cache-Control': 'no-store' } });
 }

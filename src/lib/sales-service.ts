@@ -6,6 +6,31 @@ type DashboardAnalyticsResponse = {
   totalGeneratedCount?: number;
   recentOrders?: RecentOrder[];
   exclusivePerformance?: { salesCount?: number; revenue?: number };
+  exclusiveOverview?: ExclusiveSalesOverview;
+};
+
+export type ExclusiveSalesOverview = {
+  received: number;
+  accepted: number;
+  paid: number;
+  delivered: number;
+  negotiating: number;
+  awaitingPayment: number;
+  inProduction: number;
+  cancelled: number;
+  grossRevenue: number;
+  creatorNet: number;
+  platformFees: number;
+  averageTicket: number;
+  acceptanceRate: number;
+  paymentRate: number;
+  deliveryRate: number;
+};
+
+export const emptyExclusiveSalesOverview: ExclusiveSalesOverview = {
+  received: 0, accepted: 0, paid: 0, delivered: 0, negotiating: 0, awaitingPayment: 0,
+  inProduction: 0, cancelled: 0, grossRevenue: 0, creatorNet: 0, platformFees: 0,
+  averageTicket: 0, acceptanceRate: 0, paymentRate: 0, deliveryRate: 0,
 };
 
 const dashboardAnalyticsRequests = new Map<string, Promise<DashboardAnalyticsResponse>>();
@@ -22,6 +47,17 @@ async function getDashboardAnalytics(storeId: string, period: PeriodFilter) {
     .finally(() => window.setTimeout(() => dashboardAnalyticsRequests.delete(key), 3000));
   dashboardAnalyticsRequests.set(key, pending);
   return pending;
+}
+
+export async function getExclusiveSalesOverview(storeId: string): Promise<ExclusiveSalesOverview> {
+  if (typeof window === 'undefined' || !storeId) return emptyExclusiveSalesOverview;
+  try {
+    const result = await getDashboardAnalytics(storeId, 'month');
+    return result.exclusiveOverview ? { ...emptyExclusiveSalesOverview, ...result.exclusiveOverview } : emptyExclusiveSalesOverview;
+  } catch (error) {
+    console.error('[getExclusiveSalesOverview] Erro ao carregar indicadores exclusivos:', error);
+    return emptyExclusiveSalesOverview;
+  }
 }
 
 // Helper to retrieve real orders from LocalStorage when offline
