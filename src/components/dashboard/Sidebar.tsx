@@ -87,6 +87,12 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: null
     },
     {
+      label: 'Materiais Exclusivos',
+      href: '/dashboard/materiais-exclusivos',
+      icon: MessagesSquare,
+      badge: 'NOVO'
+    },
+    {
       label: 'Indique e ganhe',
       href: '/dashboard/indicacoes',
       icon: Flame,
@@ -182,7 +188,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
   const NAV_GROUPS = [
     { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
-    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
+    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
     { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },

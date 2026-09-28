@@ -3,6 +3,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
+import { recordWalletTransaction } from '@/lib/wallet-service';
 import {
   assertConfirmedInfinitePayPayment,
   InfinitePayWebhookValidationError,
@@ -57,6 +58,40 @@ export async function POST(request: Request) {
       if (activationError) throw activationError;
       if (!activatedSubscription) return webhookError(409, 'Evento incompatível com o estado atual.');
       console.info('[InfinitePay Webhook] Evento do módulo processado.');
+      return NextResponse.json({ success: true, message: null });
+    }
+
+    // Pagamento de uma encomenda exclusiva: não passa pelo pedido de catálogo,
+    // mas usa a mesma confirmação oficial e o mesmo ledger financeiro.
+    const { data: exclusivePayment, error: exclusivePaymentError } = await supabaseAdmin
+      .from('exclusive_material_payments')
+      .select('*, request:exclusive_material_requests(*)')
+      .eq('order_nsu', payload.orderNsu)
+      .maybeSingle();
+    if (exclusivePaymentError) throw exclusivePaymentError;
+    if (exclusivePayment) {
+      if (exclusivePayment.status === 'paid') {
+        if (exclusivePayment.transaction_nsu === payload.transactionNsu) return NextResponse.json({ success: true, message: null });
+        return webhookError(409, 'Evento incompatível com o estado atual.');
+      }
+      const payment = await checkInfinitePayPayment({ orderNsu: payload.orderNsu, transactionNsu: payload.transactionNsu, slug: payload.invoiceSlug });
+      assertConfirmedInfinitePayPayment(payload, payment, Math.round(Number(exclusivePayment.gross_amount) * 100));
+      const { data: markedPaid, error: updateExclusiveError } = await supabaseAdmin.from('exclusive_material_payments').update({
+        status: 'paid', transaction_nsu: payload.transactionNsu, invoice_slug: payload.invoiceSlug, paid_at: new Date().toISOString()
+      }).eq('id', exclusivePayment.id).eq('status', 'pending').select('id').maybeSingle();
+      if (updateExclusiveError) throw updateExclusiveError;
+      if (!markedPaid) return webhookError(409, 'Evento incompatível com o estado atual.');
+      await supabaseAdmin.from('exclusive_material_requests').update({ status: 'in_production', updated_at: new Date().toISOString() }).eq('id', exclusivePayment.request_id);
+      await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: exclusivePayment.request_id, sender_id: exclusivePayment.request.creator_id, sender_role: 'system', body: 'Pagamento confirmado pela plataforma. O criador já pode iniciar a produção e enviar a entrega aqui.' });
+      await recordWalletTransaction({
+        // Encomendas não possuem order_items de catálogo. A transação é gravada
+        // no ledger pela confirmação atômica acima, sem forçar uma FK de produto.
+        storeId: exclusivePayment.request.store_id, creatorId: exclusivePayment.request.creator_id,
+        buyerName: 'Cliente de material exclusivo', productTitle: `Material exclusivo: ${exclusivePayment.request.title}`,
+        type: 'SALE', grossAmount: Number(exclusivePayment.gross_amount), platformFixedFeeAmount: 0,
+        platformPercentageFeeAmount: Number(exclusivePayment.platform_fee_amount), platformFeeAmount: Number(exclusivePayment.platform_fee_amount),
+        asaasFeeAmount: 0, netAmount: Number(exclusivePayment.creator_net_amount), description: 'Venda de material exclusivo — repasse de 87% ao criador.'
+      });
       return NextResponse.json({ success: true, message: null });
     }
 

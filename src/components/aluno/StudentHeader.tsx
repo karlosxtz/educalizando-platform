@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { GraduationCap, LogOut, BookOpen } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, FilePenLine } from 'lucide-react';
 import { signOutStudent } from '@/lib/student-service';
 
 interface StudentHeaderProps {
@@ -56,6 +56,9 @@ export default function StudentHeader({
           >
             <span className="text-brand-teal">🎁</span>
             <span className="text-brand-teal">Brindes</span>
+          </Link>
+          <Link href="/cliente/materiais-exclusivos" className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden md:flex items-center gap-1.5">
+            <FilePenLine className="w-4 h-4 text-violet-600" /><span>Materiais exclusivos</span>
           </Link>
           <Link
             href="/cliente/conta"
