@@ -13,8 +13,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ req
   const item = await access(requestId, user.id);
   if (!item) return NextResponse.json({ error: 'Sem acesso.' }, { status: 403 });
   const { data: creatorAuth } = await supabaseAdmin.auth.admin.getUserById(item.creator_id);
-  const creatorName = creatorAuth.user?.user_metadata?.full_name || creatorAuth.user?.user_metadata?.name || item.store?.nome_loja || 'Criador Educalizando';
-  const creatorAvatar = creatorAuth.user?.user_metadata?.avatar_url || creatorAuth.user?.user_metadata?.picture || item.store?.logo_url || null;
+  const creatorName = creatorAuth?.user?.user_metadata?.full_name || creatorAuth?.user?.user_metadata?.name || item.store?.nome_loja || 'Criador Educalizando';
+  const creatorAvatar = creatorAuth?.user?.user_metadata?.avatar_url || creatorAuth?.user?.user_metadata?.picture || item.store?.logo_url || null;
   const { data, error } = await supabaseAdmin.from('exclusive_material_messages').select('*').eq('request_id', requestId).order('created_at');
   if (error) throw error;
   const messages = (data || []).map((message) => ({

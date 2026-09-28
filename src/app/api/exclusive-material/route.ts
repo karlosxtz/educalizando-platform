@@ -23,7 +23,18 @@ export async function GET(request: Request) {
   query = isCreator
     ? query.eq('creator_id', user.id).is('hidden_by_creator_at', null)
     : query.eq('customer_id', user.id).is('hidden_by_customer_at', null);
-  const { data, error } = await query;
+  let { data, error } = await query;
+  // Compatibilidade durante o intervalo entre o deploy da aplicação e a
+  // aplicação da migração de arquivamento no banco de produção.
+  if (error?.code === '42703') {
+    const fallback = await supabaseAdmin
+      .from('exclusive_material_requests')
+      .select('*, store:stores(id,nome_loja,slug,logo_url), proposals:exclusive_material_proposals!exclusive_material_proposals_request_id_fkey(*), payments:exclusive_material_payments(*), deliveries:exclusive_material_deliveries(*)')
+      .eq(isCreator ? 'creator_id' : 'customer_id', user.id)
+      .order('updated_at', { ascending: false });
+    data = fallback.data;
+    error = fallback.error;
+  }
   if (error) return NextResponse.json({ error: `Não foi possível listar solicitações: ${error.message}` }, { status: 500 });
   const { data: notifications } = !isCreator ? await supabaseAdmin.from('exclusive_material_notifications').select('*').eq('customer_id', user.id).is('read_at', null).order('created_at', { ascending: false }) : { data: [] };
   return NextResponse.json({ requests: data || [], notifications: notifications || [] });

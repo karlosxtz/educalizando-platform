@@ -94,9 +94,11 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     const term = search.trim().toLocaleLowerCase('pt-BR');
     return Array.from(grouped.values()).filter((conversation) => !term || conversation.name.toLocaleLowerCase('pt-BR').includes(term) || conversation.requests.some((item) => item.title.toLocaleLowerCase('pt-BR').includes(term)));
   }, [items, search, view]);
-  const acceptedProposal = active?.proposals?.find((item: Item) => item.id === active.accepted_proposal_id) || null;
-  const pendingProposal = active?.proposals?.find((item: Item) => item.status === 'sent') || null;
-  const paidPayment = active?.payments?.find((item: Item) => item.status === 'paid' && item.paid_at) || null;
+  const proposals = Array.isArray(active?.proposals) ? active.proposals : [];
+  const payments = Array.isArray(active?.payments) ? active.payments : [];
+  const acceptedProposal = proposals.find((item: Item) => item.id === active?.accepted_proposal_id) || null;
+  const pendingProposal = proposals.find((item: Item) => item.status === 'sent') || null;
+  const paidPayment = payments.find((item: Item) => item.status === 'paid' && item.paid_at) || null;
   const countdown = acceptedProposal && paidPayment ? deliveryCountdown(acceptedProposal, paidPayment.paid_at) : null;
 
   const authHeaders = async (): Promise<Record<string, string>> => {
@@ -122,10 +124,18 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     }
   };
   const open = async (item: Item) => {
-    setActive(item);
-    const response = await request(`/api/exclusive-material/${item.id}/messages`);
-    const data = await response.json();
-    setMessages(data.messages || []);
+    try {
+      setActive(item);
+      const response = await request(`/api/exclusive-material/${item.id}/messages`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Não foi possível abrir a conversa.');
+      setMessages(Array.isArray(data.messages) ? data.messages : []);
+    } catch (caught) {
+      setMessages([]);
+      const message = caught instanceof Error ? caught.message : 'Não foi possível abrir a conversa.';
+      setError(message);
+      notify(message, 'error');
+    }
   };
   useEffect(() => {
     void load();
