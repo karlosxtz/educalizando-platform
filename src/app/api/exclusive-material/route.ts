@@ -59,6 +59,7 @@ export async function POST(request: Request) {
   const { data: verifiedRequest, error: verificationError } = await supabaseAdmin.from('exclusive_material_requests').select('id, customer_id, creator_id').eq('id', data.id).maybeSingle();
   if (verificationError || !verifiedRequest || verifiedRequest.customer_id !== user.id || verifiedRequest.creator_id !== store.creator_id) {
     return NextResponse.json({ error: 'A solicitação não pôde ser confirmada. Nenhum redirecionamento foi feito.' }, { status: 500 });
+  }
   // O painel do criador filtra por creator_id, o mesmo valor copiado da loja
   // validada acima. Assim a solicitação não pode cair em outro painel.
   return NextResponse.json({ request: data, creatorDashboardPath: '/dashboard/materiais-exclusivos' }, { status: 201 });
