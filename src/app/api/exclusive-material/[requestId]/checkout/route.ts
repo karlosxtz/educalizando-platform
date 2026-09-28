@@ -2,7 +2,6 @@ import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { assertCheckoutFinancialConfiguration } from '@/lib/financial-configuration';
 import { createInfinitePayCheckout } from '@/lib/infinitepay-service';
 import { exclusiveFinancials } from '@/lib/exclusive-material';
 
@@ -15,16 +14,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ req
   if (!proposal) return NextResponse.json({ error: 'A proposta aceita não está disponível.' }, { status: 409 });
   const { data: existing } = await supabaseAdmin.from('exclusive_material_payments').select('*').eq('request_id', requestId).maybeSingle();
   if (existing?.status === 'paid') return NextResponse.json({ error: 'Este pedido já foi pago.' }, { status: 409 });
+  if (existing?.status === 'pending' && typeof existing.checkout_url === 'string' && existing.checkout_url.startsWith('https://')) {
+    return NextResponse.json({ checkoutUrl: existing.checkout_url, amount: Number(proposal.amount) });
+  }
   try {
-    assertCheckoutFinancialConfiguration();
     const financials = exclusiveFinancials(Number(proposal.amount)); const orderNsu = existing?.order_nsu || `exclusive_${randomUUID()}`;
     const origin = new URL(request.url).origin;
-    const checkout = await createInfinitePayCheckout({ orderNsu, redirectUrl: `${origin}/cliente/materiais-exclusivos?payment=processing`, webhookUrl: `${origin}/api/webhooks/infinitepay`, customer: { name: user.user_metadata?.full_name || user.email, email: user.email, phoneNumber: item.store?.whatsapp || undefined }, items: [{ quantity: 1, price: Math.round(financials.grossAmount * 100), description: `Material exclusivo: ${item.title}` }] });
+    const checkout = await createInfinitePayCheckout({ orderNsu, redirectUrl: `${origin}/cliente/materiais-exclusivos?pedido=${encodeURIComponent(requestId)}&payment=processing`, webhookUrl: `${origin}/api/webhooks/infinitepay`, customer: { name: user.user_metadata?.full_name || user.email, email: user.email }, items: [{ quantity: 1, price: Math.round(Number(proposal.amount) * 100), description: `Material exclusivo: ${item.title}` }] });
     if (!checkout.checkoutUrl) return NextResponse.json({ error: 'Não foi possível gerar a página de pagamento.' }, { status: 502 });
     const payload = { request_id: requestId, proposal_id: proposal.id, order_nsu: orderNsu, checkout_url: checkout.checkoutUrl, gross_amount: financials.grossAmount, platform_fee_amount: financials.platformFeeAmount, creator_net_amount: financials.creatorNetAmount, status: 'pending' };
     const { error } = existing ? await supabaseAdmin.from('exclusive_material_payments').update(payload).eq('id', existing.id) : await supabaseAdmin.from('exclusive_material_payments').insert(payload);
     if (error) return NextResponse.json({ error: 'Não foi possível registrar o pagamento para este pedido.' }, { status: 500 });
-    return NextResponse.json({ checkoutUrl: checkout.checkoutUrl });
+    return NextResponse.json({ checkoutUrl: checkout.checkoutUrl, amount: Number(proposal.amount) });
   } catch (caught) {
     console.error('Falha ao abrir o checkout de material exclusivo:', caught);
     return NextResponse.json({ error: 'Não foi possível iniciar o pagamento agora. Revise a configuração financeira e tente novamente.' }, { status: 500 });
