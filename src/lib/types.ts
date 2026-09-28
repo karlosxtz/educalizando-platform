@@ -45,6 +45,8 @@ export interface Store {
   google_analytics_id?: string | null;
   guided_chat_enabled?: boolean;
   guided_chat_welcome?: string | null;
+  /** Quando habilitado pelo criador, a loja aceita pedidos personalizados. */
+  exclusive_material_requests_enabled?: boolean;
   bulk_discount_enabled?: boolean;
   bulk_discount_minimum?: number;
   bulk_discount_percentage?: number;

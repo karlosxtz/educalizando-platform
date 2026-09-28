@@ -313,9 +313,9 @@ export default function ThemeDefault(props: StoreThemeProps) {
             </div>
           </div>
           <div className="mt-5 flex flex-wrap justify-end gap-2">
-            <Link href={`/solicitar-material-exclusivo/${store.slug}`} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 text-xs font-black text-violet-700 shadow-sm transition-colors hover:border-violet-300 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600">
+            {store.exclusive_material_requests_enabled && <Link href={`/solicitar-material-exclusivo/${store.slug}`} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 text-xs font-black text-violet-700 shadow-sm transition-colors hover:border-violet-300 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600">
               <FilePenLine className="h-4 w-4" /> Solicitar material exclusivo
-            </Link>
+            </Link>}
             <Link href="/" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 text-xs font-black text-blue-700 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
               <Search className="h-4 w-4" /> Acessar marketplace
             </Link>

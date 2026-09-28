@@ -35,8 +35,9 @@ export async function POST(request: Request) {
   const description = String(body.description || '').trim();
   const quantity = Number(body.quantity || 1);
   if (!storeId || !title || !description || !Number.isInteger(quantity) || quantity < 1) return NextResponse.json({ error: 'Preencha título, quantidade e a descrição do material.' }, { status: 400 });
-  const { data: store } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug').eq('id', storeId).maybeSingle();
+  const { data: store } = await supabaseAdmin.from('stores').select('id, creator_id, nome_loja, slug, exclusive_material_requests_enabled').eq('id', storeId).maybeSingle();
   if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
+  if (!store.exclusive_material_requests_enabled) return NextResponse.json({ error: 'Este criador não está aceitando solicitações de materiais exclusivos no momento.' }, { status: 403 });
   const { data, error } = await supabaseAdmin.from('exclusive_material_requests').insert({
     store_id: store.id, creator_id: store.creator_id, customer_id: user.id, title, quantity,
     genre: String(body.genre || '').trim() || null, file_type: String(body.fileType || '').trim() || null,
