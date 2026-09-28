@@ -15,12 +15,17 @@ export async function GET(request: Request) {
   const isCreator = view === 'creator';
   const store = isCreator ? await creatorStore(user.id) : null;
   if (isCreator && !store) return NextResponse.json({ error: 'Apenas criadores podem acessar esta área.' }, { status: 403 });
-  const column = isCreator ? 'creator_id' : 'customer_id';
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('exclusive_material_requests')
     .select('*, store:stores(id,nome_loja,slug,logo_url), proposals:exclusive_material_proposals(*), payments:exclusive_material_payments(*), deliveries:exclusive_material_deliveries(*)')
-    .eq(column, user.id).order('updated_at', { ascending: false });
-  if (error) throw error;
+    .order('updated_at', { ascending: false });
+  // customer_email mantém a caixa acessível em contas antigas que receberam
+  // uma nova identidade Supabase com o mesmo e-mail.
+  query = isCreator
+    ? query.eq('creator_id', user.id)
+    : query.or(`customer_id.eq.${user.id},customer_email.eq.${(user.email || '').replace(/[,()]/g, '')}`);
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ error: `Não foi possível listar solicitações: ${error.message}` }, { status: 500 });
   const { data: notifications } = !isCreator ? await supabaseAdmin.from('exclusive_material_notifications').select('*').eq('customer_id', user.id).is('read_at', null).order('created_at', { ascending: false }) : { data: [] };
   return NextResponse.json({ requests: data || [], notifications: notifications || [] });
 }
@@ -49,8 +54,11 @@ export async function POST(request: Request) {
     budget: body.budget ? Number(body.budget) : null, description,
     reference_links: Array.isArray(body.referenceLinks) ? body.referenceLinks.filter((value: unknown) => typeof value === 'string').slice(0, 8) : []
   }).select('*').single();
-  if (error) throw error;
+  if (error || !data?.id) return NextResponse.json({ error: error?.message || 'A solicitação não foi gravada no banco.' }, { status: 500 });
   await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: data.id, sender_id: user.id, sender_role: 'customer', body: 'Solicitação criada. Aguardo a proposta do criador.' });
+  const { data: verifiedRequest, error: verificationError } = await supabaseAdmin.from('exclusive_material_requests').select('id, customer_id, creator_id').eq('id', data.id).maybeSingle();
+  if (verificationError || !verifiedRequest || verifiedRequest.customer_id !== user.id || verifiedRequest.creator_id !== store.creator_id) {
+    return NextResponse.json({ error: 'A solicitação não pôde ser confirmada. Nenhum redirecionamento foi feito.' }, { status: 500 });
   // O painel do criador filtra por creator_id, o mesmo valor copiado da loja
   // validada acima. Assim a solicitação não pode cair em outro painel.
   return NextResponse.json({ request: data, creatorDashboardPath: '/dashboard/materiais-exclusivos' }, { status: 201 });
