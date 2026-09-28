@@ -3,6 +3,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
+import { notifyExclusivePaymentConfirmed } from '@/lib/exclusive-material-notification-service';
 import {
   assertConfirmedInfinitePayPayment,
   InfinitePayWebhookValidationError,
@@ -15,7 +16,15 @@ function webhookError(status: number, message: string) {
   return NextResponse.json({ success: false, message }, { status });
 }
 
-async function creditExclusiveMaterialCreator(exclusivePayment: any) {
+type ExclusivePaymentCredit = {
+  id: string;
+  gross_amount: number | string;
+  platform_fee_amount: number | string;
+  creator_net_amount: number | string;
+  request: { store_id: string; creator_id: string; title: string };
+};
+
+async function creditExclusiveMaterialCreator(exclusivePayment: ExclusivePaymentCredit) {
   const transactionId = `exclusive_${exclusivePayment.id}`;
   const { error } = await supabaseAdmin.from('wallet_transactions').insert({
     id: transactionId,
@@ -96,6 +105,7 @@ export async function POST(request: Request) {
       if (exclusivePayment.status === 'paid') {
         if (exclusivePayment.transaction_nsu === payload.transactionNsu) {
           await creditExclusiveMaterialCreator(exclusivePayment);
+          await notifyExclusivePaymentConfirmed({ paymentId: exclusivePayment.id, requestId: exclusivePayment.request_id, grossAmount: Number(exclusivePayment.gross_amount), creatorNetAmount: Number(exclusivePayment.creator_net_amount) });
           return NextResponse.json({ success: true, message: null });
         }
         return webhookError(409, 'Evento incompatível com o estado atual.');
@@ -110,6 +120,7 @@ export async function POST(request: Request) {
       await supabaseAdmin.from('exclusive_material_requests').update({ status: 'in_production', updated_at: new Date().toISOString() }).eq('id', exclusivePayment.request_id);
       await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: exclusivePayment.request_id, sender_id: exclusivePayment.request.creator_id, sender_role: 'system', body: 'Pagamento confirmado pela plataforma. O criador já pode iniciar a produção e enviar a entrega aqui.' });
       await creditExclusiveMaterialCreator(exclusivePayment);
+      await notifyExclusivePaymentConfirmed({ paymentId: exclusivePayment.id, requestId: exclusivePayment.request_id, grossAmount: Number(exclusivePayment.gross_amount), creatorNetAmount: Number(exclusivePayment.creator_net_amount) });
       return NextResponse.json({ success: true, message: null });
     }
 

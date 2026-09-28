@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { notifyExclusiveMaterialDelivered } from '@/lib/exclusive-material-notification-service';
 
 type DeliveryInput = {
   url: string;
@@ -39,5 +40,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ req
   await supabaseAdmin.from('exclusive_material_requests').update({ status: 'delivered', delivered_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', requestId);
   await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: item.customer_id, request_id: requestId, type: 'delivered', title: 'Material exclusivo entregue', body: `Seu material “${item.title}” já está disponível para acessar.` });
   await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'system', body: `Material exclusivo entregue: ${metadata.title}. O arquivo já está disponível em Meus Materiais e nesta solicitação.` });
+  await notifyExclusiveMaterialDelivered({ requestId });
   return NextResponse.json({ ok: true, libraryPath: `/cliente/loja/${item.store_id}` });
 }

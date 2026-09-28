@@ -4,6 +4,7 @@ import { getPurchaseAccess } from './purchase-access';
 
 type MailResult = { sent: boolean; id?: string; error?: string };
 type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string; fileUrl?: string | null; fileName?: string | null }>; creatorWhatsapp?: string | null; isPlrPurchase?: boolean };
+type ExclusiveMaterialMailParams = { email: string; name: string; requestId: string; title: string; amount?: number; creatorNetAmount?: number; url: string };
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
 const from = process.env.RESEND_FROM_EMAIL || 'Educalizando <onboarding@resend.dev>';
@@ -90,6 +91,17 @@ export async function sendSaleConfirmationToBuyer(params: BuyerMailParams) {
 export async function sendSaleNotificationToCreator({ producerEmail, producerName, amount, productTitle, orderId }: { producerEmail: string; producerName: string; amount: number; productTitle: string; orderId: string }) {
   const amountText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
   return send(producerEmail, '💰 Nova venda confirmada na sua loja', layout('💰 Você realizou uma nova venda!', `<p>Parabéns, ${firstName(producerName)}!</p><p>O pagamento do pedido <strong>#${escapeHtml(orderId)}</strong> foi confirmado.</p><p><strong>Produto:</strong> ${escapeHtml(productTitle)}<br><strong>Valor líquido:</strong> ${amountText}</p>${button(`${appUrl}/dashboard/pedidos`, 'Ver pedidos')}`));
+}
+export async function sendExclusivePaymentConfirmedToCustomer(params: ExclusiveMaterialMailParams) {
+  const amount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(params.amount || 0));
+  return send(params.email, 'Pagamento confirmado — seu material exclusivo entrou em produção', layout('✅ Pagamento do material exclusivo confirmado', `<p>Olá, ${firstName(params.name)}!</p><p>O pagamento de <strong>${amount}</strong> para <strong>${escapeHtml(params.title)}</strong> foi aprovado. O criador já pode iniciar a produção.</p><p>Você pode acompanhar a conversa, o prazo e a entrega pela sua área de materiais exclusivos.</p>${button(params.url, 'Acompanhar solicitação', '#2563eb')}`));
+}
+export async function sendExclusiveSaleNotificationToCreator(params: ExclusiveMaterialMailParams) {
+  const amount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(params.creatorNetAmount || 0));
+  return send(params.email, '💰 Nova venda de material exclusivo confirmada', layout('💰 Pagamento confirmado: inicie a produção', `<p>Olá, ${firstName(params.name)}!</p><p>O cliente pagou a proposta de <strong>${escapeHtml(params.title)}</strong>.</p><p><strong>Valor líquido previsto:</strong> ${amount}</p><p>O prazo de produção começou e a entrega deve ser realizada pela plataforma.</p>${button(params.url, 'Abrir material exclusivo', '#7c3aed')}`));
+}
+export async function sendExclusiveMaterialDeliveredEmail(params: ExclusiveMaterialMailParams) {
+  return send(params.email, '🎉 Seu material exclusivo foi entregue', layout('🎉 Material exclusivo disponível', `<p>Olá, ${firstName(params.name)}!</p><p>O material <strong>${escapeHtml(params.title)}</strong> foi concluído e entregue pelo criador.</p><p>O acesso é privado e está disponível somente na sua conta Educalizando.</p>${button(params.url, 'Acessar material', '#7c3aed')}`));
 }
 export async function sendSaleNotificationToAffiliate({ affiliateEmail, affiliateName, amount, productTitle }: { affiliateEmail: string; affiliateName: string; amount: number; productTitle: string }) {
   const amountText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
