@@ -21,8 +21,8 @@ export async function GET(request: Request) {
     .order('updated_at', { ascending: false });
   // A identidade autenticada determina o acesso; e-mail não substitui ownership.
   query = isCreator
-    ? query.eq('creator_id', user.id)
-    : query.eq('customer_id', user.id);
+    ? query.eq('creator_id', user.id).is('hidden_by_creator_at', null)
+    : query.eq('customer_id', user.id).is('hidden_by_customer_at', null);
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: `Não foi possível listar solicitações: ${error.message}` }, { status: 500 });
   const { data: notifications } = !isCreator ? await supabaseAdmin.from('exclusive_material_notifications').select('*').eq('customer_id', user.id).is('read_at', null).order('created_at', { ascending: false }) : { data: [] };
@@ -78,4 +78,32 @@ export async function POST(request: Request) {
   // O painel do criador filtra por creator_id, o mesmo valor copiado da loja
   // validada acima. Assim a solicitação não pode cair em outro painel.
   return NextResponse.json({ request: data, creatorDashboardPath: '/dashboard/materiais-exclusivos' }, { status: 201 });
+}
+
+export async function DELETE(request: Request) {
+  const user = await getRequestUser(request);
+  if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  const requestId = new URL(request.url).searchParams.get('requestId');
+  if (!requestId) return NextResponse.json({ error: 'Solicitação inválida.' }, { status: 400 });
+  const { data: item } = await supabaseAdmin.from('exclusive_material_requests').select('*').eq('id', requestId).maybeSingle();
+  if (!item || (item.customer_id !== user.id && item.creator_id !== user.id)) return NextResponse.json({ error: 'Sem acesso.' }, { status: 403 });
+  const isCreator = item.creator_id === user.id;
+  if (['paid', 'in_production'].includes(item.status)) return NextResponse.json({ error: 'Esta solicitação já foi paga. Cancele somente por um processo de estorno antes de removê-la.' }, { status: 409 });
+
+  const now = new Date().toISOString();
+  const isFinished = ['delivered', 'cancelled', 'rejected'].includes(item.status);
+  const updates: Record<string, string> = { [isCreator ? 'hidden_by_creator_at' : 'hidden_by_customer_at']: now, updated_at: now };
+  if (!isFinished) {
+    updates.status = 'cancelled';
+    updates.cancelled_at = now;
+    updates.cancelled_by = user.id;
+    const body = isCreator
+      ? 'O criador cancelou a execução do serviço e removeu esta solicitação do painel dele.'
+      : 'O cliente cancelou a solicitação do serviço e removeu o pedido do painel dele.';
+    await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: requestId, sender_id: user.id, sender_role: 'system', body });
+    await supabaseAdmin.from('exclusive_material_notifications').insert({ customer_id: item.customer_id, request_id: requestId, type: 'message', title: isCreator ? 'Execução do serviço cancelada' : 'Solicitação cancelada', body });
+  }
+  const { error } = await supabaseAdmin.from('exclusive_material_requests').update(updates).eq('id', requestId);
+  if (error) return NextResponse.json({ error: 'Não foi possível remover a solicitação.' }, { status: 500 });
+  return NextResponse.json({ removed: true, cancelled: !isFinished });
 }
