@@ -3,6 +3,7 @@ import Script from 'next/script';
 import './globals.css';
 import { Toaster } from 'sonner';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import { DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE_ALT, SITE_URL } from '@/lib/seo';
 
 export const viewport: Viewport = {
   themeColor: '#093b6c',
@@ -13,7 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br'),
+  metadataBase: new URL(SITE_URL),
   title: 'Educalizando — Plataforma Digital para Materiais Didáticos',
   description:
     'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais. Venda apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo.',
@@ -54,10 +55,10 @@ export const metadata: Metadata = {
     siteName: 'Educalizando',
     images: [
       {
-        url: '/branding/logo-og.png?v=3',
+        url: DEFAULT_SOCIAL_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'Educalizando',
+        alt: DEFAULT_SOCIAL_IMAGE_ALT,
       },
     ],
     locale: 'pt_BR',
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
     title: 'Educalizando — Plataforma Digital Educacional',
     description:
       'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais.',
-    images: ['/branding/logo-og.png?v=3'],
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
   robots: {
     index: true,
@@ -86,34 +87,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Educalizando',
-    url: 'https://www.educalizando.com.br',
-    inLanguage: 'pt-BR',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://www.educalizando.com.br/buscar?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
-  const organizationJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Educalizando',
-    url: 'https://www.educalizando.com.br',
-    logo: 'https://www.educalizando.com.br/branding/logo-og.png?v=3',
-    description: 'Marketplace brasileiro de materiais didáticos digitais para educadores.',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      telephone: '+55-21-96500-8441',
-      availableLanguage: 'Portuguese',
-    },
-  };
-
   return (
     <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
@@ -132,14 +105,6 @@ export default function RootLayout({
             }
           })();
         `}</Script>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
         <CartProvider>
           <CartSidebar />
           {children}

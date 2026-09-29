@@ -68,6 +68,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     { url: `${baseUrl}/glossario`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/calendario`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/atividades-por-ano`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.75 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
   ];
 
   glossaryTerms.forEach((term) => sitemapEntries.push({ url: `${baseUrl}/glossario/${term.slug}`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 }));
@@ -126,7 +128,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
-    sitemapEntries.push({ url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 });
     blogPosts.forEach((post) => {
       sitemapEntries.push({
         url: `${baseUrl}/blog/${post.slug}`,
@@ -162,5 +163,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Erro ao gerar sitemap dinâmico:', error);
   }
 
-  return sitemapEntries;
+  // Uma URL canônica deve aparecer uma única vez, mesmo que uma futura fonte
+  // dinâmica coincida com uma landing editorial já cadastrada acima.
+  return Array.from(new Map(sitemapEntries.map((entry) => [entry.url, entry])).values());
 }

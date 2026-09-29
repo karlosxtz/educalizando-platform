@@ -1,11 +1,21 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
+  const privatePaths = [
+    '/admin/',
+    '/dashboard/',
+    '/cliente/',
+    '/aluno/',
+    '/api/',
+    '/checkout/',
+    '/loja/*/checkout/',
+  ];
+
   return {
     rules: [
       // Merchant Center exige regras explícitas para a página e a imagem do
       // produto, mesmo quando a regra genérica também permitiria o acesso.
-      { userAgent: 'Googlebot', allow: '/' },
+      { userAgent: 'Googlebot', allow: ['/', '/aluno/login', '/aluno/cadastro'], disallow: privatePaths },
       { userAgent: 'Googlebot-Image', allow: '/' },
       {
         userAgent: '*',
@@ -13,15 +23,7 @@ export default function robots(): MetadataRoute.Robots {
         // `noindex` seja respeitado. As demais rotas de aluno continuam
         // bloqueadas por conterem conteúdo privado.
         allow: ['/', '/aluno/login', '/aluno/cadastro'],
-        disallow: [
-          '/admin/',
-          '/dashboard/',
-          '/cliente/',
-          '/aluno/',
-          '/api/',
-          '/checkout/',
-          '/loja/*/checkout/',
-        ],
+        disallow: privatePaths,
       },
     ],
     sitemap: 'https://www.educalizando.com.br/sitemap.xml',

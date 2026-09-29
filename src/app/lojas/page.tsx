@@ -5,6 +5,7 @@ import { getAllPublicStores } from '@/lib/store-service';
 import { Store } from '@/lib/types';
 import { Store as StoreIcon, ChevronRight } from 'lucide-react';
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 
 export const revalidate = 0;
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   title: 'Lojas de materiais didáticos | Educalizando',
   description: 'Conheça lojas de educadores e encontre materiais didáticos digitais para sua rotina pedagógica.',
   alternates: { canonical: '/lojas' },
-  openGraph: { title: 'Lojas de materiais didáticos | Educalizando', description: 'Conheça educadores e suas vitrines de materiais didáticos digitais.', url: '/lojas', type: 'website' },
+  ...socialMetadata({ title: 'Lojas de materiais didáticos | Educalizando', description: 'Conheça lojas de educadores e encontre materiais didáticos digitais para sua rotina pedagógica.', url: '/lojas' }),
 };
 
 export default async function LojasPage() {

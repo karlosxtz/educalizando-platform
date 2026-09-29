@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import GlossaryBrowser from '@/components/glossary/GlossaryBrowser';
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Glossário Pedagógico | Educalizando',
   description: 'Entenda termos essenciais da educação, da BNCC e dos materiais pedagógicos digitais.',
   alternates: { canonical: '/glossario' },
-  openGraph: { title: 'Glossário Pedagógico | Educalizando', description: 'Termos essenciais da educação, BNCC e materiais pedagógicos.', url: '/glossario', type: 'website' },
+  ...socialMetadata({ title: 'Glossário Pedagógico | Educalizando', description: 'Consulte termos essenciais da educação, BNCC e materiais pedagógicos no glossário da Educalizando.', url: '/glossario' }),
 };
 
 export default function GlossarioPage() {

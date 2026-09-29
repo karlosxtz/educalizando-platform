@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getEducationLevels } from '@/lib/category-service';
 import { searchProducts } from '@/lib/search-service';
+import { serializeJsonLd, socialMetadata } from '@/lib/seo';
 import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
@@ -26,8 +27,7 @@ export async function generateMetadata({ params }: EducationLevelPageProps): Pro
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, type: 'website', url },
-    twitter: { card: 'summary_large_image', title, description },
+    ...socialMetadata({ title, description, url }),
   };
 }
 
@@ -72,7 +72,7 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] selection:bg-blue-600 selection:text-white">
       {structuredData.map((data, index) => (
-        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
       ))}
       <MarketplaceHeader />
       <main className="flex-1">

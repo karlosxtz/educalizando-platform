@@ -8,9 +8,17 @@ import CalendarEventIcon, { calendarKindStyles } from '@/components/CalendarEven
 import SchoolCalendarMonth from '@/components/SchoolCalendarMonth';
 import { getSchoolCalendarEventKinds, getSchoolCalendarEventsForMonth, getSchoolCalendarMonthArtwork, SCHOOL_CALENDAR_ARTWORK, type SchoolCalendarEventKind } from '@/lib/school-calendar';
 import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 export const revalidate = 3600;
-export const metadata: Metadata = { title: 'Calendário escolar e datas comemorativas | Educalizando', description: 'Planeje aulas com datas temáticas e encontre materiais do catálogo Educalizando por tema.', alternates: { canonical: '/calendario' }, openGraph: { title: 'Calendário escolar | Educalizando', description: 'Datas temáticas e materiais para apoiar o planejamento escolar.', url: '/calendario' }, twitter: { card: 'summary', title: 'Calendário escolar | Educalizando', description: 'Datas temáticas e materiais para apoiar o planejamento escolar.' } };
+const calendarTitle = 'Calendário escolar e datas comemorativas | Educalizando';
+const calendarDescription = 'Planeje aulas com datas temáticas e encontre materiais do catálogo Educalizando por tema.';
+export const metadata: Metadata = {
+  title: calendarTitle,
+  description: calendarDescription,
+  alternates: { canonical: '/calendario' },
+  ...socialMetadata({ title: calendarTitle, description: calendarDescription, url: '/calendario' }),
+};
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 function safeNumber(value: string | undefined, fallback: number, minimum: number, maximum: number) { const number = Number(value); return Number.isInteger(number) && number >= minimum && number <= maximum ? number : fallback; }
@@ -20,7 +28,18 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const params = await searchParams; const now = new Date(); const month = safeNumber(params.mes, now.getMonth(), 0, 11); const year = safeNumber(params.ano, now.getFullYear(), 2020, 2100); const kinds = getSchoolCalendarEventKinds(); const activeType = kinds.includes(params.tipo as SchoolCalendarEventKind) ? params.tipo as SchoolCalendarEventKind : undefined; const allMonthEvents = getSchoolCalendarEventsForMonth(month); const events = activeType ? allMonthEvents.filter((event) => event.kind === activeType) : allMonthEvents;
   const products = await getAllPublicMarketplaceProducts(500); const materialCounts = new Map(allMonthEvents.map((event) => [event.slug, products.filter((product) => product.seasonal_tags?.includes(event.searchTerm)).length])); const selectedMonthIsCurrent = month === now.getMonth() && year === now.getFullYear(); const upcoming = [...allMonthEvents].filter((event) => !selectedMonthIsCurrent || event.day >= now.getDate()).slice(0, 3); const monthArtwork = getSchoolCalendarMonthArtwork(month);
 
-  return <div className="flex min-h-screen flex-col bg-slate-50"><MarketplaceHeader /><main className="flex-1"><div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'CollectionPage', name: calendarTitle, description: calendarDescription, url: `${SITE_URL}/calendario`, inLanguage: 'pt-BR' },
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Calendário escolar', item: `${SITE_URL}/calendario` },
+      ] },
+    ],
+  };
+
+  return <div className="flex min-h-screen flex-col bg-slate-50"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} /><MarketplaceHeader /><main className="flex-1"><div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
     <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm font-semibold text-slate-600"><Link href="/" className="rounded hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Início</Link><ChevronRight aria-hidden="true" className="h-4 w-4" /><span aria-current="page" className="text-slate-900">Calendário</span></nav>
     <header className="home-calendar-panel relative isolate mt-6 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-800 via-blue-700 to-cyan-600 p-6 text-white shadow-xl shadow-blue-950/15 sm:p-10">
       <Image src={monthArtwork.src} alt="" fill priority sizes="(min-width: 1280px) 80rem, 100vw" className="object-cover object-right opacity-35" />

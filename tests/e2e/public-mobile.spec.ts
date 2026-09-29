@@ -3,9 +3,11 @@ import { expect, test } from '@playwright/test';
 const viewports = [
   { name: '320px', width: 320, height: 700 },
   { name: '360px', width: 360, height: 800 },
+  { name: '375px', width: 375, height: 812 },
   { name: '390px', width: 390, height: 844 },
   { name: '414px', width: 414, height: 896 },
   { name: 'tablet', width: 768, height: 1024 },
+  { name: '1024px', width: 1024, height: 900 },
   { name: 'desktop', width: 1280, height: 900 },
 ];
 

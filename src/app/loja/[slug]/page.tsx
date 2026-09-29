@@ -6,6 +6,7 @@ import {
 } from '@/lib/store-service';
 import PublicStoreClientView from './PublicStoreClientView';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
+import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
 
 // Forçar renderização dinâmica em tempo real no Next.js App Router
 export const dynamic = 'force-dynamic';
@@ -37,8 +38,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${store.nome_loja} — Materiais Didáticos Digitais`,
       description: store.descricao || `Confira os materiais didáticos de ${store.nome_loja} com PIX instantâneo.`,
       url: `https://www.educalizando.com.br/loja/${store.slug}`,
-      images: store.logo_url ? [{ url: store.logo_url }] : []
-    }
+      siteName: 'Educalizando',
+      locale: 'pt_BR',
+      type: 'website',
+      images: [store.banner_url || store.logo_url || DEFAULT_SOCIAL_IMAGE],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${store.nome_loja} — Materiais Didáticos Digitais`,
+      description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+      images: [store.banner_url || store.logo_url || DEFAULT_SOCIAL_IMAGE],
+    },
   };
 }
 
@@ -64,21 +74,34 @@ export default async function PublicStorePage({ params }: PageProps) {
 
   console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 
+  const pageUrl = `${SITE_URL}/loja/${store.slug}`;
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: store.nome_loja,
-    url: `https://educalizando.com.br/loja/${store.slug}`,
-    description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
-    ...(store.logo_url ? { logo: store.logo_url } : {}),
-    ...(store.banner_url ? { image: store.banner_url } : {}),
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: store.nome_loja,
+        url: pageUrl,
+        description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+        ...(store.logo_url ? { logo: store.logo_url } : {}),
+        ...(store.banner_url ? { image: store.banner_url } : {}),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Lojas', item: `${SITE_URL}/lojas` },
+          { '@type': 'ListItem', position: 3, name: store.nome_loja, item: pageUrl },
+        ],
+      },
+    ],
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <PublicStoreClientView store={store} initialProducts={products} />
       <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />

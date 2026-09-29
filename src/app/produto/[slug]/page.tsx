@@ -17,6 +17,7 @@ import { ChevronRight, Home } from 'lucide-react';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
+import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
 
 // URLs antigas já rastreadas antes da padronização dos slugs. Manter este
 // mapa evita páginas 404 e transfere a autoridade da URL antiga para a atual.
@@ -35,24 +36,29 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
   const store = await getStoreById(product.store_id);
   const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
   const description = product.descricao ? (product.descricao.substring(0, 155) + (product.descricao.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
+  const url = `${SITE_URL}/produto/${product.slug || product.id}`;
+  const image = product.capa_url || DEFAULT_SOCIAL_IMAGE;
 
   return {
     title,
     description,
     alternates: {
-      canonical: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
+      canonical: url,
     },
     openGraph: {
       title,
       description,
-      images: product.capa_url ? [{ url: product.capa_url }] : [],
+      url,
+      siteName: 'Educalizando',
+      locale: 'pt_BR',
+      images: [image],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: product.capa_url ? [product.capa_url] : [],
+      images: [image],
     },
   };
 }
@@ -180,11 +186,11 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     <div className="flex flex-col min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <MarketplaceHeader />
       

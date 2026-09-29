@@ -1,5 +1,6 @@
 import type { IntentLanding } from '@/components/seo/IntentLandingPage';
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 
 export const seoLandings: Record<string, IntentLanding> = {
   'materiais-didaticos': { slug: 'materiais-didaticos', eyebrow: 'Recursos para educadores', title: 'Materiais didáticos digitais para ensinar com mais praticidade', description: 'Encontre atividades, apostilas, jogos pedagógicos e recursos digitais criados por educadores para apoiar suas aulas e reduzir o tempo de planejamento.', query: 'material', benefits: ['Acesso digital após a compra', 'Recursos feitos por educadores', 'Opções para diferentes etapas de ensino'], tips: ['Confira a faixa etária, o tema e o formato antes de comprar.', 'Escolha materiais que indiquem objetivos pedagógicos claros.', 'Salve seus favoritos para organizar o planejamento da semana.'], faq: [{ question: 'Os materiais são digitais?', answer: 'Sim. Cada produto informa seu formato e fica disponível conforme as condições de compra.' }, { question: 'Posso usar no celular?', answer: 'Os materiais digitais podem ser acessados pela área do cliente em dispositivos compatíveis.' }] },
@@ -18,11 +19,6 @@ export function intentLandingMetadata(landing: IntentLanding): Metadata {
     title: `${landing.title} | Educalizando`,
     description: landing.description,
     alternates: { canonical },
-    openGraph: {
-      title: landing.title,
-      description: landing.description,
-      url: `https://www.educalizando.com.br${canonical}`,
-      type: 'website',
-    },
+    ...socialMetadata({ title: `${landing.title} | Educalizando`, description: landing.description, url: canonical }),
   };
 }

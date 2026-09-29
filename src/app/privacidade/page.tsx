@@ -1,6 +1,18 @@
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { ShieldCheck } from 'lucide-react';
+import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
+
+const title = 'Política de Privacidade | Educalizando';
+const description = 'Consulte como a Educalizando trata dados pessoais, cookies, pagamentos e os direitos previstos na LGPD.';
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: '/privacidade' },
+  ...socialMetadata({ title, description, url: '/privacidade' }),
+};
 
 export default function PrivacidadePage() {
   return (

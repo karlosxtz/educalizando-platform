@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Download, Gift, Sparkles } from 'lucide-react';
+import { ArrowRight, Download, Gift } from 'lucide-react';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import { serializeJsonLd, socialMetadata } from '@/lib/seo';
 
 const pageUrl = 'https://www.educalizando.com.br/materiais-gratis';
 
@@ -10,12 +11,7 @@ export const metadata: Metadata = {
   title: 'Materiais Pedagógicos Gratuitos para Baixar | Educalizando',
   description: 'Encontre atividades, jogos e recursos pedagógicos gratuitos para usar em sala de aula. Crie sua conta de Cliente e resgate seus materiais na Educalizando.',
   alternates: { canonical: pageUrl },
-  openGraph: {
-    title: 'Materiais Pedagógicos Gratuitos | Educalizando',
-    description: 'Atividades e recursos pedagógicos gratuitos para professores, famílias e educadores.',
-    url: pageUrl,
-    type: 'website',
-  },
+  ...socialMetadata({ title: 'Materiais Pedagógicos Gratuitos | Educalizando', description: 'Atividades e recursos pedagógicos gratuitos para professores, famílias e educadores.', url: pageUrl }),
 };
 
 export default async function MateriaisGratisPage() {
@@ -33,7 +29,7 @@ export default async function MateriaisGratisPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       {structuredData.map((data, index) => (
-        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
       ))}
       <MarketplaceHeader />
 

@@ -3,17 +3,34 @@ import Link from 'next/link';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { getPublishedBlogPosts } from '@/lib/blog-service';
+import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
+
+const blogTitle = 'Blog Educalizando | Ideias e Guias Pedagógicos';
+const blogDescription = 'Guias pedagógicos, ideias de atividades e estratégias para educadores aproveitarem melhor seus materiais didáticos.';
 
 export const metadata: Metadata = {
-  title: 'Blog Educalizando | Ideias e Guias Pedagógicos',
-  description: 'Guias pedagógicos, ideias de atividades e estratégias para educadores aproveitarem melhor seus materiais didáticos.',
+  title: blogTitle,
+  description: blogDescription,
   alternates: { canonical: 'https://www.educalizando.com.br/blog' },
+  ...socialMetadata({ title: blogTitle, description: blogDescription, url: '/blog' }),
 };
 
 export default async function BlogPage() {
   const posts = await getPublishedBlogPosts();
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'CollectionPage', name: blogTitle, description: blogDescription, url: `${SITE_URL}/blog` },
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+      ] },
+      ...(posts.length ? [{ '@type': 'ItemList', name: 'Guias pedagógicos', itemListElement: posts.slice(0, 24).map((post, index) => ({ '@type': 'ListItem', position: index + 1, name: post.title, url: `${SITE_URL}/blog/${post.slug}` })) }] : []),
+    ],
+  };
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
       <MarketplaceHeader />
       <main className="flex-1">
         <section className="border-b bg-gradient-to-br from-blue-700 to-indigo-800 px-4 py-10 text-center text-white sm:py-20">

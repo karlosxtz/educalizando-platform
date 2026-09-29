@@ -13,12 +13,13 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Programa de afiliados | Educalizando',
   description: 'Conheça o programa de afiliados da Educalizando e divulgue materiais didáticos digitais em sua vitrine.',
   alternates: { canonical: '/afiliados' },
-  openGraph: { title: 'Programa de afiliados | Educalizando', description: 'Divulgue materiais didáticos digitais em sua vitrine.', url: '/afiliados', type: 'website' },
+  ...socialMetadata({ title: 'Programa de afiliados | Educalizando', description: 'Divulgue materiais didáticos digitais em sua vitrine e acompanhe suas indicações na Educalizando.', url: '/afiliados' }),
 };
 
 export default function AfiliadosPage() {

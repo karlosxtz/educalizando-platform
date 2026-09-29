@@ -1,6 +1,7 @@
 import { allowsLocalDevelopmentFallback, supabase } from './supabase';
 import { Store, Product } from './types';
 import { generateSlug } from './string-utils';
+import { normalizeStoreSocialLinks } from './social-links';
 
 // Store Padrão de Exemplo para Fallback Offline
 export const DEFAULT_MOCK_STORE: Store = {
@@ -106,7 +107,7 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
         .maybeSingle();
 
       if (!error && data) {
-        return data as Store;
+        return normalizeStoreSocialLinks(data as Store);
       }
       if (error) {
         console.warn(`[getStoreBySlug] Erro ao consultar slug "${slug}":`, error.message);
@@ -121,10 +122,10 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
   // Fallback local somente para desenvolvimento explicitamente habilitado.
   const stores = getLocalStores();
   const found = stores.find(s => s.slug === slug);
-  if (found) return found;
+  if (found) return normalizeStoreSocialLinks(found);
 
   if (slug === 'minha-loja' || slug === 'prof-ricardo') {
-    return DEFAULT_MOCK_STORE;
+    return normalizeStoreSocialLinks(DEFAULT_MOCK_STORE);
   }
 
   return null;
@@ -146,7 +147,7 @@ export async function getStoreById(storeId: string): Promise<Store | null> {
         .maybeSingle();
 
       if (!error && data) {
-        return data as Store;
+        return normalizeStoreSocialLinks(data as Store);
       }
     } catch (err) {
       console.error(`[getStoreById] Exceção na busca:`, err);
@@ -158,7 +159,7 @@ export async function getStoreById(storeId: string): Promise<Store | null> {
   // Fallback local somente para desenvolvimento explicitamente habilitado.
   const stores = getLocalStores();
   const found = stores.find(s => s.id === storeId || s.id === cleanId);
-  if (found) return found;
+  if (found) return normalizeStoreSocialLinks(found);
 
   return null;
 }
@@ -196,7 +197,7 @@ export async function getCurrentCreatorStore(): Promise<Store> {
             const cleanName = userMeta.full_name ? `Loja de ${userMeta.full_name}` : 'Minha Loja';
             storeData.nome_loja = cleanName;
           }
-          return storeData as Store;
+          return normalizeStoreSocialLinks(storeData as Store);
         }
 
         // Se NÃO tem loja, retornar um placeholder sem gravar no banco.
@@ -227,7 +228,7 @@ export async function getCurrentCreatorStore(): Promise<Store> {
         const session = JSON.parse(rawCreatorSession);
         const stores = getLocalStores();
         const found = stores.find(s => s.creator_id === session.id || s.id === session.storeId || s.slug === session.storeSlug);
-        if (found) return found;
+        if (found) return normalizeStoreSocialLinks(found);
 
         // Se a sessão local existe mas a loja ainda não foi salva no array local:
         const newLocalStore: Store = {
@@ -244,7 +245,7 @@ export async function getCurrentCreatorStore(): Promise<Store> {
         };
         stores.push(newLocalStore);
         saveLocalStores(stores);
-        return newLocalStore;
+        return normalizeStoreSocialLinks(newLocalStore);
       } catch (e) {}
     }
   }
@@ -284,7 +285,7 @@ export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
         .limit(1)
         .maybeSingle();
 
-      if (data) return data as Store;
+      if (data) return normalizeStoreSocialLinks(data as Store);
     } catch (err) {
       console.error('[getStoreByCreatorId] Erro:', err);
     }
@@ -295,6 +296,7 @@ export async function getStoreByCreatorId(creatorId: string): Promise<Store> {
 
 // 3. Atualizar Dados da Loja
 export async function updateStore(storeId: string, updates: Partial<Store>): Promise<Store> {
+  const normalizedUpdates = normalizeStoreSocialLinks(updates);
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && 
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -311,26 +313,26 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
         .from('stores')
         .insert({
           creator_id: userData.user.id,
-          nome_loja: updates.nome_loja || 'Minha Loja',
-          slug: updates.slug || `loja-${Date.now()}`,
-          ...updates
+          nome_loja: normalizedUpdates.nome_loja || 'Minha Loja',
+          slug: normalizedUpdates.slug || `loja-${Date.now()}`,
+          ...normalizedUpdates
         })
         .select()
         .single();
         
       if (error) throw new Error(error.message);
-      return data as Store;
+      return normalizeStoreSocialLinks(data as Store);
     }
 
     const { data, error } = await supabase
       .from('stores')
-      .update(updates)
+      .update(normalizedUpdates)
       .eq('id', storeId)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
-    return data as Store;
+    return normalizeStoreSocialLinks(data as Store);
   }
 
   // Fallback Local
@@ -338,7 +340,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   const index = stores.findIndex(s => s.id === storeId);
   const updatedStore = {
     ...(stores[index] || DEFAULT_MOCK_STORE),
-    ...updates,
+    ...normalizedUpdates,
     updated_at: new Date().toISOString()
   };
 
@@ -346,7 +348,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
   else stores.push(updatedStore);
 
   saveLocalStores(stores);
-  return updatedStore;
+  return normalizeStoreSocialLinks(updatedStore);
 }
 
 // 4. Obter Produtos da Loja (Dashboard)

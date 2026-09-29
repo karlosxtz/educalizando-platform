@@ -10,12 +10,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Sobre a Educalizando',
   description: 'Conheça a Educalizando, uma plataforma para descobrir, comprar e vender materiais didáticos digitais.',
   alternates: { canonical: '/sobre' },
-  openGraph: { title: 'Sobre a Educalizando', description: 'Uma plataforma para materiais didáticos digitais.', url: '/sobre', type: 'website' },
+  ...socialMetadata({ title: 'Sobre a Educalizando', description: 'Conheça a Educalizando, uma plataforma para descobrir, comprar e vender materiais didáticos digitais.', url: '/sobre' }),
 };
 
 export default function SobrePage() {

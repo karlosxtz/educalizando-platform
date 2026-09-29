@@ -14,10 +14,10 @@ import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
 type MarketplaceProduct = Product & { store?: StoreData };
 
 const categories = [
-  { href: '/buscar?categoria=alfabetizacao', label: 'Alfabetização', icon: '🔤' },
-  { href: '/buscar?categoria=educacao-infantil', label: 'Educação infantil', icon: '🎨' },
-  { href: '/buscar?categoria=ensino-fundamental', label: 'Ensino fundamental', icon: '📚' },
-  { href: '/buscar?categoria=jogos', label: 'Jogos e atividades', icon: '🧩' },
+  { href: '/atividades-alfabetizacao', label: 'Alfabetização', icon: '🔤' },
+  { href: '/educacao-infantil', label: 'Educação infantil', icon: '🎨' },
+  { href: '/atividades-ensino-fundamental', label: 'Ensino fundamental', icon: '📚' },
+  { href: '/jogos-pedagogicos', label: 'Jogos pedagógicos', icon: '🧩' },
 ];
 
 const calendarThemeIcons: Record<string, string> = {

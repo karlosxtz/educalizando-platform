@@ -10,6 +10,7 @@ import ProductCard from '@/components/ProductCard';
 import StoreCard from '@/components/StoreCard';
 import { getSchoolCalendarEvent, SCHOOL_CALENDAR_ARTWORK, type SchoolCalendarEvent } from '@/lib/school-calendar';
 import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 type CalendarDetailProps = { params: Promise<{ slug: string }> };
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -29,8 +30,11 @@ function planningIdeas(event: SchoolCalendarEvent) {
 export async function generateMetadata({ params }: CalendarDetailProps): Promise<Metadata> {
   const event = getSchoolCalendarEvent((await params).slug);
   if (!event) return {};
-  const title = event.name + ' | Calendário escolar Educalizando';
-  return { title, description: event.description, alternates: { canonical: '/calendario/' + event.slug }, openGraph: { title, description: event.description, url: '/calendario/' + event.slug }, twitter: { card: 'summary', title, description: event.description } };
+  const dateLabel = `${event.day} de ${MONTHS[event.month - 1]}`;
+  const title = `${event.name}: atividades e ideias para aulas | Educalizando`;
+  const description = `${event.description} Veja ideias pedagógicas para trabalhar o tema em ${dateLabel}.`;
+  const url = `/calendario/${event.slug}`;
+  return { title, description, alternates: { canonical: url }, ...socialMetadata({ title, description, url }) };
 }
 
 export default async function CalendarDetailPage({ params }: CalendarDetailProps) {
@@ -48,7 +52,31 @@ export default async function CalendarDetailPage({ params }: CalendarDetailProps
   const style = calendarKindStyles[event.kind];
   const artwork = SCHOOL_CALENDAR_ARTWORK[event.slug];
 
-  return <div className="flex min-h-screen flex-col bg-slate-50"><MarketplaceHeader /><main className="flex-1"><article className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+  const pageUrl = `${SITE_URL}/calendario/${event.slug}`;
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        name: event.name,
+        description: event.description,
+        url: pageUrl,
+        inLanguage: 'pt-BR',
+        dateModified: event.reviewedAt,
+        isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: SITE_URL },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Calendário escolar', item: `${SITE_URL}/calendario` },
+          { '@type': 'ListItem', position: 3, name: event.name, item: pageUrl },
+        ],
+      },
+    ],
+  };
+
+  return <div className="flex min-h-screen flex-col bg-slate-50"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} /><MarketplaceHeader /><main className="flex-1"><article className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm font-semibold text-slate-600"><Link href="/" className="rounded hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Início</Link><ChevronRight aria-hidden="true" className="h-4 w-4" /><Link href="/calendario" className="rounded hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Calendário</Link><ChevronRight aria-hidden="true" className="h-4 w-4" /><span aria-current="page" className="text-slate-900">{event.name}</span></nav>
     <Link href="/calendario" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><ArrowLeft aria-hidden="true" className="h-4 w-4" />Voltar ao calendário</Link>
     <header className="relative mt-4 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-800 via-blue-700 to-cyan-600 p-6 text-white shadow-lg sm:p-10">{artwork && <Image src={artwork.src} alt="" fill priority sizes="(min-width: 1024px) 72rem, 100vw" className="object-cover object-right opacity-45" />}<div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-blue-950 via-blue-900/80 to-blue-700/15" /><div className="relative flex flex-col gap-5 sm:flex-row sm:items-center"><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/30"><CalendarEventIcon icon={event.icon} className="h-8 w-8" /></span><div><p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.14em] text-blue-100"><CalendarDays aria-hidden="true" className="h-4 w-4" /> {event.kind}</p><h1 className="mt-2 text-3xl font-black leading-tight sm:text-5xl">{event.name}</h1><p className="mt-3 text-lg font-bold text-cyan-100">{dateLabel}</p></div></div></header>

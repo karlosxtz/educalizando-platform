@@ -1,6 +1,18 @@
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { Scale } from 'lucide-react';
+import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
+
+const title = 'Termos de Uso | Educalizando';
+const description = 'Consulte os termos de uso da plataforma Educalizando para compradores, criadores e parceiros.';
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: '/termos' },
+  ...socialMetadata({ title, description, url: '/termos' }),
+};
 
 export default function TermosPage() {
   return (

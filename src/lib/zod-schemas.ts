@@ -1,4 +1,14 @@
 import { z } from 'zod';
+import { normalizeExternalUrl, type StoreSocialPlatform } from './social-links';
+
+const optionalExternalLink = (platform: StoreSocialPlatform, label: string) => z
+  .string()
+  .trim()
+  .max(500, { message: `${label} deve ter no máximo 500 caracteres.` })
+  .refine((value) => !value || Boolean(normalizeExternalUrl(value, platform)), {
+    message: `Informe um ${label} válido. Use @usuário ou o link completo.`,
+  })
+  .optional();
 
 export const creatorSignupSchema = z.object({
   fullName: z.string().min(3, { message: 'O nome completo deve ter pelo menos 3 caracteres.' }),
@@ -77,14 +87,14 @@ export const storeSettingsSchema = z.object({
   banner_url: z.string().url({ message: 'URL da imagem do banner inválida.' }).or(z.literal('')).optional(),
   cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' }),
   whatsapp: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: 'Use o formato (XX) XXXXX-XXXX' }).or(z.literal('')).optional(),
-  instagram: z.string().or(z.literal('')).optional(),
+  instagram: optionalExternalLink('instagram', 'Instagram'),
   layout_theme: z.string().optional(),
   author_image_url: z.string().url({ message: 'URL da imagem do autor inválida.' }).or(z.literal('')).optional(),
   author_bio: z.string().optional(),
-  youtube: z.string().or(z.literal('')).optional(),
-  tiktok: z.string().or(z.literal('')).optional(),
-  facebook: z.string().or(z.literal('')).optional(),
-  website: z.string().url({ message: 'URL do site inválida.' }).or(z.literal('')).optional(),
+  youtube: optionalExternalLink('youtube', 'YouTube'),
+  tiktok: optionalExternalLink('tiktok', 'TikTok'),
+  facebook: optionalExternalLink('facebook', 'Facebook'),
+  website: optionalExternalLink('website', 'endereço do site'),
   button_style: z.enum(['rounded', 'pill', 'square', 'soft', 'sharp']).optional(),
   welcome_message: z.string().optional(),
   meta_pixel_id: z.string().regex(/^\d{5,20}$/, { message: 'Informe somente o ID numérico do Meta Pixel.' }).or(z.literal('')).optional(),
@@ -107,11 +117,11 @@ export const affiliateProfileSchema = z.object({
   banner_url: z.string().url({ message: 'URL da imagem do banner inválida.' }).or(z.literal('')).optional(),
   cor_primaria: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, { message: 'Selecione uma cor hexadecimal válida (ex: #ff5722).' }),
   whatsapp: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: 'Use o formato (XX) XXXXX-XXXX' }).or(z.literal('')).optional(),
-  instagram: z.string().or(z.literal('')).optional(),
+  instagram: optionalExternalLink('instagram', 'Instagram'),
   tema: z.string().optional(),
-  youtube: z.string().or(z.literal('')).optional(),
-  tiktok: z.string().or(z.literal('')).optional(),
-  facebook: z.string().or(z.literal('')).optional()
+  youtube: optionalExternalLink('youtube', 'YouTube'),
+  tiktok: optionalExternalLink('tiktok', 'TikTok'),
+  facebook: optionalExternalLink('facebook', 'Facebook')
 });
 
 export type AffiliateProfileFormValues = z.infer<typeof affiliateProfileSchema>;

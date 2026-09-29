@@ -10,12 +10,13 @@ import {
   ChevronDown
 } from 'lucide-react';
 import type { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Central de ajuda | Educalizando',
   description: 'Encontre orientações para comprar, vender e usar materiais didáticos digitais na Educalizando.',
   alternates: { canonical: '/ajuda' },
-  openGraph: { title: 'Central de ajuda | Educalizando', description: 'Orientações para aproveitar a plataforma Educalizando.', url: '/ajuda', type: 'website' },
+  ...socialMetadata({ title: 'Central de ajuda | Educalizando', description: 'Encontre orientações para comprar, vender e usar materiais didáticos digitais na Educalizando.', url: '/ajuda' }),
 };
 
 export default function AjudaPage() {

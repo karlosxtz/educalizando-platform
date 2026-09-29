@@ -2,6 +2,18 @@ import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { BookOpen, Baby, GraduationCap, School, Search, ChevronRight, CheckCircle2 } from 'lucide-react';
+import type { Metadata } from 'next';
+import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
+
+const title = 'Materiais por ano escolar e etapa de ensino | Educalizando';
+const description = 'Encontre materiais didáticos por ano escolar, da Educação Infantil ao Ensino Médio, com recursos para diferentes etapas de ensino.';
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: '/atividades-por-ano' },
+  ...socialMetadata({ title, description, url: '/atividades-por-ano' }),
+};
 
 export default function AtividadesPorAnoPage() {
   const etapasEnsino = [
@@ -65,8 +77,20 @@ export default function AtividadesPorAnoPage() {
     }
   ];
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'CollectionPage', name: title, description, url: `${SITE_URL}/atividades-por-ano` },
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Materiais por ano escolar', item: `${SITE_URL}/atividades-por-ano` },
+      ] },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
       <MarketplaceHeader />
       
       <main className="flex-1">

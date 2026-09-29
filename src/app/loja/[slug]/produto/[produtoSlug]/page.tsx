@@ -8,6 +8,7 @@ import { ChevronRight, Home, Store } from 'lucide-react';
 import { ReactNode } from 'react';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
+import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -38,6 +39,8 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
   const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
   const publicDescription = query.licenca === 'plr' && product.is_plr && product.plr_descricao ? product.plr_descricao : product.descricao;
   const description = publicDescription ? (publicDescription.substring(0, 155) + (publicDescription.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
+  const url = `${SITE_URL}/produto/${product.slug || product.id}`;
+  const image = product.capa_url || DEFAULT_SOCIAL_IMAGE;
 
   return {
     title,
@@ -46,19 +49,22 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
       // O produto pode ser acessado pela vitrine e pelo catálogo público. As
       // duas telas exibem o mesmo material, portanto concentramos a indexação
       // na URL global para não dividir relevância entre páginas duplicadas.
-      canonical: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
+      canonical: url,
     },
     openGraph: {
       title,
       description,
-      images: product.capa_url ? [{ url: product.capa_url }] : [],
+      url,
+      siteName: 'Educalizando',
+      locale: 'pt_BR',
+      images: [image],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: product.capa_url ? [product.capa_url] : [],
+      images: [image],
     },
   };
 }
@@ -175,11 +181,11 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     <div className="flex flex-col min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       
       {/* Visual Breadcrumb */}

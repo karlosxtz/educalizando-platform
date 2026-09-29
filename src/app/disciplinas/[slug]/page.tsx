@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import { getDisciplines } from '@/lib/discipline-service';
 import { searchProducts } from '@/lib/search-service';
+import { serializeJsonLd, socialMetadata } from '@/lib/seo';
 
 interface DisciplinePageProps {
   params: Promise<{ slug: string }>;
@@ -29,8 +30,7 @@ export async function generateMetadata({ params }: DisciplinePageProps): Promise
     title: copy.title,
     description: copy.description,
     alternates: { canonical: url },
-    openGraph: { title: copy.title, description: copy.description, type: 'website', url },
-    twitter: { card: 'summary_large_image', title: copy.title, description: copy.description },
+    ...socialMetadata({ title: copy.title, description: copy.description, url }),
   };
 }
 
@@ -64,7 +64,7 @@ export default async function DisciplinePage({ params }: DisciplinePageProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f9fa]">
-      {structuredData.map((data, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />)}
+      {structuredData.map((data, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />)}
       <MarketplaceHeader />
       <main className="flex-1">
         <section className="border-b bg-white py-10 sm:py-12">

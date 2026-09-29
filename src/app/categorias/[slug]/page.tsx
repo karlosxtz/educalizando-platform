@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { serializeJsonLd, socialMetadata } from '@/lib/seo';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -31,17 +32,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     alternates: {
       canonical: `https://www.educalizando.com.br/categorias/${slug}`,
     },
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-      url: `https://www.educalizando.com.br/categorias/${slug}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-    },
+    ...socialMetadata({ title, description, url: `/categorias/${slug}` }),
   };
 }
 
@@ -99,7 +90,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
       {structuredData.map((data, index) => (
-        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
       ))}
       <MarketplaceHeader />
       
