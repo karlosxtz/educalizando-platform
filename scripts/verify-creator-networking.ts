@@ -3,6 +3,7 @@ import {
   CREATOR_NETWORKING_PRESETS,
   renderCreatorNetworkingMessage,
   suggestedGreetingPresetId,
+  isCreatorNetworkingPresetId,
 } from '../src/lib/creator-networking';
 import { normalizeWhatsAppNumber, whatsappNumberCandidates } from '../src/lib/whatsapp-notification-service';
 
@@ -18,6 +19,8 @@ assert.equal(
   'Olá Ana, sua loja é Cantinho da Ana.',
 );
 assert.ok(CREATOR_NETWORKING_PRESETS.every((preset) => preset.message.length > 30));
+assert.equal(isCreatorNetworkingPresetId('group'), true);
+assert.equal(isCreatorNetworkingPresetId('anything-else'), false);
 
 assert.equal(normalizeWhatsAppNumber('(12) 99999-9999'), '5512999999999');
 assert.equal(normalizeWhatsAppNumber('+55 (12) 99999-9999'), '5512999999999');

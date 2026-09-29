@@ -1,9 +1,15 @@
+export type CreatorNetworkingPresetId = 'welcome' | 'group' | 'morning' | 'afternoon' | 'evening' | 'support';
+
 export type CreatorNetworkingPreset = {
-  id: 'welcome' | 'group' | 'morning' | 'afternoon' | 'evening' | 'support';
+  id: CreatorNetworkingPresetId;
   title: string;
   description: string;
   message: string;
 };
+
+export function isCreatorNetworkingPresetId(value: unknown): value is CreatorNetworkingPresetId {
+  return typeof value === 'string' && CREATOR_NETWORKING_PRESETS.some((preset) => preset.id === value);
+}
 
 export const CREATOR_GROUP_URL = 'https://chat.whatsapp.com/C7Yz19yfFh6CWu12DmZyJx';
 

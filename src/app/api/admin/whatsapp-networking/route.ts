@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
-import { renderCreatorNetworkingMessage } from '@/lib/creator-networking';
+import { isCreatorNetworkingPresetId, renderCreatorNetworkingMessage, type CreatorNetworkingPresetId } from '@/lib/creator-networking';
 import { supabaseAdmin } from '@/lib/supabase';
 import { normalizeWhatsAppNumber, sendEvolutionImage, sendEvolutionText } from '@/lib/whatsapp-notification-service';
 
@@ -15,7 +15,25 @@ type CreatorRecipient = {
   phone: string | null;
   phoneLabel: string;
   logoUrl: string | null;
+  groupInviteSent: boolean;
+  groupInviteSentAt: string | null;
 };
+
+type GroupInviteMetadata = {
+  status?: 'PROCESSING' | 'SENT' | 'FAILED';
+  token?: string;
+  attempts?: number;
+  lastAttemptAt?: string;
+  sentAt?: string;
+  lastError?: string;
+};
+
+const GROUP_INVITE_METADATA_KEY = 'creator_networking_group_invite';
+
+function readGroupInviteMetadata(appMetadata: Record<string, unknown> | null | undefined): GroupInviteMetadata {
+  const value = appMetadata?.[GROUP_INVITE_METADATA_KEY];
+  return value && typeof value === 'object' ? value as GroupInviteMetadata : {};
+}
 
 function readablePhone(phone: string | null) {
   if (!phone) return 'WhatsApp não cadastrado';
@@ -37,7 +55,7 @@ async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
     if (store.creator_id && !latestStoreByCreator.has(store.creator_id)) latestStoreByCreator.set(store.creator_id, store);
   }
 
-  const usersById = new Map<string, { name?: string; phone?: unknown }>();
+  const usersById = new Map<string, { name?: string; phone?: unknown; groupInvite: GroupInviteMetadata }>();
   for (let page = 1; page <= 20; page += 1) {
     const { data, error: usersError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
     if (usersError) throw new Error(usersError.message);
@@ -46,6 +64,7 @@ async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
       usersById.set(user.id, {
         name: String(metadata.full_name || metadata.name || user.email?.split('@')[0] || '').trim(),
         phone: metadata.whatsapp || metadata.phone || user.phone,
+        groupInvite: readGroupInviteMetadata(user.app_metadata),
       });
     }
     if (data.users.length < 1000) break;
@@ -62,6 +81,8 @@ async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
       phone,
       phoneLabel: readablePhone(phone),
       logoUrl: store.logo_url || null,
+      groupInviteSent: user?.groupInvite.status === 'SENT',
+      groupInviteSentAt: user?.groupInvite.status === 'SENT' ? user.groupInvite.sentAt || null : null,
     };
   }).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
@@ -77,6 +98,7 @@ export async function GET(request: Request) {
         total: creators.length,
         available: creators.filter((creator) => creator.phone).length,
         unavailable: creators.filter((creator) => !creator.phone).length,
+        groupInviteSent: creators.filter((creator) => creator.groupInviteSent).length,
       },
     });
   } catch (error) {
@@ -94,14 +116,64 @@ async function pause(milliseconds: number) {
   await new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+async function claimGroupInvite(recipient: CreatorRecipient) {
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(recipient.id);
+  if (error || !data.user) throw error || new Error('Criador não encontrado.');
+  const appMetadata = data.user.app_metadata || {};
+  const existing = readGroupInviteMetadata(appMetadata);
+  if (existing.status === 'SENT') return null;
+  const processingIsRecent = existing.status === 'PROCESSING' && existing.lastAttemptAt
+    && Date.now() - new Date(existing.lastAttemptAt).getTime() < 10 * 60 * 1000;
+  if (processingIsRecent) return null;
+
+  const token = crypto.randomUUID();
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(recipient.id, {
+    app_metadata: {
+      ...appMetadata,
+      [GROUP_INVITE_METADATA_KEY]: {
+        status: 'PROCESSING', token, attempts: Number(existing.attempts || 0) + 1,
+        lastAttemptAt: now, lastError: null,
+      },
+    },
+  });
+  if (updateError) throw updateError;
+
+  // Confirma que esta execução ainda possui a reserva antes de enviar.
+  const verification = await supabaseAdmin.auth.admin.getUserById(recipient.id);
+  if (verification.error) throw verification.error;
+  return readGroupInviteMetadata(verification.data.user?.app_metadata).token === token ? token : null;
+}
+
+async function finishGroupInvite(creatorId: string, token: string, sent: boolean, error?: string) {
+  const now = new Date().toISOString();
+  const { data, error: readError } = await supabaseAdmin.auth.admin.getUserById(creatorId);
+  if (readError || !data.user) throw readError || new Error('Criador não encontrado.');
+  const appMetadata = data.user.app_metadata || {};
+  const current = readGroupInviteMetadata(appMetadata);
+  if (current.token !== token) return;
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(creatorId, {
+    app_metadata: {
+      ...appMetadata,
+      [GROUP_INVITE_METADATA_KEY]: {
+        ...current, token: null, status: sent ? 'SENT' : 'FAILED',
+        sentAt: sent ? now : current.sentAt || null,
+        lastError: sent ? null : (error || 'Falha não identificada.').slice(0, 500),
+      },
+    },
+  });
+  if (updateError) throw updateError;
+}
+
 export async function POST(request: Request) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
 
   try {
-    const body = await request.json() as { text?: unknown; imageUrl?: unknown; creatorIds?: unknown };
+    const body = await request.json() as { text?: unknown; imageUrl?: unknown; creatorIds?: unknown; presetId?: unknown };
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 2000) : '';
     const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim().slice(0, 2000) : '';
     const selectedIds = parseSelectedIds(body.creatorIds);
+    const presetId: CreatorNetworkingPresetId = isCreatorNetworkingPresetId(body.presetId) ? body.presetId : 'welcome';
     if (!text) return NextResponse.json({ error: 'Escreva a mensagem que será enviada.' }, { status: 400 });
     if (!selectedIds.length) return NextResponse.json({ error: 'Selecione pelo menos um criador.' }, { status: 400 });
     if (imageUrl && !/^https:\/\//i.test(imageUrl)) return NextResponse.json({ error: 'A imagem anexada é inválida.' }, { status: 400 });
@@ -115,20 +187,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nenhum dos criadores selecionados possui um WhatsApp válido.' }, { status: 400 });
     }
     const failures: Array<{ id: string; name: string; error: string }> = [];
+    const sentIds: string[] = [];
     let sent = 0;
+    let alreadySent = 0;
 
     for (let offset = 0; offset < uniqueRecipients.length; offset += 5) {
       const batch = uniqueRecipients.slice(offset, offset + 5);
       const results = await Promise.all(batch.map(async (recipient) => {
         const message = renderCreatorNetworkingMessage(text, recipient);
-        const result = imageUrl
-          ? await sendEvolutionImage(recipient.phone, imageUrl, message)
-          : await sendEvolutionText(recipient.phone, message);
-        return { recipient, result };
+        let historyToken: string | null = null;
+        try {
+          historyToken = presetId === 'group' ? await claimGroupInvite(recipient) : null;
+          if (presetId === 'group' && !historyToken) return { recipient, result: null, alreadySent: true };
+          const result = imageUrl
+            ? await sendEvolutionImage(recipient.phone, imageUrl, message)
+            : await sendEvolutionText(recipient.phone, message);
+          if (historyToken) await finishGroupInvite(recipient.id, historyToken, result.sent, result.error);
+          return { recipient, result, alreadySent: false };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Não foi possível registrar este envio.';
+          if (historyToken) await finishGroupInvite(recipient.id, historyToken, false, message).catch(() => undefined);
+          return { recipient, result: { sent: false, error: message }, alreadySent: false };
+        }
       }));
 
-      for (const { recipient, result } of results) {
-        if (result.sent) sent += 1;
+      for (const { recipient, result, alreadySent: skippedHistory } of results) {
+        if (skippedHistory || !result) {
+          alreadySent += 1;
+          continue;
+        }
+        if (result.sent) {
+          sent += 1;
+          sentIds.push(recipient.id);
+        }
         else failures.push({ id: recipient.id, name: recipient.name, error: result.error || 'Falha não identificada.' });
       }
       if (offset + 5 < uniqueRecipients.length) await pause(500);
@@ -143,7 +234,9 @@ export async function POST(request: Request) {
         failed: failures.length,
         skipped,
         duplicates: recipients.length - uniqueRecipients.length,
+        alreadySent,
         failures: failures.slice(0, 50),
+        sentIds,
       },
     }, { status: failures.length === uniqueRecipients.length && uniqueRecipients.length > 0 ? 503 : 200 });
   } catch (error) {

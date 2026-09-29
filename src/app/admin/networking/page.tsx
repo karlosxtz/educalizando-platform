@@ -31,6 +31,8 @@ type CreatorRecipient = {
   phoneLabel: string;
   logoUrl: string | null;
   hasWhatsapp: boolean;
+  groupInviteSent: boolean;
+  groupInviteSentAt: string | null;
 };
 
 type SendResult = {
@@ -40,7 +42,9 @@ type SendResult = {
   failed: number;
   skipped: number;
   duplicates: number;
+  alreadySent: number;
   failures: Array<{ id: string; name: string; error: string }>;
+  sentIds: string[];
 };
 
 const initialPreset = CREATOR_NETWORKING_PRESETS.find((preset) => preset.id === 'welcome')!;
@@ -58,6 +62,10 @@ export default function CreatorNetworkingPage() {
   const [result, setResult] = useState<SendResult | null>(null);
 
   const availableCreators = useMemo(() => creators.filter((creator) => creator.hasWhatsapp), [creators]);
+  const selectableCreators = useMemo(
+    () => availableCreators.filter((creator) => activePreset !== 'group' || !creator.groupInviteSent),
+    [activePreset, availableCreators],
+  );
   const filteredCreators = useMemo(() => {
     const term = query.trim().toLocaleLowerCase('pt-BR');
     if (!term) return creators;
@@ -65,7 +73,8 @@ export default function CreatorNetworkingPage() {
   }, [creators, query]);
   const selectedCreators = useMemo(() => creators.filter((creator) => selectedIds.has(creator.id)), [creators, selectedIds]);
   const previewCreator = selectedCreators[0] || availableCreators[0];
-  const allAvailableSelected = availableCreators.length > 0 && availableCreators.every((creator) => selectedIds.has(creator.id));
+  const allAvailableSelected = selectableCreators.length > 0 && selectableCreators.every((creator) => selectedIds.has(creator.id));
+  const groupInvitesSent = creators.filter((creator) => creator.groupInviteSent).length;
 
   useEffect(() => {
     async function loadCreators() {
@@ -90,6 +99,9 @@ export default function CreatorNetworkingPage() {
     if (!preset) return;
     setActivePreset(preset.id);
     setMessage(preset.message);
+    setSelectedIds(new Set(creators
+      .filter((creator) => creator.hasWhatsapp && (preset.id !== 'group' || !creator.groupInviteSent))
+      .map((creator) => creator.id)));
     setResult(null);
   }
 
@@ -98,7 +110,7 @@ export default function CreatorNetworkingPage() {
   }
 
   function toggleCreator(creator: CreatorRecipient) {
-    if (!creator.hasWhatsapp) return;
+    if (!creator.hasWhatsapp || (activePreset === 'group' && creator.groupInviteSent)) return;
     setSelectedIds((current) => {
       const next = new Set(current);
       if (next.has(creator.id)) next.delete(creator.id);
@@ -109,7 +121,7 @@ export default function CreatorNetworkingPage() {
   }
 
   function toggleAll() {
-    setSelectedIds(allAvailableSelected ? new Set() : new Set(availableCreators.map((creator) => creator.id)));
+    setSelectedIds(allAvailableSelected ? new Set() : new Set(selectableCreators.map((creator) => creator.id)));
     setResult(null);
   }
 
@@ -142,13 +154,21 @@ export default function CreatorNetworkingPage() {
       const response = await fetch('/api/admin/whatsapp-networking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanMessage, imageUrl: imageUrl || null, creatorIds: Array.from(selectedIds) }),
+        body: JSON.stringify({ text: cleanMessage, imageUrl: imageUrl || null, creatorIds: Array.from(selectedIds), presetId: activePreset }),
       });
       const payload = await response.json();
       if (payload.result) setResult(payload.result as SendResult);
       if (!response.ok) throw new Error(payload.error || payload.result?.failures?.[0]?.error || 'O envio não foi concluído.');
       if (payload.result.failed) toast.warning(`${payload.result.sent} enviada(s) e ${payload.result.failed} com falha.`);
       else toast.success(`${payload.result.sent} mensagem(ns) enviada(s) com sucesso.`);
+      if (activePreset === 'group' && payload.result.sent > 0) {
+        const sentAt = new Date().toISOString();
+        const delivered = new Set<string>(payload.result.sentIds || []);
+        setCreators((current) => current.map((creator) => delivered.has(creator.id)
+          ? { ...creator, groupInviteSent: true, groupInviteSentAt: sentAt }
+          : creator));
+        setSelectedIds((current) => new Set(Array.from(current).filter((id) => !delivered.has(id))));
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível concluir o envio.');
     } finally {
@@ -165,10 +185,11 @@ export default function CreatorNetworkingPage() {
             <h1 className="mt-3 text-3xl font-black text-white sm:text-4xl">Central de mensagens</h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">Converse com sua rede de criadores usando mensagens personalizadas pela Evolution API. Selecione um modelo, revise o texto, anexe uma imagem e escolha quem receberá.</p>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><strong className="block text-2xl text-white">{creators.length}</strong><span className="text-[10px] uppercase tracking-wide text-slate-400">Criadores</span></div>
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3"><strong className="block text-2xl text-emerald-300">{availableCreators.length}</strong><span className="text-[10px] uppercase tracking-wide text-emerald-200">Disponíveis</span></div>
             <div className="rounded-2xl border border-blue-400/20 bg-blue-400/10 px-4 py-3"><strong className="block text-2xl text-blue-300">{selectedIds.size}</strong><span className="text-[10px] uppercase tracking-wide text-blue-200">Selecionados</span></div>
+            <div className="rounded-2xl border border-violet-400/20 bg-violet-400/10 px-4 py-3"><strong className="block text-2xl text-violet-300">{groupInvitesSent}</strong><span className="text-[10px] uppercase tracking-wide text-violet-200">Já convidados</span></div>
           </div>
         </div>
       </section>
@@ -222,25 +243,26 @@ export default function CreatorNetworkingPage() {
       <section className="rounded-2xl border border-slate-800 bg-slate-950">
         <div className="border-b border-slate-800 p-5 sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">3. Escolha os destinatários</p><h2 className="mt-1 text-xl font-black text-white">Criadores cadastrados</h2><p className="mt-1 text-xs text-slate-400">Criadores sem WhatsApp válido ficam visíveis, mas não podem ser selecionados.</p></div>
+            <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">3. Escolha os destinatários</p><h2 className="mt-1 text-xl font-black text-white">Criadores cadastrados</h2><p className="mt-1 text-xs text-slate-400">{activePreset === 'group' ? 'Quem já recebeu o convite fica identificado e não pode ser selecionado novamente.' : 'Criadores sem WhatsApp válido ficam visíveis, mas não podem ser selecionados.'}</p></div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="flex min-h-11 min-w-64 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3"><Search className="h-4 w-4 text-slate-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar criador ou loja" className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none" /></label>
-              <button type="button" onClick={toggleAll} disabled={!availableCreators.length} className="min-h-11 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-black text-blue-200 hover:bg-blue-500/20 disabled:opacity-40">{allAvailableSelected ? 'Limpar seleção' : 'Selecionar todos'}</button>
+              <button type="button" onClick={toggleAll} disabled={!selectableCreators.length} className="min-h-11 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-black text-blue-200 hover:bg-blue-500/20 disabled:opacity-40">{allAvailableSelected ? 'Limpar seleção' : activePreset === 'group' ? 'Selecionar não convidados' : 'Selecionar todos'}</button>
             </div>
           </div>
         </div>
         <div className="max-h-[30rem] overflow-y-auto p-3 sm:p-4">
           {loading ? <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Carregando criadores…</div> : filteredCreators.length ? <div className="grid gap-2 lg:grid-cols-2">{filteredCreators.map((creator) => {
             const selected = selectedIds.has(creator.id);
-            return <button key={creator.id} type="button" disabled={!creator.hasWhatsapp} onClick={() => toggleCreator(creator)} className={`flex min-h-20 items-center gap-3 rounded-2xl border p-3 text-left transition ${!creator.hasWhatsapp ? 'cursor-not-allowed border-slate-800 bg-slate-900/40 opacity-50' : selected ? 'border-blue-400 bg-blue-500/10 ring-1 ring-blue-400' : 'border-slate-800 bg-slate-900 hover:border-slate-600'}`}>
+            const inviteLocked = activePreset === 'group' && creator.groupInviteSent;
+            return <button key={creator.id} type="button" disabled={!creator.hasWhatsapp || inviteLocked} onClick={() => toggleCreator(creator)} className={`flex min-h-20 items-center gap-3 rounded-2xl border p-3 text-left transition ${!creator.hasWhatsapp || inviteLocked ? 'cursor-not-allowed border-slate-800 bg-slate-900/40 opacity-60' : selected ? 'border-blue-400 bg-blue-500/10 ring-1 ring-blue-400' : 'border-slate-800 bg-slate-900 hover:border-slate-600'}`}>
               <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-300'}`}>{selected ? <CheckCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}</span>
-              <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-white">{creator.name}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{creator.storeName}</span><span className={`mt-1 block text-[11px] ${creator.hasWhatsapp ? 'text-emerald-300' : 'text-rose-300'}`}>{creator.phoneLabel}</span></span>
+              <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-white">{creator.name}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{creator.storeName}</span><span className={`mt-1 block text-[11px] ${creator.hasWhatsapp ? 'text-emerald-300' : 'text-rose-300'}`}>{creator.phoneLabel}</span>{creator.groupInviteSent && <span className="mt-1 block text-[10px] font-black uppercase tracking-wide text-violet-300">Convite enviado{creator.groupInviteSentAt ? ` em ${new Intl.DateTimeFormat('pt-BR').format(new Date(creator.groupInviteSentAt))}` : ''}</span>}</span>
             </button>;
           })}</div> : <p className="p-12 text-center text-sm text-slate-500">Nenhum criador encontrado.</p>}
         </div>
       </section>
 
-      {result && <section className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><h2 className="text-lg font-black text-white">Resultado do último envio</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"><ResultCard label="Enviadas" value={result.sent} success /><ResultCard label="Falhas" value={result.failed} danger /><ResultCard label="Sem WhatsApp" value={result.skipped} /><ResultCard label="Duplicados evitados" value={result.duplicates} /></div>{result.failures.length > 0 && <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="text-xs font-black uppercase tracking-wide text-rose-300">Falhas para revisar</p><ul className="mt-2 space-y-1 text-xs text-rose-100">{result.failures.map((failure) => <li key={failure.id}>{failure.name}: {failure.error}</li>)}</ul></div>}</section>}
+      {result && <section className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><h2 className="text-lg font-black text-white">Resultado do último envio</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5"><ResultCard label="Enviadas" value={result.sent} success /><ResultCard label="Falhas" value={result.failed} danger /><ResultCard label="Sem WhatsApp" value={result.skipped} /><ResultCard label="Já convidados" value={result.alreadySent} /><ResultCard label="Duplicados evitados" value={result.duplicates} /></div>{result.failures.length > 0 && <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="text-xs font-black uppercase tracking-wide text-rose-300">Falhas para revisar</p><ul className="mt-2 space-y-1 text-xs text-rose-100">{result.failures.map((failure) => <li key={failure.id}>{failure.name}: {failure.error}</li>)}</ul></div>}</section>}
 
       <div className="sticky bottom-4 z-20 rounded-2xl border border-emerald-400/30 bg-slate-950/95 p-3 shadow-2xl backdrop-blur sm:flex sm:items-center sm:justify-between sm:p-4">
         <div className="mb-3 sm:mb-0"><p className="text-sm font-black text-white">{selectedIds.size} criador(es) selecionado(s)</p><p className="text-xs text-slate-400">O envio usa a instância administrativa conectada na Evolution.</p></div>
