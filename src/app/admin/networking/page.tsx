@@ -245,12 +245,12 @@ export default function CreatorNetworkingPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">3. Escolha os destinatários</p><h2 className="mt-1 text-xl font-black text-white">Criadores cadastrados</h2><p className="mt-1 text-xs text-slate-400">{activePreset === 'group' ? 'Quem já recebeu o convite fica identificado e não pode ser selecionado novamente.' : 'Criadores sem WhatsApp válido ficam visíveis, mas não podem ser selecionados.'}</p></div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <label className="flex min-h-11 min-w-64 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3"><Search className="h-4 w-4 text-slate-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar criador ou loja" className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none" /></label>
+              <label className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 sm:min-w-64"><Search className="h-4 w-4 text-slate-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar criador ou loja" className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none" /></label>
               <button type="button" onClick={toggleAll} disabled={!selectableCreators.length} className="min-h-11 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-black text-blue-200 hover:bg-blue-500/20 disabled:opacity-40">{allAvailableSelected ? 'Limpar seleção' : activePreset === 'group' ? 'Selecionar não convidados' : 'Selecionar todos'}</button>
             </div>
           </div>
         </div>
-        <div className="max-h-[30rem] overflow-y-auto p-3 sm:p-4">
+        <div className="p-3 sm:p-4">
           {loading ? <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Carregando criadores…</div> : filteredCreators.length ? <div className="grid gap-2 lg:grid-cols-2">{filteredCreators.map((creator) => {
             const selected = selectedIds.has(creator.id);
             const inviteLocked = activePreset === 'group' && creator.groupInviteSent;
@@ -260,14 +260,17 @@ export default function CreatorNetworkingPage() {
             </button>;
           })}</div> : <p className="p-12 text-center text-sm text-slate-500">Nenhum criador encontrado.</p>}
         </div>
+        <div className="border-t border-slate-800 bg-slate-950 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:p-5">
+          <div className="mb-3 sm:mb-0">
+            <p className="text-sm font-black text-white">{selectedIds.size} criador(es) selecionado(s)</p>
+            <p className="mt-1 text-xs text-slate-400">{activePreset === 'group' ? 'Criadores já convidados são ignorados automaticamente.' : 'O envio usa a instância administrativa conectada na Evolution.'}</p>
+          </div>
+          <button type="button" onClick={() => void sendBroadcast()} disabled={sending || uploading || !selectedIds.size || !message.trim()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-black text-white shadow-lg shadow-emerald-950/40 hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-64">{sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}{sending ? 'Enviando para a rede…' : 'Enviar para selecionados'}</button>
+        </div>
       </section>
 
       {result && <section className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><h2 className="text-lg font-black text-white">Resultado do último envio</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5"><ResultCard label="Enviadas" value={result.sent} success /><ResultCard label="Falhas" value={result.failed} danger /><ResultCard label="Sem WhatsApp" value={result.skipped} /><ResultCard label="Já convidados" value={result.alreadySent} /><ResultCard label="Duplicados evitados" value={result.duplicates} /></div>{result.failures.length > 0 && <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="text-xs font-black uppercase tracking-wide text-rose-300">Falhas para revisar</p><ul className="mt-2 space-y-1 text-xs text-rose-100">{result.failures.map((failure) => <li key={failure.id}>{failure.name}: {failure.error}</li>)}</ul></div>}</section>}
 
-      <div className="sticky bottom-4 z-20 rounded-2xl border border-emerald-400/30 bg-slate-950/95 p-3 shadow-2xl backdrop-blur sm:flex sm:items-center sm:justify-between sm:p-4">
-        <div className="mb-3 sm:mb-0"><p className="text-sm font-black text-white">{selectedIds.size} criador(es) selecionado(s)</p><p className="text-xs text-slate-400">O envio usa a instância administrativa conectada na Evolution.</p></div>
-        <button type="button" onClick={() => void sendBroadcast()} disabled={sending || uploading || !selectedIds.size || !message.trim()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-black text-white shadow-lg shadow-emerald-950/50 hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}{sending ? 'Enviando para a rede…' : 'Enviar para selecionados'}</button>
-      </div>
     </div>
   );
 }

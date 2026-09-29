@@ -11,10 +11,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!mobileMenuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -166,7 +162,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Área Principal */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="min-w-0 flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header Mobile */}
         <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md flex md:hidden items-center px-4 shrink-0">
           <div className="flex items-center gap-2 text-blue-500 font-bold text-lg flex-1">
@@ -213,7 +209,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   const Icon = item.icon;
                   const active = pathname === item.href;
                   return (
-                    <Link key={item.href} href={item.href} className={`min-h-11 flex items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${active ? 'bg-blue-500/15 text-blue-400' : 'text-slate-300 hover:bg-blue-500/10 hover:text-blue-400'}`}>
+                    <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className={`min-h-11 flex items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${active ? 'bg-blue-500/15 text-blue-400' : 'text-slate-300 hover:bg-blue-500/10 hover:text-blue-400'}`}>
                       <span className="flex items-center gap-3"><Icon className="w-4 h-4" />{item.label}</span>
                       {item.badge && <span className="text-[9px] font-black uppercase tracking-wide text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">{item.badge}</span>}
                     </Link>
