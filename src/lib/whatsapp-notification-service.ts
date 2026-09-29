@@ -125,6 +125,36 @@ export async function sendEvolutionDocument(phone: unknown, url: string, fileNam
   } catch { return { sent: false, reason: 'network_error', error: 'Não foi possível enviar o documento pela Evolution.' }; }
 }
 
+/** Envia uma imagem pública com o texto no mesmo balão como legenda. */
+export async function sendEvolutionImage(phone: unknown, url: string, caption: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
+  const number = normalizeWhatsAppNumber(phone);
+  if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
+  if (!/^https:\/\//i.test(url)) return { sent: false, reason: 'invalid_url', error: 'A imagem precisa possuir uma URL HTTPS pública.' };
+  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  if (!apiKey || !instanceName) return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
+
+  try {
+    const response = await fetch(`${baseUrl}/message/sendMedia/${encodeURIComponent(instanceName)}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
+      body: JSON.stringify({ number, mediatype: 'image', media: url, caption }),
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: unknown } | null;
+      const remoteMessage = readEvolutionError(body?.response) || readEvolutionError(body?.message) || readEvolutionError(body?.error);
+      return {
+        sent: false,
+        reason: `http_${response.status}`,
+        error: remoteMessage?.slice(0, 500) || `A Evolution recusou a imagem (status ${response.status}).`,
+      };
+    }
+    return { sent: true };
+  } catch {
+    return { sent: false, reason: 'network_error', error: 'Não foi possível enviar a imagem pela Evolution.' };
+  }
+}
+
 function evolutionConfig() {
   const apiKey = process.env.EVOLUTION_API_KEY;
   const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');

@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot, Mail, Activity } from 'lucide-react';
+import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot, Mail, Activity, MessagesSquare } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/leads', label: 'Leads e Contatos', icon: Users },
     { href: '/admin/avaliacoes', label: 'Avaliações', icon: MessageSquare },
     { href: '/admin/whatsapp', label: 'Automações WhatsApp', icon: Bot },
+    { href: '/admin/networking', label: 'Networking de Criadores', icon: MessagesSquare, badge: 'Novo' },
     { href: '/admin/emails', label: 'Automações de E-mail', icon: Mail },
     { href: '/admin/entregas', label: 'Entregas transacionais', icon: Mail },
     { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
@@ -127,6 +128,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/whatsapp" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-400 transition-colors">
               <Bot className="w-4 h-4" />
               Automações WhatsApp
+            </Link>
+            <Link href="/admin/networking" className="flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-cyan-500/10 hover:text-cyan-300 transition-colors">
+              <span className="flex items-center gap-3"><MessagesSquare className="w-4 h-4" /> Networking de Criadores</span>
+              <span className="text-[9px] font-black uppercase tracking-wide text-cyan-300 bg-cyan-400/10 px-1.5 py-0.5 rounded">Novo</span>
             </Link>
             <Link href="/admin/emails" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-300 rounded-lg hover:bg-violet-500/10 hover:text-violet-400 transition-colors">
               <Mail className="w-4 h-4" />

@@ -14,6 +14,7 @@
     "test:delivery-access": "ts-node -P tsconfig.test.json scripts/verify-delivery-access.ts",
     "test:search-matching": "ts-node -P tsconfig.test.json scripts/verify-search-matching.ts",
     "test:social-links": "ts-node -P tsconfig.test.json scripts/verify-social-links.ts",
+    "test:creator-networking": "ts-node -P tsconfig.test.json scripts/verify-creator-networking.ts",
     "test:creator-referral-foundation": "ts-node -P tsconfig.test.json scripts/verify-creator-referral-foundation.ts",
     "test:e2e:mobile": "playwright test"
   },
