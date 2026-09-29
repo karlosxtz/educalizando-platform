@@ -23,12 +23,47 @@ const DEFAULT_TEMPLATES: Record<WhatsAppTemplateKey, string> = {
   buyerSale: '✅ Compra confirmada!\n\nOlá, {{nome}}! Seu pagamento foi aprovado.\n\nMaterial(is): {{produto}}\nTotal: {{valor}}',
 };
 
+/**
+ * Converte telefones brasileiros escritos de formas diferentes para o padrão
+ * internacional aceito pela Evolution. Quando o nono dígito é ambíguo,
+ * devolve as duas variações para que a API confirme qual possui WhatsApp.
+ */
+export function whatsappNumberCandidates(phone: unknown): string[] {
+  let digits = String(phone ?? '').replace(/\D/g, '');
+  if (!digits) return [];
+
+  // Prefixo de discagem internacional (00 55) e zero de operadora/tronco.
+  if (digits.startsWith('0055')) digits = digits.slice(2);
+  if (digits.startsWith('550') && (digits.length === 13 || digits.length === 14)) {
+    digits = `55${digits.slice(3)}`;
+  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
+    digits = digits.slice(1);
+  }
+
+  let primary: string | null = null;
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+    primary = digits;
+  } else if (digits.length === 10 || digits.length === 11) {
+    primary = `55${digits}`;
+  }
+  if (!primary) return [];
+
+  const candidates = [primary];
+  const national = primary.slice(2);
+  const ddd = national.slice(0, 2);
+  const subscriber = national.slice(2);
+
+  if (subscriber.length === 8) {
+    candidates.push(`55${ddd}9${subscriber}`);
+  } else if (subscriber.length === 9 && subscriber.startsWith('9')) {
+    candidates.push(`55${ddd}${subscriber.slice(1)}`);
+  }
+
+  return [...new Set(candidates)].filter((candidate) => /^55\d{10,11}$/.test(candidate));
+}
+
 export function normalizeWhatsAppNumber(phone: unknown): string | null {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  if (digits.length === 12 || digits.length === 13) return digits;
-  return null;
+  return whatsappNumberCandidates(phone)[0] || null;
 }
 
 function readEvolutionError(value: unknown): string | null {
@@ -73,18 +108,17 @@ export async function getWhatsAppTemplate(key: WhatsAppTemplateKey): Promise<str
 }
 
 export async function sendEvolutionText(phone: unknown, text: string, instanceOverride?: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
-  const number = normalizeWhatsAppNumber(phone);
-  if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
-
-  const apiKey = process.env.EVOLUTION_API_KEY;
-  const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');
-  const instanceName = instanceOverride || process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
+  const config = evolutionConfig();
+  const { apiKey, baseUrl } = config;
+  const instanceName = instanceOverride || config.instanceName;
   if (!apiKey || !instanceName) {
     console.warn('[WhatsApp] Evolution API não configurada. Defina EVOLUTION_API_KEY e EVOLUTION_INSTANCE_NAME.');
     return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
   }
 
   try {
+    const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
+    if (!number) return invalidOrMissingWhatsApp(phone);
     const response = await fetch(`${baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
@@ -110,12 +144,12 @@ export async function sendEvolutionText(phone: unknown, text: string, instanceOv
 
 /** Envia um documento já hospedado publicamente. Falhas não impedem a mensagem com o link seguro. */
 export async function sendEvolutionDocument(phone: unknown, url: string, fileName: string, caption: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
-  const number = normalizeWhatsAppNumber(phone);
-  if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
   if (!/^https:\/\//i.test(url)) return { sent: false, reason: 'invalid_url', error: 'O arquivo não possui uma URL pública para envio.' };
   const { apiKey, baseUrl, instanceName } = evolutionConfig();
   if (!apiKey || !instanceName) return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
   try {
+    const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
+    if (!number) return invalidOrMissingWhatsApp(phone);
     const response = await fetch(`${baseUrl}/message/sendMedia/${encodeURIComponent(instanceName)}`, {
       method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
       body: JSON.stringify({ number, mediatype: 'document', media: url, fileName: fileName.slice(0, 120), caption }), cache: 'no-store',
@@ -127,13 +161,13 @@ export async function sendEvolutionDocument(phone: unknown, url: string, fileNam
 
 /** Envia uma imagem pública com o texto no mesmo balão como legenda. */
 export async function sendEvolutionImage(phone: unknown, url: string, caption: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
-  const number = normalizeWhatsAppNumber(phone);
-  if (!number) return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD.' };
   if (!/^https:\/\//i.test(url)) return { sent: false, reason: 'invalid_url', error: 'A imagem precisa possuir uma URL HTTPS pública.' };
   const { apiKey, baseUrl, instanceName } = evolutionConfig();
   if (!apiKey || !instanceName) return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
 
   try {
+    const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
+    if (!number) return invalidOrMissingWhatsApp(phone);
     const response = await fetch(`${baseUrl}/message/sendMedia/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
@@ -160,6 +194,56 @@ function evolutionConfig() {
   const baseUrl = (process.env.EVOLUTION_API_BASE_URL || 'https://evolutionapi.vps11334.panel.icontainer.net').replace(/\/$/, '');
   const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'educalizando';
   return { apiKey, baseUrl, instanceName };
+}
+
+type ConfiguredEvolution = { apiKey: string; baseUrl: string; instanceName: string };
+
+function invalidOrMissingWhatsApp(phone: unknown): { sent: false; reason: string; error: string } {
+  if (!whatsappNumberCandidates(phone).length) {
+    return { sent: false, reason: 'invalid_phone', error: 'Informe um WhatsApp brasileiro válido, com DDD e todos os dígitos.' };
+  }
+  return { sent: false, reason: 'not_on_whatsapp', error: 'Nenhuma variação válida deste número foi encontrada no WhatsApp.' };
+}
+
+/** Consulta a Evolution somente quando há dúvida sobre o nono dígito. */
+async function resolveEvolutionWhatsAppNumber(phone: unknown, config: ConfiguredEvolution): Promise<string | null> {
+  const candidates = whatsappNumberCandidates(phone);
+  if (candidates.length <= 1) return candidates[0] || null;
+
+  try {
+    const response = await fetch(`${config.baseUrl}/chat/whatsappNumbers/${encodeURIComponent(config.instanceName)}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: config.apiKey },
+      body: JSON.stringify({ numbers: candidates }),
+      cache: 'no-store',
+    });
+    if (!response.ok) return candidates[0];
+
+    const payload = await response.json().catch(() => null) as unknown;
+    const records = Array.isArray(payload)
+      ? payload
+      : payload && typeof payload === 'object' && Array.isArray((payload as Record<string, unknown>).numbers)
+        ? (payload as Record<string, unknown>).numbers as unknown[]
+        : [];
+    if (!records.length) return candidates[0];
+
+    for (const item of records) {
+      if (!item || typeof item !== 'object') continue;
+      const record = item as Record<string, unknown>;
+      if (record.exists !== true) continue;
+      const returned = normalizeWhatsAppNumber(record.number ?? record.jid);
+      if (returned && candidates.includes(returned)) return returned;
+    }
+
+    // A API respondeu de forma conclusiva que nenhuma das variações existe.
+    if (records.some((item) => item && typeof item === 'object' && typeof (item as Record<string, unknown>).exists === 'boolean')) {
+      return null;
+    }
+    return candidates[0];
+  } catch (error) {
+    console.warn('[WhatsApp] Não foi possível validar o nono dígito; usando a formatação principal.', error);
+    return candidates[0];
+  }
 }
 
 export type EvolutionInstanceHealth = {

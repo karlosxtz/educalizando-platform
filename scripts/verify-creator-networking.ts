@@ -4,6 +4,7 @@ import {
   renderCreatorNetworkingMessage,
   suggestedGreetingPresetId,
 } from '../src/lib/creator-networking';
+import { normalizeWhatsAppNumber, whatsappNumberCandidates } from '../src/lib/whatsapp-notification-service';
 
 assert.deepEqual(
   CREATOR_NETWORKING_PRESETS.map((preset) => preset.id),
@@ -18,4 +19,12 @@ assert.equal(
 );
 assert.ok(CREATOR_NETWORKING_PRESETS.every((preset) => preset.message.length > 30));
 
-console.log('Modelos, personalização e saudação por horário validados.');
+assert.equal(normalizeWhatsAppNumber('(12) 99999-9999'), '5512999999999');
+assert.equal(normalizeWhatsAppNumber('+55 (12) 99999-9999'), '5512999999999');
+assert.equal(normalizeWhatsAppNumber('0055 12 99999-9999'), '5512999999999');
+assert.equal(normalizeWhatsAppNumber('0 (12) 99999-9999'), '5512999999999');
+assert.deepEqual(whatsappNumberCandidates('(12) 3456-7890'), ['551234567890', '5512934567890']);
+assert.deepEqual(whatsappNumberCandidates('(12) 93456-7890'), ['5512934567890', '551234567890']);
+assert.equal(normalizeWhatsAppNumber('(12) 123456'), null);
+
+console.log('Modelos, personalização, saudação e normalização de WhatsApp validados.');
