@@ -49,10 +49,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex font-sans selection:bg-blue-500/30">
+    <div className="flex h-[100dvh] overflow-hidden bg-slate-900 font-sans text-slate-100 selection:bg-blue-500/30">
       
       {/* Menu Lateral Admin */}
-      <aside className="w-64 bg-slate-950 border-r border-slate-800 hidden md:flex flex-col">
+      <aside className="hidden h-full min-h-0 w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-950 md:flex">
         <div className="h-16 flex items-center justify-center border-b border-slate-800">
           <div className="flex items-center gap-2 text-blue-500 font-bold text-xl tracking-tight">
             <ShieldAlert className="w-6 h-6" />
@@ -162,7 +162,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Área Principal */}
-      <main className="min-w-0 flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header Mobile */}
         <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md flex md:hidden items-center px-4 shrink-0">
           <div className="flex items-center gap-2 text-blue-500 font-bold text-lg flex-1">
