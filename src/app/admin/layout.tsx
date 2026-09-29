@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-slate-900 font-sans text-slate-100 selection:bg-blue-500/30">
+    <div className="fixed inset-0 flex overflow-hidden overscroll-none bg-slate-900 font-sans text-slate-100 selection:bg-blue-500/30">
       
       {/* Menu Lateral Admin */}
       <aside className="hidden h-full min-h-0 w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-950 md:flex">
@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="p-4 flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-3">
             Controle Mestre
           </div>
@@ -228,7 +228,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
 
         {/* Conteúdo Dinâmico */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 md:p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             {children}
           </div>
