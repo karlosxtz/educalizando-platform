@@ -46,7 +46,7 @@ export async function GET(
 
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('titulo, descricao, capa_url, preview_url, instagram_video_url, seasonal_tags, tipo, category_id, education_level_id, page_count, age_range, format_details')
+      .select('titulo, descricao, capa_url, preview_url, instagram_video_url, seasonal_tags, tipo, category_id, category_ids, education_level_id, education_level_ids, page_count, age_range, format_details')
       .eq('id', productId)
       .eq('is_plr', true)
       .is('excluido_em', null)
@@ -79,7 +79,9 @@ export async function GET(
         seasonalTags: product.seasonal_tags || [],
         tipo: product.tipo,
         categoryId: product.category_id,
+        categoryIds: product.category_ids || (product.category_id ? [product.category_id] : []),
         educationLevelId: product.education_level_id,
+        educationLevelIds: product.education_level_ids || (product.education_level_id ? [product.education_level_id] : []),
         pageCount: product.page_count,
         ageRange: product.age_range,
         formatDetails: product.format_details,

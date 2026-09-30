@@ -594,8 +594,20 @@ function cleanProductPayload<T extends Record<string, any>>(data: T): T {
   if ('category_id' in cleaned) {
     cleaned.category_id = sanitizeUUID(cleaned.category_id);
   }
+  if ('category_ids' in cleaned) {
+    cleaned.category_ids = Array.from(new Set((Array.isArray(cleaned.category_ids) ? cleaned.category_ids : [])
+      .map((id: unknown) => sanitizeUUID(typeof id === 'string' ? id : null))
+      .filter(Boolean))).slice(0, 5);
+    cleaned.category_id = cleaned.category_ids[0] || null;
+  }
   if ('education_level_id' in cleaned) {
     cleaned.education_level_id = sanitizeUUID(cleaned.education_level_id);
+  }
+  if ('education_level_ids' in cleaned) {
+    cleaned.education_level_ids = Array.from(new Set((Array.isArray(cleaned.education_level_ids) ? cleaned.education_level_ids : [])
+      .map((id: unknown) => sanitizeUUID(typeof id === 'string' ? id : null))
+      .filter(Boolean))).slice(0, 5);
+    cleaned.education_level_id = cleaned.education_level_ids[0] || null;
   }
   return cleaned as T;
 }
@@ -760,7 +772,9 @@ export async function updateProduct(productId: string, updates: Partial<Product>
     arquivo_url: payload.arquivo_url || null,
     status: payload.status || 'publicado',
     category_id: payload.category_id || null,
+    category_ids: payload.category_ids || (payload.category_id ? [payload.category_id] : []),
     education_level_id: payload.education_level_id || null,
+    education_level_ids: payload.education_level_ids || (payload.education_level_id ? [payload.education_level_id] : []),
     created_at: new Date().toISOString()
   };
 

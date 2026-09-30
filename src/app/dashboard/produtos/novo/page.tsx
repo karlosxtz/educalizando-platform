@@ -16,7 +16,7 @@ import { getCategories, getEducationLevels, getBnccSkills } from '@/lib/category
 import { ProductType, Category, EducationLevel, Store, Product, BnccSkill } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import LimitedMultiSelect from '@/components/ui/LimitedMultiSelect';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 import { toast } from 'sonner';
 import { getSchoolCalendarTagsForMonth, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
@@ -58,8 +58,8 @@ function ProductWizardContent() {
   const [arquivoNome, setArquivoNome] = useState('');
   const [driveLinkDraft, setDriveLinkDraft] = useState('');
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [educationLevelId, setEducationLevelId] = useState<string>('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [educationLevelIds, setEducationLevelIds] = useState<string[]>([]);
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
   const [productTags, setProductTags] = useState('');
   const [isSeasonalPickerOpen, setIsSeasonalPickerOpen] = useState(false);
@@ -150,8 +150,8 @@ function ProductWizardContent() {
             }
 
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
-            setCategoryId(existing.category_id || '');
-            setEducationLevelId(existing.education_level_id || '');
+            setCategoryIds((existing.category_ids?.length ? existing.category_ids : existing.category_id ? [existing.category_id] : []).slice(0, 5));
+            setEducationLevelIds((existing.education_level_ids?.length ? existing.education_level_ids : existing.education_level_id ? [existing.education_level_id] : []).slice(0, 5));
             setSeasonalTags(existing.seasonal_tags || []);
             setProductTags((existing.tags || []).join(', '));
             setIsFree(existing.is_free || false);
@@ -197,8 +197,8 @@ function ProductWizardContent() {
             setInstagramVideoUrl(source.instagramVideoUrl || '');
             setSeasonalTags(Array.isArray(source.seasonalTags) ? source.seasonalTags : []);
             setTipo(source.tipo || 'pdf');
-            setCategoryId(source.categoryId || '');
-            setEducationLevelId(source.educationLevelId || '');
+            setCategoryIds(Array.isArray(source.categoryIds) ? source.categoryIds.slice(0, 5) : source.categoryId ? [source.categoryId] : []);
+            setEducationLevelIds(Array.isArray(source.educationLevelIds) ? source.educationLevelIds.slice(0, 5) : source.educationLevelId ? [source.educationLevelId] : []);
             setPageCount(source.pageCount ? String(source.pageCount) : '');
             setAgeRange(source.ageRange || '');
             setFormatDetails(source.formatDetails || '');
@@ -210,7 +210,7 @@ function ProductWizardContent() {
           if (savedDraft) {
             try {
               const draft = JSON.parse(savedDraft);
-              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryId(draft.categoryId || ''); setEducationLevelId(draft.educationLevelId || ''); setSeasonalTags(draft.seasonalTags || []); setProductTags(draft.productTags || ''); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
+              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryIds(Array.isArray(draft.categoryIds) ? draft.categoryIds.slice(0, 5) : draft.categoryId ? [draft.categoryId] : []); setEducationLevelIds(Array.isArray(draft.educationLevelIds) ? draft.educationLevelIds.slice(0, 5) : draft.educationLevelId ? [draft.educationLevelId] : []); setSeasonalTags(draft.seasonalTags || []); setProductTags(draft.productTags || ''); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
             } catch { localStorage.removeItem('educalizando_product_draft_v1'); }
           }
           if (suggestedTheme && SCHOOL_CALENDAR_TAGS.includes(suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number])) setSeasonalTags([suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number]]);
@@ -228,9 +228,9 @@ function ProductWizardContent() {
 
   useEffect(() => {
     if (loading || editId || plrProductId) return;
-    const draft = { titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryId, educationLevelId, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep };
+    const draft = { titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep };
     if (Object.values(draft).some(value => Array.isArray(value) ? value.length : Boolean(value))) localStorage.setItem('educalizando_product_draft_v1', JSON.stringify(draft));
-  }, [loading, editId, plrProductId, titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryId, educationLevelId, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep]);
+  }, [loading, editId, plrProductId, titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep]);
 
   const bnccSubjects = useMemo(() => Array.from(new Set(
     bnccSkillsMaster.map(skill => skill.subject).filter((subject): subject is string => Boolean(subject))
@@ -428,8 +428,10 @@ function ProductWizardContent() {
           arquivo_url: arquivoUrl,
           arquivo_nome: arquivoNome.trim() || null,
           status,
-          category_id: categoryId || null,
-          education_level_id: educationLevelId || null,
+          category_id: categoryIds[0] || null,
+          category_ids: categoryIds,
+          education_level_id: educationLevelIds[0] || null,
+          education_level_ids: educationLevelIds,
           seasonal_tags: seasonalTags,
           tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
           bncc_skill_ids: selectedBnccSkills,
@@ -460,8 +462,10 @@ function ProductWizardContent() {
           arquivo_url: arquivoUrl,
           arquivo_nome: arquivoNome.trim() || null,
           status,
-          category_id: categoryId || null,
-          education_level_id: educationLevelId || null,
+          category_id: categoryIds[0] || null,
+          category_ids: categoryIds,
+          education_level_id: educationLevelIds[0] || null,
+          education_level_ids: educationLevelIds,
           seasonal_tags: seasonalTags,
           tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
           bncc_skill_ids: selectedBnccSkills,
@@ -486,15 +490,9 @@ function ProductWizardContent() {
     }
   };
 
-  const categoryOptions: CustomSelectOption[] = [
-    { value: '', label: 'Selecione uma Categoria/Tema' },
-    ...categories.map(c => ({ value: c.id, label: c.nome }))
-  ];
+  const categoryOptions = categories.map(c => ({ value: c.id, label: c.nome }));
 
-  const educationOptions: CustomSelectOption[] = [
-    { value: '', label: 'Selecione o Nível de Escolaridade' },
-    ...educationLevels.map(e => ({ value: e.id, label: e.nome }))
-  ];
+  const educationOptions = educationLevels.map(e => ({ value: e.id, label: e.nome }));
 
   if (loading) {
     return (
@@ -763,24 +761,30 @@ function ProductWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
                       Categoria / Tema
                     </label>
-                    <CustomSelect
+                    <LimitedMultiSelect
                       options={categoryOptions}
-                      value={categoryId}
-                      onChange={(val) => setCategoryId(val)}
+                      values={categoryIds}
+                      onChange={setCategoryIds}
+                      placeholder="Selecione até 5 categorias/temas"
+                      maxSelections={5}
                       icon={<Tags className="w-4 h-4" />}
                     />
+                    <p className="mt-2 text-[11px] text-slate-500">A primeira opção marcada será a categoria principal. Você pode escolher até 5.</p>
                   </div>
 
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
                       Nível de Escolaridade
                     </label>
-                    <CustomSelect
+                    <LimitedMultiSelect
                       options={educationOptions}
-                      value={educationLevelId}
-                      onChange={(val) => setEducationLevelId(val)}
+                      values={educationLevelIds}
+                      onChange={setEducationLevelIds}
+                      placeholder="Selecione até 5 níveis"
+                      maxSelections={5}
                       icon={<GraduationCap className="w-4 h-4" />}
                     />
+                    <p className="mt-2 text-[11px] text-slate-500">A primeira opção marcada será o nível principal. Você pode escolher até 5.</p>
                   </div>
                 </div>
 

@@ -51,6 +51,14 @@ const sanitizeUUID = (str: string | null | undefined): string | null => {
   return isValidUUID(clean) ? clean : null;
 };
 
+const sanitizeUUIDList = (value: unknown, primary?: unknown): string[] => {
+  const candidates = Array.isArray(value) ? value : primary ? [primary] : [];
+  return Array.from(new Set(candidates
+    .map(item => sanitizeUUID(typeof item === 'string' ? item : null))
+    .filter((item): item is string => Boolean(item))))
+    .slice(0, 5);
+};
+
 async function uniqueProductSlug(title: string, excludeId?: string) {
   const base = generateSlug(title).slice(0, 110) || 'produto';
   const { data } = await supabaseAdmin.from('products').select('id, slug').ilike('slug', `${base}%`);
@@ -107,7 +115,9 @@ export async function POST(request: Request) {
       arquivo_nome = null,
       status = 'publicado',
       category_id,
+      category_ids = [],
       education_level_id,
+      education_level_ids = [],
       gallery_urls,
       is_free = false,
       is_plr = false,
@@ -133,6 +143,11 @@ export async function POST(request: Request) {
     if (titulo.trim().length > 160 || !PRODUCT_TYPES.has(tipo) || !PRODUCT_STATUSES.has(status) || !isValidProductPrice(preco) || !isValidAffiliateRate(affiliate_commission_rate)) {
       return NextResponse.json({ error: 'Dados do produto inválidos. Revise título, tipo, status e preço.' }, { status: 400 });
     }
+    if ((Array.isArray(category_ids) && category_ids.length > 5) || (Array.isArray(education_level_ids) && education_level_ids.length > 5)) {
+      return NextResponse.json({ error: 'Selecione no máximo 5 categorias e 5 níveis de escolaridade.' }, { status: 400 });
+    }
+    const normalizedCategoryIds = sanitizeUUIDList(category_ids, category_id);
+    const normalizedEducationLevelIds = sanitizeUUIDList(education_level_ids, education_level_id);
     const normalizedOriginalPrice = preco_original === null || preco_original === '' ? null : Number(preco_original);
     if (normalizedOriginalPrice !== null && (!isValidProductPrice(normalizedOriginalPrice) || normalizedOriginalPrice <= Number(preco) || Boolean(is_free))) {
       return NextResponse.json({ error: 'O preço original deve ser maior que o preço de venda e não pode ser usado em materiais gratuitos.' }, { status: 400 });
@@ -231,8 +246,10 @@ export async function POST(request: Request) {
       capa_url: capa_url || null,
       has_original_delivery: Boolean(arquivo_url),
       status: status || 'publicado',
-      category_id: sanitizeUUID(category_id),
-      education_level_id: sanitizeUUID(education_level_id),
+      category_id: normalizedCategoryIds[0] || null,
+      category_ids: normalizedCategoryIds,
+      education_level_id: normalizedEducationLevelIds[0] || null,
+      education_level_ids: normalizedEducationLevelIds,
       is_free: Boolean(is_free),
       is_plr: Boolean(is_plr),
       plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
@@ -285,6 +302,10 @@ export async function POST(request: Request) {
         capa_url: capa_url || null,
         has_original_delivery: Boolean(arquivo_url),
         status: status || 'publicado',
+        category_id: normalizedCategoryIds[0] || null,
+        category_ids: normalizedCategoryIds,
+        education_level_id: normalizedEducationLevelIds[0] || null,
+        education_level_ids: normalizedEducationLevelIds,
         is_free: Boolean(is_free),
         is_plr: Boolean(is_plr),
         plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
@@ -449,8 +470,22 @@ export async function PUT(request: Request) {
     if ('category_id' in cleanedUpdates) {
       cleanedUpdates.category_id = sanitizeUUID(cleanedUpdates.category_id);
     }
+    if ('category_ids' in cleanedUpdates) {
+      if (!Array.isArray(cleanedUpdates.category_ids) || cleanedUpdates.category_ids.length > 5) {
+        return NextResponse.json({ error: 'Selecione no máximo 5 categorias/temas.' }, { status: 400 });
+      }
+      cleanedUpdates.category_ids = sanitizeUUIDList(cleanedUpdates.category_ids, cleanedUpdates.category_id);
+      cleanedUpdates.category_id = cleanedUpdates.category_ids[0] || null;
+    }
     if ('education_level_id' in cleanedUpdates) {
       cleanedUpdates.education_level_id = sanitizeUUID(cleanedUpdates.education_level_id);
+    }
+    if ('education_level_ids' in cleanedUpdates) {
+      if (!Array.isArray(cleanedUpdates.education_level_ids) || cleanedUpdates.education_level_ids.length > 5) {
+        return NextResponse.json({ error: 'Selecione no máximo 5 níveis de escolaridade.' }, { status: 400 });
+      }
+      cleanedUpdates.education_level_ids = sanitizeUUIDList(cleanedUpdates.education_level_ids, cleanedUpdates.education_level_id);
+      cleanedUpdates.education_level_id = cleanedUpdates.education_level_ids[0] || null;
     }
     if ('order_bump_id' in cleanedUpdates) {
       cleanedUpdates.order_bump_id = sanitizeUUID(cleanedUpdates.order_bump_id);

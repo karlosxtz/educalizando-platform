@@ -201,7 +201,7 @@ export async function deleteCustomCategory(categoryId: string): Promise<void> {
     const { count, error: countErr } = await supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
-      .eq('category_id', categoryId)
+      .or(`category_id.eq.${categoryId},category_ids.cs.{${categoryId}}`)
       .is('excluido_em', null)
       .neq('status', 'excluido');
 

@@ -221,8 +221,8 @@ export default function ProductsManagementPage() {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter;
-    const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter;
+    const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter || p.category_ids?.includes(selectedCategoryFilter);
+    const matchEducation = selectedEducationFilter === 'all' || p.education_level_id === selectedEducationFilter || p.education_level_ids?.includes(selectedEducationFilter);
     const matchStatus = selectedStatusFilter === 'all' || p.status === selectedStatusFilter;
     const matchSearch = !searchFilter.trim() || searchMatchScore(p, searchFilter) > 0;
     return matchCategory && matchEducation && matchStatus && matchSearch;

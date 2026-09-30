@@ -80,8 +80,8 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
         (product.descricao && normalize(product.descricao).includes(term)) ||
         Boolean(product.tags?.some((tag) => normalize(tag).includes(term))) ||
         Boolean(product.seasonal_tags?.some((tag) => normalize(tag).includes(term)));
-      const matchCategory = selectedCategory === 'all' || product.category_id === selectedCategory;
-      const matchEducation = selectedEducation === 'all' || product.education_level_id === selectedEducation;
+      const matchCategory = selectedCategory === 'all' || product.category_id === selectedCategory || product.category_ids?.includes(selectedCategory);
+      const matchEducation = selectedEducation === 'all' || product.education_level_id === selectedEducation || product.education_level_ids?.includes(selectedEducation);
       return matchSearch && matchCategory && matchEducation;
     });
 
@@ -98,12 +98,12 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   // A loja pública só oferece filtros que fazem sentido para o próprio catálogo.
   // O cadastro continua exibindo todas as opções disponíveis ao criador.
   const storeCategories = useMemo(() => {
-    const categoryIds = new Set(products.map((product) => product.category_id).filter((id): id is string => Boolean(id)));
+    const categoryIds = new Set(products.flatMap((product) => product.category_ids?.length ? product.category_ids : product.category_id ? [product.category_id] : []));
     return categories.filter((category) => categoryIds.has(category.id));
   }, [categories, products]);
 
   const storeEducationLevels = useMemo(() => {
-    const educationIds = new Set(products.map((product) => product.education_level_id).filter((id): id is string => Boolean(id)));
+    const educationIds = new Set(products.flatMap((product) => product.education_level_ids?.length ? product.education_level_ids : product.education_level_id ? [product.education_level_id] : []));
     return educationLevels.filter((level) => educationIds.has(level.id));
   }, [educationLevels, products]);
 

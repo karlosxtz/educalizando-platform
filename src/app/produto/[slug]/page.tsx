@@ -18,6 +18,7 @@ import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
+import type { Product } from '@/lib/types';
 
 // URLs antigas já rastreadas antes da padronização dos slugs. Manter este
 // mapa evita páginas 404 e transfere a autoridade da URL antiga para a atual.
@@ -107,17 +108,18 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
 
   const storeProducts = await getPublicProductsByStoreId(store.id);
   const otherStoreProducts = storeProducts.filter((item) => item.id !== product.id);
+  const productCategories = product.category_ids?.length ? product.category_ids : product.category_id ? [product.category_id] : [];
+  const productLevels = product.education_level_ids?.length ? product.education_level_ids : product.education_level_id ? [product.education_level_id] : [];
+  const isRelated = (item: Product) => {
+    const itemCategories = item.category_ids?.length ? item.category_ids : item.category_id ? [item.category_id] : [];
+    const itemLevels = item.education_level_ids?.length ? item.education_level_ids : item.education_level_id ? [item.education_level_id] : [];
+    return itemCategories.some(id => productCategories.includes(id)) || itemLevels.some(id => productLevels.includes(id));
+  };
   // Relevância primeiro: categoria e nível de ensino comuns. O restante da
   // própria loja completa a vitrine quando ainda não há itens suficientes.
   const relatedProducts = [
-    ...otherStoreProducts.filter((item) =>
-      (product.category_id && item.category_id === product.category_id) ||
-      (product.education_level_id && item.education_level_id === product.education_level_id)
-    ),
-    ...otherStoreProducts.filter((item) =>
-      !((product.category_id && item.category_id === product.category_id) ||
-        (product.education_level_id && item.education_level_id === product.education_level_id))
-    ),
+    ...otherStoreProducts.filter(isRelated),
+    ...otherStoreProducts.filter((item) => !isRelated(item)),
   ].slice(0, 4);
 
   // Breadcrumb structure

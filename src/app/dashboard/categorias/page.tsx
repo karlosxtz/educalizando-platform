@@ -63,7 +63,7 @@ export default function CategoriesManagementPage() {
   const globalCategories = allCategories.filter(c => c.store_id === null);
 
   const getProductCountForCategory = (catId: string) => {
-    return products.filter(p => p.category_id === catId).length;
+    return products.filter(p => p.category_id === catId || p.category_ids?.includes(catId)).length;
   };
 
   const handleCreateCategory = async () => {

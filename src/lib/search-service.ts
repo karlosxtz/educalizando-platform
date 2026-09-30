@@ -59,7 +59,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
           .single();
           
         if (cat) {
-          query = query.eq('category_id', cat.id);
+          query = query.or(`category_id.eq.${cat.id},category_ids.cs.{${cat.id}}`);
         } else {
           query = query.eq('category_id', '00000000-0000-0000-0000-000000000000'); // Força zero resultados
         }
@@ -88,7 +88,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
           .eq('slug', filters.ano_escolar)
           .maybeSingle();
         if (eduLevel) {
-          query = query.eq('education_level_id', eduLevel.id);
+          query = query.or(`education_level_id.eq.${eduLevel.id},education_level_ids.cs.{${eduLevel.id}}`);
         } else {
           // Uma URL de nível inexistente nunca deve devolver o catálogo todo.
           query = query.eq('education_level_id', '00000000-0000-0000-0000-000000000000');
@@ -200,7 +200,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   if (filters.categoria) {
     const categoryObj = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === filters.categoria);
     if (categoryObj) {
-      allProducts = allProducts.filter(p => p.category_id === categoryObj.id);
+      allProducts = allProducts.filter(p => p.category_id === categoryObj.id || p.category_ids?.includes(categoryObj.id));
     } else {
       // Uma URL adulterada não pode transformar um filtro inexistente em
       // acesso ao catálogo completo.
@@ -219,7 +219,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
   if (filters.ano_escolar) {
     const eduLevel = INITIAL_EDUCATION_LEVELS.find(e => e.slug === filters.ano_escolar);
     if (eduLevel) {
-      allProducts = allProducts.filter(p => p.education_level_id === eduLevel.id);
+      allProducts = allProducts.filter(p => p.education_level_id === eduLevel.id || p.education_level_ids?.includes(eduLevel.id));
     } else {
       allProducts = [];
     }

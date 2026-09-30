@@ -93,10 +93,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Assim que um criador publicar um material na categoria ou nível, a URL
     // passa a entrar automaticamente no sitemap na próxima leitura.
     const categoryIdsWithProducts = new Set(
-      products.map((product) => product.category_id).filter(Boolean),
+      products.flatMap((product) => product.category_ids?.length ? product.category_ids : product.category_id ? [product.category_id] : []),
     );
     const educationLevelIdsWithProducts = new Set(
-      products.map((product) => product.education_level_id).filter(Boolean),
+      products.flatMap((product) => product.education_level_ids?.length ? product.education_level_ids : product.education_level_id ? [product.education_level_id] : []),
     );
 
     categories.filter((category) => categoryIdsWithProducts.has(category.id)).forEach((category) => {

@@ -115,7 +115,11 @@ export interface Product {
   instagram_video_url?: string | null;
   status: ProductStatus;
   category_id?: string | null;
+  /** Até cinco categorias/temas; category_id mantém a principal. */
+  category_ids?: string[];
   education_level_id?: string | null;
+  /** Até cinco níveis de ensino; education_level_id mantém o principal. */
+  education_level_ids?: string[];
   seasonal_tags?: string[];
   /** Tags livres do material usadas na busca; não incluem datas ou temas do calendário escolar. */
   tags?: string[];

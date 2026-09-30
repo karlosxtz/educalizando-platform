@@ -96,7 +96,7 @@ export async function DELETE(request: Request) {
     const { count, error: countError } = await supabaseAdmin
       .from('products')
       .select('id', { count: 'exact', head: true })
-      .eq('category_id', id)
+      .or(`category_id.eq.${id},category_ids.cs.{${id}}`)
       .is('excluido_em', null);
     if (countError) throw countError;
     if (count) {
