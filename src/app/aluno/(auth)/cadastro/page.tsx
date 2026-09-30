@@ -24,7 +24,7 @@ function StudentSignupForm() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const getSafeReturnUrl = () => {
-    if (returnTo && returnTo.startsWith('/')) {
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
       return returnTo;
     }
     return '/cliente/dashboard';

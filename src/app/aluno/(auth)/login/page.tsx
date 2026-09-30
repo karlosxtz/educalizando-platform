@@ -28,7 +28,7 @@ function StudentLoginForm() {
 
   // Helper para redirecionar com segurança após login/cadastro (Evita Open Redirect - Item 13)
   const getSafeReturnUrl = () => {
-    if (returnTo && returnTo.startsWith('/')) {
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
       return returnTo;
     }
     return '/cliente/dashboard';

@@ -149,7 +149,9 @@ export default function ProductDetailClientView({
     ? Number(product.preco_original)
     : null;
 
-  const productPath = `/loja/${store.slug}/produto/${product.slug || product.id}`;
+  const productPath = context === 'marketplace'
+    ? `/produto/${product.slug || product.id}`
+    : `/loja/${store.slug}/produto/${product.slug || product.id}`;
 
   const handleClaimFreeMaterial = async () => {
     setPurchaseError(null);
@@ -260,6 +262,7 @@ export default function ProductDetailClientView({
       // Preserva produto e modalidade para o servidor recalcular o valor correto.
       const checkoutParams = new URLSearchParams({ produtoId: product.id });
       if (isPlrPurchase) checkoutParams.set('licenca', 'plr');
+      if (context === 'marketplace') checkoutParams.set('origem', 'marketplace');
       router.push(`/loja/${store.slug}/checkout?${checkoutParams.toString()}`);
     } catch {
       setIsBuying(false);
@@ -836,14 +839,14 @@ export default function ProductDetailClientView({
 
               <div className="space-y-2.5 pt-2">
                 <Link
-                  href={`/cliente/login?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
+                  href={`/cliente/login?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}${context === 'marketplace' ? '&origem=marketplace' : ''}`)}&action=buy`}
                   className="w-full py-3.5 rounded-2xl bg-brand-navy hover:bg-brand-navy-hover text-white font-bold text-xs shadow-md flex items-center justify-center gap-2"
                 >
                   <UserCheck className="w-4 h-4" /> Entrar com Conta de Cliente
                 </Link>
 
                 <Link
-                  href={`/cliente/cadastro?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}`)}&action=buy`}
+                  href={`/cliente/cadastro?returnTo=${encodeURIComponent(`/loja/${store.slug}/checkout?produtoId=${product.id}${context === 'marketplace' ? '&origem=marketplace' : ''}`)}&action=buy`}
                   className="w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2"
                 >
                   Criar Conta de Cliente Gratuitamente

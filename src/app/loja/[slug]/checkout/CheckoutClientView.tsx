@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShieldCheck, Lock, ArrowLeft, CreditCard,
@@ -21,9 +21,10 @@ interface CheckoutClientViewProps {
   product?: Product | null;
   kit?: Kit | null;
   initialCouponCode?: string;
+  marketplaceOrigin?: boolean;
 }
 
-export default function CheckoutClientView({ store, product, kit, initialCouponCode }: CheckoutClientViewProps) {
+export default function CheckoutClientView({ store, product, kit, initialCouponCode, marketplaceOrigin = false }: CheckoutClientViewProps) {
   const { items: globalCartItems } = useCart();
   const isDirectPurchase = Boolean(product || kit);
   const cartItems = isDirectPurchase ? [] : globalCartItems.filter(item => item.storeId === store.id);
@@ -36,6 +37,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean | null>(null);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; cpf?: string; storeName?: string } | null>(null);
 
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const cartHasPlrItems = !isDirectPurchase && cartItems.some(item => item.isPlr);
   const cartHasStandardItems = !isDirectPurchase && cartItems.some(item => !item.isPlr);
@@ -84,9 +86,19 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthError, setIsAuthError] = useState(false);
   const [hasRoleMismatch, setHasRoleMismatch] = useState(false);
-  const returnToProduct = product
-    ? `/loja/${store.slug}/produto/${product.slug || product.id}`
-    : kit ? `/loja/${store.slug}/kit/${kit.id}` : `/loja/${store.slug}/checkout`;
+  const checkoutQuery = searchParams.toString();
+  const checkoutReturnTo = `${pathname}${checkoutQuery ? `?${checkoutQuery}` : ''}`;
+  const productReturnHref = product
+    ? marketplaceOrigin
+      ? `/produto/${product.slug || product.id}`
+      : `/loja/${store.slug}/produto/${product.slug || product.id}`
+    : null;
+  const kitReturnHref = kit
+    ? marketplaceOrigin
+      ? `/kit/${kit.id}`
+      : `/loja/${store.slug}/kit/${kit.id}`
+    : null;
+  const catalogReturnHref = marketplaceOrigin ? '/' : `/loja/${store.slug}`;
 
   const primaryColor = store.cor_primaria || '#093b6c';
   const checkoutTracked = useRef<string | null>(null);
@@ -385,7 +397,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
         <div className="max-w-6xl mx-auto flex min-w-0 items-center justify-between gap-4">
           {product ? (
             <Link
-              href={`/loja/${store.slug}/produto/${product.slug || product.id}`}
+              href={productReturnHref!}
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -393,7 +405,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
             </Link>
           ) : kit ? (
             <Link
-              href={`/loja/${store.slug}/kit/${kit.id}`}
+              href={kitReturnHref!}
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -401,11 +413,11 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
             </Link>
           ) : (
             <Link
-              href={`/loja/${store.slug}`}
+              href={catalogReturnHref}
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Voltar à loja</span>
+              <span>{marketplaceOrigin ? 'Voltar ao marketplace' : 'Voltar à loja'}</span>
             </Link>
           )}
 
@@ -431,8 +443,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
             <PackageOpen className="mx-auto h-10 w-10 text-slate-400" aria-hidden="true" />
             <h2 id="empty-checkout-title" className="mt-4 text-xl font-black text-slate-950">Seu carrinho está vazio</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">Adicione um material desta loja ao carrinho para continuar.</p>
-            <Link href={`/loja/${store.slug}`} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-navy px-5 py-3 text-sm font-black text-white transition-colors hover:bg-brand-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-navy">
-              Voltar para a loja
+            <Link href={catalogReturnHref} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-navy px-5 py-3 text-sm font-black text-white transition-colors hover:bg-brand-navy/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-navy">
+              {marketplaceOrigin ? 'Voltar ao marketplace' : 'Voltar para a loja'}
             </Link>
           </section>
         ) : (
@@ -471,8 +483,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
-                    <Link href={`/cliente/login?returnTo=${encodeURIComponent(returnToProduct)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como Cliente</Link>
-                    <Link href={`/cliente/cadastro?returnTo=${encodeURIComponent(returnToProduct)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta de Cliente</Link>
+                    <Link href={`/cliente/login?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><LogIn className="w-4 h-4" /> Entrar como Cliente</Link>
+                    <Link href={`/cliente/cadastro?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`} className="min-h-11 justify-center px-4 py-2.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"><UserPlus className="w-4 h-4" /> Criar conta de Cliente</Link>
                   </div>
                 </div>
               ) : isStudentLoggedIn === true ? (
@@ -501,8 +513,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                   <div className="flex flex-wrap gap-2.5 pt-1">
                     <Link
                       href={isPlrPurchase 
-                        ? `/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
-                        : `/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        ? `/login?returnTo=${encodeURIComponent(checkoutReturnTo)}`
+                        : `/cliente/login?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`}
                       className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs"
                     >
                       <LogIn className="w-4 h-4" />
@@ -510,8 +522,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                     </Link>
                     <Link
                       href={isPlrPurchase 
-                        ? `/cadastro/produtor?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`
-                        : `/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                        ? `/cadastro/produtor?returnTo=${encodeURIComponent(checkoutReturnTo)}`
+                        : `/cliente/cadastro?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`}
                       className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                     >
                       <UserPlus className="w-4 h-4 text-rose-600" />
@@ -631,14 +643,14 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                       {isPlrPurchase ? (
                         <>
                           <Link
-                            href={`/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
+                            href={`/login?returnTo=${encodeURIComponent(checkoutReturnTo)}`}
                             className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
                           >
                             <LogIn className="w-4 h-4" />
                             <span>Fazer Login de Criador</span>
                           </Link>
                           <Link
-                            href={`/cadastro/produtor?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`}
+                            href={`/cadastro/produtor?returnTo=${encodeURIComponent(checkoutReturnTo)}`}
                             className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                           >
                             <UserPlus className="w-4 h-4 text-rose-600" />
@@ -648,14 +660,14 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                       ) : (
                         <>
                           <Link
-                            href={`/cliente/login?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                            href={`/cliente/login?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`}
                             className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
                           >
                             <LogIn className="w-4 h-4" />
                             <span>Fazer Login de Cliente Agora</span>
                           </Link>
                           <Link
-                            href={`/cliente/cadastro?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}&action=buy`}
+                            href={`/cliente/cadastro?returnTo=${encodeURIComponent(checkoutReturnTo)}&action=buy`}
                             className="px-4 py-2.5 bg-white border border-rose-300 text-rose-900 hover:bg-rose-100 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all"
                           >
                             <UserPlus className="w-4 h-4 text-rose-600" />

@@ -3,15 +3,17 @@ import { getStoreBySlug, getProductById } from '@/lib/store-service';
 import { getKitById } from '@/lib/kit-service';
 import CheckoutClientView from './CheckoutClientView';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ produtoId?: string; kitId?: string; cupom?: string; licenca?: string }>;
+  searchParams: Promise<{ produtoId?: string; kitId?: string; cupom?: string; licenca?: string; origem?: string }>;
 }
 
 export default async function StoreCheckoutPage({ params, searchParams }: CheckoutPageProps) {
   const { slug } = await params;
-  const { produtoId, kitId, cupom } = await searchParams;
+  const { produtoId, kitId, cupom, origem } = await searchParams;
+  const marketplaceOrigin = origem === 'marketplace';
 
   const store = await getStoreBySlug(slug);
   if (!store) {
@@ -45,11 +47,13 @@ export default async function StoreCheckoutPage({ params, searchParams }: Checko
 
   return (
     <>
+      {marketplaceOrigin && <MarketplaceHeader />}
       <CheckoutClientView
         store={store}
         product={product}
         kit={kit}
         initialCouponCode={cupom}
+        marketplaceOrigin={marketplaceOrigin}
       />
       <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
     </>

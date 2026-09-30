@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ArrowLeft, CheckCircle2,
@@ -21,6 +22,7 @@ interface KitDetailClientViewProps {
 }
 
 export default function KitDetailClientView({ store, kit, marketplaceView = false }: KitDetailClientViewProps) {
+  const router = useRouter();
   const [isBuying, setIsBuying] = useState(false);
 
   // Coupon State
@@ -77,7 +79,9 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
     setIsBuying(true);
     // O combo é sempre recalculado no servidor no checkout; esta tela nunca
     // deve simular um pagamento ou liberar arquivos por conta própria.
-    window.location.assign(`/loja/${store.slug}/checkout?kitId=${encodeURIComponent(kit.id)}`);
+    const checkoutParams = new URLSearchParams({ kitId: kit.id });
+    if (marketplaceView) checkoutParams.set('origem', 'marketplace');
+    router.push(`/loja/${store.slug}/checkout?${checkoutParams.toString()}`);
   };
 
   return (

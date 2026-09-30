@@ -71,7 +71,7 @@ export default function CartPage() {
   const handleCheckout = (storeId: string, storeSlug?: string) => {
     if (!storeSlug || checkoutStoreId) return;
     setCheckoutStoreId(storeId);
-    router.push(`/loja/${storeSlug}/checkout`);
+    router.push(`/loja/${storeSlug}/checkout?origem=marketplace`);
   };
 
   if (items.length === 0) {

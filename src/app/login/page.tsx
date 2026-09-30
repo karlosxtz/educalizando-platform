@@ -29,9 +29,14 @@ function LoginPageContent() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState(false);
   const returnTo = searchParams.get('returnTo');
-  // O login do criador só aceita rotas internas do próprio painel. Isso mantém
-  // o link de e-mail seguro e devolve o comprador PLR à biblioteca correta.
-  const safeCreatorReturnTo = returnTo?.startsWith('/dashboard') ? returnTo : null;
+  // Aceita apenas destinos internos conhecidos. Compradores de licença PLR
+  // retornam ao mesmo checkout, com produto e origem preservados.
+  const isSafeCreatorReturn = Boolean(
+    returnTo
+      && !returnTo.startsWith('//')
+      && (returnTo.startsWith('/dashboard') || /^\/loja\/[^/]+\/checkout(?:[/?]|$)/.test(returnTo))
+  );
+  const safeCreatorReturnTo = isSafeCreatorReturn ? returnTo : null;
 
   const {
     register: registerLogin,
