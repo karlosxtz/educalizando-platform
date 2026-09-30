@@ -4,7 +4,9 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateSlug } from '@/lib/string-utils';
 
-type Change = { id?: unknown; titulo?: unknown; descricao?: unknown; tags?: unknown; seasonal_tags?: unknown };
+type Change = { id?: unknown; titulo?: unknown; descricao?: unknown; plr_descricao?: unknown; tags?: unknown; seasonal_tags?: unknown; category_id?: unknown; education_level_id?: unknown };
+
+const uuid = (value: unknown) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value : null;
 
 const strings = (value: unknown, max: number) => Array.isArray(value)
   ? value.filter((item): item is string => typeof item === 'string').map(item => item.trim()).filter(Boolean).slice(0, max)
@@ -41,8 +43,11 @@ export async function POST(request: Request) {
     const update = {
       ...(nextTitle ? { titulo: nextTitle, slug: nextSlug } : {}),
       ...(typeof change.descricao === 'string' && change.descricao.trim() ? { descricao: change.descricao.trim().slice(0, 8000) } : {}),
+      ...(typeof change.plr_descricao === 'string' && change.plr_descricao.trim() ? { plr_descricao: change.plr_descricao.trim().slice(0, 8000) } : {}),
       ...(Array.isArray(change.tags) ? { tags: strings(change.tags, 10).map(tag => tag.toLowerCase()) } : {}),
       ...(Array.isArray(change.seasonal_tags) ? { seasonal_tags: strings(change.seasonal_tags, 48) } : {}),
+      ...(uuid(change.category_id) ? { category_id: uuid(change.category_id) } : {}),
+      ...(uuid(change.education_level_id) ? { education_level_id: uuid(change.education_level_id) } : {}),
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabaseAdmin.from('products').update(update).eq('id', change.id).eq('store_id', storeId);

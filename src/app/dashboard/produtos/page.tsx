@@ -52,12 +52,13 @@ export default function ProductsManagementPage() {
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const [seoAuditing, setSeoAuditing] = useState(false);
   const [seoAuditError, setSeoAuditError] = useState<string | null>(null);
-  const [seoAudit, setSeoAudit] = useState<{ summary: string; average: number; items: Array<{ id: string; title: string; score: number; issues: string[]; quickWins: string[]; recommendedTitle: string; suggestedCaption: string; description: string; tags: string[]; themes: string[]; metaDescription: string; keywords: string[]; coverUrl: string | null; isPlr: boolean }> } | null>(null);
+  const [seoAudit, setSeoAudit] = useState<{ summary: string; average: number; items: Array<{ id: string; title: string; score: number; issues: string[]; quickWins: string[]; recommendedTitle: string; suggestedCaption: string; description: string; tags: string[]; themes: string[]; categoryId: string; educationLevelId: string; metaDescription: string; keywords: string[]; coverUrl: string | null; isPlr: boolean }> } | null>(null);
   const [selectedSeoIds, setSelectedSeoIds] = useState<string[]>([]);
   const [bulkPreviewOpen, setBulkPreviewOpen] = useState(false);
   const [applyingBulkSeo, setApplyingBulkSeo] = useState(false);
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const marketingTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const refreshedAuditRef = useRef(false);
 
   const loadData = async () => {
     try {
@@ -188,16 +189,6 @@ export default function ProductsManagementPage() {
     if (!configured) return;
 
     const cacheKey = `educalizando_seo_audit_${store.id}`;
-    if (!force) {
-      try {
-        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-        if (cached?.items && Array.isArray(cached.items)) {
-          setSeoAudit(cached);
-          setSelectedSeoIds(cached.items.filter((item: { score: number }) => item.score < 100).map((item: { id: string }) => item.id));
-          return;
-        }
-      } catch { localStorage.removeItem(cacheKey); }
-    }
 
     setSeoAuditing(true);
     try {
@@ -219,6 +210,21 @@ export default function ProductsManagementPage() {
       setSeoAuditing(false);
     }
   };
+
+  useEffect(() => {
+    if (loading || !store?.id || refreshedAuditRef.current || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auditoria') !== 'atualizada') return;
+    refreshedAuditRef.current = true;
+    localStorage.removeItem(`educalizando_seo_audit_${store.id}`);
+    params.delete('auditoria');
+    const query = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    const auditTimer = window.setTimeout(() => void handleSeoAudit(true), 0);
+    return () => window.clearTimeout(auditTimer);
+    // A auditoria deve rodar uma única vez ao voltar do editor de IA.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, store?.id]);
 
   const filteredProducts = products.filter(p => {
     const matchCategory = selectedCategoryFilter === 'all' || p.category_id === selectedCategoryFilter || p.category_ids?.includes(selectedCategoryFilter);
@@ -271,15 +277,15 @@ export default function ProductsManagementPage() {
       const response = await fetch('/api/ai/seo-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, changes: selectedSeoItems.map(item => ({ id: item.id, titulo: item.recommendedTitle, descricao: item.description, tags: item.tags, seasonal_tags: item.themes })) }),
+        body: JSON.stringify({ storeId: store.id, changes: selectedSeoItems.map(item => ({ id: item.id, titulo: item.recommendedTitle, descricao: item.description, tags: item.tags, seasonal_tags: item.themes, category_id: item.categoryId, education_level_id: item.educationLevelId })) }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.success) throw new Error(result.error || 'Não foi possível salvar as otimizações.');
       await loadData();
-      setSeoAudit(current => current ? { ...current, items: current.items.map(item => result.updatedIds?.includes(item.id) ? { ...item, score: 100, issues: [], quickWins: ['Sugestões aplicadas e salvas neste material.'] } : item), average: Math.round((current.items.reduce((sum, item) => sum + (result.updatedIds?.includes(item.id) ? 100 : item.score), 0)) / Math.max(current.items.length, 1)) } : current);
       localStorage.removeItem(`educalizando_seo_audit_${store.id}`);
       setBulkPreviewOpen(false);
       setActionError(null);
+      await handleSeoAudit(true);
     } catch (error: unknown) {
       setActionError(error instanceof Error ? error.message : 'Não foi possível aplicar todas as otimizações.');
     } finally {

@@ -84,6 +84,14 @@ function fallbackTitle(product: AuditProduct) {
   return clean;
 }
 
+function normalizeSuggestedTitle(value: unknown, product: AuditProduct) {
+  if (typeof value !== 'string' || !value.trim()) return fallbackTitle(product);
+  const clean = value.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  if (clean.length > 65) return clean.slice(0, 65).replace(/\s+\S*$/, '').trim();
+  if (clean.length < 30) return `${clean} – Material Pedagógico`.slice(0, 65);
+  return clean;
+}
+
 function fallbackDescription(product: AuditProduct) {
   const current = (product.descricao || '').trim();
   const base = current || `Material pedagógico criado para apoiar educadores e famílias em atividades práticas e significativas.`;
@@ -97,10 +105,12 @@ export async function POST(request: Request) {
   const { storeId } = await request.json().catch(() => ({}));
   if (!storeId) return NextResponse.json({ error: 'Loja inválida.' }, { status: 400 });
 
-  const [{ data: store }, { data: secret }, { data: products, error: productsError }] = await Promise.all([
+  const [{ data: store }, { data: secret }, { data: products, error: productsError }, { data: categories }, { data: educationLevels }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
     supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr').eq('store_id', storeId).neq('status', 'excluido').is('excluido_em', null).order('id').limit(30),
+    supabaseAdmin.from('categories').select('id, nome').or(`store_id.is.null,store_id.eq.${storeId}`).order('nome'),
+    supabaseAdmin.from('education_levels').select('id, nome').order('ordem'),
   ]);
 
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
@@ -125,7 +135,7 @@ export async function POST(request: Request) {
     temas: product.seasonal_tags || [],
     problemas_identificados: issues,
   }));
-  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo.\n\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido ou string vazia se não precisar trocar","description":"descrição de venda pronta, com parágrafos e quebras reais","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
+  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Todo título sugerido deve ter entre 30 e 65 caracteres e toda descrição deve ter pelo menos 120 caracteres. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo. Escolha categoryId e educationLevelId exclusivamente entre os IDs das listas fornecidas.\n\nCategorias permitidas: ${JSON.stringify(categories || [])}\nNíveis de ensino permitidos: ${JSON.stringify(educationLevels || [])}\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido entre 30 e 65 caracteres","description":"descrição de venda pronta, com parágrafos e quebras reais e pelo menos 120 caracteres","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"categoryId":"ID exato da categoria","educationLevelId":"ID exato do nível de ensino","suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
   let usedSavedSuggestions = false;
@@ -149,6 +159,8 @@ export async function POST(request: Request) {
     }
   }
 
+  const allowedCategoryIds = new Set((categories || []).map(category => category.id));
+  const allowedEducationLevelIds = new Set((educationLevels || []).map(level => level.id));
   const items = reviews.map(({ product, score, issues }) => {
     const suggestion = suggestions.get(product.id);
     return {
@@ -157,11 +169,17 @@ export async function POST(request: Request) {
       score,
       issues: textList(suggestion?.issues).length ? textList(suggestion?.issues) : issues,
       quickWins: textList(suggestion?.quickWins).length ? textList(suggestion?.quickWins) : ['Revisar o título com a palavra-chave principal.', 'Completar a descrição para deixar os benefícios claros.', 'Aplicar tags específicas para ajudar nas buscas.'],
-      recommendedTitle: typeof suggestion?.recommendedTitle === 'string' && suggestion.recommendedTitle.replace(/\*\*/g, '').trim() !== (product.titulo || '').trim() ? suggestion.recommendedTitle.replace(/\*\*/g, '').trim() : fallbackTitle(product),
+      recommendedTitle: normalizeSuggestedTitle(suggestion?.recommendedTitle, product),
       suggestedCaption: typeof suggestion?.suggestedCaption === 'string' ? suggestion.suggestedCaption.replace(/\*\*/g, '').trim() : '',
-      description: typeof suggestion?.description === 'string' && suggestion.description.replace(/\*\*/g, '').trim() !== (product.descricao || '').trim() ? suggestion.description.replace(/\*\*/g, '').trim() : fallbackDescription(product),
+      description: typeof suggestion?.description === 'string' && suggestion.description.replace(/\*\*/g, '').trim().length >= 120 ? suggestion.description.replace(/\*\*/g, '').trim() : fallbackDescription(product),
       tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags?.length ? product.tags : fallbackTags(product),
       themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags?.length ? product.seasonal_tags : fallbackThemes(product),
+      categoryId: typeof suggestion?.categoryId === 'string' && allowedCategoryIds.has(suggestion.categoryId)
+        ? suggestion.categoryId
+        : product.category_id || '',
+      educationLevelId: typeof suggestion?.educationLevelId === 'string' && allowedEducationLevelIds.has(suggestion.educationLevelId)
+        ? suggestion.educationLevelId
+        : product.education_level_id || '',
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
       keywords: textList(suggestion?.keywords),
       coverUrl: product.capa_url,
