@@ -614,7 +614,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                 <CreditCard className="w-6 h-6 text-sky-700 flex-shrink-0" />
                 <div>
                   <strong className="block text-sm text-sky-950">Pagamento seguro pela InfinitePay</strong>
-                  <span className="text-xs text-sky-800">Na próxima tela você poderá escolher PIX ou cartão de crédito em até 12x.</span>
+                  <span className="text-xs text-sky-800">Na próxima tela você poderá escolher PIX ou cartão de crédito à vista (1x).</span>
                 </div>
               </div>
 

@@ -1,3 +1,5 @@
+import { calculatePlatformFee, getPlatformFeePercentage, type PlatformPaymentMethod } from './payment-fees';
+
 export type ExclusiveMaterialStatus = 'open' | 'negotiating' | 'awaiting_payment' | 'paid' | 'in_production' | 'delivered' | 'cancelled' | 'rejected';
 
 export const EXCLUSIVE_MATERIAL_STATUS_LABEL: Record<ExclusiveMaterialStatus, string> = {
@@ -6,8 +8,13 @@ export const EXCLUSIVE_MATERIAL_STATUS_LABEL: Record<ExclusiveMaterialStatus, st
   cancelled: 'Cancelada', rejected: 'Recusada'
 };
 
-export function exclusiveFinancials(amount: number) {
+export function exclusiveFinancials(amount: number, paymentMethod: PlatformPaymentMethod = 'pix') {
   const grossAmount = Number(amount.toFixed(2));
-  const platformFeeAmount = Number((grossAmount * 0.13).toFixed(2));
-  return { grossAmount, platformFeeAmount, creatorNetAmount: Number((grossAmount - platformFeeAmount).toFixed(2)) };
+  const platformFeeAmount = calculatePlatformFee(grossAmount, paymentMethod);
+  return {
+    grossAmount,
+    platformFeePercentage: getPlatformFeePercentage(paymentMethod),
+    platformFeeAmount,
+    creatorNetAmount: Number((grossAmount - platformFeeAmount).toFixed(2))
+  };
 }

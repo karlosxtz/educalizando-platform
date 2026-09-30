@@ -3,14 +3,14 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
-import { PLATFORM_CONFIG } from '@/lib/config';
 
 export default function Pricing() {
   const [productPrice, setProductPrice] = useState('50');
   const calculations = useMemo(() => {
     const gross = Math.max(0, Number(productPrice.replace(',', '.')) || 0);
-    const fee = gross * (PLATFORM_CONFIG.feePercent / 100);
-    return { gross, fee, net: gross - fee };
+    const pixFee = gross * 0.13;
+    const cardFee = gross * 0.1899;
+    return { gross, pixFee, pixNet: gross - pixFee, cardFee, cardNet: gross - cardFee };
   }, [productPrice]);
 
   const formatBRL = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -59,14 +59,14 @@ export default function Pricing() {
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
             <p className="text-xs text-brand-navy font-bold pt-1">
-              Taxa Educalizando: 13% por venda, sem taxa fixa
+              13% no PIX ou 18,99% no crédito/débito à vista
             </p>
           </div>
 
           <div className="rounded-2xl border border-brand-green/30 bg-emerald-50/60 p-5 space-y-4">
             <div>
               <h3 className="text-base font-extrabold text-brand-navy">Simule seu valor líquido</h3>
-              <p className="text-xs text-slate-600 font-medium mt-1">Digite o preço do produto e veja o desconto de 13%.</p>
+              <p className="text-xs text-slate-600 font-medium mt-1">Digite o preço e compare o valor líquido por meio de pagamento.</p>
             </div>
             <label className="block text-xs font-bold text-slate-700">
               Preço do produto
@@ -84,12 +84,12 @@ export default function Pricing() {
             </label>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl bg-white border border-slate-200 p-3">
-                <span className="block text-slate-500 font-semibold">Taxa (13%)</span>
-                <strong className="text-red-600 text-base">-{formatBRL(calculations.fee)}</strong>
+                <span className="block text-slate-500 font-semibold">PIX · taxa 13%</span>
+                <strong className="text-brand-green text-base">{formatBRL(calculations.pixNet)}</strong>
               </div>
               <div className="rounded-xl bg-white border border-brand-green/40 p-3">
-                <span className="block text-slate-500 font-semibold">Você recebe</span>
-                <strong className="text-brand-green text-base">{formatBRL(calculations.net)}</strong>
+                <span className="block text-slate-500 font-semibold">Cartão 1x · taxa 18,99%</span>
+                <strong className="text-brand-green text-base">{formatBRL(calculations.cardNet)}</strong>
               </div>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function Pricing() {
             </div>
             <div className="flex items-center gap-3">
               <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
-              <span>Checkout com pagamento via PIX instantâneo</span>
+              <span>Checkout com PIX ou cartão de crédito à vista (1x)</span>
             </div>
             <div className="flex items-center gap-3">
               <Check className="w-5 h-5 text-brand-green flex-shrink-0" />

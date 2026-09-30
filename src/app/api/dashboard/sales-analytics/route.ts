@@ -105,7 +105,7 @@ export async function GET(request: Request) {
       amount: Number(order.total_amount || order.subtotal_amount || 0),
       status: ['paid', 'pago', 'received', 'confirmed'].includes(String(order.status).toLowerCase()) ? 'paid' : ['refunded', 'expired', 'failed', 'cancelled'].includes(String(order.status).toLowerCase()) ? 'expired' : 'pending',
       occurredAt: order.paid_at || order.created_at,
-      paymentMethod: String(order.payment_method).toLowerCase() === 'credit_card' ? 'CREDIT_CARD' : String(order.payment_method).toLowerCase() === 'boleto' ? 'BOLETO' : 'PIX',
+      paymentMethod: ['credit_card', 'debit_card'].includes(String(order.payment_method).toLowerCase()) ? 'CREDIT_CARD' : String(order.payment_method).toLowerCase() === 'boleto' ? 'BOLETO' : 'PIX',
       source: order.is_plr_purchase ? 'plr' : 'catalog',
     };
   });

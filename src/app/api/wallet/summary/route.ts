@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { calculatePlatformFee } from '@/lib/payment-fees';
 
 // Constantes centralizadas de cálculo financeiro (devem espelhar order-service.ts)
-const PLATFORM_PERCENTAGE_FEE = 0.13;
 const ASAAS_PIX_FEE = 1.99;
 const ASAAS_CC_FIXED_FEE = 0.49;
 const ASAAS_CC_PERCENTAGE_FEE = 0.0299;
@@ -107,12 +107,12 @@ export async function GET(request: Request) {
     paidOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
       const productCount = Number(o.product_count || 1);
-      const platformFee = Number(o.platform_fee_amount ?? (gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const method = (o.payment_method || 'pix').toString().toLowerCase();
+      const platformFee = Number(o.platform_fee_amount ?? calculatePlatformFee(gross, method));
 
       let paymentFee = Number(o.asaas_fee_amount || 0);
       const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
       if (paymentFee <= 0 && provider === 'asaas') {
-        const method = (o.payment_method || 'pix').toString().toLowerCase();
         paymentFee = method === 'credit_card'
           ? Number((ASAAS_CC_FIXED_FEE + gross * ASAAS_CC_PERCENTAGE_FEE).toFixed(2))
           : ASAAS_PIX_FEE;
@@ -126,7 +126,8 @@ export async function GET(request: Request) {
 
     pendingOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
-      const platformFee = Number(o.platform_fee_amount ?? (gross * PLATFORM_PERCENTAGE_FEE).toFixed(2));
+      const method = (o.payment_method || 'pix').toString().toLowerCase();
+      const platformFee = Number(o.platform_fee_amount ?? calculatePlatformFee(gross, method));
       let paymentFee = Number(o.asaas_fee_amount || 0);
       const provider = o.payment_provider || (o.asaas_payment_id ? 'asaas' : 'infinitepay');
       if (paymentFee <= 0 && provider === 'asaas') paymentFee = ASAAS_PIX_FEE;

@@ -1,7 +1,8 @@
 import { supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders, saveLocalOrders } from './sales-service';
+import { calculatePlatformFee } from './payment-fees';
 
-export type PaymentMethodType = 'pix' | 'credit_card' | 'boleto';
+export type PaymentMethodType = 'pix' | 'credit_card' | 'debit_card' | 'boleto';
 export type OrderStatusType = 'pending' | 'paid' | 'failed' | 'refunded';
 
 export class OrderAlreadyExistsError extends Error {
@@ -34,7 +35,7 @@ export interface OrderRecord {
   subtotalAmount: number;
   totalAmount: number;
   platformFixedFeeAmount: number; // 0 — sem tarifa fixa
-  platformPercentageFeeAmount: number; // 13% do subtotal do pedido
+  platformPercentageFeeAmount: number; // 13% no PIX; 18,99% no cartão
   platformFeeAmount: number; // Fixa + Percentual
   asaasFeeAmount: number; // Taxa real cobrada pelo Asaas (repassada ao criador)
   creatorNetAmount: number; // Valor líquido que vai para o saldo do criador
@@ -95,7 +96,7 @@ export interface FinancialCalculationResult {
  * Fórmula:
  * subtotal = soma (unit_price * quantity)
  * platform_fixed_fee = 0
- * platform_percentage_fee = subtotal * 0.13
+ * platform_percentage_fee = subtotal * percentual do meio de pagamento
  * platform_fee = platform_percentage_fee
  * creator_net_amount = subtotal - platform_fee - asaas_fee
  * =============================================================================
@@ -118,19 +119,18 @@ export function calculateOrderFinancials(
   items: OrderItemInput[],
   asaasFee?: number,
   platformSettings?: { platform_fee_percentage: number, platform_fixed_fee: number },
-  affiliateCommissionAmount: number = 0
+  affiliateCommissionAmount: number = 0,
+  paymentMethod: PaymentMethodType | string = 'pix'
 ): FinancialCalculationResult {
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-  // Regra comercial vigente: 13% da Educalizando, sem tarifa fixa.
+  // Regra comercial vigente: 13% no PIX e 18,99% no cartão, sem tarifa fixa.
   // Os campos antigos de configuração são ignorados para impedir divergências
   // entre pedidos quando uma linha legada do banco ainda estiver desatualizada.
   const fixedFee = 0;
-  const percentageFee = 13;
-
   const platformFixedFee = Number((fixedFee * productCount).toFixed(2));
-  const platformPercentageFee = Number(((subtotal * percentageFee) / 100).toFixed(2));
+  const platformPercentageFee = calculatePlatformFee(subtotal, paymentMethod);
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
   // InfinitePay repassa o custo do checkout ao comprador; o gateway não é
@@ -233,7 +233,7 @@ export async function createOrderRecord(data: {
     ? data.asaasFeeAmount
     : estimateAsaasFee(data.paymentMethod, subtotal);
 
-  const financials = calculateOrderFinancials(data.items, feeToUse, data.platformSettings, data.affiliateCommissionAmount || 0);
+  const financials = calculateOrderFinancials(data.items, feeToUse, data.platformSettings, data.affiliateCommissionAmount || 0, data.paymentMethod);
   const orderId = data.id || `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
@@ -462,7 +462,7 @@ export async function updateOrderStatus(
   newStatus: OrderStatusType, 
   asaasPaymentId?: string,
   realAsaasFee?: number,
-  options: { onlyIfPending?: boolean } = {},
+  options: { onlyIfPending?: boolean; paymentMethod?: PaymentMethodType } = {},
 ): Promise<OrderRecord | null> {
   let order = await getOrderRecordById(orderId);
   if (!order && asaasPaymentId) {
@@ -489,8 +489,11 @@ export async function updateOrderStatus(
     updatedAsaasFee = Number(realAsaasFee.toFixed(2));
   }
   
+  const confirmedPaymentMethod = options.paymentMethod || order.paymentMethod;
+  const updatedPlatformPercentageFee = calculatePlatformFee(order.subtotalAmount, confirmedPaymentMethod);
+  const updatedPlatformFee = updatedPlatformPercentageFee;
   const affComission = order.affiliateCommissionAmount || 0;
-  updatedCreatorNet = Number(Math.max(0, order.subtotalAmount - order.platformFeeAmount - updatedAsaasFee - affComission).toFixed(2));
+  updatedCreatorNet = Number(Math.max(0, order.subtotalAmount - updatedPlatformFee - updatedAsaasFee - affComission).toFixed(2));
 
   // Atualizar Supabase se configurado
   if (isRealSupabaseConfigured()) {
@@ -502,6 +505,10 @@ export async function updateOrderStatus(
       const { data: updatedOrder, error } = await supabaseAdmin.from('orders').update({
         status: newStatus,
         paid_at: nowPaidAt,
+        payment_method: confirmedPaymentMethod,
+        platform_fixed_fee_amount: 0,
+        platform_percentage_fee_amount: updatedPlatformPercentageFee,
+        platform_fee_amount: updatedPlatformFee,
         asaas_fee_amount: updatedAsaasFee,
         creator_net_amount: updatedCreatorNet
       })
@@ -533,6 +540,10 @@ export async function updateOrderStatus(
     localAsaas[idx].status = newStatus;
     localAsaas[idx].paidAt = nowPaidAt;
     localAsaas[idx].asaasFeeAmount = updatedAsaasFee;
+    localAsaas[idx].paymentMethod = confirmedPaymentMethod;
+    localAsaas[idx].platformFixedFeeAmount = 0;
+    localAsaas[idx].platformPercentageFeeAmount = updatedPlatformPercentageFee;
+    localAsaas[idx].platformFeeAmount = updatedPlatformFee;
     localAsaas[idx].creatorNetAmount = updatedCreatorNet;
     saveLocalAsaasOrders(localAsaas);
   }
@@ -563,9 +574,9 @@ export async function updateOrderStatus(
         productTitle: order.items[0]?.productTitle || 'Material digital',
         type: 'SALE',
         grossAmount: order.totalAmount,
-        platformFixedFeeAmount: order.platformFixedFeeAmount,
-        platformPercentageFeeAmount: order.platformPercentageFeeAmount,
-        platformFeeAmount: order.platformFeeAmount,
+        platformFixedFeeAmount: 0,
+        platformPercentageFeeAmount: updatedPlatformPercentageFee,
+        platformFeeAmount: updatedPlatformFee,
         asaasFeeAmount: updatedAsaasFee,
         netAmount: updatedCreatorNet,
         description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
@@ -829,6 +840,10 @@ export async function updateOrderStatus(
     statusTransitioned,
     paidAt: nowPaidAt,
     asaasFeeAmount: updatedAsaasFee,
-    creatorNetAmount: updatedCreatorNet
+    creatorNetAmount: updatedCreatorNet,
+    paymentMethod: confirmedPaymentMethod,
+    platformFixedFeeAmount: 0,
+    platformPercentageFeeAmount: updatedPlatformPercentageFee,
+    platformFeeAmount: updatedPlatformFee
   };
 }

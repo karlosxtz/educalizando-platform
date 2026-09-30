@@ -4,6 +4,8 @@ import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 import { notifyExclusivePaymentConfirmed } from '@/lib/exclusive-material-notification-service';
+import { exclusiveFinancials } from '@/lib/exclusive-material';
+import { getPlatformFeePercentage, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 import {
   assertConfirmedInfinitePayPayment,
   InfinitePayWebhookValidationError,
@@ -39,7 +41,7 @@ async function creditExclusiveMaterialCreator(exclusivePayment: ExclusivePayment
     platform_fee_amount: Number(exclusivePayment.platform_fee_amount),
     asaas_fee_amount: 0,
     net_amount: Number(exclusivePayment.creator_net_amount),
-    description: `Material exclusivo: ${exclusivePayment.request.title} — repasse de 87% ao criador.`,
+    description: `Material exclusivo: ${exclusivePayment.request.title} — repasse líquido após a taxa do meio de pagamento.`,
     created_at: new Date().toISOString(),
   });
 
@@ -112,15 +114,28 @@ export async function POST(request: Request) {
       }
       const payment = await checkInfinitePayPayment({ orderNsu: payload.orderNsu, transactionNsu: payload.transactionNsu, slug: payload.invoiceSlug });
       assertConfirmedInfinitePayPayment(payload, payment, Math.round(Number(exclusivePayment.gross_amount) * 100));
+      const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod || payload.captureMethod);
+      const financials = exclusiveFinancials(Number(exclusivePayment.gross_amount), paymentMethod);
       const { data: markedPaid, error: updateExclusiveError } = await supabaseAdmin.from('exclusive_material_payments').update({
-        status: 'paid', transaction_nsu: payload.transactionNsu, invoice_slug: payload.invoiceSlug, paid_at: new Date().toISOString()
+        status: 'paid',
+        transaction_nsu: payload.transactionNsu,
+        invoice_slug: payload.invoiceSlug,
+        platform_fee_amount: financials.platformFeeAmount,
+        creator_net_amount: financials.creatorNetAmount,
+        paid_at: new Date().toISOString()
       }).eq('id', exclusivePayment.id).eq('status', 'pending').select('id').maybeSingle();
       if (updateExclusiveError) throw updateExclusiveError;
       if (!markedPaid) return webhookError(409, 'Evento incompatível com o estado atual.');
       await supabaseAdmin.from('exclusive_material_requests').update({ status: 'in_production', updated_at: new Date().toISOString() }).eq('id', exclusivePayment.request_id);
       await supabaseAdmin.from('exclusive_material_messages').insert({ request_id: exclusivePayment.request_id, sender_id: exclusivePayment.request.creator_id, sender_role: 'system', body: 'Pagamento confirmado pela plataforma. O criador já pode iniciar a produção e enviar a entrega aqui.' });
-      await creditExclusiveMaterialCreator(exclusivePayment);
-      await notifyExclusivePaymentConfirmed({ paymentId: exclusivePayment.id, requestId: exclusivePayment.request_id, grossAmount: Number(exclusivePayment.gross_amount), creatorNetAmount: Number(exclusivePayment.creator_net_amount) });
+      const settledExclusivePayment = {
+        ...exclusivePayment,
+        platform_fee_amount: financials.platformFeeAmount,
+        creator_net_amount: financials.creatorNetAmount
+      };
+      await creditExclusiveMaterialCreator(settledExclusivePayment);
+      await notifyExclusivePaymentConfirmed({ paymentId: exclusivePayment.id, requestId: exclusivePayment.request_id, grossAmount: financials.grossAmount, creatorNetAmount: financials.creatorNetAmount });
+      console.info(`[InfinitePay Webhook] Material exclusivo confirmado com taxa de ${getPlatformFeePercentage(paymentMethod)}%.`);
       return NextResponse.json({ success: true, message: null });
     }
 
@@ -143,13 +158,14 @@ export async function POST(request: Request) {
     const expectedAmount = Math.round(order.totalAmount * 100);
     assertConfirmedInfinitePayPayment(payload, payment, expectedAmount);
 
+    const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod || payload.captureMethod);
     const { data: updatedMetadata, error: metadataError } = await supabaseAdmin
       .from('orders')
       .update({
         infinitepay_transaction_nsu: payload.transactionNsu,
         infinitepay_invoice_slug: payload.invoiceSlug,
         receipt_url: payload.receiptUrl || null,
-        payment_method: payment.captureMethod === 'credit_card' ? 'credit_card' : 'pix'
+        payment_method: paymentMethod
       })
       .eq('id', payload.orderNsu)
       .eq('status', 'pending')
@@ -159,7 +175,7 @@ export async function POST(request: Request) {
     if (metadataError) throw metadataError;
     if (!updatedMetadata) return webhookError(409, 'Evento incompatível com o estado atual.');
 
-    const paidOrder = await updateOrderStatus(payload.orderNsu, 'paid', undefined, 0, { onlyIfPending: true });
+    const paidOrder = await updateOrderStatus(payload.orderNsu, 'paid', undefined, 0, { onlyIfPending: true, paymentMethod });
     if (!paidOrder) return webhookError(409, 'Evento incompatível com o estado atual.');
     if (paidOrder.statusTransitioned) await notifyConfirmedSale(paidOrder);
 

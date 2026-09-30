@@ -7,7 +7,7 @@ export type InfinitePayWebhookPayload = {
   amountInCents: number;
   paidAmountInCents?: number;
   installments?: number;
-  captureMethod?: 'pix' | 'credit_card';
+  captureMethod?: 'pix' | 'credit_card' | 'debit_card';
   receiptUrl?: string;
   currency?: 'BRL';
 };
@@ -16,6 +16,7 @@ export type InfinitePayConfirmedPayment = {
   paid: boolean;
   amountInCents: number;
   paidAmountInCents: number;
+  installments?: number;
   captureMethod: string;
   currency?: string;
   orderNsu?: string;
@@ -73,7 +74,7 @@ export function parseInfinitePayWebhook(rawBody: string): InfinitePayWebhookPayl
   if (amountInCents === undefined) throw new InfinitePayWebhookValidationError('amount_missing');
   const paidAmountInCents = optionalInteger(value.paid_amount, 'paid_amount');
   const installments = optionalInteger(value.installments, 'installments', 1);
-  if (value.capture_method !== undefined && value.capture_method !== 'pix' && value.capture_method !== 'credit_card') {
+  if (value.capture_method !== undefined && !['pix', 'credit_card', 'debit_card'].includes(String(value.capture_method))) {
     throw new InfinitePayWebhookValidationError('capture_method_invalid');
   }
   if (value.currency !== undefined && value.currency !== 'BRL') {
@@ -118,8 +119,22 @@ export function assertConfirmedInfinitePayPayment(
   if (payment.currency !== undefined && payment.currency !== 'BRL') {
     throw new InfinitePayWebhookValidationError('provider_currency_invalid');
   }
-  if (payment.captureMethod && !['pix', 'credit_card'].includes(payment.captureMethod)) {
+  if (payment.captureMethod && !['pix', 'credit_card', 'debit_card'].includes(payment.captureMethod)) {
     throw new InfinitePayWebhookValidationError('provider_capture_method_invalid');
+  }
+  const captureMethod = payment.captureMethod || payload.captureMethod;
+  const installments = payment.installments ?? payload.installments ?? 1;
+  if (!captureMethod) {
+    throw new InfinitePayWebhookValidationError('capture_method_missing');
+  }
+  if (captureMethod && captureMethod !== 'pix' && installments !== 1) {
+    throw new InfinitePayWebhookValidationError('card_installments_not_allowed');
+  }
+  if (payload.captureMethod && payment.captureMethod && payload.captureMethod !== payment.captureMethod) {
+    throw new InfinitePayWebhookValidationError('capture_method_mismatch');
+  }
+  if (payload.installments !== undefined && payment.installments !== undefined && payload.installments !== payment.installments) {
+    throw new InfinitePayWebhookValidationError('installments_mismatch');
   }
   if (
     (payment.orderNsu !== undefined && payment.orderNsu !== payload.orderNsu) ||

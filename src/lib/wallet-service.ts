@@ -1,6 +1,7 @@
 import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase, isRealSupabaseConfigured } from './supabase';
 import { getOrderRecordById, OrderRecord } from './order-service';
 import { getLocalOrders } from './sales-service';
+import { calculatePlatformFee } from './payment-fees';
 
 export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL' | 'AFFILIATE_COMMISSION' | 'AFFILIATE_COMMISSION_REFUND' | 'CREATOR_REFERRAL_COMMISSION' | 'CREATOR_REFERRAL_COMMISSION_REFUND';
 export type WalletTransactionStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
@@ -29,7 +30,7 @@ export interface CreatorWalletSummary {
   saldoPendente: number; // Líquido de pedidos aguardando pagamento
   saldoDisponivel: number; // Líquido já liberado (pronto para futuro saque na Fase C)
   totalRecebido: number; // Histórico efetivamente pago ao criador via saques concluídos
-  taxasEducalizando: number; // 13% sobre subtotal, sem tarifa fixa
+  taxasEducalizando: number; // 13% no PIX; 18,99% no cartão
   taxasAsaas: number; // Taxa real cobrada pelo Asaas
   totalTaxas: number; // Soma das duas taxas
 }
@@ -171,8 +172,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
 
   const totalVendido = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0), 0);
 
-  // 2. Cálculo Estrito de Taxas e Saldo Líquido do Criador (Regra Mandatória)
-  // Fórmula vigente: 13% da Educalizando sobre o subtotal, sem tarifa fixa.
+  // 2. Cálculo Estrito de Taxas e Saldo Líquido do Criador.
   let calculatedTaxasEducalizando = 0;
   let calculatedTaxasPagamento = 0;
   let calculatedSaldoDisponivel = 0;
@@ -182,13 +182,13 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (gross * 0.13).toFixed(2));
+    const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || calculatePlatformFee(gross, method));
 
     // Pedidos InfinitePay usam a taxa gravada (zero quando repassada ao comprador).
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
     const provider = o.payment_provider || o.paymentProvider || (o.asaas_payment_id || o.asaasPaymentId ? 'asaas' : 'infinitepay');
     if (paymentFee <= 0 && provider === 'asaas') {
-      const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
       if (method === 'credit_card' || method === 'cartao') {
         paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
       } else if (method === 'boleto') {
@@ -209,12 +209,12 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
     const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
-    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || (gross * 0.13).toFixed(2));
+    const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
+    const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || calculatePlatformFee(gross, method));
     
     let paymentFee = Number(o.asaas_fee_amount || o.asaasFeeAmount || 0);
     const provider = o.payment_provider || o.paymentProvider || (o.asaas_payment_id || o.asaasPaymentId ? 'asaas' : 'infinitepay');
     if (paymentFee <= 0 && provider === 'asaas') {
-      const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
       if (method === 'credit_card' || method === 'cartao') paymentFee = Number((0.49 + (gross * 0.0299)).toFixed(2));
       else if (method === 'boleto') paymentFee = 1.99;
       else paymentFee = 1.99;

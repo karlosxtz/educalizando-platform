@@ -4,6 +4,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
+import { isSingleInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -43,13 +44,15 @@ export async function GET(request: Request) {
 
       if (transactionNsu && slug) {
         const payment = await checkInfinitePayPayment({ orderNsu: order.id, transactionNsu, slug });
-        if (payment.paid && payment.amountInCents === Math.round(order.totalAmount * 100)) {
+        const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod);
+        const supportedCaptureMethod = ['pix', 'credit_card', 'debit_card'].includes(payment.captureMethod);
+        if (payment.paid && supportedCaptureMethod && payment.amountInCents === Math.round(order.totalAmount * 100) && isSingleInstallmentPayment(paymentMethod, payment.installments)) {
           await supabaseAdmin.from('orders').update({
             infinitepay_transaction_nsu: transactionNsu,
             infinitepay_invoice_slug: slug,
-            payment_method: payment.captureMethod === 'credit_card' ? 'credit_card' : 'pix'
+            payment_method: paymentMethod
           }).eq('id', order.id);
-          const updated = await updateOrderStatus(order.id, 'paid', undefined, 0);
+          const updated = await updateOrderStatus(order.id, 'paid', undefined, 0, { onlyIfPending: true, paymentMethod });
           status = updated?.status || 'paid';
           if (updated) await notifyConfirmedSale(updated);
         }

@@ -13,6 +13,7 @@ const validRaw = JSON.stringify({
   invoice_slug: 'invoice_abcdefghijklmnopqrstuvwxyz123456',
   amount: 1990,
   paid_amount: 1990,
+  installments: 1,
   capture_method: 'pix',
   currency: 'BRL',
 });
@@ -21,6 +22,7 @@ const confirmedPayment = {
   paid: true,
   amountInCents: 1990,
   paidAmountInCents: 1990,
+  installments: 1,
   captureMethod: 'pix',
   currency: 'BRL',
   orderNsu: validPayload.orderNsu,
@@ -37,6 +39,10 @@ assert.throws(() => parseInfinitePayWebhook('x'.repeat(MAX_INFINITEPAY_WEBHOOK_B
 assert.throws(() => assertConfirmedInfinitePayPayment(validPayload, { ...confirmedPayment, paid: false }, 1990), InfinitePayWebhookValidationError);
 assert.throws(() => assertConfirmedInfinitePayPayment(validPayload, { ...confirmedPayment, amountInCents: 2000 }, 1990), InfinitePayWebhookValidationError);
 assert.throws(() => assertConfirmedInfinitePayPayment(validPayload, { ...confirmedPayment, transactionNsu: 'transaction_other_abcdefghijklmnopqrstuvwxyz123' }, 1990), InfinitePayWebhookValidationError);
+const creditPayload = parseInfinitePayWebhook(JSON.stringify({ ...JSON.parse(validRaw), capture_method: 'credit_card', installments: 1 }));
+assert.doesNotThrow(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 1 }, 1990));
+assert.throws(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 2 }, 1990), InfinitePayWebhookValidationError);
+assert.throws(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'pix', installments: 1 }, 1990), InfinitePayWebhookValidationError);
 assert.equal(getWebhookOrderAction('pending', null, validPayload.transactionNsu), 'process');
 assert.equal(getWebhookOrderAction('pending', validPayload.transactionNsu, validPayload.transactionNsu), 'process');
 assert.equal(getWebhookOrderAction('pending', 'transaction_other_abcdefghijklmnopqrstuvwxyz123', validPayload.transactionNsu), 'reject');

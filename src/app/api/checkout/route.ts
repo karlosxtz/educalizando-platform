@@ -387,14 +387,15 @@ export async function POST(request: Request) {
 
     const baseSubtotal = realItems.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
-    // Indicação de criador é uma bonificação da plataforma: 3 pontos dos 13%
+    // Indicação de criador é uma bonificação paga pela taxa da plataforma.
     // da Educalizando. Nunca entra no cálculo do líquido da loja indicada.
     const { getActiveCreatorReferralForStore } = await import('@/lib/creator-referral-service');
     const creatorReferral = await getActiveCreatorReferralForStore(effectiveStoreId, baseSubtotal);
 
     // Calcular as taxas para fornecer a base líquida correta ao motor de afiliados
     const { calculateOrderFinancials } = await import('@/lib/order-service');
-    // Na conta InfinitePay, as taxas do cartão devem ser configuradas como repassadas ao comprador.
+    // O custo do gateway não é somado novamente: a taxa comercial da
+    // Educalizando é aplicada quando o webhook informa PIX ou cartão.
     const gatewayFeeAmount = 0;
     const tempFinancials = calculateOrderFinancials(realItems, gatewayFeeAmount, platformSettings || undefined, 0);
     

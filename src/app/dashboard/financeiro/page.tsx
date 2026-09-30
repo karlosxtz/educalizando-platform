@@ -447,9 +447,9 @@ export default function FinancialWalletDashboardPage() {
             <DollarSign className="w-6 h-6 text-emerald-600" />
           </div>
           <div className="space-y-1 text-center sm:text-left">
-            <h3 className="font-extrabold text-slate-900">Pagamento seguro: <span className="text-emerald-600">custos identificados separadamente.</span></h3>
+            <h3 className="font-extrabold text-slate-900">Pagamento seguro: <span className="text-emerald-600">PIX ou cartão somente à vista.</span></h3>
             <p className="text-sm text-slate-500 font-medium">
-              Quando o custo do processamento é repassado ao comprador, o lançamento do criador fica sem desconto desse custo. A taxa da plataforma continua detalhada no pedido e no extrato.
+              A plataforma retém 13% no PIX e 18,99% no crédito/débito à vista. O checkout da InfinitePay deve permanecer configurado com limite máximo de 1 parcela; confirmações com mais parcelas são bloqueadas.
             </p>
           </div>
         </div>
@@ -457,8 +457,8 @@ export default function FinancialWalletDashboardPage() {
         {/* Calculadora de taxa */}
         <div className="relative z-10 bg-white border border-emerald-200 rounded-2xl shadow-sm p-5 sm:p-6">
           <h3 className="font-extrabold text-slate-900">Simule sua venda</h3>
-          <p className="text-sm text-slate-500 font-medium mt-1">Informe o preço do produto para calcular automaticamente a taxa de 13%.</p>
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <p className="text-sm text-slate-500 font-medium mt-1">PIX desconta 13%. Cartão de crédito ou débito à vista desconta 18,99% e o restante é liberado para a sua carteira.</p>
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <label className="text-xs font-bold text-slate-700">
               Valor do produto
               <div className="relative mt-1.5">
@@ -466,9 +466,11 @@ export default function FinancialWalletDashboardPage() {
                 <input value={calculatorPrice} onChange={(e) => setCalculatorPrice(e.target.value)} inputMode="decimal" className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 font-bold outline-none focus:border-emerald-500" />
               </div>
             </label>
-            {(() => { const gross = Math.max(0, Number(calculatorPrice.replace(',', '.')) || 0); const fee = gross * 0.13; return <>
-              <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Taxa Educalizando (13%)</span><strong className="text-lg text-rose-800">-{formatCurrency(fee)}</strong></div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Você recebe</span><strong className="text-lg text-emerald-800">{formatCurrency(gross - fee)}</strong></div>
+            {(() => { const gross = Math.max(0, Number(calculatorPrice.replace(',', '.')) || 0); const pixFee = gross * 0.13; const cardFee = gross * 0.1899; return <>
+              <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Taxa no PIX (13%)</span><strong className="text-lg text-rose-800">-{formatCurrency(pixFee)}</strong></div>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Líquido no PIX</span><strong className="text-lg text-emerald-800">{formatCurrency(gross - pixFee)}</strong></div>
+              <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Taxa no cartão (18,99%)</span><strong className="text-lg text-rose-800">-{formatCurrency(cardFee)}</strong></div>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Líquido no cartão</span><strong className="text-lg text-emerald-800">{formatCurrency(gross - cardFee)}</strong></div>
             </>; })()}
           </div>
         </div>
@@ -532,9 +534,9 @@ export default function FinancialWalletDashboardPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa Educalizando (13%)</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxas Educalizando</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">13% sobre cada venda, sem taxa fixa adicional</span>
+            <span className="text-[10px] text-slate-500 font-medium block">13% no PIX ou 18,99% no crédito/débito à vista</span>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
@@ -961,7 +963,7 @@ export default function FinancialWalletDashboardPage() {
                   <span className="font-mono">- {formatCurrency(selectedTx.platformFixedFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa Educalizando (13% do subtotal):</span>
+                  <span>Taxa Educalizando (conforme o meio de pagamento):</span>
                   <span className="font-mono">- {formatCurrency(selectedTx.platformPercentageFeeAmount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
