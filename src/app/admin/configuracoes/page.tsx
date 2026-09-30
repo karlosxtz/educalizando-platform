@@ -91,7 +91,7 @@ export default function SuperAdminConfiguracoes() {
                   readOnly
                   className="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-2 text-slate-300 cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-500">Taxa vigente: 13% no PIX e 18,99% no crédito/débito à vista.</p>
+                <p className="text-xs text-slate-500">Taxa da plataforma: 13% em qualquer meio. No cartão, a taxa de processamento varia de 5,99% em 1x a 18,79% em 12x e é registrada separadamente.</p>
               </div>
 
               <div className="space-y-2">

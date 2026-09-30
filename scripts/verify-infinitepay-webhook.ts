@@ -41,7 +41,12 @@ assert.throws(() => assertConfirmedInfinitePayPayment(validPayload, { ...confirm
 assert.throws(() => assertConfirmedInfinitePayPayment(validPayload, { ...confirmedPayment, transactionNsu: 'transaction_other_abcdefghijklmnopqrstuvwxyz123' }, 1990), InfinitePayWebhookValidationError);
 const creditPayload = parseInfinitePayWebhook(JSON.stringify({ ...JSON.parse(validRaw), capture_method: 'credit_card', installments: 1 }));
 assert.doesNotThrow(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 1 }, 1990));
-assert.throws(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 2 }, 1990), InfinitePayWebhookValidationError);
+const creditTwelvePayload = parseInfinitePayWebhook(JSON.stringify({ ...JSON.parse(validRaw), capture_method: 'credit_card', installments: 12 }));
+assert.doesNotThrow(() => assertConfirmedInfinitePayPayment(creditTwelvePayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 12 }, 1990));
+const creditThirteenPayload = parseInfinitePayWebhook(JSON.stringify({ ...JSON.parse(validRaw), capture_method: 'credit_card', installments: 13 }));
+assert.throws(() => assertConfirmedInfinitePayPayment(creditThirteenPayload, { ...confirmedPayment, captureMethod: 'credit_card', installments: 13 }, 1990), InfinitePayWebhookValidationError);
+const debitTwoPayload = parseInfinitePayWebhook(JSON.stringify({ ...JSON.parse(validRaw), capture_method: 'debit_card', installments: 2 }));
+assert.throws(() => assertConfirmedInfinitePayPayment(debitTwoPayload, { ...confirmedPayment, captureMethod: 'debit_card', installments: 2 }, 1990), InfinitePayWebhookValidationError);
 assert.throws(() => assertConfirmedInfinitePayPayment(creditPayload, { ...confirmedPayment, captureMethod: 'pix', installments: 1 }, 1990), InfinitePayWebhookValidationError);
 assert.equal(getWebhookOrderAction('pending', null, validPayload.transactionNsu), 'process');
 assert.equal(getWebhookOrderAction('pending', validPayload.transactionNsu, validPayload.transactionNsu), 'process');

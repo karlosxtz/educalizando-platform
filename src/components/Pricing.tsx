@@ -3,15 +3,18 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
+import { CARD_PROCESSING_FEE_PERCENTAGES, PLATFORM_FEE_PERCENTAGE } from '@/lib/payment-fees';
 
 export default function Pricing() {
   const [productPrice, setProductPrice] = useState('50');
+  const [installments, setInstallments] = useState('1');
   const calculations = useMemo(() => {
     const gross = Math.max(0, Number(productPrice.replace(',', '.')) || 0);
     const pixFee = gross * 0.13;
-    const cardFee = gross * 0.1899;
+    const processingRate = CARD_PROCESSING_FEE_PERCENTAGES[Number(installments) as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES];
+    const cardFee = gross * ((PLATFORM_FEE_PERCENTAGE + processingRate) / 100);
     return { gross, pixFee, pixNet: gross - pixFee, cardFee, cardNet: gross - cardFee };
-  }, [productPrice]);
+  }, [installments, productPrice]);
 
   const formatBRL = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const scrollToCadastro = () => {
@@ -59,7 +62,7 @@ export default function Pricing() {
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
             <p className="text-xs text-brand-navy font-bold pt-1">
-              13% no PIX ou 18,99% no crédito/débito à vista
+              13% da plataforma; no cartão soma-se a taxa de 1x a 12x
             </p>
           </div>
 
@@ -82,13 +85,14 @@ export default function Pricing() {
                 />
               </div>
             </label>
+            <label className="block text-xs font-bold text-slate-700">Parcelas no cartão<select value={installments} onChange={(event) => setInstallments(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base font-bold text-slate-900 outline-none focus:border-brand-green">{Object.keys(CARD_PROCESSING_FEE_PERCENTAGES).map((value) => <option key={value} value={value}>{value}x</option>)}</select></label>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl bg-white border border-slate-200 p-3">
                 <span className="block text-slate-500 font-semibold">PIX · taxa 13%</span>
                 <strong className="text-brand-green text-base">{formatBRL(calculations.pixNet)}</strong>
               </div>
               <div className="rounded-xl bg-white border border-brand-green/40 p-3">
-                <span className="block text-slate-500 font-semibold">Cartão 1x · taxa 18,99%</span>
+                <span className="block text-slate-500 font-semibold">Cartão {installments}x · taxa total {(13 + CARD_PROCESSING_FEE_PERCENTAGES[Number(installments) as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES]).toFixed(2).replace('.', ',')}%</span>
                 <strong className="text-brand-green text-base">{formatBRL(calculations.cardNet)}</strong>
               </div>
             </div>
@@ -101,7 +105,7 @@ export default function Pricing() {
             </div>
             <div className="flex items-center gap-3">
               <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
-              <span>Checkout com PIX ou cartão de crédito à vista (1x)</span>
+              <span>Checkout com PIX, débito ou cartão de crédito em até 12x</span>
             </div>
             <div className="flex items-center gap-3">
               <Check className="w-5 h-5 text-brand-green flex-shrink-0" />

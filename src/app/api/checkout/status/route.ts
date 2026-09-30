@@ -4,7 +4,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
-import { isSingleInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
+import { calculatePaymentProcessingFee, isSupportedInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -46,13 +46,15 @@ export async function GET(request: Request) {
         const payment = await checkInfinitePayPayment({ orderNsu: order.id, transactionNsu, slug });
         const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod);
         const supportedCaptureMethod = ['pix', 'credit_card', 'debit_card'].includes(payment.captureMethod);
-        if (payment.paid && supportedCaptureMethod && payment.amountInCents === Math.round(order.totalAmount * 100) && isSingleInstallmentPayment(paymentMethod, payment.installments)) {
+        if (payment.paid && supportedCaptureMethod && payment.amountInCents === Math.round(order.totalAmount * 100) && isSupportedInstallmentPayment(paymentMethod, payment.installments)) {
           await supabaseAdmin.from('orders').update({
             infinitepay_transaction_nsu: transactionNsu,
             infinitepay_invoice_slug: slug,
             payment_method: paymentMethod
           }).eq('id', order.id);
-          const updated = await updateOrderStatus(order.id, 'paid', undefined, 0, { onlyIfPending: true, paymentMethod });
+          const installments = payment.installments || 1;
+          const processingFee = calculatePaymentProcessingFee(order.totalAmount, paymentMethod, installments);
+          const updated = await updateOrderStatus(order.id, 'paid', undefined, processingFee, { onlyIfPending: true, paymentMethod, installments });
           status = updated?.status || 'paid';
           if (updated) await notifyConfirmedSale(updated);
         }

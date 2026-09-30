@@ -1,3 +1,5 @@
+import { isSupportedInstallmentPayment } from './payment-fees';
+
 export const MAX_INFINITEPAY_WEBHOOK_BYTES = 64 * 1024;
 
 export type InfinitePayWebhookPayload = {
@@ -127,8 +129,8 @@ export function assertConfirmedInfinitePayPayment(
   if (!captureMethod) {
     throw new InfinitePayWebhookValidationError('capture_method_missing');
   }
-  if (captureMethod && captureMethod !== 'pix' && installments !== 1) {
-    throw new InfinitePayWebhookValidationError('card_installments_not_allowed');
+  if (!isSupportedInstallmentPayment(captureMethod, installments)) {
+    throw new InfinitePayWebhookValidationError('payment_installments_not_allowed');
   }
   if (payload.captureMethod && payment.captureMethod && payload.captureMethod !== payment.captureMethod) {
     throw new InfinitePayWebhookValidationError('capture_method_mismatch');

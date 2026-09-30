@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 import { notifyExclusivePaymentConfirmed } from '@/lib/exclusive-material-notification-service';
 import { exclusiveFinancials } from '@/lib/exclusive-material';
-import { getPlatformFeePercentage, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
+import { calculatePaymentProcessingFee, getPaymentProcessingFeePercentage, getPlatformFeePercentage, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 import {
   assertConfirmedInfinitePayPayment,
   InfinitePayWebhookValidationError,
@@ -23,11 +23,14 @@ type ExclusivePaymentCredit = {
   gross_amount: number | string;
   platform_fee_amount: number | string;
   creator_net_amount: number | string;
+  payment_processing_fee_amount?: number;
   request: { store_id: string; creator_id: string; title: string };
 };
 
 async function creditExclusiveMaterialCreator(exclusivePayment: ExclusivePaymentCredit) {
   const transactionId = `exclusive_${exclusivePayment.id}`;
+  const processingFee = exclusivePayment.payment_processing_fee_amount
+    ?? Math.max(0, Number(exclusivePayment.gross_amount) - Number(exclusivePayment.platform_fee_amount) - Number(exclusivePayment.creator_net_amount));
   const { error } = await supabaseAdmin.from('wallet_transactions').insert({
     id: transactionId,
     store_id: String(exclusivePayment.request.store_id),
@@ -39,7 +42,7 @@ async function creditExclusiveMaterialCreator(exclusivePayment: ExclusivePayment
     platform_fixed_fee_amount: 0,
     platform_percentage_fee_amount: Number(exclusivePayment.platform_fee_amount),
     platform_fee_amount: Number(exclusivePayment.platform_fee_amount),
-    asaas_fee_amount: 0,
+    asaas_fee_amount: Number(processingFee.toFixed(2)),
     net_amount: Number(exclusivePayment.creator_net_amount),
     description: `Material exclusivo: ${exclusivePayment.request.title} — repasse líquido após a taxa do meio de pagamento.`,
     created_at: new Date().toISOString(),
@@ -115,7 +118,8 @@ export async function POST(request: Request) {
       const payment = await checkInfinitePayPayment({ orderNsu: payload.orderNsu, transactionNsu: payload.transactionNsu, slug: payload.invoiceSlug });
       assertConfirmedInfinitePayPayment(payload, payment, Math.round(Number(exclusivePayment.gross_amount) * 100));
       const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod || payload.captureMethod);
-      const financials = exclusiveFinancials(Number(exclusivePayment.gross_amount), paymentMethod);
+      const installments = payment.installments ?? payload.installments ?? 1;
+      const financials = exclusiveFinancials(Number(exclusivePayment.gross_amount), paymentMethod, installments);
       const { data: markedPaid, error: updateExclusiveError } = await supabaseAdmin.from('exclusive_material_payments').update({
         status: 'paid',
         transaction_nsu: payload.transactionNsu,
@@ -131,11 +135,12 @@ export async function POST(request: Request) {
       const settledExclusivePayment = {
         ...exclusivePayment,
         platform_fee_amount: financials.platformFeeAmount,
+        payment_processing_fee_amount: financials.paymentProcessingFeeAmount,
         creator_net_amount: financials.creatorNetAmount
       };
       await creditExclusiveMaterialCreator(settledExclusivePayment);
       await notifyExclusivePaymentConfirmed({ paymentId: exclusivePayment.id, requestId: exclusivePayment.request_id, grossAmount: financials.grossAmount, creatorNetAmount: financials.creatorNetAmount });
-      console.info(`[InfinitePay Webhook] Material exclusivo confirmado com taxa de ${getPlatformFeePercentage(paymentMethod)}%.`);
+      console.info(`[InfinitePay Webhook] Material exclusivo confirmado: plataforma ${getPlatformFeePercentage(paymentMethod)}%, processamento ${getPaymentProcessingFeePercentage(paymentMethod, installments)}%.`);
       return NextResponse.json({ success: true, message: null });
     }
 
@@ -159,6 +164,8 @@ export async function POST(request: Request) {
     assertConfirmedInfinitePayPayment(payload, payment, expectedAmount);
 
     const paymentMethod = normalizePlatformPaymentMethod(payment.captureMethod || payload.captureMethod);
+    const installments = payment.installments ?? payload.installments ?? 1;
+    const processingFeeAmount = calculatePaymentProcessingFee(order.totalAmount, paymentMethod, installments);
     const { data: updatedMetadata, error: metadataError } = await supabaseAdmin
       .from('orders')
       .update({
@@ -175,7 +182,7 @@ export async function POST(request: Request) {
     if (metadataError) throw metadataError;
     if (!updatedMetadata) return webhookError(409, 'Evento incompatível com o estado atual.');
 
-    const paidOrder = await updateOrderStatus(payload.orderNsu, 'paid', undefined, 0, { onlyIfPending: true, paymentMethod });
+    const paidOrder = await updateOrderStatus(payload.orderNsu, 'paid', undefined, processingFeeAmount, { onlyIfPending: true, paymentMethod, installments });
     if (!paidOrder) return webhookError(409, 'Evento incompatível com o estado atual.');
     if (paidOrder.statusTransitioned) await notifyConfirmedSale(paidOrder);
 

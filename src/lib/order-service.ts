@@ -35,7 +35,7 @@ export interface OrderRecord {
   subtotalAmount: number;
   totalAmount: number;
   platformFixedFeeAmount: number; // 0 — sem tarifa fixa
-  platformPercentageFeeAmount: number; // 13% no PIX; 18,99% no cartão
+  platformPercentageFeeAmount: number; // Taxa Educalizando de 13%
   platformFeeAmount: number; // Fixa + Percentual
   asaasFeeAmount: number; // Taxa real cobrada pelo Asaas (repassada ao criador)
   creatorNetAmount: number; // Valor líquido que vai para o saldo do criador
@@ -125,7 +125,7 @@ export function calculateOrderFinancials(
   const productCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const subtotal = items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * (item.quantity || 1), 0);
 
-  // Regra comercial vigente: 13% no PIX e 18,99% no cartão, sem tarifa fixa.
+  // Regra comercial vigente: taxa Educalizando de 13%, sem tarifa fixa.
   // Os campos antigos de configuração são ignorados para impedir divergências
   // entre pedidos quando uma linha legada do banco ainda estiver desatualizada.
   const fixedFee = 0;
@@ -133,8 +133,8 @@ export function calculateOrderFinancials(
   const platformPercentageFee = calculatePlatformFee(subtotal, paymentMethod);
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
-  // InfinitePay repassa o custo do checkout ao comprador; o gateway não é
-  // descontado do saldo do criador nesta plataforma.
+  // A taxa de processamento confirmada pela InfinitePay é registrada
+  // separadamente e descontada do saldo do criador.
   const realFee = asaasFee !== undefined && asaasFee >= 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
   const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee - affiliateCommissionAmount).toFixed(2));
 
@@ -462,7 +462,7 @@ export async function updateOrderStatus(
   newStatus: OrderStatusType, 
   asaasPaymentId?: string,
   realAsaasFee?: number,
-  options: { onlyIfPending?: boolean; paymentMethod?: PaymentMethodType } = {},
+  options: { onlyIfPending?: boolean; paymentMethod?: PaymentMethodType; installments?: number } = {},
 ): Promise<OrderRecord | null> {
   let order = await getOrderRecordById(orderId);
   if (!order && asaasPaymentId) {
@@ -579,7 +579,7 @@ export async function updateOrderStatus(
         platformFeeAmount: updatedPlatformFee,
         asaasFeeAmount: updatedAsaasFee,
         netAmount: updatedCreatorNet,
-        description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()}`
+        description: `Venda aprovada do Pedido #${order.id.substring(4, 10).toUpperCase()} — ${confirmedPaymentMethod === 'pix' ? 'PIX' : `${options.installments || 1}x no cartão`}`
       });
 
       // A indicação de criador é registrada em tabela própria e na carteira do
