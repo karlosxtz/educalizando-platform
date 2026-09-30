@@ -4,7 +4,7 @@ export const PLATFORM_FEE_PERCENTAGE = 13;
 export const PIX_PLATFORM_FEE_PERCENTAGE = PLATFORM_FEE_PERCENTAGE;
 export const MAX_CARD_INSTALLMENTS = 12;
 
-/** Taxa de processamento informada pela InfinitePay para cada parcelamento. */
+/** Juros informados pela InfinitePay e cobrados do cliente em cada parcelamento. */
 export const CARD_PROCESSING_FEE_PERCENTAGES = {
   1: 5.99, 2: 11.39, 3: 12.49, 4: 13.09, 5: 13.79, 6: 14.49,
   7: 15.49, 8: 16.09, 9: 16.69, 10: 17.39, 11: 18.39, 12: 18.79,
@@ -47,6 +47,7 @@ export function calculatePlatformFee(amount: number, _method?: unknown): number 
 }
 
 export function calculatePaymentProcessingFee(amount: number, method: unknown, installments: unknown = 1): number {
+  // Valor informativo pago pelo cliente; não deve ser abatido da carteira.
   const gross = Math.max(0, Number(amount) || 0);
   return Number((gross * getPaymentProcessingFeePercentage(method, installments) / 100).toFixed(2));
 }

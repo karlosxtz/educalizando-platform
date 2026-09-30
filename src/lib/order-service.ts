@@ -133,8 +133,8 @@ export function calculateOrderFinancials(
   const platformPercentageFee = calculatePlatformFee(subtotal, paymentMethod);
   const platformFee = Number((platformFixedFee + platformPercentageFee).toFixed(2));
 
-  // A taxa de processamento confirmada pela InfinitePay é registrada
-  // separadamente e descontada do saldo do criador.
+  // O parcelamento é repassado ao comprador pela InfinitePay. Para o criador,
+  // o custo do meio de pagamento permanece zerado e só incidem os 13%.
   const realFee = asaasFee !== undefined && asaasFee >= 0 ? asaasFee : estimateAsaasFee('pix', subtotal);
   const creatorNet = Number(Math.max(0, subtotal - platformFee - realFee - affiliateCommissionAmount).toFixed(2));
 

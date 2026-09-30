@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
-import { CARD_PROCESSING_FEE_PERCENTAGES, PLATFORM_FEE_PERCENTAGE } from '@/lib/payment-fees';
+import { CARD_PROCESSING_FEE_PERCENTAGES } from '@/lib/payment-fees';
 
 export default function Pricing() {
   const [productPrice, setProductPrice] = useState('50');
@@ -12,8 +12,8 @@ export default function Pricing() {
     const gross = Math.max(0, Number(productPrice.replace(',', '.')) || 0);
     const pixFee = gross * 0.13;
     const processingRate = CARD_PROCESSING_FEE_PERCENTAGES[Number(installments) as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES];
-    const cardFee = gross * ((PLATFORM_FEE_PERCENTAGE + processingRate) / 100);
-    return { gross, pixFee, pixNet: gross - pixFee, cardFee, cardNet: gross - cardFee };
+    const customerInstallmentFee = gross * (processingRate / 100);
+    return { gross, pixFee, pixNet: gross - pixFee, customerInstallmentFee, cardNet: gross - pixFee };
   }, [installments, productPrice]);
 
   const formatBRL = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -62,7 +62,7 @@ export default function Pricing() {
               <span className="text-sm font-bold text-slate-500">/mês</span>
             </div>
             <p className="text-xs text-brand-navy font-bold pt-1">
-              13% da plataforma; no cartão soma-se a taxa de 1x a 12x
+              O criador paga somente 13%; juros do cartão ficam com o cliente
             </p>
           </div>
 
@@ -92,8 +92,9 @@ export default function Pricing() {
                 <strong className="text-brand-green text-base">{formatBRL(calculations.pixNet)}</strong>
               </div>
               <div className="rounded-xl bg-white border border-brand-green/40 p-3">
-                <span className="block text-slate-500 font-semibold">Cartão {installments}x · taxa total {(13 + CARD_PROCESSING_FEE_PERCENTAGES[Number(installments) as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES]).toFixed(2).replace('.', ',')}%</span>
+                <span className="block text-slate-500 font-semibold">Cartão {installments}x · criador recebe 87%</span>
                 <strong className="text-brand-green text-base">{formatBRL(calculations.cardNet)}</strong>
+                <span className="mt-1 block text-[10px] font-semibold text-amber-700">Juros do cliente: {formatBRL(calculations.customerInstallmentFee)}</span>
               </div>
             </div>
           </div>

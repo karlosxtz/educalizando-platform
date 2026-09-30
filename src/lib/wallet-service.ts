@@ -30,7 +30,7 @@ export interface CreatorWalletSummary {
   saldoPendente: number; // Líquido de pedidos aguardando pagamento
   saldoDisponivel: number; // Líquido já liberado (pronto para futuro saque na Fase C)
   totalRecebido: number; // Histórico efetivamente pago ao criador via saques concluídos
-  taxasEducalizando: number; // 13% da plataforma; processamento do cartão fica separado
+  taxasEducalizando: number; // 13% da plataforma; juros do cartão ficam com o cliente
   taxasAsaas: number; // Taxa real cobrada pelo Asaas
   totalTaxas: number; // Soma das duas taxas
 }

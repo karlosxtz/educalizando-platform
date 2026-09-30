@@ -16,7 +16,7 @@ import { MIN_WITHDRAWAL_AMOUNT, type CreatorPixKey, type WithdrawalRecord } from
 import CustomSelect from '@/components/ui/CustomSelect';
 import { getCurrentCreatorStore } from '@/lib/store-service';
 import Link from 'next/link';
-import { CARD_PROCESSING_FEE_PERCENTAGES, PLATFORM_FEE_PERCENTAGE, calculatePaymentProcessingFee, calculatePlatformFee, getTotalFeePercentage } from '@/lib/payment-fees';
+import { CARD_PROCESSING_FEE_PERCENTAGES, PLATFORM_FEE_PERCENTAGE, calculatePaymentProcessingFee, calculatePlatformFee } from '@/lib/payment-fees';
 
 function getTransactionPresentation(tx: WalletTransaction) {
   const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
@@ -451,7 +451,7 @@ export default function FinancialWalletDashboardPage() {
           <div className="space-y-1 text-center sm:text-left">
             <h3 className="font-extrabold text-slate-900">Pagamento seguro: <span className="text-emerald-600">PIX, débito ou crédito em até 12x.</span></h3>
             <p className="text-sm text-slate-500 font-medium">
-              A taxa da Educalizando é 13% sobre a venda. No cartão, soma-se a taxa de processamento da InfinitePay correspondente ao número de parcelas escolhido pelo cliente. Os dois descontos aparecem separados no extrato.
+              A taxa da Educalizando é 13% sobre o valor original da venda. No cartão, os juros do parcelamento são pagos pelo cliente no checkout e não reduzem o saldo do criador.
             </p>
           </div>
         </div>
@@ -459,7 +459,7 @@ export default function FinancialWalletDashboardPage() {
         {/* Calculadora de taxa */}
         <div className="relative z-10 bg-white border border-emerald-200 rounded-2xl shadow-sm p-5 sm:p-6">
           <h3 className="font-extrabold text-slate-900">Simule sua venda</h3>
-          <p className="text-sm text-slate-500 font-medium mt-1">Escolha o valor e o parcelamento para ver a taxa da plataforma, o processamento do cartão e o líquido estimado.</p>
+          <p className="text-sm text-slate-500 font-medium mt-1">Escolha o valor e o parcelamento para confirmar quanto o cliente assume de juros e quanto fica disponível para o criador.</p>
           <div className="mt-5 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <label className="text-xs font-bold text-slate-700">
               Valor do produto
@@ -471,16 +471,16 @@ export default function FinancialWalletDashboardPage() {
             <label className="text-xs font-bold text-slate-700">Parcelas no crédito<select value={calculatorInstallments} onChange={(event) => setCalculatorInstallments(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 font-bold outline-none focus:border-emerald-500">{Object.keys(CARD_PROCESSING_FEE_PERCENTAGES).map((value) => <option key={value} value={value}>{value}x</option>)}</select></label>
             {(() => { const gross = Math.max(0, Number(calculatorPrice.replace(',', '.')) || 0); const installments = Number(calculatorInstallments); const platformFee = calculatePlatformFee(gross); const processingFee = calculatePaymentProcessingFee(gross, 'credit_card', installments); return <>
               <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Educalizando ({PLATFORM_FEE_PERCENTAGE}%)</span><strong className="text-lg text-rose-800">-{formatCurrency(platformFee)}</strong></div>
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3"><span className="block text-xs text-amber-700 font-bold">Processamento ({CARD_PROCESSING_FEE_PERCENTAGES[installments as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES]}%)</span><strong className="text-lg text-amber-800">-{formatCurrency(processingFee)}</strong></div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Líquido no cartão</span><strong className="text-lg text-emerald-800">{formatCurrency(Math.max(0, gross - platformFee - processingFee))}</strong><span className="mt-1 block text-[10px] font-bold text-emerald-700">Taxa total: {getTotalFeePercentage('credit_card', installments).toFixed(2).replace('.', ',')}%</span></div>
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3"><span className="block text-xs text-amber-700 font-bold">Juros pagos pelo cliente ({CARD_PROCESSING_FEE_PERCENTAGES[installments as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES]}%)</span><strong className="text-lg text-amber-800">{formatCurrency(processingFee)}</strong></div>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Líquido do criador</span><strong className="text-lg text-emerald-800">{formatCurrency(Math.max(0, gross - platformFee))}</strong><span className="mt-1 block text-[10px] font-bold text-emerald-700">Recebe sempre 87% do preço original</span></div>
             </>; })()}
           </div>
         </div>
 
         <div className="relative z-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4"><h3 className="font-extrabold text-slate-900">Tabela completa do cartão</h3><p className="mt-1 text-xs font-medium text-slate-600">A taxa total é a soma de 13% da Educalizando com a taxa de processamento da parcela. O percentual incide sobre o valor bruto da venda.</p></div>
-          <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-white text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3">Pagamento</th><th className="px-5 py-3">Taxa Educalizando</th><th className="px-5 py-3">Taxa do cartão</th><th className="px-5 py-3">Taxa total</th><th className="px-5 py-3">Criador recebe</th></tr></thead><tbody className="divide-y divide-slate-100">{Object.entries(CARD_PROCESSING_FEE_PERCENTAGES).map(([installments, processing]) => { const total = PLATFORM_FEE_PERCENTAGE + processing; return <tr key={installments} className="hover:bg-slate-50"><td className="px-5 py-3 font-black text-slate-900">Crédito em {installments}x</td><td className="px-5 py-3 font-bold text-blue-700">13,00%</td><td className="px-5 py-3 font-bold text-amber-700">{processing.toFixed(2).replace('.', ',')}%</td><td className="px-5 py-3 font-black text-rose-700">{total.toFixed(2).replace('.', ',')}%</td><td className="px-5 py-3 font-black text-emerald-700">{Math.max(0, 100 - total).toFixed(2).replace('.', ',')}%</td></tr>; })}</tbody></table></div>
-          <div className="border-t border-emerald-200 bg-emerald-50 px-5 py-4 text-xs font-semibold leading-relaxed text-emerald-900"><strong>PIX:</strong> somente os 13% da Educalizando; o criador recebe 87%. <strong>Débito:</strong> 13% + 5,99% de processamento; o criador recebe 81,01%.</div>
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4"><h3 className="font-extrabold text-slate-900">Tabela completa do cartão</h3><p className="mt-1 text-xs font-medium text-slate-600">O criador paga somente 13% da Educalizando. A taxa de cada parcelamento é acrescentada ao pagamento do cliente pela InfinitePay.</p></div>
+          <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-white text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3">Pagamento</th><th className="px-5 py-3">Taxa Educalizando</th><th className="px-5 py-3">Juros do cliente</th><th className="px-5 py-3">Desconto do criador</th><th className="px-5 py-3">Criador recebe</th></tr></thead><tbody className="divide-y divide-slate-100">{Object.entries(CARD_PROCESSING_FEE_PERCENTAGES).map(([installments, processing]) => <tr key={installments} className="hover:bg-slate-50"><td className="px-5 py-3 font-black text-slate-900">Crédito em {installments}x</td><td className="px-5 py-3 font-bold text-blue-700">13,00%</td><td className="px-5 py-3 font-bold text-amber-700">{processing.toFixed(2).replace('.', ',')}% — cliente</td><td className="px-5 py-3 font-black text-rose-700">13,00%</td><td className="px-5 py-3 font-black text-emerald-700">87,00%</td></tr>)}</tbody></table></div>
+          <div className="border-t border-emerald-200 bg-emerald-50 px-5 py-4 text-xs font-semibold leading-relaxed text-emerald-900"><strong>Regra de repasse:</strong> no PIX, débito ou crédito de 1x a 12x, o criador recebe 87% do preço original. Os juros do cartão são cobrados do cliente.</div>
         </div>
 
         {/* Conclusão */}
@@ -535,7 +535,7 @@ export default function FinancialWalletDashboardPage() {
               Detalhamento Transparente de Taxas
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              Transparência total no repasse: você visualiza exatamente a taxa da plataforma e os custos de processamento.
+              Transparência total no repasse: a plataforma desconta 13%; os juros do parcelamento ficam com o cliente.
             </p>
           </div>
         </div>
@@ -548,9 +548,9 @@ export default function FinancialWalletDashboardPage() {
           </div>
 
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxa do Meio de Pagamento</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase block">Descontos do meio de pagamento</span>
             <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasAsaas)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">No cartão: de 5,99% (1x) a 18,79% (12x)</span>
+            <span className="text-[10px] text-slate-500 font-medium block">Novas vendas: R$ 0,00 para o criador; juros pagos pelo cliente</span>
           </div>
 
           <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-2xl space-y-1">

@@ -1,4 +1,4 @@
-import { calculatePaymentProcessingFee, calculatePlatformFee, getPaymentProcessingFeePercentage, getPlatformFeePercentage, getTotalFeePercentage, type PlatformPaymentMethod } from './payment-fees';
+import { calculatePaymentProcessingFee, calculatePlatformFee, getPaymentProcessingFeePercentage, getPlatformFeePercentage, type PlatformPaymentMethod } from './payment-fees';
 
 export type ExclusiveMaterialStatus = 'open' | 'negotiating' | 'awaiting_payment' | 'paid' | 'in_production' | 'delivered' | 'cancelled' | 'rejected';
 
@@ -18,7 +18,9 @@ export function exclusiveFinancials(amount: number, paymentMethod: PlatformPayme
     platformFeeAmount,
     paymentProcessingFeePercentage: getPaymentProcessingFeePercentage(paymentMethod, installments),
     paymentProcessingFeeAmount,
-    totalFeePercentage: getTotalFeePercentage(paymentMethod, installments),
-    creatorNetAmount: Number(Math.max(0, grossAmount - platformFeeAmount - paymentProcessingFeeAmount).toFixed(2))
+    totalFeePercentage: getPlatformFeePercentage(paymentMethod),
+    // O parcelamento é pago pelo cliente no checkout. O criador arca somente
+    // com os 13% da plataforma sobre o valor original da proposta.
+    creatorNetAmount: Number(Math.max(0, grossAmount - platformFeeAmount).toFixed(2))
   };
 }

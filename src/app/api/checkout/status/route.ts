@@ -4,7 +4,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
-import { calculatePaymentProcessingFee, isSupportedInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
+import { isSupportedInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -53,8 +53,7 @@ export async function GET(request: Request) {
             payment_method: paymentMethod
           }).eq('id', order.id);
           const installments = payment.installments || 1;
-          const processingFee = calculatePaymentProcessingFee(order.totalAmount, paymentMethod, installments);
-          const updated = await updateOrderStatus(order.id, 'paid', undefined, processingFee, { onlyIfPending: true, paymentMethod, installments });
+          const updated = await updateOrderStatus(order.id, 'paid', undefined, 0, { onlyIfPending: true, paymentMethod, installments });
           status = updated?.status || 'paid';
           if (updated) await notifyConfirmedSale(updated);
         }
