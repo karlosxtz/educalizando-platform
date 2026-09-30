@@ -34,6 +34,8 @@ const formatCurrency = (value: number) => `R$ ${Number(value || 0).toLocaleStrin
 })}`;
 
 export default function DashboardOverviewPage() {
+  const [loading, setLoading] = useState(true);
+  const [salesDataResolved, setSalesDataResolved] = useState(false);
   const [store, setStore] = useState<StoreType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [wallet, setWallet] = useState<CreatorWalletSummary>(emptyWallet);
@@ -47,27 +49,45 @@ export default function DashboardOverviewPage() {
 
   useEffect(() => {
     async function loadData() {
-      const s = await getCurrentCreatorStore();
-      setStore(s);
-      if (s) {
-        const [prods, walletSummary, monthSales, exclusiveSales, referrals, searchInsights] = await Promise.all([
+      try {
+        const s = await getCurrentCreatorStore();
+        setStore(s);
+        if (!s) {
+          setSalesDataResolved(true);
+          return;
+        }
+
+        const [productsResult, walletResult, monthSalesResult, exclusiveResult, referralsResult, searchResult] = await Promise.allSettled([
           getProductsByStoreId(s.id),
           calculateCreatorWallet(s.id),
           getSalesDataByPeriod(s.id, 'month'),
           getExclusiveSalesOverview(s.id),
-          fetch('/api/creator-referrals', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null),
-          fetch('/api/catalog-search-insights', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).catch(() => null),
+          fetch('/api/creator-referrals', { cache: 'no-store' }).then(response => response.ok ? response.json() : null),
+          fetch('/api/catalog-search-insights', { cache: 'no-store' }).then(response => response.ok ? response.json() : null),
         ]);
-        setProducts(prods);
-        setWallet(walletSummary);
-        setMonthRevenue(monthSales.chartData.reduce((total, point) => total + point.revenue, 0));
-        setMonthSalesCount(monthSales.chartData.reduce((total, point) => total + point.salesCount, 0));
-        setExclusiveOverview(exclusiveSales);
-        setReferralCount(referrals?.referrals?.length || 0);
-        setPopularTerms(searchInsights?.terms || []);
+
+        if (productsResult.status === 'fulfilled') setProducts(productsResult.value);
+        if (walletResult.status === 'fulfilled') setWallet(walletResult.value);
+        if (monthSalesResult.status === 'fulfilled') {
+          setMonthRevenue(monthSalesResult.value.chartData.reduce((total, point) => total + point.revenue, 0));
+          setMonthSalesCount(monthSalesResult.value.chartData.reduce((total, point) => total + point.salesCount, 0));
+        }
+        if (exclusiveResult.status === 'fulfilled') setExclusiveOverview(exclusiveResult.value);
+        if (referralsResult.status === 'fulfilled') setReferralCount(referralsResult.value?.referrals?.length || 0);
+        if (searchResult.status === 'fulfilled') setPopularTerms(searchResult.value?.terms || []);
+
+        // A jornada de primeira venda só pode ser decidida depois que as duas
+        // fontes financeiras foram realmente consultadas. Em falhas temporárias,
+        // escondemos a jornada em vez de afirmar incorretamente que a loja nunca vendeu.
+        setSalesDataResolved(walletResult.status === 'fulfilled' && monthSalesResult.status === 'fulfilled');
+      } catch (error) {
+        console.error('[dashboard] Não foi possível carregar a visão geral:', error);
+        setSalesDataResolved(false);
+      } finally {
+        setLoading(false);
       }
     }
-    loadData();
+    void loadData();
   }, []);
 
   const publishedCount = products.filter(p => p.status === 'publicado').length;
@@ -89,6 +109,8 @@ export default function DashboardOverviewPage() {
     { label: 'Já recebido', value: wallet.totalRecebido, className: 'bg-blue-500' },
     { label: 'Em processamento', value: wallet.saldoPendente, className: 'bg-amber-400' },
   ];
+
+  if (loading) return <DashboardOverviewSkeleton />;
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-4 sm:p-8 -m-4 sm:-m-8">
@@ -122,7 +144,7 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Gamification Onboarding Progress */}
-      {!hasFirstSale && (
+      {salesDataResolved && !hasFirstSale && (
         <div className="glass-panel p-5 relative overflow-hidden">
           <div className="flex justify-between items-end mb-3">
             <div>
@@ -409,6 +431,34 @@ export default function DashboardOverviewPage() {
           </Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DashboardOverviewSkeleton() {
+  return (
+    <div className="min-h-screen space-y-8 bg-slate-50 p-4 sm:p-8 -m-4 sm:-m-8" aria-busy="true" aria-label="Carregando visão geral da loja">
+      <section className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="h-[290px] animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="h-5 w-36 rounded-full bg-slate-200" />
+            <div className="mt-5 h-3 w-52 max-w-full rounded-full bg-slate-100" />
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <div className="h-24 rounded-2xl bg-slate-100" />
+              <div className="h-24 rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+        ))}
+      </section>
+      <div className="h-20 animate-pulse rounded-2xl border border-slate-200 bg-white shadow-sm" />
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="h-40 animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="h-3 w-28 rounded-full bg-slate-200" />
+            <div className="mt-8 h-8 w-36 rounded-lg bg-slate-100" />
+          </div>
+        ))}
+      </section>
     </div>
   );
 }
