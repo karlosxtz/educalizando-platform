@@ -66,7 +66,22 @@ function attachProductLink(content: Record<string, unknown> | null, productUrl: 
   };
 }
 
-function parseProposal(text: string, product: Record<string, unknown>, categoryIds: Set<string>, educationLevelIds: Set<string>) {
+type Classification = { id: string; nome: string };
+
+function inferClassification(options: Classification[], product: Record<string, unknown>, preferredId: unknown, fallbackTerms: string[] = []) {
+  if (typeof preferredId === 'string' && options.some(option => option.id === preferredId)) return preferredId;
+  const context = `${product.titulo || ''} ${product.descricao || ''} ${product.age_range || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const ranked = options.map(option => {
+    const name = option.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const terms = name.split(/[^a-z0-9]+/).filter(term => term.length > 3);
+    return { id: option.id, score: terms.filter(term => context.includes(term)).length };
+  }).sort((a, b) => b.score - a.score);
+  if (ranked[0]?.score) return ranked[0].id;
+  const fallback = options.find(option => fallbackTerms.some(term => option.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(term)));
+  return fallback?.id || options[0]?.id || '';
+}
+
+function parseProposal(text: string, product: Record<string, unknown>, categories: Classification[], educationLevels: Classification[]) {
   const parsed = extractJson(text);
   const strings = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map(item => cleanGeneratedText(item)) : [];
   if (!parsed) return {
@@ -75,8 +90,10 @@ function parseProposal(text: string, product: Record<string, unknown>, categoryI
     tags: strings(product.tags),
     descriptionOptions: [seoDescription(String(product.descricao || ''))],
     analysis: ['A IA respondeu em um formato inesperado. Você ainda pode editar o produto abaixo ou gerar uma nova proposta.'],
-    categoryId: typeof product.category_id === 'string' ? product.category_id : '',
-    educationLevelId: typeof product.education_level_id === 'string' ? product.education_level_id : '',
+    categoryId: inferClassification(categories, product, product.category_id, ['outros']),
+    educationLevelId: inferClassification(educationLevels, product, product.education_level_id, ['fundamental i', 'educacao infantil']),
+    ageRange: typeof product.age_range === 'string' ? product.age_range : '',
+    formatDetails: typeof product.format_details === 'string' ? product.format_details : '',
   };
   return {
     titles: strings(parsed.titles).length ? strings(parsed.titles).map(seoTitle) : [seoTitle(String(product.titulo || 'Material pedagógico'))],
@@ -86,12 +103,10 @@ function parseProposal(text: string, product: Record<string, unknown>, categoryI
     metaDescription: typeof parsed.metaDescription === 'string' ? cleanGeneratedText(parsed.metaDescription) : '',
     keywords: strings(parsed.keywords),
     analysis: strings(parsed.analysis),
-    categoryId: typeof parsed.categoryId === 'string' && categoryIds.has(parsed.categoryId)
-      ? parsed.categoryId
-      : typeof product.category_id === 'string' ? product.category_id : '',
-    educationLevelId: typeof parsed.educationLevelId === 'string' && educationLevelIds.has(parsed.educationLevelId)
-      ? parsed.educationLevelId
-      : typeof product.education_level_id === 'string' ? product.education_level_id : '',
+    categoryId: inferClassification(categories, product, parsed.categoryId, ['outros']),
+    educationLevelId: inferClassification(educationLevels, product, parsed.educationLevelId, ['fundamental i', 'educacao infantil']),
+    ageRange: typeof parsed.ageRange === 'string' && parsed.ageRange.trim() ? cleanGeneratedText(parsed.ageRange).slice(0, 120) : String(product.age_range || ''),
+    formatDetails: typeof parsed.formatDetails === 'string' && parsed.formatDetails.trim() ? cleanGeneratedText(parsed.formatDetails).slice(0, 180) : String(product.format_details || ''),
   };
 }
 
@@ -110,21 +125,25 @@ export async function POST(request: Request) {
   if (!store || !product) return NextResponse.json({ error: 'Produto não encontrado nesta loja.' }, { status: 403 });
   if (!secret || !getAiKey(secret).key) return NextResponse.json({ error: 'Configure uma chave de IA para usar esta ferramenta.' }, { status: 401 });
   const formats: Record<string, string> = {
-    seo: '{"titles":["5 títulos diferentes, cada um entre 30 e 65 caracteres"],"description":"melhor modelo escolhido com pelo menos 120 caracteres","descriptionOptions":["3 descrições de venda completas, diferentes e prontas para publicar, com emojis moderados, parágrafos e listas usando quebras de linha reais"],"tags":["5 a 10 tags de busca curtas e específicas; não inclua datas comemorativas ou temas do calendário"],"categoryId":"um ID exato da lista de categorias","educationLevelId":"um ID exato da lista de níveis de ensino","metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}',
-    description: '{"titles":["5 títulos diferentes, cada um entre 30 e 65 caracteres"],"description":"melhor modelo escolhido com pelo menos 120 caracteres","descriptionOptions":["3 descrições de venda completas, diferentes e prontas para publicar, com emojis moderados, parágrafos e listas usando quebras de linha reais"],"tags":["5 a 10 tags de busca curtas e específicas; não inclua datas comemorativas ou temas do calendário"],"categoryId":"um ID exato da lista de categorias","educationLevelId":"um ID exato da lista de níveis de ensino","metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}',
+    seo: '{"titles":["5 títulos diferentes, cada um entre 30 e 65 caracteres"],"description":"melhor modelo escolhido com pelo menos 120 caracteres","descriptionOptions":["3 descrições de venda completas, diferentes e prontas para publicar, com emojis moderados, parágrafos e listas usando quebras de linha reais"],"tags":["5 a 10 tags de busca curtas e específicas; não inclua datas comemorativas ou temas do calendário"],"categoryId":"um ID exato da lista de categorias","educationLevelId":"um ID exato da lista de níveis de ensino","ageRange":"faixa ou anos escolares indicados, por exemplo 1º ao 3º ano","formatDetails":"formato e modo de uso do material, sem inventar quantidade de páginas ou arquivos","metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}',
+    description: '{"titles":["5 títulos diferentes, cada um entre 30 e 65 caracteres"],"description":"melhor modelo escolhido com pelo menos 120 caracteres","descriptionOptions":["3 descrições de venda completas, diferentes e prontas para publicar, com emojis moderados, parágrafos e listas usando quebras de linha reais"],"tags":["5 a 10 tags de busca curtas e específicas; não inclua datas comemorativas ou temas do calendário"],"categoryId":"um ID exato da lista de categorias","educationLevelId":"um ID exato da lista de níveis de ensino","ageRange":"faixa ou anos escolares indicados","formatDetails":"formato e modo de uso sem inventar dados","metaDescription":"até 155 caracteres","keywords":["palavra-chave"],"analysis":["melhoria clara e objetiva"]}',
     campaign: '{"whatsapp":"mensagem pronta para WhatsApp","instagram":"legenda pronta para Instagram com hashtags","stories":["3 chamadas curtas para Stories"]}',
     lesson: '{"objective":"objetivo de aprendizagem","preparation":["materiais e preparação"],"steps":["passo a passo"],"adaptations":["adaptações por nível"],"extension":"atividade complementar"}',
   };
   const isPlrTarget = targetMode === 'plr' && product.is_plr;
   const productUrl = `https://www.educalizando.com.br/produto/${product.slug || productId}${isPlrTarget ? '?licenca=plr' : ''}`;
-  const targetContext = isPlrTarget ? 'Você está trabalhando a licença PLR. Escreva para criadores que querem adquirir uma licença para revender o material, sem tratar o comprador como usuário final. Não sugira alteração do título ou tags, pois eles pertencem ao produto principal.' : 'Você está trabalhando o produto final para educadores, famílias e clientes que usarão o material.';
+  const targetContext = isPlrTarget ? 'Você está trabalhando a licença PLR. Escreva para criadores que querem adquirir uma licença para revender o material, sem tratar o comprador como usuário final. Não sugira alteração do título ou tags, pois eles pertencem ao produto principal.' : 'Você está trabalhando o produto final para educadores, famílias e clientes que usarão o material. Você pode otimizar todos os metadados editoriais e pedagógicos. Nunca altere nem sugira alteração do preço, do link público, do arquivo/conteúdo entregue, da quantidade de páginas ou de fatos que não estejam informados.';
   const activeDescription = isPlrTarget ? product.plr_descricao || product.descricao : product.descricao;
   const classificationContext = isPlrTarget ? '' : `\nCategorias permitidas (use somente um ID exato): ${JSON.stringify(categories || [])}\nNíveis de ensino permitidos (use somente um ID exato): ${JSON.stringify(educationLevels || [])}`;
   const prompt = `Você é especialista em marketing e educação. Responda em português do Brasil.\n\nMATERIAL:\nTítulo: ${product.titulo}\nDescrição atual: ${activeDescription || 'não informada'}\nTipo: ${product.tipo}\nFaixa etária: ${product.age_range || 'não informada'}\nDetalhes: ${product.format_details || 'não informados'}\nTemas pedagógicos e datas: ${(product.seasonal_tags || []).join(', ') || 'não informados'}\nTags de busca atuais: ${(product.tags || []).join(', ') || 'não informadas'}\nLink público oficial do produto: ${productUrl}\nContexto da oferta: ${targetContext}${classificationContext}\n\nTAREFA:\n${instructions[tool]}\nPara divulgação, use exatamente o Link público oficial do produto na chamada final de WhatsApp, Instagram e no último Story. Nunca use link de loja privada ou texto de preenchimento.\n\nResponda somente com JSON válido, sem markdown e sem texto antes ou depois, neste formato exato: ${formats[tool]}.`;
   let text = '';
-  try { text = await generateAiContent(secret, prompt, true); } catch (error: any) { return NextResponse.json({ error: error.message || 'A IA não concluiu a geração.' }, { status: 502 }); }
+  try {
+    text = await generateAiContent(secret, prompt, true);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'A IA não concluiu a geração.' }, { status: 502 });
+  }
   const proposal = tool === 'seo' || tool === 'description'
-    ? parseProposal(text || '', product, new Set((categories || []).map(item => item.id)), new Set((educationLevels || []).map(item => item.id)))
+    ? parseProposal(text || '', product, (categories || []) as Classification[], (educationLevels || []) as Classification[])
     : null;
   const rawContent = tool === 'campaign' || tool === 'lesson' ? cleanGeneratedValue(extractJson(text || '')) as Record<string, unknown> | null : null;
   const content = tool === 'campaign' ? attachProductLink(rawContent, productUrl) : rawContent;

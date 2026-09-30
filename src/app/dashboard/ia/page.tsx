@@ -43,6 +43,8 @@ export default function IAConfigPage() {
   const [editedThemes, setEditedThemes] = useState<string[]>([]);
   const [editedCategoryId, setEditedCategoryId] = useState('');
   const [editedEducationLevelId, setEditedEducationLevelId] = useState('');
+  const [editedAgeRange, setEditedAgeRange] = useState('');
+  const [editedFormatDetails, setEditedFormatDetails] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
   const [tagDraft, setTagDraft] = useState('');
@@ -188,6 +190,8 @@ export default function IAConfigPage() {
         setEditedThemes(selectedProduct?.seasonal_tags || []);
         setEditedCategoryId(payload.proposal.categoryId || selectedProduct?.category_id || '');
         setEditedEducationLevelId(payload.proposal.educationLevelId || selectedProduct?.education_level_id || '');
+        setEditedAgeRange(payload.proposal.ageRange || selectedProduct?.age_range || '');
+        setEditedFormatDetails(payload.proposal.formatDetails || selectedProduct?.format_details || '');
         setTagDraft('');
         setEditorOpen(true);
       } else {
@@ -229,6 +233,8 @@ export default function IAConfigPage() {
         updates.seasonal_tags = editedThemes;
         updates.category_id = editedCategoryId || null;
         updates.education_level_id = editedEducationLevelId || null;
+        updates.age_range = editedAgeRange.trim() || null;
+        updates.format_details = editedFormatDetails.trim() || null;
       }
       const response = await fetch('/api/ai/seo-apply', {
         method: 'POST',
@@ -252,8 +258,9 @@ export default function IAConfigPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
+        <div className="rounded-2xl bg-violet-100 p-4 text-violet-700"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        <div><p className="font-black text-slate-900">Aguarde enquanto preparamos tudo</p><p className="mt-1 text-sm text-slate-500">Estamos carregando o produto e as configurações da inteligência artificial.</p></div>
       </div>
     );
   }
@@ -365,7 +372,7 @@ export default function IAConfigPage() {
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5">
             <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="títulos, descrições, tags e SEO prontos para revisar" loading={activeTool === 'seo'} onClick={() => activeProduct?.is_plr ? setOptimizationChoiceOpen(true) : void generateProductTool('seo')} />
+              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="título, descrição, tags, temas, categoria, nível e anos indicados" loading={activeTool === 'seo'} onClick={() => activeProduct?.is_plr ? setOptimizationChoiceOpen(true) : void generateProductTool('seo')} />
               <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => activeProduct?.is_plr ? setCampaignChoiceOpen(true) : void generateProductTool('campaign')} />
               <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
@@ -430,11 +437,21 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
+      {activeTool === 'seo' && !editorOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-violet-700"><Loader2 className="h-8 w-8 animate-spin" /></div>
+            <h2 className="mt-5 text-xl font-black text-slate-900">Aguarde enquanto preparamos tudo</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A IA está analisando título, descrição, tags, temas, categoria, nível e anos indicados. Você poderá revisar tudo antes de salvar.</p>
+            <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">Preço, link público e conteúdo do arquivo permanecem protegidos.</p>
+          </div>
+        </div>
+      )}
       {optimizationChoiceOpen && (
         <div className="fixed inset-0 z-[101] flex items-center justify-center bg-slate-950/60 p-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wider text-violet-700">Material com licença PLR</p><h2 className="mt-1 text-xl font-black text-slate-900">O que você quer otimizar?</h2><p className="mt-2 text-sm leading-6 text-slate-500">Escolha a oferta. Cada descrição será trabalhada e salva no campo correto, sem misturar produto final e licença.</p></div><button type="button" onClick={() => setOptimizationChoiceOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
-            <div className="mt-5 grid gap-3"><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'product'); }} className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-left transition hover:border-violet-500"><p className="font-black text-violet-950">Otimizar produto final</p><p className="mt-1 text-sm text-violet-800">Melhora título, descrição, tags e SEO da oferta para o cliente final.</p></button><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'plr'); }} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-500"><p className="font-black text-amber-950">Otimizar licença PLR</p><p className="mt-1 text-sm text-amber-800">Melhora apenas a descrição exclusiva da licença para revendedores.</p></button></div>
+            <div className="mt-5 grid gap-3"><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'product'); }} className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-left transition hover:border-violet-500"><p className="font-black text-violet-950">Otimizar produto final</p><p className="mt-1 text-sm text-violet-800">Melhora todos os metadados editoriais e pedagógicos, preservando preço, link e conteúdo.</p></button><button type="button" onClick={() => { setOptimizationChoiceOpen(false); void generateProductTool('seo', 'plr'); }} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-500"><p className="font-black text-amber-950">Otimizar licença PLR</p><p className="mt-1 text-sm text-amber-800">Melhora apenas a descrição exclusiva da licença para revendedores.</p></button></div>
           </div>
         </div>
       )}
@@ -518,13 +535,17 @@ export default function IAConfigPage() {
                     <label className="text-xs font-black uppercase tracking-wider text-slate-600">Categoria<select value={editedCategoryId} onChange={event => setEditedCategoryId(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500"><option value="">Selecione uma categoria</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
                     <label className="text-xs font-black uppercase tracking-wider text-slate-600">Nível de ensino<select value={editedEducationLevelId} onChange={event => setEditedEducationLevelId(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500"><option value="">Selecione o nível</option>{educationLevels.map(level => <option key={level.id} value={level.id}>{level.nome}</option>)}</select></label>
                   </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Ano ou faixa indicada<input value={editedAgeRange} onChange={event => setEditedAgeRange(event.target.value)} placeholder="Ex.: 1º ao 3º ano" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500" /></label>
+                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Formato e modo de uso<input value={editedFormatDetails} onChange={event => setEditedFormatDetails(event.target.value)} placeholder="Ex.: PDF para imprimir e usar em sala" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500" /></label>
+                  </div>
                 </div></> : null}
 
                 {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para aparecer melhor nas buscas</p><p className="mt-1 text-sm text-slate-300">Estas sugestões ajudam você a divulgar o material. Copie quando for usar em redes, anúncios ou páginas de busca.</p>{proposal.metaDescription ? <div className="mt-4 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Resumo sugerido</p><p className="mt-1 text-sm leading-6 text-white">{proposal.metaDescription}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.metaDescription); toast.success('Resumo copiado.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar resumo</button></div> : null}{proposal.keywords?.length ? <div className="mt-3 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Palavras que ajudam a encontrar este material</p><p className="mt-1 text-sm leading-6 text-slate-100">{proposal.keywords.join(', ')}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.keywords.join(', ')); toast.success('Palavras-chave copiadas.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar palavras-chave</button></div> : null}</div> : null}
               </section>
             </div>
 
-            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">{editingTarget === 'plr' ? 'Ao salvar, apenas a descrição exclusiva da licença PLR será atualizada.' : 'Ao salvar, título, descrição, tags, temas, categoria e nível de ensino serão atualizados neste produto.'}</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
+            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">{editingTarget === 'plr' ? 'Ao salvar, apenas a descrição exclusiva da licença PLR será atualizada.' : 'Ao salvar, título, descrição, tags, temas, categoria, nível, anos indicados e formato serão atualizados. Preço, link e conteúdo não serão alterados.'}</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
           </div>
         </div>
       )}

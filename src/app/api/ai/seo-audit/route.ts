@@ -14,6 +14,8 @@ type AuditProduct = {
   slug: string | null;
   is_plr: boolean | null;
   seasonal_tags: string[] | null;
+  age_range?: string | null;
+  format_details?: string | null;
 };
 
 type BaseReview = {
@@ -98,6 +100,17 @@ function fallbackDescription(product: AuditProduct) {
   return `${base}\n\n✨ O que este material oferece:\n• Proposta prática e pronta para usar.\n• Aprendizagem leve, organizada e envolvente.\n• Ideal para sala de aula, reforço escolar ou atividades em casa.`.slice(0, 8000);
 }
 
+function inferredClassificationId(options: Array<{ id: string; nome: string }>, product: AuditProduct, suggested: unknown, fallbackTerms: string[]) {
+  if (typeof suggested === 'string' && options.some(option => option.id === suggested)) return suggested;
+  const context = `${product.titulo || ''} ${product.descricao || ''} ${product.age_range || ''}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const ranked = options.map(option => {
+    const terms = option.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(term => term.length > 3);
+    return { id: option.id, score: terms.filter(term => context.includes(term)).length };
+  }).sort((a, b) => b.score - a.score);
+  if (ranked[0]?.score) return ranked[0].id;
+  return options.find(option => fallbackTerms.some(term => option.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(term)))?.id || options[0]?.id || '';
+}
+
 export async function POST(request: Request) {
   const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
@@ -108,7 +121,7 @@ export async function POST(request: Request) {
   const [{ data: store }, { data: secret }, { data: products, error: productsError }, { data: categories }, { data: educationLevels }] = await Promise.all([
     supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle(),
     supabaseAdmin.from('store_secrets').select('google_ai_key, openrouter_ai_key, ai_provider').eq('store_id', storeId).maybeSingle(),
-    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr').eq('store_id', storeId).neq('status', 'excluido').is('excluido_em', null).order('id').limit(30),
+    supabaseAdmin.from('products').select('id, titulo, descricao, capa_url, category_id, education_level_id, tags, seasonal_tags, slug, is_plr, age_range, format_details').eq('store_id', storeId).neq('status', 'excluido').is('excluido_em', null).order('id').limit(30),
     supabaseAdmin.from('categories').select('id, nome').or(`store_id.is.null,store_id.eq.${storeId}`).order('nome'),
     supabaseAdmin.from('education_levels').select('id, nome').order('ordem'),
   ]);
@@ -133,9 +146,11 @@ export async function POST(request: Request) {
     descricao: (product.descricao || '').slice(0, 350),
     tags: product.tags || [],
     temas: product.seasonal_tags || [],
+    faixa_indicada: product.age_range || '',
+    formato: product.format_details || '',
     problemas_identificados: issues,
   }));
-  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Todo título sugerido deve ter entre 30 e 65 caracteres e toda descrição deve ter pelo menos 120 caracteres. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo. Escolha categoryId e educationLevelId exclusivamente entre os IDs das listas fornecidas.\n\nCategorias permitidas: ${JSON.stringify(categories || [])}\nNíveis de ensino permitidos: ${JSON.stringify(educationLevels || [])}\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido entre 30 e 65 caracteres","description":"descrição de venda pronta, com parágrafos e quebras reais e pelo menos 120 caracteres","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"categoryId":"ID exato da categoria","educationLevelId":"ID exato do nível de ensino","suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
+  const prompt = `Você é uma consultora de SEO para materiais didáticos. Analise os produtos abaixo e responda em português do Brasil. Para cada item, dê recomendações úteis, fiéis ao conteúdo existente e sem inventar recursos. Não use markdown. Todo título sugerido deve ter entre 30 e 65 caracteres e toda descrição deve ter pelo menos 120 caracteres. Se o material não tiver tags, crie de 5 a 10 tags específicas que ajudem nas buscas. Se não tiver temas, escolha pelo menos um tema pedagógico compatível com o conteúdo. Escolha categoryId e educationLevelId exclusivamente entre os IDs das listas fornecidas. Você pode otimizar metadados editoriais e pedagógicos, mas nunca preço, link público, arquivo/conteúdo entregue ou quantidade de páginas.\n\nCategorias permitidas: ${JSON.stringify(categories || [])}\nNíveis de ensino permitidos: ${JSON.stringify(educationLevels || [])}\nProdutos: ${JSON.stringify(compactProducts)}\n\nResponda SOMENTE JSON válido neste formato: {"summary":"resumo curto da oportunidade da loja","products":[{"id":"id do produto","issues":["até 3 problemas concretos"],"quickWins":["até 3 ações práticas"],"recommendedTitle":"título sugerido entre 30 e 65 caracteres","description":"descrição de venda pronta, com parágrafos e quebras reais e pelo menos 120 caracteres","tags":["5 a 10 tags de busca; nunca datas comemorativas"],"themes":["somente temas pedagógicos e datas, se já forem pertinentes"],"categoryId":"ID exato da categoria","educationLevelId":"ID exato do nível de ensino","ageRange":"anos ou faixa escolar indicada","formatDetails":"formato e modo de uso sem inventar dados","suggestedCaption":"legenda curta e pronta para divulgar o material","metaDescription":"meta descrição sugerida com até 155 caracteres","keywords":["5 a 8 palavras-chave"]}]}.`;
 
   let generated = '';
   let usedSavedSuggestions = false;
@@ -159,8 +174,6 @@ export async function POST(request: Request) {
     }
   }
 
-  const allowedCategoryIds = new Set((categories || []).map(category => category.id));
-  const allowedEducationLevelIds = new Set((educationLevels || []).map(level => level.id));
   const items = reviews.map(({ product, score, issues }) => {
     const suggestion = suggestions.get(product.id);
     return {
@@ -174,12 +187,10 @@ export async function POST(request: Request) {
       description: typeof suggestion?.description === 'string' && suggestion.description.replace(/\*\*/g, '').trim().length >= 120 ? suggestion.description.replace(/\*\*/g, '').trim() : fallbackDescription(product),
       tags: textList(suggestion?.tags).length ? textList(suggestion?.tags) : product.tags?.length ? product.tags : fallbackTags(product),
       themes: textList(suggestion?.themes).length ? textList(suggestion?.themes) : product.seasonal_tags?.length ? product.seasonal_tags : fallbackThemes(product),
-      categoryId: typeof suggestion?.categoryId === 'string' && allowedCategoryIds.has(suggestion.categoryId)
-        ? suggestion.categoryId
-        : product.category_id || '',
-      educationLevelId: typeof suggestion?.educationLevelId === 'string' && allowedEducationLevelIds.has(suggestion.educationLevelId)
-        ? suggestion.educationLevelId
-        : product.education_level_id || '',
+      categoryId: product.category_id || inferredClassificationId(categories || [], product, suggestion?.categoryId, ['outros']),
+      educationLevelId: product.education_level_id || inferredClassificationId(educationLevels || [], product, suggestion?.educationLevelId, ['fundamental i', 'educacao infantil']),
+      ageRange: typeof suggestion?.ageRange === 'string' && suggestion.ageRange.trim() ? suggestion.ageRange.trim().slice(0, 120) : product.age_range || '',
+      formatDetails: typeof suggestion?.formatDetails === 'string' && suggestion.formatDetails.trim() ? suggestion.formatDetails.trim().slice(0, 180) : product.format_details || '',
       metaDescription: typeof suggestion?.metaDescription === 'string' ? suggestion.metaDescription.replace(/\*\*/g, '').trim() : '',
       keywords: textList(suggestion?.keywords),
       coverUrl: product.capa_url,
