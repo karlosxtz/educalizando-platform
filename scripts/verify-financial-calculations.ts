@@ -42,6 +42,14 @@ assert.equal(getPaymentProcessingFeePercentage('credit_card', 12), 18.79);
 assert.equal(getTotalFeePercentage('credit_card', 12), 31.79);
 assert.equal(calculatePlatformFee(1, 'credit_card'), 0.13);
 assert.equal(calculatePaymentProcessingFee(100, 'credit_card', 12), 18.79);
+const tenReaisInFiveInstallments = calculateOrderFinancials([
+  { productId: 'product-1', storeId: 'store-1', unitPrice: 10, quantity: 1 }
+], calculatePaymentProcessingFee(10, 'credit_card', 5), settings, 0, 'credit_card');
+assert.deepEqual(
+  [tenReaisInFiveInstallments.platformPercentageFeeAmount, tenReaisInFiveInstallments.asaasFeeAmount, tenReaisInFiveInstallments.creatorNetAmount],
+  [1.3, 1.38, 7.32],
+  'R$ 10,00 em 5x deve calcular 13% e 13,79% separadamente sobre os R$ 10,00 brutos'
+);
 assert.deepEqual(exclusiveFinancials(100, 'pix'), { grossAmount: 100, platformFeePercentage: 13, platformFeeAmount: 13, paymentProcessingFeePercentage: 0, paymentProcessingFeeAmount: 0, totalFeePercentage: 13, creatorNetAmount: 87 });
 assert.deepEqual(exclusiveFinancials(100, 'credit_card', 1), { grossAmount: 100, platformFeePercentage: 13, platformFeeAmount: 13, paymentProcessingFeePercentage: 5.99, paymentProcessingFeeAmount: 5.99, totalFeePercentage: 18.99, creatorNetAmount: 81.01 });
 
