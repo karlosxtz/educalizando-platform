@@ -17,6 +17,8 @@ import { ProductType, Category, EducationLevel, Store, Product, BnccSkill } from
 import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import LimitedMultiSelect from '@/components/ui/LimitedMultiSelect';
+import TagInput from '@/components/ui/TagInput';
+import { normalizeProductTags } from '@/lib/product-tags';
 import { getPublicProductsByStoreId } from '@/lib/store-service';
 import { toast } from 'sonner';
 import { getSchoolCalendarTagsForMonth, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
@@ -61,7 +63,9 @@ function ProductWizardContent() {
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [educationLevelIds, setEducationLevelIds] = useState<string[]>([]);
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
-  const [productTags, setProductTags] = useState('');
+  const [productTags, setProductTags] = useState<string[]>([]);
+  const [aiConfigured, setAiConfigured] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [isSeasonalPickerOpen, setIsSeasonalPickerOpen] = useState(false);
   const [seasonalTagSearch, setSeasonalTagSearch] = useState('');
   const seasonalSuggestions = useMemo(() => getSchoolCalendarTagsForMonth(), []);
@@ -102,16 +106,21 @@ function ProductWizardContent() {
           );
         }
 
-        const [cats, edLevels, storeProducts, bnccList] = await Promise.all([
+        const [cats, edLevels, storeProducts, bnccList, aiSettingsResponse] = await Promise.all([
           getCategories(currentStore.id),
           getEducationLevels(),
           getPublicProductsByStoreId(currentStore.id),
-          getBnccSkills()
+          getBnccSkills(),
+          fetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
         ]);
         setCategories(cats);
         setEducationLevels(edLevels);
         setAvailableProducts(storeProducts);
         setBnccSkillsMaster(bnccList);
+        if (aiSettingsResponse?.ok) {
+          const aiSettings = await aiSettingsResponse.json().catch(() => null);
+          setAiConfigured(Boolean(aiSettings?.configured));
+        }
 
         if (editId) {
           const existing = await getProductById(editId);
@@ -153,7 +162,7 @@ function ProductWizardContent() {
             setCategoryIds((existing.category_ids?.length ? existing.category_ids : existing.category_id ? [existing.category_id] : []).slice(0, 5));
             setEducationLevelIds((existing.education_level_ids?.length ? existing.education_level_ids : existing.education_level_id ? [existing.education_level_id] : []).slice(0, 5));
             setSeasonalTags(existing.seasonal_tags || []);
-            setProductTags((existing.tags || []).join(', '));
+            setProductTags(normalizeProductTags(existing.tags || []));
             setIsFree(existing.is_free || false);
             setIsPlr(existing.is_plr || false);
             setPlrDescricao(existing.plr_descricao || '');
@@ -196,6 +205,7 @@ function ProductWizardContent() {
             setPreviewUrl(source.previewUrl || '');
             setInstagramVideoUrl(source.instagramVideoUrl || '');
             setSeasonalTags(Array.isArray(source.seasonalTags) ? source.seasonalTags : []);
+            setProductTags(normalizeProductTags(Array.isArray(source.tags) ? source.tags : []));
             setTipo(source.tipo || 'pdf');
             setCategoryIds(Array.isArray(source.categoryIds) ? source.categoryIds.slice(0, 5) : source.categoryId ? [source.categoryId] : []);
             setEducationLevelIds(Array.isArray(source.educationLevelIds) ? source.educationLevelIds.slice(0, 5) : source.educationLevelId ? [source.educationLevelId] : []);
@@ -210,7 +220,7 @@ function ProductWizardContent() {
           if (savedDraft) {
             try {
               const draft = JSON.parse(savedDraft);
-              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryIds(Array.isArray(draft.categoryIds) ? draft.categoryIds.slice(0, 5) : draft.categoryId ? [draft.categoryId] : []); setEducationLevelIds(Array.isArray(draft.educationLevelIds) ? draft.educationLevelIds.slice(0, 5) : draft.educationLevelId ? [draft.educationLevelId] : []); setSeasonalTags(draft.seasonalTags || []); setProductTags(draft.productTags || ''); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
+              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryIds(Array.isArray(draft.categoryIds) ? draft.categoryIds.slice(0, 5) : draft.categoryId ? [draft.categoryId] : []); setEducationLevelIds(Array.isArray(draft.educationLevelIds) ? draft.educationLevelIds.slice(0, 5) : draft.educationLevelId ? [draft.educationLevelId] : []); setSeasonalTags(draft.seasonalTags || []); setProductTags(normalizeProductTags(Array.isArray(draft.productTags) ? draft.productTags : typeof draft.productTags === 'string' ? [draft.productTags] : [])); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
             } catch { localStorage.removeItem('educalizando_product_draft_v1'); }
           }
           if (suggestedTheme && SCHOOL_CALENDAR_TAGS.includes(suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number])) setSeasonalTags([suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number]]);
@@ -256,69 +266,42 @@ function ProductWizardContent() {
       toast.error('Loja não configurada.');
       return;
     }
-    if (!titulo || titulo.length < 10) {
-      toast.error('Digite pelo menos 10 caracteres no título para que a IA possa gerar o material.');
+    if (!aiConfigured) {
+      toast.error('Conecte sua API na área de IA antes de usar o preenchimento automático.');
+      return;
+    }
+    if (titulo.trim().length < 4) {
+      toast.error('Digite um título com pelo menos 4 caracteres para a IA identificar o material.');
       return;
     }
 
-    const loadingToast = toast.loading('A IA está gerando o material mágico...');
+    setAiGenerating(true);
+    const loadingToast = toast.loading('A IA está identificando e preenchendo o material...');
     try {
-      const res = await fetch('/api/ai/optimize', {
+      const res = await fetch('/api/ai/product-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          titulo,
-          storeId: store.id
-        })
+        body: JSON.stringify({ title: titulo, storeId: store.id }),
       });
-
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Erro ao otimizar com IA.');
+        throw new Error(data.error || 'Não foi possível preencher o cadastro com IA.');
       }
-
-      if (!res.body) throw new Error('Falha ao iniciar leitura de stream.');
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let streamedText = '';
-
-      setTitulo('');
-      setDescricao('');
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6);
-            if (dataStr === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(dataStr);
-              const textPart = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
-              streamedText += textPart;
-              
-              // Extração progressiva com Regex
-              const titleMatch = streamedText.match(/\[TITULO\]([\s\S]*?)(\[DESCRICAO\]|$)/);
-              const descMatch = streamedText.match(/\[DESCRICAO\]([\s\S]*)/);
-              
-              if (titleMatch) setTitulo(titleMatch[1].trimStart());
-              if (descMatch) setDescricao(descMatch[1].trimStart());
-              
-            } catch (e) {
-              // ignore partial JSON parse errors
-            }
-          }
-        }
-      }
-      
-      toast.success(`Material gerado com sucesso!`, { id: loadingToast });
+      const draft = data.draft || {};
+      if (draft.title) setTitulo(draft.title);
+      if (draft.description) setDescricao(draft.description);
+      if (Array.isArray(draft.tags)) setProductTags(normalizeProductTags(draft.tags));
+      if (Array.isArray(draft.categoryIds)) setCategoryIds(draft.categoryIds.slice(0, 5));
+      if (Array.isArray(draft.educationLevelIds)) setEducationLevelIds(draft.educationLevelIds.slice(0, 5));
+      if (Array.isArray(draft.seasonalTags)) setSeasonalTags(draft.seasonalTags);
+      if (draft.type) setTipo(draft.type as ProductType);
+      if (draft.ageRange) setAgeRange(draft.ageRange);
+      if (draft.formatDetails) setFormatDetails(draft.formatDetails);
+      toast.success('Cadastro preenchido pela IA. Revise as sugestões antes de publicar.', { id: loadingToast });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Não foi possível gerar o material agora.', { id: loadingToast });
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -433,7 +416,7 @@ function ProductWizardContent() {
           education_level_id: educationLevelIds[0] || null,
           education_level_ids: educationLevelIds,
           seasonal_tags: seasonalTags,
-          tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
+          tags: productTags,
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -467,7 +450,7 @@ function ProductWizardContent() {
           education_level_id: educationLevelIds[0] || null,
           education_level_ids: educationLevelIds,
           seasonal_tags: seasonalTags,
-          tags: productTags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean),
+          tags: productTags,
           bncc_skill_ids: selectedBnccSkills,
           gallery_urls: galleryUrls,
           is_free: isFree,
@@ -608,9 +591,16 @@ function ProductWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Título do Material Didático *
                     </label>
-                    <button type="button" onClick={handleOptimizeAll} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
-                      <Sparkles className="w-4 h-4"/> Gerar com IA
-                    </button>
+                    {aiConfigured ? (
+                      <button type="button" onClick={handleOptimizeAll} disabled={aiGenerating} className="flex items-center gap-1 text-sm font-bold text-blue-600 transition-colors hover:text-blue-800 disabled:cursor-wait disabled:opacity-60">
+                        {aiGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        {aiGenerating ? 'Identificando...' : 'Preencher cadastro com IA'}
+                      </button>
+                    ) : (
+                      <Link href="/dashboard/ia" className="flex items-center gap-1 text-xs font-bold text-slate-500 transition hover:text-blue-700">
+                        <Sparkles className="h-4 w-4" /> Conectar IA para preencher
+                      </Link>
+                    )}
                   </div>
                   <input
                     type="text"
@@ -715,8 +705,8 @@ function ProductWizardContent() {
 
                 <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
                   <label className="text-xs font-bold uppercase tracking-wider text-violet-900 block">Tags de busca do produto</label>
-                  <p className="mt-1 text-xs text-slate-500">As tags ajudam a alocar seu produto nas consultas do marketplace. Use até 10 tags, cada uma separada por vírgula. Tags não substituem os temas e datas escolares acima.</p>
-                  <input value={productTags} onChange={(event) => setProductTags(event.target.value.split(',').slice(0, 10).join(','))} placeholder="Ex.: alfabetização, sílabas simples, jogo educativo" className="mt-3 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-violet-500" />
+                  <p className="mt-1 text-xs text-slate-500">Digite uma tag e use vírgula, espaço ou Enter para confirmar. Cada tag confirmada ficará destacada abaixo. Use até 10 tags.</p>
+                  <TagInput value={productTags} onChange={setProductTags} maxTags={10} placeholder="Ex.: alfabetização, jardim, exploradores" />
                 </div>
 
                 {isSeasonalPickerOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
