@@ -23,10 +23,17 @@ assert.equal(getFinancialConfiguration(validProduction).checkout.state, 'configu
 assert.doesNotThrow(() => assertCheckoutFinancialConfiguration(validProduction));
 
 expectCheckoutBlocked({ NODE_ENV: 'production' } as NodeJS.ProcessEnv);
-expectCheckoutBlocked({ ...validProduction, INFINITEPAY_HANDLE: '' } as NodeJS.ProcessEnv);
+assert.doesNotThrow(() => assertCheckoutFinancialConfiguration({ ...validProduction, INFINITEPAY_HANDLE: '' } as NodeJS.ProcessEnv));
 expectCheckoutBlocked({ ...validProduction, SERVER_CRYPTO_SECRET: '' } as NodeJS.ProcessEnv);
 expectCheckoutBlocked({ ...validProduction, INFINITEPAY_HANDLE: 'placeholder-handle' } as NodeJS.ProcessEnv);
 expectCheckoutBlocked({ ...validProduction, SERVER_CRYPTO_SECRET: 'default-financial-secret-with-enough-characters' } as NodeJS.ProcessEnv);
+
+const productionWithDerivedCrypto = {
+  NODE_ENV: 'production',
+  SUPABASE_SERVICE_ROLE_KEY: 'eyJserver-only-supabase-service-role-key-with-more-than-32-characters',
+} as NodeJS.ProcessEnv;
+assert.equal(getFinancialConfiguration(productionWithDerivedCrypto).checkout.state, 'configured');
+assert.doesNotThrow(() => assertCheckoutFinancialConfiguration(productionWithDerivedCrypto));
 
 const controlledTestConfiguration = {
   NODE_ENV: 'test',
