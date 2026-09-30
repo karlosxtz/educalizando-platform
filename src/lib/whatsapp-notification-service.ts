@@ -160,9 +160,11 @@ export async function sendEvolutionDocument(phone: unknown, url: string, fileNam
 }
 
 /** Envia uma imagem pública com o texto no mesmo balão como legenda. */
-export async function sendEvolutionImage(phone: unknown, url: string, caption: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
+export async function sendEvolutionImage(phone: unknown, url: string, caption: string, instanceOverride?: string): Promise<{ sent: boolean; reason?: string; error?: string }> {
   if (!/^https:\/\//i.test(url)) return { sent: false, reason: 'invalid_url', error: 'A imagem precisa possuir uma URL HTTPS pública.' };
-  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  const config = evolutionConfig();
+  const { apiKey, baseUrl } = config;
+  const instanceName = instanceOverride || config.instanceName;
   if (!apiKey || !instanceName) return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
 
   try {
