@@ -254,6 +254,15 @@ html {
 .marketplace-store-rail::before { left: 0; background: linear-gradient(90deg, #fff, transparent); }
 .marketplace-store-rail::after { right: 0; background: linear-gradient(270deg, #fff, transparent); }
 
+.marketplace-horizontal-scroll {
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.marketplace-horizontal-scroll::-webkit-scrollbar { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .marketplace-category-track, .marketplace-category-rail, .marketplace-store-track, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon, .home-calendar-filter-dot { animation: none; }
   .marketplace-store-rail { overflow-x: auto; }
