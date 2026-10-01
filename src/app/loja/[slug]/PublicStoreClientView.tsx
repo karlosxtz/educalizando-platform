@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Store, Product, StoreListingProduct, StoreCollection, Category, EducationLevel, Kit, StoreThemeProps } from '@/lib/types';
+import { Store, Product, StoreListingProduct, StoreCollection, Category, EducationLevel, Kit, StoreThemeProps, CreatorClubListing } from '@/lib/types';
 import { getCategories, getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
 
@@ -12,9 +12,10 @@ import ThemeDefault from './themes/ThemeDefault';
 interface PublicStoreClientViewProps {
   store: Store;
   initialProducts: Product[];
+  initialClubs: CreatorClubListing[];
 }
 
-export default function PublicStoreClientView({ store, initialProducts }: PublicStoreClientViewProps) {
+export default function PublicStoreClientView({ store, initialProducts, initialClubs }: PublicStoreClientViewProps) {
   const searchParams = useSearchParams();
   // Products come correctly from the server (SSR) via initialProducts
   // We do NOT re-fetch them client-side because Supabase anon RLS blocks it
@@ -44,27 +45,27 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
   const [selectedCollection, setSelectedCollection] = useState<StoreCollection>('all');
 
   useEffect(() => {
-    loadMetadata();
+    let cancelled = false;
+
+    const loadMetadata = async () => {
+      // Products are already loaded by the server. Only store metadata is fetched here.
+      const [cats, edLevels, storeKits] = await Promise.all([
+        getCategories(store.id),
+        getEducationLevels(),
+        getPublicKitsByStoreId(store.id),
+      ]);
+
+      if (cancelled) return;
+      setCategories(cats);
+      setEducationLevels(edLevels);
+      setKits(storeKits || []);
+    };
+
+    void loadMetadata();
+    return () => {
+      cancelled = true;
+    };
   }, [store.id]);
-
-  useEffect(() => {
-    setSelectedCategory(searchParams.get('category') || 'all');
-  }, [searchParams]);
-
-  const loadMetadata = async () => {
-    // Only fetch metadata (categories, education levels, kits) client-side
-    // Products are already loaded from the server
-    const [cats, edLevels, storeKits] = await Promise.all([
-      getCategories(store.id),
-      getEducationLevels(),
-      getPublicKitsByStoreId(store.id),
-    ]);
-    setCategories(cats);
-    setEducationLevels(edLevels);
-    if (storeKits) {
-      setKits(storeKits);
-    }
-  };
 
 
   const filteredProducts = useMemo(() => {
@@ -114,6 +115,7 @@ export default function PublicStoreClientView({ store, initialProducts }: Public
     categories: storeCategories,
     educationLevels: storeEducationLevels,
     kits,
+    clubs: initialClubs,
     selectedCategory,
     setSelectedCategory,
     selectedEducation,

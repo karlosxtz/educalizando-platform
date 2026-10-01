@@ -7,6 +7,7 @@ import {
 import PublicStoreClientView from './PublicStoreClientView';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
+import { getPublicCreatorClubsByStoreId } from '@/lib/creator-club-service';
 
 // Forçar renderização dinâmica em tempo real no Next.js App Router
 export const dynamic = 'force-dynamic';
@@ -71,6 +72,7 @@ export default async function PublicStorePage({ params }: PageProps) {
     const hasPlrOffer = product.is_plr === true && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery === true;
     return hasStandardOffer || hasPlrOffer;
   });
+  const clubs = await getPublicCreatorClubsByStoreId(store.id);
 
   console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 
@@ -103,7 +105,7 @@ export default async function PublicStorePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <PublicStoreClientView store={store} initialProducts={products} />
+      <PublicStoreClientView store={store} initialProducts={products} initialClubs={clubs} />
       <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
     </>
   );

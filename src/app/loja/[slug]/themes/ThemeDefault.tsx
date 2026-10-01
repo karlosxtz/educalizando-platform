@@ -7,7 +7,7 @@ import {
   ShieldCheck, Zap, FileText, Video, BookOpen, 
   Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
   MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
-  Globe, FilePenLine
+  Globe, FilePenLine, Crown, ArrowRight
 } from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
@@ -68,6 +68,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
     categories, 
     educationLevels, 
     kits,
+    clubs,
     selectedCategory, 
     setSelectedCategory, 
     selectedEducation, 
@@ -412,6 +413,21 @@ export default function ThemeDefault(props: StoreThemeProps) {
           </section>
         )}
         
+        {clubs.length > 0 && (
+          <section className="space-y-5">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+              <div><p className="text-xs font-black uppercase tracking-[.18em]" style={{ color: primaryColor }}>Assinaturas da loja</p><h2 className="mt-1 flex items-center gap-2 text-2xl font-black text-slate-950"><Crown className="h-6 w-6" style={{ color: primaryColor }} />Clubes do Criador</h2><p className="mt-1 text-sm text-slate-500">Assine por 30 dias e acesse todos os materiais incluídos no clube escolhido.</p></div>
+              <Link href="/cliente/clubes" className="text-sm font-black" style={{ color: primaryColor }}>Meus Clubes →</Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {clubs.map((club) => <Link key={club.id} href={`/clube/${club.slug}`} className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                {club.cover_url ? <img src={club.cover_url} alt={club.name} className="aspect-[16/8] w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex aspect-[16/8] items-center justify-center text-white" style={{ background: `linear-gradient(135deg,${primaryColor},#6d28d9)` }}><Crown className="h-12 w-12" /></div>}
+                <div className="p-5"><h3 className="text-xl font-black text-slate-950">{club.name}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{club.description}</p><div className="mt-4 flex items-end justify-between gap-3"><div><p className="text-xs font-bold text-slate-500">{club.material_count} materiais incluídos</p><p className="mt-1 text-xl font-black" style={{ color: primaryColor }}>{Number(club.monthly_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}<span className="text-xs text-slate-500"> / 30 dias</span></p></div><span className="flex h-10 w-10 items-center justify-center rounded-full text-white" style={{ backgroundColor: primaryColor }}><ArrowRight className="h-5 w-5" /></span></div></div>
+              </Link>)}
+            </div>
+          </section>
+        )}
+
         {/* Kits & Combos Section */}
         {kits.length > 0 && (
           <section className="space-y-4">

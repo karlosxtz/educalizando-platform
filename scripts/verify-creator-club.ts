@@ -19,4 +19,15 @@ assert.match(webhook, /status: 'active'[\s\S]+expires_at/, 'O webhook deve ativa
 const download = readFileSync('src/app/api/aluno/materiais/[productId]/download/route.ts', 'utf8');
 assert.match(download, /creator_club_subscriptions[\s\S]+\.eq\('status', 'active'\)[\s\S]+\.gt\('expires_at'/, 'O download deve exigir assinatura ativa e não expirada.');
 
+const manager = readFileSync('src/app/api/creator-clubs/route.ts', 'utf8');
+assert.match(manager, /\.from\('creator_clubs'\)\.insert\(payload\)/, 'O criador deve conseguir cadastrar novos clubes sem substituir os anteriores.');
+assert.match(manager, /export async function DELETE[\s\S]+status: 'archived'/, 'Clubes com vendas devem ser arquivados para preservar o histórico.');
+assert.match(manager, /paid_sales_count/, 'A gestão deve informar vendas antes da exclusão ou do arquivamento.');
+
+const multiClubMigration = readFileSync('supabase/migrations/20261001_allow_multiple_creator_clubs.sql', 'utf8');
+assert.match(multiClubMigration, /drop constraint if exists creator_clubs_store_id_key/, 'A migration deve remover a limitação de um clube por loja.');
+
+const storefront = readFileSync('src/app/loja/[slug]/themes/ThemeDefault.tsx', 'utf8');
+assert.match(storefront, /Clubes do Criador[\s\S]+`\/clube\/\$\{club\.slug\}`/, 'A loja pública deve listar os clubes e abrir a página detalhada correspondente.');
+
 console.log('Fluxo do Clube do Criador verificado com sucesso.');

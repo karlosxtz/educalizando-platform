@@ -303,6 +303,7 @@ export interface StoreThemeProps {
   categories: Category[];
   educationLevels: EducationLevel[];
   kits: Kit[];
+  clubs: CreatorClubListing[];
   selectedCategory: string;
   setSelectedCategory: (id: string) => void;
   selectedEducation: string;
@@ -311,6 +312,16 @@ export interface StoreThemeProps {
   setSearchFilter: (term: string) => void;
   selectedCollection: StoreCollection;
   setSelectedCollection: (collection: StoreCollection) => void;
+}
+
+export interface CreatorClubListing {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  cover_url?: string | null;
+  monthly_price: number;
+  material_count: number;
 }
 
 export interface BnccSkill {

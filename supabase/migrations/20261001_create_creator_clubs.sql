@@ -1,7 +1,7 @@
 -- Clube do Criador: assinatura mensal independente do preço dos produtos.
 create table if not exists public.creator_clubs (
   id uuid primary key default gen_random_uuid(),
-  store_id uuid not null unique references public.stores(id) on delete cascade,
+  store_id uuid not null references public.stores(id) on delete cascade,
   creator_id uuid not null references auth.users(id) on delete cascade,
   name text not null check (char_length(name) between 3 and 100),
   slug text not null unique check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
@@ -55,6 +55,7 @@ create table if not exists public.creator_club_payments (
 );
 
 create index if not exists creator_club_materials_product_idx on public.creator_club_materials(product_id);
+create index if not exists creator_clubs_store_status_idx on public.creator_clubs(store_id, status, created_at desc);
 create index if not exists creator_club_subscriptions_student_idx on public.creator_club_subscriptions(student_id, status, expires_at);
 create index if not exists creator_club_subscriptions_club_idx on public.creator_club_subscriptions(club_id, status);
 create index if not exists creator_club_payments_store_idx on public.creator_club_payments(store_id, status, paid_at);
