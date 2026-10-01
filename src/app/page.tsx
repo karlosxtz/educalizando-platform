@@ -6,7 +6,7 @@ import HomepageMarketplace from '@/components/HomepageMarketplace';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getActiveBanners } from '@/lib/banners-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
-import { getAllPublicMarketplaceProducts, getTopMarketplaceStores } from '@/lib/store-service';
+import { getAllPublicMarketplaceProducts, getAllPublicStores } from '@/lib/store-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
 import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
@@ -33,7 +33,7 @@ export default async function Home() {
   const [products, banners, stores, kits] = await Promise.all([
     loadPublicSection('produtos', () => getAllPublicMarketplaceProducts(100)),
     loadPublicSection('banners', getActiveBanners),
-    loadPublicSection('lojas', () => getTopMarketplaceStores(12)),
+    loadPublicSection('lojas', getAllPublicStores),
     loadPublicSection('kits', () => getPublicMarketplaceKits(8)),
   ]);
 

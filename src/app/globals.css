@@ -180,6 +180,11 @@ html {
   50% { filter: saturate(1.2) brightness(1.03); opacity: 1; }
 }
 
+@keyframes marketplace-store-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
 @keyframes home-calendar-float {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg); }
   50% { transform: translate3d(0, -12px, 0) rotate(4deg); }
@@ -224,8 +229,35 @@ html {
 .marketplace-category-rail::after { right: 0; background: linear-gradient(270deg, #fff, transparent); }
 .marketplace-category-rail { animation: marketplace-category-glow 3.2s ease-in-out infinite; }
 
+.marketplace-store-track {
+  min-width: max-content;
+  will-change: transform;
+  animation: marketplace-store-scroll 52s linear infinite;
+}
+
+.marketplace-store-rail:hover .marketplace-store-track,
+.marketplace-store-rail:focus-within .marketplace-store-track,
+.marketplace-store-rail:active .marketplace-store-track {
+  animation-play-state: paused;
+}
+
+.marketplace-store-rail::before,
+.marketplace-store-rail::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  z-index: 2;
+  width: clamp(12px, 4vw, 56px);
+  pointer-events: none;
+}
+
+.marketplace-store-rail::before { left: 0; background: linear-gradient(90deg, #fff, transparent); }
+.marketplace-store-rail::after { right: 0; background: linear-gradient(270deg, #fff, transparent); }
+
 @media (prefers-reduced-motion: reduce) {
-  .marketplace-category-track, .marketplace-category-rail, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon, .home-calendar-filter-dot { animation: none; }
+  .marketplace-category-track, .marketplace-category-rail, .marketplace-store-track, .home-calendar-float, .home-calendar-float-delayed, .home-calendar-sparkle, .home-calendar-sparkle-delayed, .home-calendar-chip-icon, .home-calendar-filter-dot { animation: none; }
+  .marketplace-store-rail { overflow-x: auto; }
+  .marketplace-store-copy { display: none; }
 }
 /* Transição leve da arte; ativada apenas quando o visitante permite movimento. */
 @keyframes campaign-reveal {
