@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { GraduationCap, LogOut, BookOpen, FilePenLine } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, FilePenLine, Crown } from 'lucide-react';
 import { signOutStudent } from '@/lib/student-service';
 
 interface StudentHeaderProps {
@@ -59,6 +58,9 @@ export default function StudentHeader({
           </Link>
           <Link href="/cliente/materiais-exclusivos" className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden md:flex items-center gap-1.5">
             <FilePenLine className="w-4 h-4 text-violet-600" /><span>Materiais exclusivos</span>
+          </Link>
+          <Link href="/cliente/clubes" className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden md:flex items-center gap-1.5">
+            <Crown className="w-4 h-4 text-blue-700" /><span>Meus Clubes</span>
           </Link>
           <Link
             href="/cliente/conta"

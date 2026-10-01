@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { 
   LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
-  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Flame, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined, MonitorDown
+  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Flame, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined, MonitorDown, Crown
 } from 'lucide-react';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
@@ -90,6 +90,12 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       label: 'Materiais Exclusivos',
       href: '/dashboard/materiais-exclusivos',
       icon: MessagesSquare,
+      badge: 'NOVO'
+    },
+    {
+      label: 'Clube do Criador',
+      href: '/dashboard/clube',
+      icon: Crown,
       badge: 'NOVO'
     },
     {
@@ -188,7 +194,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
   const NAV_GROUPS = [
     { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
-    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
+    { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
     { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },

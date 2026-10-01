@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
 import { notifyExclusivePaymentConfirmed } from '@/lib/exclusive-material-notification-service';
 import { exclusiveFinancials } from '@/lib/exclusive-material';
+import { CREATOR_CLUB_DURATION_DAYS, creatorClubFinancials } from '@/lib/creator-club';
 import { getPaymentProcessingFeePercentage, getPlatformFeePercentage, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 import {
   assertConfirmedInfinitePayPayment,
@@ -50,6 +51,32 @@ async function creditExclusiveMaterialCreator(exclusivePayment: ExclusivePayment
   if (error && error.code !== '23505') throw error;
 }
 
+type ClubPaymentCredit = { id: string; store_id: string; creator_id: string; club?: { name?: string } | Array<{ name?: string }> | null };
+
+function isMissingClubSchema(error: { code?: string } | null) {
+  return Boolean(error && ['42P01', 'PGRST205'].includes(String(error.code || '')));
+}
+
+async function creditClubCreator(payment: ClubPaymentCredit, financials: ReturnType<typeof creatorClubFinancials>) {
+  const { error } = await supabaseAdmin.from('wallet_transactions').insert({
+    id: `club_${payment.id}`,
+    store_id: payment.store_id,
+    creator_id: payment.creator_id,
+    order_id: null,
+    type: 'SALE',
+    status: 'COMPLETED',
+    gross_amount: financials.grossAmount,
+    platform_fixed_fee_amount: 0,
+    platform_percentage_fee_amount: financials.platformFeeAmount,
+    platform_fee_amount: financials.platformFeeAmount,
+    asaas_fee_amount: 0,
+    net_amount: financials.creatorNetAmount,
+    description: `Clube do Criador: ${(Array.isArray(payment.club) ? payment.club[0]?.name : payment.club?.name) || 'assinatura de 30 dias'} — repasse líquido após 13% da plataforma.`,
+    created_at: new Date().toISOString(),
+  });
+  if (error && error.code !== '23505') throw error;
+}
+
 export async function POST(request: Request) {
   const contentLength = Number(request.headers.get('content-length') || '0');
   if (Number.isFinite(contentLength) && contentLength > MAX_INFINITEPAY_WEBHOOK_BYTES) {
@@ -92,6 +119,47 @@ export async function POST(request: Request) {
       if (activationError) throw activationError;
       if (!activatedSubscription) return webhookError(409, 'Evento incompatível com o estado atual.');
       console.info('[InfinitePay Webhook] Evento do módulo processado.');
+      return NextResponse.json({ success: true, message: null });
+    }
+
+    const { data: clubPayment, error: clubPaymentError } = await supabaseAdmin
+      .from('creator_club_payments')
+      .select('*, club:creator_clubs(name)')
+      .eq('order_nsu', payload.orderNsu)
+      .maybeSingle();
+    // Mantém os pagamentos existentes funcionando durante a janela entre o
+    // deploy do código e a aplicação da migration do Clube do Criador.
+    if (clubPaymentError && !isMissingClubSchema(clubPaymentError)) throw clubPaymentError;
+    if (clubPayment) {
+      if (clubPayment.status === 'paid') {
+        if (clubPayment.transaction_nsu !== payload.transactionNsu) return webhookError(409, 'Evento incompatível com o estado atual.');
+        const replayFinancials = creatorClubFinancials(Number(clubPayment.gross_amount), normalizePlatformPaymentMethod(clubPayment.payment_method), clubPayment.installments || 1);
+        await creditClubCreator(clubPayment, replayFinancials);
+        return NextResponse.json({ success: true, message: null });
+      }
+      const confirmed = await checkInfinitePayPayment({ orderNsu: payload.orderNsu, transactionNsu: payload.transactionNsu, slug: payload.invoiceSlug });
+      assertConfirmedInfinitePayPayment(payload, confirmed, Math.round(Number(clubPayment.gross_amount) * 100));
+      const paymentMethod = normalizePlatformPaymentMethod(confirmed.captureMethod || payload.captureMethod);
+      const installments = confirmed.installments ?? payload.installments ?? 1;
+      const financials = creatorClubFinancials(Number(clubPayment.gross_amount), paymentMethod, installments);
+      const { data: markedPaid, error: markError } = await supabaseAdmin.from('creator_club_payments').update({
+        status: 'paid', transaction_nsu: payload.transactionNsu, invoice_slug: payload.invoiceSlug,
+        payment_method: paymentMethod, installments, platform_fee_amount: financials.platformFeeAmount,
+        creator_net_amount: financials.creatorNetAmount, paid_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }).eq('id', clubPayment.id).eq('status', 'pending').select('id').maybeSingle();
+      if (markError) throw markError;
+      if (!markedPaid) return webhookError(409, 'Evento incompatível com o estado atual.');
+
+      const { data: currentSubscription } = await supabaseAdmin.from('creator_club_subscriptions').select('expires_at').eq('club_id', clubPayment.club_id).eq('student_id', clubPayment.student_id).eq('status', 'active').gt('expires_at', new Date().toISOString()).order('expires_at', { ascending: false }).limit(1).maybeSingle();
+      const startsAt = new Date();
+      const expiresAt = currentSubscription?.expires_at ? new Date(currentSubscription.expires_at) : new Date(startsAt);
+      expiresAt.setDate(expiresAt.getDate() + CREATOR_CLUB_DURATION_DAYS);
+      const { error: activationError } = await supabaseAdmin.from('creator_club_subscriptions').update({
+        status: 'active', starts_at: startsAt.toISOString(), expires_at: expiresAt.toISOString(), updated_at: startsAt.toISOString(),
+      }).eq('id', clubPayment.subscription_id).eq('status', 'pending');
+      if (activationError) throw activationError;
+      await creditClubCreator(clubPayment, financials);
+      console.info(`[InfinitePay Webhook] Clube ativado por ${CREATOR_CLUB_DURATION_DAYS} dias.`);
       return NextResponse.json({ success: true, message: null });
     }
 

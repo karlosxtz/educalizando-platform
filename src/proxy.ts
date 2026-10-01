@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone(); url.pathname = '/login'; return NextResponse.redirect(url)
   }
 
-  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais']
+  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais', '/cliente/clubes']
   if (privateClientRoutes.some((route) => pathname.startsWith(route)) && !user) {
     const url = request.nextUrl.clone(); url.pathname = '/cliente/login'; return NextResponse.redirect(url)
   }
@@ -52,7 +52,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*', '/api/admin/:path*', '/dashboard/:path*', '/painel/:path*',
-    '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*',
+    '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*',
     '/api/produtos/:path*', '/api/financeiro/:path*', '/api/aluno/materiais/:path*',
   ],
 }

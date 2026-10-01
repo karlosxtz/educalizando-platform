@@ -91,6 +91,36 @@ export async function GET(
     // always create a student_product_access row. Confirm the paid order and
     // its line item as a fallback, while keeping the product-level check.
     let accessOrderId = access?.order_id || null;
+    let clubAccess: { id: string; club_id: string; store_id: string } | null = null;
+    if (!accessOrderId && requestedType !== 'plr') {
+      const { data: clubLinks } = await supabaseAdmin
+        .from('creator_club_materials')
+        .select('club_id')
+        .eq('product_id', productId);
+      const clubIds = (clubLinks || []).map((item) => item.club_id);
+      if (clubIds.length) {
+        const { data: subscription } = await supabaseAdmin
+          .from('creator_club_subscriptions')
+          .select('id,club_id,store_id')
+          .eq('student_id', studentId)
+          .eq('status', 'active')
+          .gt('expires_at', new Date().toISOString())
+          .in('club_id', clubIds)
+          .order('expires_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        clubAccess = subscription;
+        if (subscription) {
+          licenseData.orderId = `clube-${subscription.id}`;
+          const { data: clubStore } = await supabaseAdmin.from('stores').select('nome_loja,creator_id').eq('id', subscription.store_id).maybeSingle();
+          if (clubStore) {
+            licenseData.storeName = clubStore.nome_loja || licenseData.storeName;
+            const creator = await supabaseAdmin.auth.admin.getUserById(clubStore.creator_id);
+            licenseData.sellerEmail = creator.data.user?.email || licenseData.sellerEmail;
+          }
+        }
+      }
+    }
     if (!accessOrderId || requestedType === 'plr') {
       const { data: plrOrders } = await supabaseAdmin
         .from('orders')
@@ -110,7 +140,7 @@ export async function GET(
         if (plrOrderId) accessOrderId = plrOrderId;
       }
     }
-    if (!access && !accessOrderId) {
+    if (!access && !accessOrderId && !clubAccess) {
       console.warn(`[Download API] Acesso pendente de confirmação para produto ${productId}`);
       return NextResponse.json({ error: 'Você não possui acesso a este material.' }, { status: 403 });
     }
@@ -325,7 +355,7 @@ export async function GET(
       { error: 'Arquivo original não encontrado ou não cadastrado pelo criador.' },
       { status: 404 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Download API] Exceção fatal:', err);
     return NextResponse.json({ error: 'Erro interno ao processar o download' }, { status: 500 });
   }
