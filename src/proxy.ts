@@ -3,8 +3,12 @@ import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.supabase.co'
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Proxy] Configuração do Supabase ausente em rota protegida.')
+    return NextResponse.json({ error: 'Serviço temporariamente indisponível.' }, { status: 503 })
+  }
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() { return request.cookies.getAll() },

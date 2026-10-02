@@ -8,8 +8,11 @@ export async function POST(request: Request) {
     const { access_token, refresh_token, event } = body;
 
     const cookieStore = await cookies();
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xyzcompany.supabase.co';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: 'Autenticação temporariamente indisponível.' }, { status: 503 });
+    }
 
     const response = NextResponse.json({ success: true });
 
