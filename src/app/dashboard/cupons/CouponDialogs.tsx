@@ -50,7 +50,7 @@ export default function CouponDialogs(state: any) {
               )}
 
               <form onSubmit={handleSaveCoupon} className="space-y-5">
-                
+
                 {/* Coupon Code Input */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 block">

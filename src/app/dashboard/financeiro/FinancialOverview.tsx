@@ -11,7 +11,7 @@ export default function FinancialOverview(state: any) {
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-8 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60 pointer-events-none"></div>
-        
+
         <div className="relative z-10 space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-wide">
             <Sparkles className="w-3.5 h-3.5" /> Transparência Total
@@ -181,7 +181,7 @@ export default function FinancialOverview(state: any) {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {withdrawals.map((wtd: WithdrawalRecord) => (
-                  <tr 
+                  <tr
                     key={wtd.id}
                     onClick={() => setSelectedWithdrawal(wtd)}
                     className="hover:bg-slate-50 transition-colors cursor-pointer"

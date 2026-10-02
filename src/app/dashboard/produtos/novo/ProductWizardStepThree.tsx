@@ -49,7 +49,7 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
                 </div>
 
                 <div className="pt-2">
-                  <div 
+                  <div
                     onClick={() => {
                       setIsFree(!isFree);
                       if (!isFree) setPreco('0,00');
@@ -86,8 +86,8 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
                       onChange={(e) => setPreco(e.target.value)}
                       placeholder="29,90"
                       className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-black focus:outline-none transition-colors ${
-                        isFree 
-                          ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
+                        isFree
+                          ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                           : 'bg-slate-50 border-slate-200 focus:border-blue-600 text-slate-900'
                       }`}
                     />
@@ -220,7 +220,7 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
                 </div>
 
                 {isPlr && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                   className="pt-4 border-t border-blue-200 space-y-5"

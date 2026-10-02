@@ -254,7 +254,7 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                     Habilidades da BNCC (Opcional)
                   </label>
                   <p className="text-xs text-slate-500 mb-3">
-                    Selecione as habilidades da Base Nacional Comum Curricular que este material desenvolve. 
+                    Selecione as habilidades da Base Nacional Comum Curricular que este material desenvolve.
                     Isso ajuda os professores a encontrarem seu conteúdo mais rápido.
                   </p>
 
@@ -295,24 +295,24 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                     <span>{bnccSkillsMaster.length.toLocaleString('pt-BR')} habilidades disponíveis</span>
                     <span className="font-semibold text-blue-700">{selectedBnccSkills.length} selecionada(s)</span>
                   </div>
-                  
+
                   <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl bg-white p-2 space-y-1">
                     {bnccSkillsMaster.length > 0 ? (
                       filteredBnccSkills.length > 0 ? filteredBnccSkills.map((skill: any) => {
                         const isSelected = selectedBnccSkills.includes(skill.id);
                         return (
-                          <div 
+                          <div
                             key={skill.id}
                             onClick={() => {
-                              setSelectedBnccSkills((prev: any) => 
-                                isSelected 
+                              setSelectedBnccSkills((prev: any) =>
+                                isSelected
                                   ? prev.filter((id: any) => id !== skill.id)
                                   : [...prev, skill.id]
                               );
                             }}
                             className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors border-2 ${
-                              isSelected 
-                                ? 'bg-blue-50 border-blue-500' 
+                              isSelected
+                                ? 'bg-blue-50 border-blue-500'
                                 : 'bg-transparent border-transparent hover:bg-slate-50 hover:border-slate-200'
                             }`}
                           >
@@ -342,7 +342,7 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                 </div>
 
 
-                
+
                 {/* PROGRAMA DE AFILIADOS */}
                 <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-start gap-4">
@@ -363,9 +363,9 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                       </p>
                     </div>
                   </div>
-                  
+
                   {allowAffiliates && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
