@@ -1,0 +1,46 @@
+name: Qualidade e segurança
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://xyzcompany.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
+      NEXT_PUBLIC_ENABLE_LOCAL_DEVELOPMENT_DATA: "false"
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências bloqueadas
+        run: npm ci
+
+      - name: Auditar dependências de produção
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Verificar lint sem ocultar erros
+        run: npm run lint -- --quiet
+
+      - name: Verificar tipos
+        run: npx tsc --noEmit
+
+      - name: Executar verificações de negócio
+        run: npm run test:verify
+
+      - name: Gerar build de produção
+        run: npm run build

@@ -181,7 +181,7 @@ export async function getOrCreateAffiliateProfile(userId: string, userName: stri
   baseSlug = baseSlug.replace(/^-+|-+$/g, '');
 
   let slug = baseSlug;
-  let attempt = 0;
+  const attempt = 0;
   
   // Basic collision avoidance (in real scenario, we might want a while loop checking db, 
   // but using UUID fallback is safe enough for automatic profile)

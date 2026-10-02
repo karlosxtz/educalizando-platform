@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     let totalCliques = 0;
     let receitaGerada = 0;
     
-    let storePerformanceData: any[] = [];
+    const storePerformanceData: any[] = [];
     let productPerformanceData: any[] = [];
 
     const { data: userAffiliates } = await supabaseAdmin

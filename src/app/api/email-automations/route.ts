@@ -13,9 +13,8 @@ export async function POST(request: NextRequest) {
   if (!user?.email) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   const body = await request.json() as { action?: string; email?: string };
   const name = user.user_metadata?.full_name || 'Usuário';
-  let result;
   if (body.action !== 'test') return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });
   const recipient = body.email?.trim().toLowerCase() || user.email;
-  result = await sendAutomationTestEmail(recipient, name);
+  const result = await sendAutomationTestEmail(recipient, name);
   return NextResponse.json(result, { status: result.sent ? 200 : 422 });
 }

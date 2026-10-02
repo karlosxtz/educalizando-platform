@@ -383,7 +383,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
 
   if (isRealSupabase) {
     try {
-      let query = supabase
+      const query = supabase
         .from('products')
         .select('*')
         .eq('store_id', cleanStoreId)
@@ -614,7 +614,7 @@ function cleanProductPayload<T extends Record<string, any>>(data: T): T {
 
 // 6. Criar Novo Produto (Persiste diretamente no Supabase via backend API /api/produtos)
 export async function createProduct(productData: Omit<Product, 'id' | 'created_at'>): Promise<Product> {
-  let payload = cleanProductPayload(productData);
+  const payload = cleanProductPayload(productData);
   if (payload.titulo) {
     payload.slug = generateSlug(payload.titulo);
   }
@@ -1146,7 +1146,7 @@ export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[
 
   if (isRealSupabase) {
     try {
-      let query = supabase
+      const query = supabase
         .from('stores')
         .select('id, nome_loja, slug, descricao, logo_url, banner_url, cor_primaria, created_at, updated_at')
         .neq('slug', 'eduardoadmin')
@@ -1177,7 +1177,7 @@ export async function getAllPublicStores(): Promise<Store[]> {
 
   if (isRealSupabase) {
     try {
-      let query = supabase
+      const query = supabase
         .from('stores')
         .select('id, nome_loja, slug, descricao, logo_url, banner_url, created_at, updated_at')
         .neq('slug', 'eduardoadmin')

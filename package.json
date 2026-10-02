@@ -22,6 +22,7 @@
     "test:evolution-webhook-security": "ts-node -P tsconfig.test.json scripts/verify-evolution-webhook-security.ts",
     "test:migrations": "ts-node -P tsconfig.test.json scripts/verify-migrations.ts",
     "test:creator-revenue-summary": "ts-node -P tsconfig.test.json scripts/verify-creator-revenue-summary.ts",
+    "test:verify": "npm run test:financial && npm run test:financial-config && npm run test:checkout-idempotency && npm run test:infinitepay-webhook && npm run test:delivery-access && npm run test:search-matching && npm run test:social-links && npm run test:product-tags && npm run test:creator-networking && npm run test:creator-whatsapp-campaigns && npm run test:creator-referral-foundation && npm run test:creator-club && npm run test:evolution-webhook-security && npm run test:migrations && npm run test:creator-revenue-summary",
     "test:e2e:mobile": "playwright test"
   },
   "dependencies": {
