@@ -21,6 +21,7 @@
     "test:creator-club": "ts-node -P tsconfig.test.json scripts/verify-creator-club.ts",
     "test:evolution-webhook-security": "ts-node -P tsconfig.test.json scripts/verify-evolution-webhook-security.ts",
     "test:migrations": "ts-node -P tsconfig.test.json scripts/verify-migrations.ts",
+    "test:creator-revenue-summary": "ts-node -P tsconfig.test.json scripts/verify-creator-revenue-summary.ts",
     "test:e2e:mobile": "playwright test"
   },
   "dependencies": {

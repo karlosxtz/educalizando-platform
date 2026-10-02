@@ -6,6 +6,7 @@ type DashboardAnalyticsResponse = {
   totalGeneratedCount?: number;
   recentOrders?: RecentOrder[];
   exclusivePerformance?: { salesCount?: number; revenue?: number };
+  clubPerformance?: { salesCount?: number; revenue?: number };
   exclusiveOverview?: ExclusiveSalesOverview;
 };
 
@@ -258,6 +259,7 @@ export async function getTopProductsReport(storeId: string, products: Product[],
   const productMetrics = new Map<string, { units: number; revenue: number }>();
   let loadedFromOrderItems = false;
   let exclusivePerformance = { salesCount: 0, revenue: 0 };
+  let clubPerformance = { salesCount: 0, revenue: 0 };
 
   if (typeof window !== 'undefined' && storeId) {
     try {
@@ -265,6 +267,10 @@ export async function getTopProductsReport(storeId: string, products: Product[],
       exclusivePerformance = {
         salesCount: Number(result.exclusivePerformance?.salesCount || 0),
         revenue: Number(result.exclusivePerformance?.revenue || 0),
+      };
+      clubPerformance = {
+        salesCount: Number(result.clubPerformance?.salesCount || 0),
+        revenue: Number(result.clubPerformance?.revenue || 0),
       };
     } catch (error) {
       console.error('[getTopProductsReport] Erro ao carregar materiais exclusivos:', error);
@@ -314,7 +320,7 @@ export async function getTopProductsReport(storeId: string, products: Product[],
   const catalogRevenue = loadedFromOrderItems
     ? Array.from(productMetrics.values()).reduce((sum, metric) => sum + metric.revenue, 0)
     : realOrders.reduce((acc, o) => acc + o.valorTotal, 0);
-  const totalStoreRevenue = catalogRevenue + exclusivePerformance.revenue;
+  const totalStoreRevenue = catalogRevenue + exclusivePerformance.revenue + clubPerformance.revenue;
 
   const stats: TopProductStat[] = products.map(p => {
     const metric = productMetrics.get(p.id);
@@ -346,6 +352,19 @@ export async function getTopProductsReport(storeId: string, products: Product[],
       unidadesVendidas: exclusivePerformance.salesCount,
       faturamentoTotal: exclusivePerformance.revenue,
       porcentagem: totalStoreRevenue > 0 ? Math.round((exclusivePerformance.revenue / totalStoreRevenue) * 100) : 0,
+      capa_url: null,
+    });
+  }
+
+  if (clubPerformance.salesCount > 0) {
+    stats.push({
+      id: 'creator-clubs',
+      titulo: 'Assinaturas dos Clubes do Criador',
+      tipo: 'pdf',
+      preco: Number((clubPerformance.revenue / clubPerformance.salesCount).toFixed(2)),
+      unidadesVendidas: clubPerformance.salesCount,
+      faturamentoTotal: clubPerformance.revenue,
+      porcentagem: totalStoreRevenue > 0 ? Math.round((clubPerformance.revenue / totalStoreRevenue) * 100) : 0,
       capa_url: null,
     });
   }

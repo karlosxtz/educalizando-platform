@@ -100,7 +100,7 @@ export default function RecentSalesFeed({ storeId }: RecentSalesFeedProps) {
                   <p className="text-[11px] text-slate-500 truncate font-medium mt-0.5">
                     {ord.produtoTitulo}
                   </p>
-                  {ord.saleSource && <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${ord.saleSource === 'exclusive' ? 'bg-violet-100 text-violet-700' : ord.saleSource === 'plr' ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-sky-700'}`}>{ord.saleSource === 'exclusive' ? 'Material exclusivo' : ord.saleSource === 'plr' ? 'Licença PLR' : 'Produto final'}</span>}
+                  {ord.saleSource && <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${ord.saleSource === 'exclusive' ? 'bg-violet-100 text-violet-700' : ord.saleSource === 'plr' ? 'bg-amber-100 text-amber-700' : ord.saleSource === 'club' ? 'bg-indigo-100 text-indigo-700' : 'bg-sky-100 text-sky-700'}`}>{ord.saleSource === 'exclusive' ? 'Material exclusivo' : ord.saleSource === 'plr' ? 'Licença PLR' : ord.saleSource === 'club' ? 'Clube do Criador' : 'Produto final'}</span>}
                   <span className="block truncate text-[10px] text-slate-400 mt-0.5">
                     {ord.dataCompra} • {ord.clienteEmail}
                   </span>

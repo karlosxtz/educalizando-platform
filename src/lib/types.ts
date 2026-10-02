@@ -198,7 +198,7 @@ export interface RecentOrder {
   statusPagamento: 'pago' | 'pendente_pix' | 'expirado';
   dataCompra: string;
   metodoPagamento: 'PIX' | 'CREDIT_CARD' | 'BOLETO';
-  saleSource?: 'catalog' | 'plr' | 'exclusive';
+  saleSource?: 'catalog' | 'plr' | 'exclusive' | 'club';
 }
 
 export interface Purchase {

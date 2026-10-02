@@ -14,7 +14,7 @@ type UnifiedSale = {
   status: 'paid' | 'pending' | 'expired';
   occurredAt: string;
   paymentMethod: RecentOrder['metodoPagamento'];
-  source: 'catalog' | 'plr' | 'exclusive';
+  source: 'catalog' | 'plr' | 'exclusive' | 'club';
 };
 
 function periodStart(period: PeriodFilter, now: Date) {
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
   const { data: store } = await supabaseAdmin.from('stores').select('id').eq('id', storeId).eq('creator_id', user.id).maybeSingle();
   if (!store) return NextResponse.json({ error: 'Loja não encontrada ou sem permissão.' }, { status: 403 });
 
-  const [ordersResult, exclusiveResult, exclusiveRequestsResult] = await Promise.all([
+  const [ordersResult, exclusiveResult, exclusiveRequestsResult, clubPaymentsResult] = await Promise.all([
     supabaseAdmin.from('orders').select('id,buyer_name,buyer_email,total_amount,subtotal_amount,status,created_at,paid_at,is_plr_purchase,payment_method,items:order_items(product_title)').eq('store_id', storeId),
     supabaseAdmin
       .from('exclusive_material_payments')
@@ -88,9 +88,13 @@ export async function GET(request: Request) {
       .from('exclusive_material_requests')
       .select('id,status,accepted_proposal_id,created_at,delivered_at')
       .eq('store_id', storeId),
+    supabaseAdmin
+      .from('creator_club_payments')
+      .select('id,gross_amount,status,created_at,paid_at,payment_method,club:creator_clubs(name)')
+      .eq('store_id', storeId),
   ]);
-  if (ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error) {
-    console.error('[Dashboard Sales Analytics]', ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error);
+  if (ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error || clubPaymentsResult.error) {
+    console.error('[Dashboard Sales Analytics]', ordersResult.error || exclusiveResult.error || exclusiveRequestsResult.error || clubPaymentsResult.error);
     return NextResponse.json({ error: 'Não foi possível consolidar as vendas da loja.' }, { status: 500 });
   }
 
@@ -125,7 +129,23 @@ export async function GET(request: Request) {
     };
   });
 
-  const allSales = [...catalogSales, ...exclusiveSales];
+  const clubSales: UnifiedSale[] = (clubPaymentsResult.data || []).map((payment) => {
+    const club = Array.isArray(payment.club) ? payment.club[0] : payment.club;
+    const method = String(payment.payment_method || '').toLowerCase();
+    return {
+      id: payment.id,
+      customerName: 'Assinante do clube',
+      customerEmail: '',
+      title: club?.name || 'Clube do Criador',
+      amount: Number(payment.gross_amount || 0),
+      status: payment.status === 'paid' ? 'paid' : ['failed', 'cancelled', 'refunded'].includes(payment.status) ? 'expired' : 'pending',
+      occurredAt: payment.paid_at || payment.created_at,
+      paymentMethod: ['credit_card', 'debit_card'].includes(method) ? 'CREDIT_CARD' : 'PIX',
+      source: 'club',
+    };
+  });
+
+  const allSales = [...catalogSales, ...exclusiveSales, ...clubSales];
   const now = new Date();
   const start = periodStart(period, now);
   const periodSales = allSales.filter((sale) => new Date(sale.occurredAt) >= start && new Date(sale.occurredAt) <= now);
@@ -136,7 +156,7 @@ export async function GET(request: Request) {
       id: sale.id,
       clienteNome: sale.customerName,
       clienteEmail: sale.customerEmail,
-      produtoTitulo: sale.source === 'exclusive' ? `Exclusivo: ${sale.title}` : sale.title,
+      produtoTitulo: sale.source === 'exclusive' ? `Exclusivo: ${sale.title}` : sale.source === 'club' ? `Clube: ${sale.title}` : sale.title,
       tipoProduto: 'pdf',
       valorTotal: sale.amount,
       statusPagamento: sale.status === 'paid' ? 'pago' : sale.status === 'expired' ? 'expirado' : 'pendente_pix',
@@ -145,6 +165,7 @@ export async function GET(request: Request) {
       saleSource: sale.source,
     }));
   const exclusivePaid = periodSales.filter((sale) => sale.source === 'exclusive' && sale.status === 'paid');
+  const clubPaid = periodSales.filter((sale) => sale.source === 'club' && sale.status === 'paid');
   const allExclusiveRequests = exclusiveRequestsResult.data || [];
   const allPaidExclusivePayments = (exclusiveResult.data || []).filter((payment) => payment.status === 'paid');
   const acceptedRequests = allExclusiveRequests.filter((item) => Boolean(item.accepted_proposal_id));
@@ -160,6 +181,10 @@ export async function GET(request: Request) {
     exclusivePerformance: {
       salesCount: exclusivePaid.length,
       revenue: Number(exclusivePaid.reduce((sum, sale) => sum + sale.amount, 0).toFixed(2)),
+    },
+    clubPerformance: {
+      salesCount: clubPaid.length,
+      revenue: Number(clubPaid.reduce((sum, sale) => sum + sale.amount, 0).toFixed(2)),
     },
     exclusiveOverview: {
       received: allExclusiveRequests.length,

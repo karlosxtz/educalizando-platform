@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
 import { calculatePlatformFee } from '@/lib/payment-fees';
+import { summarizeAdditionalCreatorPayments } from '@/lib/creator-revenue-summary';
 
 // Constantes centralizadas de cálculo financeiro (devem espelhar order-service.ts)
 const ASAAS_PIX_FEE = 1.99;
@@ -49,12 +50,16 @@ export async function GET(request: Request) {
     }
 
     // Pedidos, livro-caixa e saques são a fonte de verdade do resumo.
-    const [ordersResult, exclusivePaymentsResult, txResult, withdrawalsResult] = await Promise.all([
+    const [ordersResult, exclusivePaymentsResult, clubPaymentsResult, txResult, withdrawalsResult] = await Promise.all([
       supabaseAdmin.from('orders').select('*').eq('store_id', storeId),
       supabaseAdmin
         .from('exclusive_material_payments')
         .select('gross_amount,platform_fee_amount,creator_net_amount,status,request:exclusive_material_requests!inner(store_id)')
         .eq('request.store_id', storeId),
+      supabaseAdmin
+        .from('creator_club_payments')
+        .select('gross_amount,platform_fee_amount,creator_net_amount,status')
+        .eq('store_id', storeId),
       supabaseAdmin.from('wallet_transactions').select('*').eq('store_id', storeId),
       supabaseAdmin.from('withdrawals').select('amount, status').eq('store_id', storeId)
     ]);
@@ -68,12 +73,16 @@ export async function GET(request: Request) {
     if (exclusivePaymentsResult.error) {
       console.error('[API Wallet Summary] Erro exclusive_material_payments:', exclusivePaymentsResult.error);
     }
+    if (clubPaymentsResult.error) {
+      console.error('[API Wallet Summary] Erro creator_club_payments:', clubPaymentsResult.error);
+    }
     if (withdrawalsResult.error) {
       console.error('[API Wallet Summary] Erro withdrawals:', withdrawalsResult.error);
     }
 
     const allOrders = ordersResult.data || [];
     const allExclusivePayments = exclusivePaymentsResult.data || [];
+    const allClubPayments = clubPaymentsResult.data || [];
     const allTx = txResult.data || [];
     const completedWithdrawals = (withdrawalsResult.data || []).filter((withdrawal: any) =>
       String(withdrawal.status || '').toUpperCase() === 'COMPLETED'
@@ -92,12 +101,10 @@ export async function GET(request: Request) {
 
     const paidOrders = allOrders.filter(isOrderPaid);
     const pendingOrders = allOrders.filter(isOrderPending);
-    const paidExclusivePayments = allExclusivePayments.filter((payment: any) => payment.status === 'paid');
-    const pendingExclusivePayments = allExclusivePayments.filter((payment: any) => payment.status === 'pending');
+    const additionalPayments = summarizeAdditionalCreatorPayments([...allExclusivePayments, ...allClubPayments]);
 
     const totalVendido = paidOrders.reduce((sum: number, o: any) =>
-      sum + Number(o.total_amount || o.subtotal_amount || 0), 0) + paidExclusivePayments.reduce((sum: number, payment: any) =>
-      sum + Number(payment.gross_amount || 0), 0);
+      sum + Number(o.total_amount || o.subtotal_amount || 0), 0) + additionalPayments.grossPaid;
 
     let taxasEducalizando = 0;
     let taxasAsaas = 0;
@@ -135,14 +142,9 @@ export async function GET(request: Request) {
       saldoPendente += net;
     });
 
-    paidExclusivePayments.forEach((payment: any) => {
-      taxasEducalizando += Number(payment.platform_fee_amount || 0);
-      saldoDisponivel += Math.max(0, Number(payment.creator_net_amount || 0));
-    });
-
-    pendingExclusivePayments.forEach((payment: any) => {
-      saldoPendente += Math.max(0, Number(payment.creator_net_amount || 0));
-    });
+    taxasEducalizando += additionalPayments.platformFees;
+    saldoDisponivel += additionalPayments.availableNet;
+    saldoPendente += additionalPayments.pendingNet;
 
     // Se há transações consolidadas no ledger, preferir esse saldo
     if (allTx.length > 0) {
