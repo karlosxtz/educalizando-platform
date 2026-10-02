@@ -1,9 +1,9 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { Home, Store, Package, DollarSign, Wallet, LogOut, ShieldAlert, Tags, Settings, Megaphone, PlaySquare, MonitorPlay, Menu, X, FileText, Users, MessageSquare, GraduationCap, Bot, Mail, Activity, MessagesSquare } from 'lucide-react';
+import { Activity,Bot,DollarSign,FileText,GraduationCap,Home,LogOut,Mail,Megaphone,Menu,MessageSquare,MessagesSquare,MonitorPlay,Package,PlaySquare,Settings,ShieldAlert,Store,Tags,Users,Wallet,X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ReactNode,useEffect,useState } from 'react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const adminEmail = process.env.SUPERADMIN_EMAIL || 'admin@educalizando.com.br';

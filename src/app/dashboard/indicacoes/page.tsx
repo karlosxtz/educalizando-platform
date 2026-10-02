@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, CalendarDays, CircleDollarSign, Copy, Gift, Link2, RefreshCw, Send, Share2, Sparkles, TrendingUp, Users, Wallet } from 'lucide-react';
+import { ArrowRight,BookOpen,CalendarDays,CircleDollarSign,Copy,Link2,RefreshCw,Send,Share2,Sparkles,TrendingUp,Users,Wallet } from 'lucide-react';
+import { useEffect,useMemo,useState } from 'react';
 
 type Referral = { id: string; creatorName: string; storeName: string; attributedAt: string; eligibleUntil: string; status: string; ratePercent: number; eligibleSalesAmount: number; eligibleSalesCount: number; commissionAvailable: number; commissionReversed: number; commissionGenerated: number };
 type ReferralData = { code: string; referrals: Referral[]; totals: { eligibleSalesAmount: number; eligibleSalesCount: number; commissionAvailable: number; commissionReversed: number; commissionGenerated: number } };

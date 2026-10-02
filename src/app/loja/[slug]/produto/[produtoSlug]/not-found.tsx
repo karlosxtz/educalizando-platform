@@ -1,9 +1,9 @@
 'use client';
 
+import { ArrowLeft,PackageX,Store } from 'lucide-react';
 import Link from 'next/link';
-import { Store, ArrowLeft, PackageX } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect,useRef } from 'react';
 
 export default function ProductNotFound() {
   const params = useParams();

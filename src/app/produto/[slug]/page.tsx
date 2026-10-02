@@ -1,7 +1,14 @@
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
+import { getPaidProductSalesCount } from '@/lib/product-social-proof';
+import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { getProductById,getPublicProductsByStoreId,getStoreById } from '@/lib/store-service';
+import type { Product } from '@/lib/types';
+import { ChevronRight,Home } from 'lucide-react';
 import { Metadata } from 'next';
-import { notFound, permanentRedirect } from 'next/navigation';
-import { getProductById, getStoreById, getPublicProductsByStoreId } from '@/lib/store-service';
-import { getCategories, getEducationLevels, getBnccSkillsByIds } from '@/lib/category-service';
+import Link from 'next/link';
+import { notFound,permanentRedirect } from 'next/navigation';
 import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
 
 interface GlobalProductDetailPageProps {
@@ -12,13 +19,6 @@ interface GlobalProductDetailPageProps {
     licenca?: string;
   }>;
 }
-import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
-import { getPaidProductSalesCount } from '@/lib/product-social-proof';
-import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
-import type { Product } from '@/lib/types';
 
 // URLs antigas já rastreadas antes da padronização dos slugs. Manter este
 // mapa evita páginas 404 e transfere a autoridade da URL antiga para a atual.

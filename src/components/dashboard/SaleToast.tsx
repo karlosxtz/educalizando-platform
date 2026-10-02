@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ShoppingBag, Star, CheckCircle2, XCircle, Megaphone, Gift } from 'lucide-react';
 import {
-  subscribeToNotifications,
-  formatRelativeTime,
-  NOTIFICATION_META,
-  type Notification,
-  type NotificationType,
+formatRelativeTime,
+NOTIFICATION_META,
+subscribeToNotifications,
+type Notification,
+type NotificationType,
 } from '@/lib/notification-service';
+import { CheckCircle2,Gift,Megaphone,ShoppingBag,Star,X,XCircle } from 'lucide-react';
+import { useCallback,useEffect,useRef,useState } from 'react';
 
 interface SaleToastProps {
   storeId: string;

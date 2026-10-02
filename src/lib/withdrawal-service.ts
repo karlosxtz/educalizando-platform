@@ -1,6 +1,6 @@
-import { supabase, supabaseAdmin, allowsLocalDevelopmentFallback, isRealSupabaseConfigured } from './supabase';
-import { calculateCreatorWallet, recordWalletTransaction } from './wallet-service';
 import { isValidCPF } from './infinitepay-service';
+import { allowsLocalDevelopmentFallback,isRealSupabaseConfigured,supabase,supabaseAdmin } from './supabase';
+import { calculateCreatorWallet,recordWalletTransaction } from './wallet-service';
 
 // CONFIGURAÇÃO CENTRALIZADA (Item 11 & 43 da Especificação)
 export const MIN_WITHDRAWAL_AMOUNT = 0;
@@ -50,7 +50,7 @@ export interface WithdrawalRecord {
 
 const LOCAL_PIX_KEYS_KEY = 'educalizando_creator_pix_keys_v1';
 const LOCAL_WITHDRAWALS_KEY = 'educalizando_withdrawals_v1';
-const LOCAL_WEBHOOK_EVENTS_KEY = 'educalizando_webhook_events_v1';
+const _LOCAL_WEBHOOK_EVENTS_KEY = 'educalizando_webhook_events_v1';
 
 // Helper de Mascaramento Seguro de CPF (Item 6 da Especificação)
 export function maskCPF(cpf: string): string {
@@ -64,7 +64,7 @@ function getLocalPixKeys(): CreatorPixKey[] {
   try {
     const raw = localStorage.getItem(LOCAL_PIX_KEYS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -73,7 +73,7 @@ function saveLocalPixKeys(keys: CreatorPixKey[]) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(LOCAL_PIX_KEYS_KEY, JSON.stringify(keys));
-  } catch (e) {}
+  } catch (_e) {}
 }
 
 function getLocalWithdrawals(): WithdrawalRecord[] {
@@ -81,7 +81,7 @@ function getLocalWithdrawals(): WithdrawalRecord[] {
   try {
     const raw = localStorage.getItem(LOCAL_WITHDRAWALS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -90,7 +90,7 @@ function saveLocalWithdrawals(withdrawals: WithdrawalRecord[]) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(LOCAL_WITHDRAWALS_KEY, JSON.stringify(withdrawals));
-  } catch (e) {}
+  } catch (_e) {}
 }
 
 // 1. Obter Chave PIX Ativa do Criador

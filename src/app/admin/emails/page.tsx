@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CheckCircle2, ExternalLink, Eye, Mail, RefreshCw, Send, ShieldCheck, XCircle } from 'lucide-react';
+import { CheckCircle2,ExternalLink,Eye,Mail,RefreshCw,Send,ShieldCheck,XCircle } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 type Status = { configured: boolean; from: string; domain: string | null; domainStatus: string; domainError?: string };

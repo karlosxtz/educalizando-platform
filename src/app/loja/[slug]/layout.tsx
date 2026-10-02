@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
-import { notFound } from 'next/navigation';
-import { getStoreBySlug } from '@/lib/store-service';
 import { CartProvider } from '@/components/store/CartContext';
 import CartSidebar from '@/components/store/CartSidebar';
 import CartWidget from '@/components/store/CartWidget';
+import { getStoreBySlug } from '@/lib/store-service';
+import { notFound } from 'next/navigation';
+import { ReactNode } from 'react';
 
 interface StoreLayoutProps {
   children: ReactNode;

@@ -1,10 +1,10 @@
-import type { OrderRecord } from './order-service';
-import { createNotification } from './notification-service';
 import { sendSaleNotificationToCreator } from './mail-service';
+import { createNotification } from './notification-service';
+import type { OrderRecord } from './order-service';
 import { getPurchaseAccess } from './purchase-access';
 import { supabaseAdmin } from './supabase';
-import { claimTransactionalDelivery, completeTransactionalDelivery, failTransactionalDelivery } from './transactional-delivery-service';
-import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from './whatsapp-notification-service';
+import { claimTransactionalDelivery,completeTransactionalDelivery,failTransactionalDelivery } from './transactional-delivery-service';
+import { firstName,getWhatsAppTemplate,renderWhatsAppTemplate,sendEvolutionText } from './whatsapp-notification-service';
 
 export async function notifyConfirmedSale(order: OrderRecord, options: { retryWhatsApp?: boolean } = {}) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');

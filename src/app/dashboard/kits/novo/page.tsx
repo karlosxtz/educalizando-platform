@@ -1,20 +1,30 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, CheckCircle2, ChevronRight, Boxes, FileText, 
-  UploadCloud, Package, DollarSign, Eye, Sparkles, Loader2, AlertCircle, Save, Check
+import { motion } from 'framer-motion';
+import {
+AlertCircle,
+ArrowLeft,
+Boxes,
+Check,
+CheckCircle2,ChevronRight,
+DollarSign,
+FileText,
+Loader2,
+Package,
+Save,
+Sparkles,
+UploadCloud
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { Suspense,useEffect,useState } from 'react';
 
-import { getCurrentCreatorStore, getPublicProductsByStoreId } from '@/lib/store-service';
-import { createKit, updateKit, getKitById } from '@/lib/kit-service';
-import { Product, Store, Kit } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
-import { toast } from 'sonner';
 import KitCoverMosaic from '@/components/KitCoverMosaic';
+import { createKit,getKitById,updateKit } from '@/lib/kit-service';
+import { getCurrentCreatorStore,getPublicProductsByStoreId } from '@/lib/store-service';
+import { Product,Store } from '@/lib/types';
+import { toast } from 'sonner';
 
 function KitWizardContent() {
   const router = useRouter();
@@ -127,7 +137,7 @@ function KitWizardContent() {
               
               if (titleMatch) setTitulo(titleMatch[1].trimStart());
               if (descMatch) setDescricao(descMatch[1].trimStart());
-            } catch (e) {
+            } catch (_e) {
               // ignore partial JSON parse errors
             }
           }

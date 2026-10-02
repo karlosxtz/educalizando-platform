@@ -1,5 +1,5 @@
+import { ArrowLeft,Megaphone,ShoppingCart,Store } from 'lucide-react';
 import Link from 'next/link';
-import { ShoppingCart, Store, Megaphone, ArrowLeft } from 'lucide-react';
 
 export default function RegisterTriagePage() {
   return (

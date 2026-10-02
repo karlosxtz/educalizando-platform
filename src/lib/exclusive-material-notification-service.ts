@@ -1,10 +1,10 @@
 import 'server-only';
 
-import { sendExclusiveMaterialDeliveredEmail, sendExclusivePaymentConfirmedToCustomer, sendExclusiveSaleNotificationToCreator } from './mail-service';
+import { sendExclusiveMaterialDeliveredEmail,sendExclusivePaymentConfirmedToCustomer,sendExclusiveSaleNotificationToCreator } from './mail-service';
 import { createNotification } from './notification-service';
 import { supabaseAdmin } from './supabase';
-import { claimTransactionalDelivery, completeTransactionalDelivery, failTransactionalDelivery, type TransactionalDeliveryChannel, type TransactionalDeliveryEvent } from './transactional-delivery-service';
-import { firstName, sendEvolutionText } from './whatsapp-notification-service';
+import { claimTransactionalDelivery,completeTransactionalDelivery,failTransactionalDelivery,type TransactionalDeliveryChannel,type TransactionalDeliveryEvent } from './transactional-delivery-service';
+import { firstName,sendEvolutionText } from './whatsapp-notification-service';
 
 type ExclusiveContext = {
   request: { id: string; title: string; store_id: string; creator_id: string; customer_id: string };

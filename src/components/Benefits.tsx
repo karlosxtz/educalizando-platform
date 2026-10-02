@@ -1,9 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { 
-  Zap, Award, Store, ShieldCheck, Lock, 
-  Smartphone, Clock 
+import {
+Award,
+Clock,
+Lock,
+Smartphone,
+Store,
+Zap
 } from 'lucide-react';
 
 export default function Benefits() {

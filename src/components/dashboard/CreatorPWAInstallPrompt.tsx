@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { Download, Menu, Share, Smartphone, X } from 'lucide-react';
+import { Download,Menu,Share,Smartphone,X } from 'lucide-react';
+import { useCallback,useEffect,useState } from 'react';
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;

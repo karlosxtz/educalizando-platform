@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { getRequestUser, isSuperAdmin } from '@/lib/api-auth';
+import { getRequestUser,isSuperAdmin } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 function databaseMessage(error: { code?: string; message?: string }) {
   if (error.code === '42P01') return 'Aplique a migration 20260920_add_customer_refund_requests.sql para ativar as solicitações de reembolso.';

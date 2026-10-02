@@ -1,16 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
-  CartItem,
-  getCart,
-  getCartByStore,
-  addToCart as _addToCart,
-  removeFromCart as _removeFromCart,
-  updateQuantity as _updateQuantity,
-  clearCart as _clearCart,
-  getCartTotal
+addToCart as _addToCart,
+clearCart as _clearCart,
+removeFromCart as _removeFromCart,
+updateQuantity as _updateQuantity,
+CartItem,
+getCart,
+getCartByStore,
+getCartTotal
 } from '@/lib/cart-service';
+import { createContext,ReactNode,useContext,useEffect,useState } from 'react';
 
 interface CartContextType {
   items: CartItem[];

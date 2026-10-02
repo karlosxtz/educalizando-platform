@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, BadgePercent, Phone } from 'lucide-react';
 import { registerAffiliateInSupabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
+import { AlertCircle,ArrowRight,BadgePercent,Loader2,Lock,Mail,Phone,User } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const formatCPF = (value: string) => {
   return value
@@ -17,7 +17,7 @@ const formatCPF = (value: string) => {
 };
 
 export default function AffiliateSignupPage() {
-  const router = useRouter();
+  const _router = useRouter();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -52,7 +52,7 @@ export default function AffiliateSignupPage() {
         whatsapp
       });
       // Redirect to affiliate dashboard directly
-      window.location.href = '/dashboard/afiliacoes';
+      window.location.assign(new URL('/dashboard/afiliacoes', window.location.origin));
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar cadastro de afiliado.');

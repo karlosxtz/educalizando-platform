@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import ProductCard from '@/components/ProductCard';
 import { getCategories } from '@/lib/category-service';
 import { searchProducts } from '@/lib/search-service';
-import ProductCard from '@/components/ProductCard';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
+import { serializeJsonLd,socialMetadata } from '@/lib/seo';
+import { Metadata } from 'next';
 import Link from 'next/link';
-import { serializeJsonLd, socialMetadata } from '@/lib/seo';
+import { notFound } from 'next/navigation';
 
 interface CategoryPageProps {
   params: Promise<{

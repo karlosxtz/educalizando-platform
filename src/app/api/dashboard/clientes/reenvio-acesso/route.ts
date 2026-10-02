@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { supabaseAdmin } from '@/lib/supabase';
 import { sendAccessResendEmail } from '@/lib/mail-service';
 import { getPurchaseAccess } from '@/lib/purchase-access';
-import { firstName, sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { supabaseAdmin } from '@/lib/supabase';
+import { firstName,sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { NextResponse } from 'next/server';
 
 const paidStatuses = new Set(['paid', 'pago', 'liberado', 'aprovado', 'concluido']);
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');

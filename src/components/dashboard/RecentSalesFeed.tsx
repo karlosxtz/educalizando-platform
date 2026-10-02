@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ShoppingBag, CheckCircle2, Clock, XCircle, ArrowRight, QrCode, Loader2 } from 'lucide-react';
-import { RecentOrder } from '@/lib/types';
 import { getRecentOrdersFeed } from '@/lib/sales-service';
+import { RecentOrder } from '@/lib/types';
+import { ArrowRight,CheckCircle2,Clock,Loader2,QrCode,ShoppingBag,XCircle } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 interface RecentSalesFeedProps {
   storeId?: string;

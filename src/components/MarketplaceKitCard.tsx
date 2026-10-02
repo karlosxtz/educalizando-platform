@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { Boxes, FileText, Package } from 'lucide-react';
-import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
 import KitCoverMosaic from '@/components/KitCoverMosaic';
+import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
+import { Boxes,FileText,Package } from 'lucide-react';
+import Link from 'next/link';
 
 export default function MarketplaceKitCard({ kit }: { kit: MarketplaceKit }) {
   const products = kit.products || [];

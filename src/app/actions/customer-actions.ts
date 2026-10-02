@@ -1,7 +1,7 @@
 'use server';
 
-import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function syncCustomerNamesByEmails(emails: string[]): Promise<Record<string, string>> {
   if (!emails || emails.length === 0) return {};

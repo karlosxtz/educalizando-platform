@@ -1,4 +1,4 @@
-import type { Category, Product } from './types';
+import type { Category,Product } from './types';
 
 const SEARCH_STOP_WORDS = new Set(['a', 'as', 'o', 'os', 'da', 'das', 'de', 'do', 'dos', 'e', 'em', 'na', 'nas', 'no', 'nos', 'para', 'por', 'com']);
 

@@ -1,20 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Tags, Plus, Edit3, Trash2, Check, Loader2, 
-  AlertCircle, ShieldAlert, Globe, Layers, Package, X 
+import { AnimatePresence,motion } from 'framer-motion';
+import {
+AlertCircle,
+Check,
+Edit3,
+Globe,Layers,
+Loader2,
+Package,
+Plus,
+ShieldAlert,
+Tags,
+Trash2,
+X
 } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
-import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
-import { 
-  getCategories, 
-  createCustomCategory, 
-  updateCustomCategory, 
-  deleteCustomCategory 
+import {
+createCustomCategory,
+deleteCustomCategory,
+getCategories,
+updateCustomCategory
 } from '@/lib/category-service';
-import { Store, Category, Product } from '@/lib/types';
+import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
+import { Category,Product,Store } from '@/lib/types';
 
 export default function CategoriesManagementPage() {
   const [loading, setLoading] = useState(true);

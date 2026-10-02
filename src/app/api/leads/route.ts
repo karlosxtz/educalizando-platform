@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 import { supabaseAdmin } from '@/lib/supabase';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { NextResponse } from 'next/server';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

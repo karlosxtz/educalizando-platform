@@ -1,16 +1,16 @@
+import CalendarEventIcon,{ calendarKindStyles } from '@/components/CalendarEventIcon';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import ProductCard from '@/components/ProductCard';
+import StoreCard from '@/components/StoreCard';
+import { getSchoolCalendarEvent,SCHOOL_CALENDAR_ARTWORK,type SchoolCalendarEvent } from '@/lib/school-calendar';
+import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { ArrowLeft,CalendarDays,ChevronRight,ExternalLink,Lightbulb,Search,Sparkles } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, CalendarDays, ChevronRight, ExternalLink, Lightbulb, Search, Sparkles } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import Footer from '@/components/Footer';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import CalendarEventIcon, { calendarKindStyles } from '@/components/CalendarEventIcon';
-import ProductCard from '@/components/ProductCard';
-import StoreCard from '@/components/StoreCard';
-import { getSchoolCalendarEvent, SCHOOL_CALENDAR_ARTWORK, type SchoolCalendarEvent } from '@/lib/school-calendar';
-import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
-import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 type CalendarDetailProps = { params: Promise<{ slug: string }> };
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];

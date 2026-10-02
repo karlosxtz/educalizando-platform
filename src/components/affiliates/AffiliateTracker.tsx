@@ -1,7 +1,7 @@
 "use client";
 
+import { usePathname,useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
 
 export default function AffiliateTracker() {
   const searchParams = useSearchParams();

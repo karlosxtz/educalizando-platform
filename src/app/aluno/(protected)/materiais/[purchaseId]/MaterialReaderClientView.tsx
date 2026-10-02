@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { AlertCircle,ArrowLeft,BookOpen,Boxes,Download,ExternalLink,FileText,FolderCheck,HelpCircle,Layers,Loader2,ShieldCheck,Video } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, FileText, Video, Layers, HelpCircle, Boxes, ShieldCheck, Loader2, AlertCircle, FolderCheck, Download, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
-import { getCurrentStudentSession, getStudentPurchaseById } from '@/lib/student-service';
-import { getContentByProductId, ContentItem } from '@/lib/content-delivery-service';
-import { Purchase, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { ContentItem,getContentByProductId } from '@/lib/content-delivery-service';
+import { getCurrentStudentSession,getStudentPurchaseById } from '@/lib/student-service';
+import { ProductType,Purchase } from '@/lib/types';
 
 interface MaterialReaderClientViewProps {
   purchaseId: string;
@@ -90,7 +90,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
     loadData();
   }, [purchaseId, router]);
 
-  const getTipoIcon = (tipo?: ProductType) => {
+  const _getTipoIcon = (tipo?: ProductType) => {
     switch (tipo) {
       case 'pdf': return <FileText className="w-4 h-4 text-sky-600" />;
       case 'ebook': return <BookOpen className="w-4 h-4 text-indigo-600" />;

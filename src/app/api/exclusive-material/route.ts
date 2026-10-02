@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 async function creatorStore(userId: string) {
   // Um criador pode operar mais de uma loja; basta comprovar que ele possui ao menos uma.

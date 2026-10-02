@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { generateAiContent,getAiKey } from '@/lib/ai-provider';
 import { getRequestUser } from '@/lib/api-auth';
-import { generateAiContent, getAiKey } from '@/lib/ai-provider';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 type AuditProduct = {
   id: string;

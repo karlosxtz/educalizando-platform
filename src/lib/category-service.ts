@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Category, EducationLevel } from './types';
+import { Category,EducationLevel } from './types';
 
 // Initial Mock Seed Data for Local Development
 // Initial Global Seed Data with valid UUIDs

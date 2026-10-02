@@ -1,5 +1,5 @@
-import 'server-only';
 import { Resend } from 'resend';
+import 'server-only';
 import { getPurchaseAccess } from './purchase-access';
 
 type MailResult = { sent: boolean; id?: string; error?: string };

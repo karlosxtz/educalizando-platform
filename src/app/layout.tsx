@@ -1,9 +1,9 @@
-import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
-import './globals.css';
-import { Toaster } from 'sonner';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import { DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE_ALT, SITE_URL } from '@/lib/seo';
+import { DEFAULT_SOCIAL_IMAGE,DEFAULT_SOCIAL_IMAGE_ALT,SITE_URL } from '@/lib/seo';
+import type { Metadata,Viewport } from 'next';
+import Script from 'next/script';
+import { Toaster } from 'sonner';
+import './globals.css';
 
 export const viewport: Viewport = {
   themeColor: '#093b6c',
@@ -77,10 +77,10 @@ export const metadata: Metadata = {
   },
 };
 
-import { Suspense } from 'react';
 import AffiliateTracker from '@/components/affiliates/AffiliateTracker';
 import { CartProvider } from '@/components/store/CartContext';
 import CartSidebar from '@/components/store/CartSidebar';
+import { Suspense } from 'react';
 
 export default function RootLayout({
   children,

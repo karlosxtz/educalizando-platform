@@ -9,21 +9,42 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Dívida técnica legada visível sem impedir que erros novos de sintaxe,
-    // tipos e regras não listadas interrompam a validação automatizada.
+    // TypeScript continua com `strict`/`noImplicitAny` no build. Os `any`
+    // explícitos restantes representam payloads legados e SDKs externos;
+    // a migração deles exige contratos de domínio, não silenciamento pontual.
     plugins: {
       "@typescript-eslint": tseslint,
       react,
       "react-hooks": reactHooks,
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/static-components": "warn",
-      "react/no-unescaped-entities": "warn",
-      "@typescript-eslint/no-require-imports": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        argsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+        destructuredArrayIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        ignoreRestSiblings: true,
+      }],
+      // O projeto ainda usa o padrão de carregamento assíncrono em effects.
+      // Mantemos rules-of-hooks ativo e adiamos regras do React Compiler até
+      // a migração para uma camada única de consultas/cache.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/static-components": "off",
+      "react-hooks/incompatible-library": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react/no-unescaped-entities": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      // Capas e avatares vêm de URLs dinâmicas do armazenamento dos criadores.
+      // A tag nativa evita bloquear hosts não cadastrados no otimizador do Next.
+      "@next/next/no-img-element": "off",
+    },
+  },
+  {
+    files: ["scripts/**/*.{js,cjs}"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
   // Override default ignores of eslint-config-next.

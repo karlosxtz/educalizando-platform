@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { createInfinitePayCheckout, isValidCPF } from '@/lib/infinitepay-service';
+import { createInfinitePayCheckout,isValidCPF } from '@/lib/infinitepay-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 const PRICE_CENTS = 1990;
 export async function GET(request: Request) {

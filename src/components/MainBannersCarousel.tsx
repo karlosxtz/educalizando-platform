@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import Link from 'next/link';
 import { MainBanner } from '@/lib/banners-service';
+import { AnimatePresence,motion } from 'framer-motion';
+import { ChevronLeft,ChevronRight,Search } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 export default function MainBannersCarousel({ banners }: { banners: MainBanner[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { getAiKey } from '@/lib/ai-provider';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getAiKey } from '@/lib/ai-provider';
+import { NextResponse } from 'next/server';
 
 async function getOwnedStore(request: Request, storeId: string) {
   const user = await getRequestUser(request);

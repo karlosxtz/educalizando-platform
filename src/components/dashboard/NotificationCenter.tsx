@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { Bell, Check, CheckCheck, ShoppingBag, X, TrendingUp } from 'lucide-react';
 import {
-  getNotifications,
-  markAsRead,
-  markAllAsRead,
-  subscribeToNotifications,
-  formatRelativeTime,
-  NOTIFICATION_META,
-  type Notification,
+formatRelativeTime,
+getNotifications,
+markAllAsRead,
+markAsRead,
+NOTIFICATION_META,
+subscribeToNotifications,
+type Notification,
 } from '@/lib/notification-service';
+import { Bell,Check,CheckCheck,ShoppingBag,TrendingUp,X } from 'lucide-react';
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface NotificationCenterProps {
   storeId: string;

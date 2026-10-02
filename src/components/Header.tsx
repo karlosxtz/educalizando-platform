@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { ArrowRight,BadgePercent,GraduationCap,LogIn,Menu,Store,X } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight, Menu, X, Store, LogIn, GraduationCap, BadgePercent } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);

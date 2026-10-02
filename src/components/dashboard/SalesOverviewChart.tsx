@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, BarChart3, Loader2, LineChart } from 'lucide-react';
-import { PeriodFilter, SalesDataPoint } from '@/lib/types';
 import { getSalesDataByPeriod } from '@/lib/sales-service';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { PeriodFilter,SalesDataPoint } from '@/lib/types';
+import { BarChart3,LineChart,Loader2,TrendingUp } from 'lucide-react';
+import { useEffect,useState } from 'react';
+import { Area,AreaChart,Bar,BarChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis } from 'recharts';
 
 interface SalesOverviewChartProps {
   storeId?: string;
@@ -40,7 +40,7 @@ export default function SalesOverviewChart({ storeId, onDataLoaded }: SalesOverv
 
   const totalRevenue = data.reduce((acc, d) => acc + d.revenue, 0);
   const totalSales = data.reduce((acc, d) => acc + d.salesCount, 0);
-  const averageTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
+  const _averageTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-8 relative overflow-hidden">

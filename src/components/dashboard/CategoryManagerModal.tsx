@@ -1,18 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Tags, Plus, Edit3, Trash2, X, Check, Loader2, 
-  AlertCircle, ShieldAlert 
-} from 'lucide-react';
-import { Category } from '@/lib/types';
-import { 
-  getCategories, 
-  createCustomCategory, 
-  updateCustomCategory, 
-  deleteCustomCategory 
+import {
+createCustomCategory,
+deleteCustomCategory,
+getCategories,
+updateCustomCategory
 } from '@/lib/category-service';
+import { Category } from '@/lib/types';
+import { AnimatePresence,motion } from 'framer-motion';
+import {
+AlertCircle,
+Check,
+Edit3,
+Loader2,
+Plus,
+ShieldAlert,
+Tags,
+Trash2,X
+} from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 interface CategoryManagerModalProps {
   isOpen: boolean;

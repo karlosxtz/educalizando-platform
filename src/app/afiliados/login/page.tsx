@@ -1,28 +1,35 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { SubmitHandler,useForm } from 'react-hook-form';
 
-import { 
-  Mail, Lock, Eye, EyeOff, LogIn, 
-  AlertCircle, Loader2, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck 
+import {
+AlertCircle,
+ArrowLeft,
+CheckCircle2,
+Eye,EyeOff,
+KeyRound,
+Loader2,
+Lock,
+LogIn,
+Mail,
+ShieldCheck
 } from 'lucide-react';
 
-import { 
-  loginSchema, 
-  resetPasswordSchema, 
-  type LoginFormValues, 
-  type ResetPasswordFormValues 
+import { resetPasswordForEmail,signInUser } from '@/lib/supabase';
+import {
+loginSchema,
+resetPasswordSchema,
+type LoginFormValues,
+type ResetPasswordFormValues
 } from '@/lib/zod-schemas';
-import { signInUser, resetPasswordForEmail } from '@/lib/supabase';
 
 export default function AffiliateLoginPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const [activeTab, setActiveTab] = useState<'login' | 'forgot'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -60,7 +67,7 @@ export default function AffiliateLoginPage() {
       localStorage.setItem('educalizando_active_role', 'affiliate');
       
       // Redirect to affiliate dashboard directly
-      window.location.href = '/dashboard/afiliacoes';
+      window.location.assign(new URL('/dashboard/afiliacoes', window.location.origin));
       
     } catch (err: any) {
       setServerError(err.message || 'Erro ao realizar o login. Verifique seu e-mail e senha.');

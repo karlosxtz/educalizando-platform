@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Loader2, Power } from 'lucide-react';
+import { Loader2,Power } from 'lucide-react';
+import { useEffect,useState } from 'react';
 export default function ExclusiveRequestsSetting() {
   const [enabled, setEnabled] = useState(false); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
   useEffect(() => { fetch('/api/exclusive-material/settings').then(async response => { const data = await response.json(); if (response.ok) setEnabled(Boolean(data.enabled)); }).finally(() => setLoading(false)); }, []);

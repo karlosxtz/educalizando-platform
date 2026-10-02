@@ -1,17 +1,21 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  ArrowLeft, Download, FileText, Loader2, Sparkles, Store, ExternalLink, ShieldCheck
+import {
+ArrowLeft,Download,
+ExternalLink,
+FileText,Loader2,
+ShieldCheck,
+Sparkles,Store
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { use,useEffect,useState } from 'react';
 
-import { getCurrentStudentSession } from '@/lib/student-service';
-import { getProductById } from '@/lib/store-service';
-import { Product, Store as StoreType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { getProductById } from '@/lib/store-service';
+import { getCurrentStudentSession } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
+import { Product,Store as StoreType } from '@/lib/types';
 
 export default function StudentFreeProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);

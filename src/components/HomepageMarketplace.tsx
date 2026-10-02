@@ -1,15 +1,15 @@
-import Link from 'next/link';
 import FeaturedMonthlyCampaign from '@/components/FeaturedMonthlyCampaign';
-import { CalendarDays, ChevronRight, Gift, ImageIcon, Rocket, Sparkles, Store } from 'lucide-react';
-import type { MainBanner } from '@/lib/banners-service';
-import type { Product, Store as StoreData } from '@/lib/types';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
+import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 import MonthlyCampaignCarousel from '@/components/MonthlyCampaignCarousel';
-import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
-import MarketplaceKitCard from '@/components/MarketplaceKitCard';
+import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
+import type { MainBanner } from '@/lib/banners-service';
 import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
+import type { Product,Store as StoreData } from '@/lib/types';
+import { CalendarDays,ChevronRight,Gift,ImageIcon,Rocket,Sparkles,Store } from 'lucide-react';
+import Link from 'next/link';
 
 type MarketplaceProduct = Product & { store?: StoreData };
 

@@ -1,16 +1,16 @@
-import Link from 'next/link';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
-import { 
-  Heart, 
-  GraduationCap, 
-  Store, 
-  Megaphone,
-  Search,
-  ArrowRight
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { socialMetadata } from '@/lib/seo';
+import {
+ArrowRight,
+GraduationCap,
+Heart,
+Megaphone,
+Search,
+Store
 } from 'lucide-react';
 import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Sobre a Educalizando',

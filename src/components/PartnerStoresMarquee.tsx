@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { Store } from '@/lib/types';
+import Link from 'next/link';
 
 const halos = [
   'from-blue-500 via-cyan-400 to-violet-500', 'from-fuchsia-500 via-rose-400 to-amber-400',

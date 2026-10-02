@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 import { supabaseAdmin } from '@/lib/supabase';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { NextResponse } from 'next/server';
 
 const normalize = (value: string) => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR').slice(0, 120);
 

@@ -1,9 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { 
-  Zap, ShieldCheck, ArrowRight, Store, FileText, 
-  BookOpen, Video, Award, Sparkles, CheckCircle2 
+import {
+ArrowRight,
+Award,
+ShieldCheck,
+Sparkles,
+Store,
+Zap
 } from 'lucide-react';
 import MockupPreview from './MockupPreview';
 

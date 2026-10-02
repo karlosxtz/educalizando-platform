@@ -1,8 +1,8 @@
 'use server';
 
+import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Review } from '@/lib/types';
-import { getRequestUser } from '@/lib/api-auth';
 
 export async function submitProductReview(params: {
   productId: string;
@@ -168,7 +168,7 @@ export async function getProductReviewsWithNames(productId: string): Promise<Rev
           if (fullName) {
             studentName = formatStudentName(fullName);
           }
-        } catch (e) {
+        } catch (_e) {
           // Ignores
         }
       }

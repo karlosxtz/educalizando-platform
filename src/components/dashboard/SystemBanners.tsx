@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { X, ExternalLink, Info, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle,AlertTriangle,CheckCircle2,ExternalLink,Info,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 interface BannerData {
   id: string;

@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import CalendarEventIcon from '@/components/CalendarEventIcon';
 import CampaignTrackedLink from '@/components/CampaignTrackedLink';
-import { getUpcomingSchoolEvents, getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
+import { getSchoolCalendarArtworkForTag,getUpcomingSchoolEvents,SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
+import { ArrowUpRight,CalendarDays,ChevronLeft,ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect,useRef,useState } from 'react';
 
 type UpcomingCalendarDatesProps = {
   products: ReadonlyArray<{ seasonal_tags?: string[] | null }>;

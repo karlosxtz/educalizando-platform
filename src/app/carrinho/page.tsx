@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { useCart } from '@/components/store/CartContext';
+import { CartItem } from '@/lib/cart-service';
+import { supabase } from '@/lib/supabase';
+import { ArrowRight,CheckCircle2,Loader2,Minus,PackageOpen,Plus,ShoppingCart,Store as StoreIcon,Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, Loader2, Minus, PackageOpen, Plus, ShoppingCart, Store as StoreIcon, Trash2 } from 'lucide-react';
-import { useCart } from '@/components/store/CartContext';
-import { supabase } from '@/lib/supabase';
-import { CartItem } from '@/lib/cart-service';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
+import { useEffect,useRef,useState } from 'react';
 
 type StoreSummary = { nome_loja: string; slug: string };
 const formatPrice = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);

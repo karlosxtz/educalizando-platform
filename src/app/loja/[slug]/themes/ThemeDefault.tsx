@@ -1,16 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star,
-  Globe, FilePenLine, Crown, ArrowRight
-} from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
+import StoreCatalogControls from '@/components/store/StoreCatalogControls';
+import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
+import { ProductType,StoreListingProduct } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
+import { AnimatePresence,motion } from 'framer-motion';
+import { ArrowRight, BookOpen, Boxes, CheckCircle2, Crown, FilePenLine, FileText, Globe, GraduationCap, HelpCircle, Layers, MessageCircle, Search, ShieldCheck, ShoppingBag, Sparkles, Star, Tags, Video, X, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -49,14 +47,7 @@ const FacebookIcon = ({ className }: { className?: string }) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
   </svg>
 );
-import { Store, StoreListingProduct, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { getPublicKitsByStoreId } from '@/lib/kit-service';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
-import StoreCollections from '@/components/store/StoreCollections';
-import StoreCatalogControls from '@/components/store/StoreCatalogControls';
 
-import { getPublicProductsByStoreId } from '@/lib/store-service';
 
 import { StoreThemeProps } from '@/lib/types';
 
@@ -125,7 +116,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
   const handleStartCheckout = () => {
     if (selectedProduct) {
       if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
-        window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+        window.location.assign(new URL(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`, window.location.origin));
         return;
       }
       addToCart({
@@ -146,7 +137,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
   const handleBuyNow = () => {
     if (!selectedProduct) return;
     if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
-      window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+      window.location.assign(new URL(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`, window.location.origin));
       return;
     }
     addToCart({
@@ -159,7 +150,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
       imageUrl: selectedProduct.capa_url || undefined,
       quantity: 1
     });
-    window.location.assign(`/loja/${store.slug}/checkout`);
+    window.location.assign(new URL(`/loja/${store.slug}/checkout`, window.location.origin));
   };
 
   // Build Options for CustomSelect Component
@@ -716,7 +707,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       </div>
                       <div className="grid grid-cols-2 gap-2 mt-3">
                       <button
-                        onClick={() => { addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 }); window.location.assign(`/loja/${store.slug}/checkout`); }}
+                        onClick={() => { addToCart({ productId: prod.id, title: prod.titulo, price: prod.preco, isPlr: prod.listing_mode === 'plr', storeId: store.id, type: prod.tipo, imageUrl: prod.capa_url || undefined, quantity: 1 }); window.location.assign(new URL(`/loja/${store.slug}/checkout`, window.location.origin)); }}
                         className="min-w-0 px-2 py-2 rounded-xl text-xs font-extrabold text-white shadow-sm transition-all"
                         style={{ backgroundColor: primaryColor }}
                       >

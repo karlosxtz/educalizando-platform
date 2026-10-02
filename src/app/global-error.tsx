@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useEffect,useRef } from 'react';
 
 export default function GlobalError({
   error,

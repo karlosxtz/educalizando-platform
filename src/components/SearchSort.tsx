@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { searchHref } from '@/lib/search-navigation';
+import { useRouter,useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 
 export default function SearchSort() {

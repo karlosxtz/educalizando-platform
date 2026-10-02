@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { getEvolutionConnectionQrCodeForInstance } from '@/lib/whatsapp-notification-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getEvolutionConnectionQrCodeForInstance } from '@/lib/whatsapp-notification-service';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 

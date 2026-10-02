@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { getStoreAffiliatesAction } from '@/app/actions/affiliate-actions';
 import { getCurrentCreatorStore } from '@/lib/store-service';
-import { Affiliate, Store } from '@/lib/types';
-import { Users, CheckCircle, XCircle, Settings, TrendingUp, ShoppingBag, Store as StoreIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { Affiliate,Store } from '@/lib/types';
+import { CheckCircle,Settings,ShoppingBag,Store as StoreIcon,TrendingUp,Users,XCircle } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 export default function CreatorAffiliatesPage() {
   const [store, setStore] = useState<Store | null>(null);

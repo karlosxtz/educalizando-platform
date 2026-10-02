@@ -1,11 +1,11 @@
-import { MetadataRoute } from 'next';
-import { getAllPublicStores, getAllPublicMarketplaceProducts } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { getDisciplines } from '@/lib/discipline-service';
 import { getPublishedBlogPosts } from '@/lib/blog-service';
+import { getCategories,getEducationLevels } from '@/lib/category-service';
+import { getDisciplines } from '@/lib/discipline-service';
 import { glossaryTerms } from '@/lib/glossary';
-import { seoLandings } from '@/lib/seo-landings';
 import { SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
+import { seoLandings } from '@/lib/seo-landings';
+import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
+import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Must match the canonical host configured in the root metadata.

@@ -1,5 +1,5 @@
-import { supabase, supabaseAdmin } from './supabase';
-import { Affiliate, AffiliateStatus, AffiliateProfile } from './types';
+import { supabase,supabaseAdmin } from './supabase';
+import { Affiliate,AffiliateProfile,AffiliateStatus } from './types';
 
 // getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
 // Use getStoreAffiliatesAction from src/app/actions/affiliate-actions.ts instead.
@@ -181,7 +181,7 @@ export async function getOrCreateAffiliateProfile(userId: string, userName: stri
   baseSlug = baseSlug.replace(/^-+|-+$/g, '');
 
   let slug = baseSlug;
-  const attempt = 0;
+  const _attempt = 0;
   
   // Basic collision avoidance (in real scenario, we might want a while loop checking db, 
   // but using UUID fallback is safe enough for automatic profile)
@@ -436,7 +436,7 @@ export async function requestAffiliateWithdrawal(data: {
     throw new Error('Você precisa cadastrar e validar uma chave PIX CPF antes de solicitar um saque.');
   }
 
-  const now = new Date().toISOString();
+  const _now = new Date().toISOString();
   const withdrawalId = `wtd_aff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const externalRef = `withdrawal-${withdrawalId}`;
 

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { registerCreatorPixKey, getActiveCreatorPixKey } from '@/lib/withdrawal-service';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getActiveCreatorPixKey,registerCreatorPixKey } from '@/lib/withdrawal-service';
+import { NextResponse } from 'next/server';
 
 // A chave PIX muda durante a sessão. Nunca reutilize uma resposta antiga nesta rota.
 export const dynamic = 'force-dynamic';

@@ -1,12 +1,12 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useId, useRef, useState, useTransition, useEffect } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from '@/lib/category-service';
+import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
 import type { Discipline } from '@/lib/discipline-service';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { searchHref } from '@/lib/search-navigation';
+import { SlidersHorizontal,X } from 'lucide-react';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useId,useRef,useState,useTransition } from 'react';
 
 const keys = ['categoria', 'ano_escolar', 'preco', 'disciplina', 'formato', 'filter', 'data'];
 

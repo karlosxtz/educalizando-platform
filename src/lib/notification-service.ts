@@ -1,5 +1,5 @@
-import { supabase, isRealSupabaseConfigured } from './supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { isRealSupabaseConfigured,supabase } from './supabase';
 
 // =============================================================================
 // EDUCALIZANDO — NOTIFICATION SERVICE

@@ -1,4 +1,4 @@
-import { Product, Store } from './types';
+import { Product,Store } from './types';
 
 const RECENT_VIEWS_KEY = '@educalizando:recent_views';
 const RECENT_VIEWS_CHANGED_EVENT = 'educalizando:recent-views-changed';

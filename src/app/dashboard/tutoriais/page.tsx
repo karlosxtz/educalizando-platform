@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PlaySquare, Loader2, Rocket, CheckCircle2, Trophy, BookOpen } from 'lucide-react';
+import { BookOpen,CheckCircle2,Loader2,PlaySquare,Rocket,Trophy } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface Tutorial {
@@ -24,7 +24,7 @@ export default function TutoriaisPage() {
     if (saved) {
       try {
         setWatchedIds(JSON.parse(saved));
-      } catch (e) {}
+      } catch (_e) {}
     }
 
     async function loadTutorials() {
@@ -33,7 +33,7 @@ export default function TutoriaisPage() {
         if (!res.ok) throw new Error('Erro ao carregar tutoriais');
         const data = await res.json();
         setTutorials(data);
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao buscar tutoriais. Tente novamente mais tarde.');
       } finally {
         setLoading(false);

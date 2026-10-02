@@ -1,14 +1,14 @@
+import CalendarEventIcon,{ calendarKindStyles } from '@/components/CalendarEventIcon';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import SchoolCalendarMonth from '@/components/SchoolCalendarMonth';
+import { getSchoolCalendarEventKinds,getSchoolCalendarEventsForMonth,getSchoolCalendarMonthArtwork,SCHOOL_CALENDAR_ARTWORK,type SchoolCalendarEventKind } from '@/lib/school-calendar';
+import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { ArrowRight,CalendarDays,ChevronRight,Compass,Search,Sparkles } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, ChevronRight, Compass, Search, Sparkles } from 'lucide-react';
-import Footer from '@/components/Footer';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import CalendarEventIcon, { calendarKindStyles } from '@/components/CalendarEventIcon';
-import SchoolCalendarMonth from '@/components/SchoolCalendarMonth';
-import { getSchoolCalendarEventKinds, getSchoolCalendarEventsForMonth, getSchoolCalendarMonthArtwork, SCHOOL_CALENDAR_ARTWORK, type SchoolCalendarEventKind } from '@/lib/school-calendar';
-import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
-import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 export const revalidate = 3600;
 const calendarTitle = 'Calendário escolar e datas comemorativas | Educalizando';

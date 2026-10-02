@@ -1,16 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-  Store as StoreIcon, BookOpen, ShieldCheck, 
-  ArrowRight, Loader2, Sparkles, Layers, ShoppingBag 
+import {
+ArrowRight,
+BookOpen,
+Loader2,
+ShieldCheck,
+Sparkles,
+Store as StoreIcon
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
-import { getCurrentStudentSession, getStudentStoresGrouped, GroupedStudentStore } from '@/lib/student-service';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { getCurrentStudentSession,getStudentStoresGrouped,GroupedStudentStore } from '@/lib/student-service';
 
 export default function StudentDashboardStoresPage() {
   const router = useRouter();

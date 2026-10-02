@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Settings, Save, Percent, DollarSign } from 'lucide-react';
+import { DollarSign,Percent,Save,Settings } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 export default function SuperAdminConfiguracoes() {
@@ -51,7 +51,7 @@ export default function SuperAdminConfiguracoes() {
       } else {
         toast.error(data.error || 'Não foi possível salvar as configurações.');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro inesperado ao salvar as configurações.');
     } finally {
       setSaving(false);

@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import CustomSelect from '@/components/ui/CustomSelect';
+import { registerCreatorInSupabase } from '@/lib/supabase';
+import { creatorSignupSchema,type CreatorSignupFormValues } from '@/lib/zod-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import confetti from 'canvas-confetti';
-import { motion } from 'framer-motion';
-import { 
-  Store, User, Mail, Lock, Eye, EyeOff, CheckCircle2, 
-  AlertCircle, Loader2, ArrowRight 
+import {
+AlertCircle,
+Eye,EyeOff,
+Loader2,
+Lock,
+Store,User
 } from 'lucide-react';
-import { creatorSignupSchema, type CreatorSignupFormValues } from '@/lib/zod-schemas';
-import { registerCreatorInSupabase } from '@/lib/supabase';
-import CustomSelect from '@/components/ui/CustomSelect';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useState } from 'react';
+import { SubmitHandler,useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export default function SignupForm() {
@@ -67,7 +69,7 @@ export default function SignupForm() {
   const onSubmit: SubmitHandler<CreatorSignupFormValues> = async (data) => {
     setServerError(null);
     try {
-      const result = await registerCreatorInSupabase({
+      const _result = await registerCreatorInSupabase({
         email: data.email,
         password: data.password,
         fullName: data.fullName,

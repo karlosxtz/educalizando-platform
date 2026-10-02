@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { Store, Product, Category, EducationLevel } from '@/lib/types';
-import { Sparkles, Save, Loader2, Bot, MessageSquare, Camera, Copy, Settings, CheckCircle2, Wand2, Search, FileText, BookOpen, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { getCategories,getEducationLevels } from '@/lib/category-service';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
+import { Category,EducationLevel,Product,Store } from '@/lib/types';
+import { BookOpen,Bot,Camera,CheckCircle2,Copy,FileText,Loader2,MessageSquare,Save,Search,Settings,Sparkles,Wand2,X } from 'lucide-react';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useRef,useState } from 'react';
+import { toast } from 'sonner';
 
 export default function IAConfigPage() {
   const router = useRouter();

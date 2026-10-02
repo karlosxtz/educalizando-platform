@@ -1,9 +1,9 @@
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { serializeJsonLd,socialMetadata } from '@/lib/seo';
+import { ArrowRight,Download,Gift } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Download, Gift } from 'lucide-react';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
-import { serializeJsonLd, socialMetadata } from '@/lib/seo';
 
 const pageUrl = 'https://www.educalizando.com.br/materiais-gratis';
 

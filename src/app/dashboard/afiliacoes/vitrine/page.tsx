@@ -1,32 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import StoreLivePreview from '@/components/dashboard/StoreLivePreview';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Store as StoreIcon, Copy, ExternalLink, Check, Save, 
-  Palette, Sparkles, Loader2, AlertCircle, MessageCircle 
+import {
+AlertCircle,
+Check,
+Copy,ExternalLink,
+Loader2,
+Palette,
+Save,
+Store as StoreIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-const InstagramIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
+import { useEffect,useState } from 'react';
+import { SubmitHandler,useForm } from 'react-hook-form';
 
 const formatWhatsApp = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -37,11 +24,11 @@ const formatWhatsApp = (value: string) => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-import { affiliateProfileSchema, type AffiliateProfileFormValues } from '@/lib/zod-schemas';
-import { getOrCreateAffiliateProfile, updateAffiliateProfile } from '@/lib/affiliate-service';
-import { AffiliateProfile } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
 import FileUpload from '@/components/dashboard/FileUpload';
+import { getOrCreateAffiliateProfile,updateAffiliateProfile } from '@/lib/affiliate-service';
+import { supabase } from '@/lib/supabase';
+import { AffiliateProfile } from '@/lib/types';
+import { affiliateProfileSchema,type AffiliateProfileFormValues } from '@/lib/zod-schemas';
 
 export default function AffiliateStoreSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -534,78 +521,7 @@ export default function AffiliateStoreSettingsPage() {
           </form>
         </div>
 
-        {/* Live Preview Panel (Real-time updates as user types or uploads files) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-wider">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span>Preview em Tempo Real da Sua Vitrine</span>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg space-y-4 sticky top-6">
-            {/* Banner Preview */}
-            <div className="h-32 bg-slate-800 relative overflow-hidden" style={{ backgroundColor: watchedCorPrimaria || '#1e293b' }}>
-              {watchedBannerUrl ? (
-                <img src={watchedBannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-white/10 flex items-center justify-center text-slate-200 text-xs font-bold">
-                  Banner da Vitrine
-                </div>
-              )}
-            </div>
-
-            {/* Profile Avatar & Info Preview */}
-            <div className="px-6 pb-6 pt-0 -mt-12 space-y-3 relative">
-              <div className="w-20 h-20 rounded-full bg-white p-1 border-4 border-white shadow-md overflow-hidden">
-                {watchedLogoUrl ? (
-                  <img src={watchedLogoUrl} alt="Logo Preview" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <div
-                    className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-2xl"
-                    style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
-                  >
-                    {(watchedNome || 'L').charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-slate-900">
-                  {watchedNome || 'Nome da Sua Vitrine'}
-                </h3>
-                <p className="text-xs text-blue-600 font-mono font-bold">
-                  educalizando.com.br/afiliado/{watchedSlug || 'sua-vitrine'}
-                </p>
-                <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
-                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus compradores.'}
-                </p>
-
-                {/* Preview Social Links */}
-                {(watchedWhatsapp || watchedInstagram) && (
-                  <div className="flex items-center gap-2 mt-3">
-                    {watchedInstagram && (
-                      <div className="p-1.5 bg-white rounded-full text-slate-400 border border-slate-200 flex items-center justify-center shadow-sm">
-                        <InstagramIcon className="w-4 h-4" />
-                      </div>
-                    )}
-                    {watchedWhatsapp && (
-                      <div className="px-3 py-1.5 bg-[#25D366] text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
-                        <MessageCircle className="w-3 h-3 fill-white" />
-                        WhatsApp
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Simulated Floating WhatsApp Button in Preview */}
-            {watchedWhatsapp && (
-              <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center shadow-md">
-                <MessageCircle className="w-5 h-5 text-white fill-white" />
-              </div>
-            )}
-          </div>
-        </div>
+        <StoreLivePreview variant="affiliate" layoutTheme="default" bannerUrl={watchedBannerUrl} logoUrl={watchedLogoUrl} primaryColor={watchedCorPrimaria} storeName={watchedNome} slug={watchedSlug} description={watchedDescricao} whatsapp={watchedWhatsapp} instagram={watchedInstagram} />
 
       </div>
     </div>

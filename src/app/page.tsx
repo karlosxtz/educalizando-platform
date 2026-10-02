@@ -1,14 +1,14 @@
 export const revalidate = 60;
 
-import type { Metadata } from 'next';
 import Footer from '@/components/Footer';
 import HomepageMarketplace from '@/components/HomepageMarketplace';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getActiveBanners } from '@/lib/banners-service';
-import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
-import { getAllPublicMarketplaceProducts, getAllPublicStores } from '@/lib/store-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
-import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
+import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
+import { absoluteUrl,DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
+import type { Metadata } from 'next';
 
 const homeTitle = 'Materiais Didáticos Digitais para Professores | Educalizando';
 const homeDescription = 'Encontre materiais didáticos digitais, atividades pedagógicas, apostilas, planos de aula e jogos educativos criados por professores.';

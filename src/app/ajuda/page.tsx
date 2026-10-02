@@ -1,16 +1,16 @@
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
-import { 
-  HelpCircle, 
-  Mail, 
-  MessageCircle, 
-  GraduationCap, 
-  Store, 
-  Megaphone,
-  ChevronDown
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { socialMetadata } from '@/lib/seo';
+import {
+ChevronDown,
+GraduationCap,
+HelpCircle,
+Mail,
+Megaphone,
+MessageCircle,
+Store
 } from 'lucide-react';
 import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Central de ajuda | Educalizando',

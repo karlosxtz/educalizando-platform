@@ -1,9 +1,9 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { ArrowLeft,Download,Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { use,useEffect,useState } from 'react';
 
 export default function StudentClubMaterialsPage({ params }: { params: Promise<{ clubId: string }> }) {
   type ClubMaterial = { id:string; titulo:string; capa_url:string|null };

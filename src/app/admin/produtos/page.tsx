@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Package, Trash2, ExternalLink, RotateCcw } from 'lucide-react';
+import { ExternalLink,Package,RotateCcw,Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProductData {
@@ -53,7 +53,7 @@ export default function SuperAdminProdutos() {
       } else {
         toast.error(data.error || 'Não foi possível remover o produto.');
       }
-    } catch (e) {
+    } catch (_e) {
       toast.error('Erro inesperado ao remover o produto.');
     }
   }

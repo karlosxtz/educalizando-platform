@@ -1,8 +1,8 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { ArrowLeft,BookOpen,CheckCircle2,Crown,Loader2,LockKeyhole,Package,ShieldCheck,Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, CheckCircle2, Crown, Loader2, LockKeyhole, Package, ShieldCheck, Sparkles } from 'lucide-react';
+import { use,useEffect,useState } from 'react';
 
 type StoreData = { nome_loja: string; slug: string; logo_url: string | null };
 type PublicClubData = {
@@ -35,9 +35,9 @@ export default function PublicCreatorClubPage({ params }: { params: Promise<{ sl
     try {
       const response = await fetch(`/api/creator-clubs/${data.club.id}/checkout`, { method: 'POST' });
       const payload = await response.json();
-      if (response.status === 401) { window.location.href = `/cliente/login?action=buy&returnTo=${encodeURIComponent(`/clube/${slug}`)}`; return; }
+      if (response.status === 401) { window.location.assign(new URL(`/cliente/login?action=buy&returnTo=${encodeURIComponent(`/clube/${slug}`)}`, window.location.origin)); return; }
       if (!response.ok) throw new Error(payload.error);
-      window.location.href = payload.checkoutUrl || payload.redirectUrl;
+      window.location.assign(payload.checkoutUrl || payload.redirectUrl);
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível continuar.'); setPaying(false); }
   }
 

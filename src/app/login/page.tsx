@@ -1,28 +1,35 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { Suspense,useState } from 'react';
+import { SubmitHandler,useForm } from 'react-hook-form';
 
-import { 
-  Mail, Lock, Eye, EyeOff, LogIn, 
-  AlertCircle, Loader2, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck 
+import {
+AlertCircle,
+ArrowLeft,
+CheckCircle2,
+Eye,EyeOff,
+KeyRound,
+Loader2,
+Lock,
+LogIn,
+Mail,
+ShieldCheck
 } from 'lucide-react';
 
-import { 
-  loginSchema, 
-  resetPasswordSchema, 
-  type LoginFormValues, 
-  type ResetPasswordFormValues 
+import { resetPasswordForEmail,signInUser } from '@/lib/supabase';
+import {
+loginSchema,
+resetPasswordSchema,
+type LoginFormValues,
+type ResetPasswordFormValues
 } from '@/lib/zod-schemas';
-import { signInUser, resetPasswordForEmail } from '@/lib/supabase';
 
 function LoginPageContent() {
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'login' | 'forgot'>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -70,12 +77,12 @@ function LoginPageContent() {
       // garantindo que o cookie sb-access-token já esteja disponível antes do proxy verificar
       const superAdminEmail = process.env.NEXT_PUBLIC_SUPERADMIN_EMAIL || 'rafinhaagathathamy@gmail.com';
       if (values.email.toLowerCase() === superAdminEmail.toLowerCase()) {
-        window.location.href = '/admin';
+        window.location.assign(new URL('/admin', window.location.origin));
       } else {
         // O painel inicial concentra o resumo da loja e os próximos passos.
         // A configuração da loja permanece acessível pelo menu, sem ser um
         // desvio obrigatório após cada login.
-        window.location.href = safeCreatorReturnTo || '/dashboard';
+        window.location.assign(safeCreatorReturnTo || '/dashboard');
       }
       
     } catch (err: any) {

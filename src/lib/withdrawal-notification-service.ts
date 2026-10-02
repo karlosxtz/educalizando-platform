@@ -1,6 +1,6 @@
 import { createNotification } from './notification-service';
 import { supabaseAdmin } from './supabase';
-import { firstName, sendEvolutionText } from './whatsapp-notification-service';
+import { firstName,sendEvolutionText } from './whatsapp-notification-service';
 
 type WithdrawalRequestNotice = {
   withdrawalId: string;

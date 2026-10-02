@@ -1,16 +1,16 @@
 'use client';
-import { FormEvent, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, CircleUserRound, FilePenLine, Loader2, LockKeyhole, Send, ShieldCheck } from 'lucide-react';
+import { getAuthenticatedUserRole,StudentAuthSession } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
-import { getAuthenticatedUserRole, StudentAuthSession } from '@/lib/student-service';
+import { ArrowLeft,CircleUserRound,FilePenLine,Loader2,LockKeyhole,Send,ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { FormEvent,useEffect,useState } from 'react';
 export default function ExclusiveMaterialRequestForm({ store }: { store: { id: string; slug: string; name: string; color: string } }) {
   const [loading, setLoading] = useState(false); const [checkingSession, setCheckingSession] = useState(true); const [session, setSession] = useState<StudentAuthSession | null>(null); const [error, setError] = useState(''); const [done, setDone] = useState(false);
   useEffect(() => { getAuthenticatedUserRole().then((result) => { setSession(result); if (result.isAuthenticated && result.role === 'student') window.location.replace(`/cliente/materiais-exclusivos?solicitar=${encodeURIComponent(store.slug)}`); }).finally(() => setCheckingSession(false)); }, [store.slug]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.assign(`/cliente/login?next=${encodeURIComponent(window.location.pathname)}`); return; }
+    if (!user) { window.location.assign(new URL(`/cliente/login?next=${encodeURIComponent(window.location.pathname)}`, window.location.origin)); return; }
     const values = new FormData(event.currentTarget); setLoading(true);
     try { const response = await fetch('/api/exclusive-material', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, title: values.get('title'), quantity: Number(values.get('quantity')), genre: values.get('genre'), fileType: values.get('fileType'), targetAudience: values.get('targetAudience'), deadline: values.get('deadline'), budget: values.get('budget'), description: values.get('description'), referenceLinks: String(values.get('references') || '').split(/\n|,/).map(v => v.trim()).filter(Boolean) }) });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Não foi possível criar a solicitação.'); setDone(true);

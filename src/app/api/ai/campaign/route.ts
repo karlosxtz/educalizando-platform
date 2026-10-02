@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { generateAiContent,getAiKey } from '@/lib/ai-provider';
 import { GEMINI_MARKETING_SYSTEM_PROMPT } from '@/lib/ai-service';
 import { getRequestUser } from '@/lib/api-auth';
-import { generateAiContent, getAiKey } from '@/lib/ai-provider';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {

@@ -1,7 +1,7 @@
 'use client';
 
+import { Mail,MessageCircle,ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { ShieldCheck, MessageCircle, Mail } from 'lucide-react';
 import NewsletterForm from './NewsletterForm';
 
 export default function Footer() {

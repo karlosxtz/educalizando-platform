@@ -1,4 +1,3 @@
-import { calculateAffiliateCommission } from './affiliate-service';
 
 // Este script atua como um teste do fluxo lógico das regras 1 a 15
 // Devido à ausência de ambiente Next.js real (Request/Response/Cookies) localmente,

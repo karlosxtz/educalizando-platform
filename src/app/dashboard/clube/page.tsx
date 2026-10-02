@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { BarChart3, Check, Crown, ExternalLink, Eye, ImagePlus, Info, Loader2, Package, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { BarChart3,Check,Crown,ExternalLink,Eye,ImagePlus,Info,Loader2,Package,Pencil,Plus,Save,Search,Trash2,X } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useMemo,useState } from 'react';
 
 type Product = { id: string; titulo: string; capa_url: string | null; status: string };
 type Club = { id: string; name: string; slug: string; description: string; cover_url: string | null; monthly_price: number; status: 'draft' | 'published' | 'archived'; material_count: number; paid_sales_count: number };
@@ -41,7 +41,6 @@ export default function CreatorClubPage() {
     finally { setLoading(false); }
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, []);
   const visible = useMemo(() => products.filter((product) => product.titulo.toLowerCase().includes(search.trim().toLowerCase())), [products, search]);
   const selectedProducts = useMemo(() => products.filter((product) => selected.includes(product.id)), [products, selected]);

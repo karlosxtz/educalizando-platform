@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
+import { useEffect,useRef,useState } from 'react';
 
 type TrackingProduct = { productId: string; title: string; price: number; currency?: string };
 type TrackingDetail = { event: 'AddToCart' | 'InitiateCheckout' | 'Purchase'; storeId: string; product?: TrackingProduct; value?: number; currency?: string; transactionId?: string };

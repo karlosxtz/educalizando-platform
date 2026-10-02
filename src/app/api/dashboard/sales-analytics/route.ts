@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import type { PeriodFilter, RecentOrder, SalesDataPoint } from '@/lib/types';
+import type { PeriodFilter,RecentOrder,SalesDataPoint } from '@/lib/types';
+import { NextResponse } from 'next/server';
 
 const validPeriods = new Set<PeriodFilter>(['7d', '30d', 'month', 'year']);
 

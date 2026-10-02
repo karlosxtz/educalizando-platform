@@ -1,5 +1,5 @@
-import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
-import { PeriodFilter, SalesDataPoint, TopProductStat, RecentOrder, Product } from './types';
+import { allowsLocalDevelopmentFallback,isRealSupabaseConfigured,supabase } from './supabase';
+import { PeriodFilter,Product,RecentOrder,SalesDataPoint,TopProductStat } from './types';
 
 type DashboardAnalyticsResponse = {
   chartData?: SalesDataPoint[];

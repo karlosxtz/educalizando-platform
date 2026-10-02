@@ -1,9 +1,9 @@
+import { getRequestUser } from '@/lib/api-auth';
+import { exclusiveFinancials } from '@/lib/exclusive-material';
+import { createInfinitePayCheckout } from '@/lib/infinitepay-service';
+import { supabaseAdmin } from '@/lib/supabase';
 import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
-import { getRequestUser } from '@/lib/api-auth';
-import { supabaseAdmin } from '@/lib/supabase';
-import { createInfinitePayCheckout } from '@/lib/infinitepay-service';
-import { exclusiveFinancials } from '@/lib/exclusive-material';
 
 export async function POST(request: Request, { params }: { params: Promise<{ requestId: string }> }) {
   const user = await getRequestUser(request); const { requestId } = await params;

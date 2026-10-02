@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
-import { updateOrderStatus } from '@/lib/order-service';
 import { isSuperAdmin } from '@/lib/api-auth';
+import { updateOrderStatus } from '@/lib/order-service';
+import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 /**
  * API de Reconciliação Financeira — Força Bruta

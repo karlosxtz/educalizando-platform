@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 const TEMPLATE_FIELDS = [
   'whatsapp_template_creator',

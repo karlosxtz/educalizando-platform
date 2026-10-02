@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 async function getOrderAccessState(studentId: string, orderId: string) {
   const { data: items, error: itemsError } = await supabaseAdmin

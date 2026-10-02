@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Settings, Mail, Lock, Check, Save, ShieldCheck, Key, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
 import { getCurrentUserSession } from '@/lib/supabase';
 import { maskCPF } from '@/lib/withdrawal-service';
+import { AlertCircle,Check,Key,Loader2,Lock,Mail,Save,Settings,ShieldCheck } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 import { getCurrentCreatorStore } from '@/lib/store-service';
 
@@ -49,7 +49,7 @@ export default function AccountSettingsPage() {
             if (parsed.email) setEmail(parsed.email);
             if (parsed.cpf) setUserCpf(parsed.cpf);
             if (parsed.cpf_changed) setCpfChanged(true);
-          } catch (e) {}
+          } catch (_e) {}
         }
       }
     }

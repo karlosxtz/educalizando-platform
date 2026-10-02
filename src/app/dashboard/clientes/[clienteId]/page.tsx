@@ -1,16 +1,28 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
+import { Customer,getCustomerById } from '@/lib/customer-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
+import {
+AlertCircle,
+ArrowLeft,
+Calendar,
+Clock,
+DollarSign,
+Download,
+ExternalLink,
+FileText,
+Loader2,
+Mail,
+Package,
+Phone,
+Send,
+ShoppingBag,
+Users
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, Users, Mail, Phone, Calendar, ShieldCheck, 
-  ShoppingBag, DollarSign, TrendingUp, Clock, FileText, 
-  CheckCircle2, AlertCircle, ExternalLink, Download, Package, Layers, Send, Loader2
-} from 'lucide-react';
-import { getCustomerById, Customer } from '@/lib/customer-service';
-import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
-import { getCurrentCreatorStore } from '@/lib/store-service';
+import { use,useEffect,useState } from 'react';
 
 interface CustomerDetailPageProps {
   params: Promise<{ clienteId: string }>;

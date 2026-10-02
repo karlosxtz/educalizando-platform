@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
-import { ArrowRight, CheckCircle2, ChevronLeft, CircleHelp, LayoutDashboard, Map, Package, ShoppingCart, ShieldCheck, DollarSign, Store, Gift, MessagesSquare, ChartNoAxesCombined, MessageCircle, Sparkles, X, PlaySquare, Wrench, Library, Boxes, Ticket, Tags, Users, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
+import { ArrowRight,Boxes,ChartNoAxesCombined,ChevronLeft,CircleHelp,DollarSign,Gift,LayoutDashboard,Library,Map,MessageCircle,MessagesSquare,Package,PlaySquare,Settings,ShoppingCart,Sparkles,Store,Tags,Ticket,Users,Wrench,X } from 'lucide-react';
+import { usePathname,useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 type TourStep = { title: string; description: string; task: string; icon: LucideIcon; href: string };
 const TOUR_STEPS: TourStep[] = [

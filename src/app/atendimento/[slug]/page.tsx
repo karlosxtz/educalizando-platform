@@ -1,7 +1,7 @@
-import { notFound } from 'next/navigation';
 import GuidedStoreChat from '@/components/store/GuidedStoreChat';
 import { supabase } from '@/lib/supabase';
-import type { Product, Store } from '@/lib/types';
+import type { Product,Store } from '@/lib/types';
+import { notFound } from 'next/navigation';
 
 export const revalidate = 60;
 

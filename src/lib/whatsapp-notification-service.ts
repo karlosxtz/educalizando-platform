@@ -1,5 +1,5 @@
-import { supabaseAdmin } from './supabase';
 import { secureEvolutionWebhookUrl } from './evolution-webhook-security';
+import { supabaseAdmin } from './supabase';
 
 export type WhatsAppTemplateKey =
   | 'creatorWelcome'
@@ -332,7 +332,7 @@ export async function restartEvolutionInstance(): Promise<{ restarted: boolean; 
 }
 
 export async function getEvolutionConnectionQrCode(force = false, webhookUrl?: string): Promise<EvolutionQrCode> {
-  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  const { apiKey, baseUrl: _baseUrl, instanceName } = evolutionConfig();
   if (!apiKey || !instanceName) return { connected: false, created: false, qrCode: null, error: 'A Evolution não está configurada.' };
   return getEvolutionConnectionQrCodeForInstance(instanceName, force, webhookUrl);
 }

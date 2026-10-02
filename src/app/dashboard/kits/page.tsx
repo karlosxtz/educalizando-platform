@@ -1,22 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { AnimatePresence,motion } from 'framer-motion';
+import {
+AlertCircle,
+AlertTriangle,
+Boxes,
+Edit3,
+Eye,EyeOff,
+Loader2,
+Package,
+Plus,
+Sparkles,
+Trash2
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Boxes, Plus, Edit3, Trash2, Eye, EyeOff, 
-  Package, Loader2, AlertTriangle, AlertCircle, Sparkles, Tag, Layers 
-} from 'lucide-react';
+import { useEffect,useState } from 'react';
 
+import { deleteKit,getKitsByStoreId,updateKit } from '@/lib/kit-service';
 import { getCurrentCreatorStore } from '@/lib/store-service';
-import { getKitsByStoreId, createKit, updateKit, deleteKit } from '@/lib/kit-service';
-import { Kit, Store, Product } from '@/lib/types';
+import { Kit,Store } from '@/lib/types';
 
 export default function KitsManagementPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [store, setStore] = useState<Store | null>(null);
+  const [_store, setStore] = useState<Store | null>(null);
   const [kits, setKits] = useState<Kit[]>([]);
 
   // Modals State
@@ -43,7 +51,7 @@ export default function KitsManagementPage() {
     loadData();
   }, []);
 
-  const handleOpenCreateWizard = () => {
+  const _handleOpenCreateWizard = () => {
     router.push('/dashboard/kits/novo');
   };
 

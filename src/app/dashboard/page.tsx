@@ -1,22 +1,40 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { 
-  Store, Package, DollarSign, TrendingUp, Sparkles,
-  ArrowRight, ExternalLink, Plus, CheckCircle2, Percent, Wallet,
-  Landmark, ReceiptText, CircleDollarSign, CalendarDays, Lightbulb, Search, UsersRound,
-  MessageSquareText, Handshake, PackageCheck, BadgeDollarSign, Clock3
-} from 'lucide-react';
-import { getCurrentCreatorStore, getProductsByStoreId } from '@/lib/store-service';
-import { calculateCreatorWallet, CreatorWalletSummary } from '@/lib/wallet-service';
-import { motion } from 'framer-motion';
-import { Store as StoreType, Product } from '@/lib/types';
+import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
 import SalesOverviewChart from '@/components/dashboard/SalesOverviewChart';
 import TopProductsReport from '@/components/dashboard/TopProductsReport';
-import RecentSalesFeed from '@/components/dashboard/RecentSalesFeed';
-import { emptyExclusiveSalesOverview, getExclusiveSalesOverview, getSalesDataByPeriod, type ExclusiveSalesOverview } from '@/lib/sales-service';
+import { emptyExclusiveSalesOverview,getExclusiveSalesOverview,getSalesDataByPeriod,type ExclusiveSalesOverview } from '@/lib/sales-service';
 import { getUpcomingSchoolEvents } from '@/lib/school-calendar';
+import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
+import { Product,Store as StoreType } from '@/lib/types';
+import { calculateCreatorWallet,CreatorWalletSummary } from '@/lib/wallet-service';
+import { motion } from 'framer-motion';
+import {
+ArrowRight,
+BadgeDollarSign,
+CalendarDays,
+CheckCircle2,
+CircleDollarSign,
+Clock3,
+DollarSign,
+ExternalLink,
+Handshake,
+Landmark,
+Lightbulb,
+MessageSquareText,
+Package,
+PackageCheck,
+Percent,
+ReceiptText,
+Search,
+Sparkles,
+Store,
+TrendingUp,
+UsersRound,
+Wallet
+} from 'lucide-react';
+import Link from 'next/link';
+import { useCallback,useEffect,useState } from 'react';
 
 const emptyWallet: CreatorWalletSummary = {
   totalVendido: 0,

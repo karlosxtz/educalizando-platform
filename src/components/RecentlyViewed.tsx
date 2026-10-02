@@ -1,8 +1,8 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { getRecentViews,RecentProduct,subscribeToRecentViews } from '@/lib/recent-views';
 import { Eye } from 'lucide-react';
-import { getRecentViews, RecentProduct, subscribeToRecentViews } from '@/lib/recent-views';
+import { useSyncExternalStore } from 'react';
 import ProductCard from './ProductCard';
 
 const EMPTY_RECENT_PRODUCTS: RecentProduct[] = [];

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { normalizeWhatsAppNumber } from '@/lib/whatsapp-notification-service';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 import { supabaseAdmin } from '@/lib/supabase';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { normalizeWhatsAppNumber } from '@/lib/whatsapp-notification-service';
+import { NextResponse } from 'next/server';
 
 type RequestedItem = { productId?: string; quantity?: number };
 

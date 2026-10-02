@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
 import { getDisciplines } from '@/lib/discipline-service';
 import { searchProducts } from '@/lib/search-service';
-import { serializeJsonLd, socialMetadata } from '@/lib/seo';
+import { serializeJsonLd,socialMetadata } from '@/lib/seo';
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 interface DisciplinePageProps {
   params: Promise<{ slug: string }>;

@@ -1,27 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import CustomSelect from '@/components/ui/CustomSelect';
+import {
+ContentDeliveryMetrics,
+ContentItem,
+getContentByStoreId,
+getContentDeliveryMetrics,
+getProductDeliverySummaries
+} from '@/lib/content-delivery-service';
+import { isUploadedMaterial } from '@/lib/delivery-link';
+import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
+import { Product } from '@/lib/types';
+import {
+Download,Eye,
+FolderCheck,
+Info,
+Package,
+RefreshCw,
+Search,
+Settings
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  FolderCheck, FileText, Link2, Download, Eye, Plus, Search, 
-  Trash2, AlertCircle, CheckCircle2, Info, VideoOff, ExternalLink, 
-  RefreshCw, Layers, HardDrive, ShieldAlert, Sparkles, Package, Settings 
-} from 'lucide-react';
-import { 
-  getContentByStoreId, 
-  getContentDeliveryMetrics, 
-  getProductDeliverySummaries,
-  ContentItem, 
-  ContentDeliveryMetrics 
-} from '@/lib/content-delivery-service';
-import { getProductsByStoreId, getCurrentCreatorStore } from '@/lib/store-service';
-import { Product } from '@/lib/types';
-import CustomSelect from '@/components/ui/CustomSelect';
-import { isUploadedMaterial } from '@/lib/delivery-link';
+import { useEffect,useState } from 'react';
 
 export default function ContentDeliveryDashboardPage() {
-  const router = useRouter();
+  const _router = useRouter();
 
   const [storeId, setStoreId] = useState<string>('');
   const [loading, setLoading] = useState(true);

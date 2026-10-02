@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import { GraduationCap, Loader2, Plus, Trash2 } from 'lucide-react';
+import { GraduationCap,Loader2,Plus,Trash2 } from 'lucide-react';
+import { FormEvent,useEffect,useState } from 'react';
 import { toast } from 'sonner';
 type Level = { id: string; nome: string; slug: string; ordem: number };
 const makeSlug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

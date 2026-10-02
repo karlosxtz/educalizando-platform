@@ -1,16 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  User, Mail, Save, Loader2, AlertCircle, CheckCircle2, ShieldCheck, Sparkles, Camera
+import {
+AlertCircle,
+Camera,
+CheckCircle2,
+Loader2,
+Mail,Save,
+User
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 import { z } from 'zod';
 
-import { getCurrentStudentSession, updateStudentProfile } from '@/lib/student-service';
 import StudentHeader from '@/components/aluno/StudentHeader';
 import FileUpload from '@/components/dashboard/FileUpload';
+import { getCurrentStudentSession,updateStudentProfile } from '@/lib/student-service';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),

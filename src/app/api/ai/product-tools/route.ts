@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { generateAiContent,getAiKey } from '@/lib/ai-provider';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateAiContent, getAiKey } from '@/lib/ai-provider';
+import { NextResponse } from 'next/server';
 
 const instructions: Record<string, string> = {
   seo: 'Crie uma proposta completa de SEO para este produto. Priorize termos que educadores realmente buscariam e mantenha todas as sugestões fiéis ao material informado.',

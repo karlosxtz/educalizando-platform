@@ -1,19 +1,19 @@
-import Link from 'next/link';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
-import { 
-  Store, 
-  Sparkles, 
-  LayoutTemplate, 
-  CheckCircle2, 
-  UserPlus, 
-  MousePointerClick, 
-  TrendingUp,
-  ArrowRight,
-  Link as LinkIcon
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { socialMetadata } from '@/lib/seo';
+import {
+ArrowRight,
+CheckCircle2,
+LayoutTemplate,
+Link as LinkIcon,
+MousePointerClick,
+Sparkles,
+Store,
+TrendingUp,
+UserPlus
 } from 'lucide-react';
 import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Programa de afiliados | Educalizando',

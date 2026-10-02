@@ -1,13 +1,13 @@
+import StoreAnalytics from '@/components/store/StoreAnalytics';
+import { getPublicCreatorClubsByStoreId } from '@/lib/creator-club-service';
+import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import {
+getPublicProductsByStoreId,
+getStoreBySlug
+} from '@/lib/store-service';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { 
-  getStoreBySlug, 
-  getPublicProductsByStoreId 
-} from '@/lib/store-service';
 import PublicStoreClientView from './PublicStoreClientView';
-import StoreAnalytics from '@/components/store/StoreAnalytics';
-import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
-import { getPublicCreatorClubsByStoreId } from '@/lib/creator-club-service';
 
 // Forçar renderização dinâmica em tempo real no Next.js App Router
 export const dynamic = 'force-dynamic';

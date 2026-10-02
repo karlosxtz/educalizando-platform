@@ -1,8 +1,8 @@
 'use client';
 
+import { AnimatePresence,motion } from 'framer-motion';
+import { ChevronDown,HelpCircle } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, HelpCircle } from 'lucide-react';
 
 export default function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);

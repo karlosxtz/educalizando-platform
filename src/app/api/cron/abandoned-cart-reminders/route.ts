@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;

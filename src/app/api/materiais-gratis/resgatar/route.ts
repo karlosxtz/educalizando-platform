@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { supabaseAdmin } from '@/lib/supabase';
 import { grantStudentProductAccess } from '@/lib/student-service';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 /**
  * Libera um brinde somente para uma conta de cliente autenticada. O produto e

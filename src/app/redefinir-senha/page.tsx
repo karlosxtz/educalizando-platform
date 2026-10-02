@@ -1,17 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import {
-  Lock, Eye, EyeOff, Loader2,
-  ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle
-} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
+import {
+AlertCircle,
+ArrowLeft,
+CheckCircle2,
+Eye,EyeOff,Loader2,
+Lock,
+ShieldCheck
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function RedefinirSenhaPage() {
-  const router = useRouter();
+  const _router = useRouter();
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,7 +54,7 @@ export default function RedefinirSenhaPage() {
       
       // Delay curto para o usuário ler a mensagem de sucesso
       setTimeout(() => {
-        window.location.href = '/login';
+        window.location.assign(new URL('/login', window.location.origin));
       }, 2000);
 
     } catch (err: any) {

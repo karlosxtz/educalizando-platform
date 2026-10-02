@@ -1,7 +1,7 @@
-import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
-import { getLocalOrders } from './sales-service';
-import { ProductType } from './types';
 import { getCustomerAccessLogs } from './content-delivery-service';
+import { getLocalOrders } from './sales-service';
+import { allowsLocalDevelopmentFallback,isRealSupabaseConfigured,supabase } from './supabase';
+import { ProductType } from './types';
 
 /**
  * =============================================================================
@@ -369,7 +369,7 @@ export async function getCustomerById(storeId: string, customerId: string): Prom
       ...product,
       totalAcessos: product.produtoId ? accessesByProductId.get(product.produtoId) || 0 : 0
     }));
-  } catch (e) {
+  } catch (_e) {
     // Non-critical
   }
 

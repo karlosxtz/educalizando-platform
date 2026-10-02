@@ -1,9 +1,9 @@
 'use client';
 
+import { signOutStudent } from '@/lib/student-service';
+import { BookOpen,Crown,FilePenLine,GraduationCap,LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, LogOut, BookOpen, FilePenLine, Crown } from 'lucide-react';
-import { signOutStudent } from '@/lib/student-service';
 
 interface StudentHeaderProps {
   studentName?: string;

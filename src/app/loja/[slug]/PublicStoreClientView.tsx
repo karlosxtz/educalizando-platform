@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Store, Product, StoreListingProduct, StoreCollection, Category, EducationLevel, Kit, StoreThemeProps, CreatorClubListing } from '@/lib/types';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
+import { getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPublicKitsByStoreId } from '@/lib/kit-service';
+import { Category,CreatorClubListing,EducationLevel,Kit,Product,Store,StoreCollection,StoreListingProduct,StoreThemeProps } from '@/lib/types';
+import { useSearchParams } from 'next/navigation';
+import { useEffect,useMemo,useState } from 'react';
 
 // Import Themes
 import ThemeDefault from './themes/ThemeDefault';

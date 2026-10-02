@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { 
-  Users, UserCheck, UserPlus, Search, Eye, Filter, 
-  ShoppingBag, DollarSign, Calendar, ArrowRight, ShieldCheck, RefreshCw 
-} from 'lucide-react';
-import { getCustomersByStoreId, getCustomerSummaryStats, Customer, CustomerSummary } from '@/lib/customer-service';
 import { syncCustomerNamesByEmails } from '@/app/actions/customer-actions';
-import { getCurrentCreatorStore } from '@/lib/store-service';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { Customer,CustomerSummary,getCustomersByStoreId,getCustomerSummaryStats } from '@/lib/customer-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
+import {
+Eye,
+RefreshCw,
+Search,
+UserCheck,UserPlus,
+Users
+} from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 export default function CustomersPage() {
   const [storeId, setStoreId] = useState('');
@@ -320,11 +323,11 @@ export default function CustomersPage() {
                   {filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(cust => (
                     <tr
                       key={cust.id}
-                      onClick={() => window.location.assign(`/dashboard/clientes/${cust.id}`)}
+                      onClick={() => window.location.assign(new URL(`/dashboard/clientes/${cust.id}`, window.location.origin))}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
-                          window.location.assign(`/dashboard/clientes/${cust.id}`);
+                          window.location.assign(new URL(`/dashboard/clientes/${cust.id}`, window.location.origin));
                         }
                       }}
                       tabIndex={0}

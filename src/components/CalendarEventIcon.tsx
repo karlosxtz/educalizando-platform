@@ -1,5 +1,5 @@
-import { BookOpen, CalendarDays, Heart, Leaf, Landmark, Palette, ShieldCheck, Sparkles } from 'lucide-react';
 import type { SchoolCalendarIcon } from '@/lib/school-calendar';
+import { BookOpen,CalendarDays,Heart,Landmark,Leaf,Palette,ShieldCheck,Sparkles } from 'lucide-react';
 
 const icons = { book: BookOpen, calendar: CalendarDays, heart: Heart, leaf: Leaf, landmark: Landmark, palette: Palette, shield: ShieldCheck, sparkles: Sparkles } as const;
 

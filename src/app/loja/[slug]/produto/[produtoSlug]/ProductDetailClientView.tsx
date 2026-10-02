@@ -1,24 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ArrowLeft, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Sparkles, Lock, Loader2, Ticket, AlertCircle, UserCheck, UserX, X, Library, ShoppingBag, ShoppingCart, Star, ExternalLink, Grid2X2, Search, Eye, Camera, Play
-} from 'lucide-react';
-import { Store, Product, ProductType, Category, EducationLevel, CouponValidationResult, Review, BnccSkill } from '@/lib/types';
-import { validateCouponCode } from '@/lib/coupon-service';
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
-import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { useCart } from '@/components/store/CartContext';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 import PurchaseLicenseSummary from '@/components/PurchaseLicenseSummary';
+import { useCart } from '@/components/store/CartContext';
+import { validateCouponCode } from '@/lib/coupon-service';
 import { addRecentView } from '@/lib/recent-views';
 import { incrementProductViews } from '@/lib/store-service';
+import { getAuthenticatedUserRole } from '@/lib/student-service';
+import { BnccSkill,Category,CouponValidationResult,EducationLevel,Product,ProductType,Review,Store } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
+import { AnimatePresence,motion } from 'framer-motion';
+import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Search, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, UserCheck, UserX, Video, X, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useRef,useState } from 'react';
 
 import ProductCard from '@/components/ProductCard';
 
@@ -199,7 +195,6 @@ export default function ProductDetailClientView({
       void handleClaimFreeMaterial();
     }
   // The query is intentionally the trigger; the remaining values identify this material.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFreeProduct, searchParams, product.id]);
 
   const getTipoIcon = (tipo: ProductType) => {

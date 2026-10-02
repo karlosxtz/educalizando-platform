@@ -1,10 +1,10 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Check, ChevronRight, CircleUserRound, FileText, FileUp, Link2, Loader2, MessageCircle, PackageCheck, Search, Send, Trash2, WalletCards } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 import { EXCLUSIVE_MATERIAL_STATUS_LABEL } from '@/lib/exclusive-material';
 import { supabase } from '@/lib/supabase';
+import { CalendarDays,Check,ChevronRight,CircleUserRound,FileText,FileUp,Link2,Loader2,MessageCircle,PackageCheck,Search,Send,Trash2,WalletCards } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { FormEvent,useEffect,useMemo,useState } from 'react';
 
 type Item = any;
 
@@ -237,7 +237,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
         return;
       }
       notify('Pagamento criado. Abrindo a página segura de pagamento…');
-      window.location.href = data.checkoutUrl;
+      window.location.assign(data.checkoutUrl);
     } catch {
       notify('Não foi possível iniciar o pagamento. Tente novamente.', 'error');
     } finally { setPaying(false); }

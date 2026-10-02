@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 function slugify(value: unknown) { return typeof value === 'string' ? value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : ''; }
 export async function GET(request: Request) { if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 }); const { data, error } = await supabaseAdmin.from('education_levels').select('*').order('ordem'); if (error) return NextResponse.json({ error: error.message }, { status: 500 }); return NextResponse.json({ levels: data || [] }); }

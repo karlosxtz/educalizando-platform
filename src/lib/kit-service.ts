@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
-import { Kit, KitItem, Product } from './types';
 import { getProductById } from './store-service';
+import { supabase } from './supabase';
+import { Kit,Product } from './types';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -16,7 +16,7 @@ function getDeletedKitIds(): Set<string> {
       const arr = JSON.parse(saved);
       if (Array.isArray(arr)) return new Set(arr);
     }
-  } catch (e) {}
+  } catch (_e) {}
   return new Set();
 }
 
@@ -29,10 +29,10 @@ function addDeletedKitId(id: string) {
     set.add(clean);
     set.add(`kit_${clean}`);
     localStorage.setItem('educalizando_deleted_kits_v1', JSON.stringify(Array.from(set)));
-  } catch (e) {}
+  } catch (_e) {}
 }
 
-function removeDeletedKitId(id: string) {
+function _removeDeletedKitId(id: string) {
   if (typeof window === 'undefined' || !id) return;
   try {
     const clean = id.replace(/^kit_/i, '');
@@ -41,7 +41,7 @@ function removeDeletedKitId(id: string) {
     set.delete(clean);
     set.delete(`kit_${clean}`);
     localStorage.setItem('educalizando_deleted_kits_v1', JSON.stringify(Array.from(set)));
-  } catch (e) {}
+  } catch (_e) {}
 }
 
 // Mock/Default fallback helpers for offline dev environment
@@ -53,7 +53,7 @@ function getLocalKits(): Kit[] {
   try {
     const kits: Kit[] = JSON.parse(saved);
     return Array.isArray(kits) ? kits.filter(k => !deletedIds.has(k.id) && !deletedIds.has(k.id.replace(/^kit_/i, ''))) : [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -329,7 +329,7 @@ export async function updateKit(
   );
 
   if (isRealSupabase) {
-    const { data: updatedKit, error: kitError } = await supabase
+    const { data: _updatedKit, error: kitError } = await supabase
       .from('kits')
       .update({
         titulo: updates.titulo,
@@ -447,7 +447,7 @@ export async function checkKitHasSales(kitId: string): Promise<boolean> {
           if (hasSold) return true;
         }
       }
-    } catch (e) {}
+    } catch (_e) {}
   }
 
   return false;
@@ -488,6 +488,6 @@ export async function deleteKit(kitId: string): Promise<void> {
           }
         }
       });
-    } catch (e) {}
+    } catch (_e) {}
   }
 }

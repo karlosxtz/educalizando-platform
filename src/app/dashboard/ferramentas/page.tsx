@@ -1,12 +1,12 @@
 'use client';
 
-import { ChangeEvent, ReactNode, useRef, useState } from 'react';
-import { Download, FileArchive, FileImage, FileOutput, FileText, Grid2X2, ImageDown, ImagePlus, Maximize2, QrCode, RotateCw, Scissors, ShieldCheck, Upload, Zap } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import QRCode from 'qrcode';
 import JSZip from 'jszip';
-import { degrees, PDFDocument } from 'pdf-lib';
+import { Download,FileArchive,FileImage,FileOutput,FileText,Grid2X2,ImageDown,ImagePlus,Maximize2,QrCode,RotateCw,Scissors,ShieldCheck,Upload,Zap } from 'lucide-react';
+import { degrees,PDFDocument } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
+import QRCode from 'qrcode';
+import { ChangeEvent,ReactNode,useRef,useState } from 'react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 

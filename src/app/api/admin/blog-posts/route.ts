@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
 import { isSuperAdmin } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 function normalizeSlug(value: unknown) {
   if (typeof value !== 'string') return '';

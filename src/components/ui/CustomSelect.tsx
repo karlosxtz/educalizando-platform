@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { Check,ChevronDown } from 'lucide-react';
+import { KeyboardEvent,useEffect,useRef,useState } from 'react';
 
 export interface CustomSelectOption {
   value: string;

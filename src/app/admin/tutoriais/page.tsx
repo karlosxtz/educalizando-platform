@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Check, X, Loader2, PlaySquare } from 'lucide-react';
+import { Edit2,Loader2,PlaySquare,Plus,Trash2,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface Tutorial {
@@ -41,7 +41,7 @@ export default function AdminTutorialsPage() {
       if (!res.ok) throw new Error('Falha ao carregar tutoriais');
       const data = await res.json();
       setTutorials(data || []);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao buscar tutoriais');
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ export default function AdminTutorialsPage() {
       
       toast.success('Tutorial excluído');
       fetchTutorials();
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao excluir');
     }
   };

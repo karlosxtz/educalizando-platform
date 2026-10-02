@@ -1,15 +1,15 @@
-import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
-import { getStoreBySlug, getProductById, getPublicProductsByStoreId } from '@/lib/store-service';
-import { getCategories, getEducationLevels, getBnccSkillsByIds } from '@/lib/category-service';
-import ProductDetailClientView from './ProductDetailClientView';
-import Link from 'next/link';
-import { ChevronRight, Home, Store } from 'lucide-react';
-import { ReactNode } from 'react';
-import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
-import { DEFAULT_SOCIAL_IMAGE, serializeJsonLd, SITE_URL } from '@/lib/seo';
+import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
+import { getPaidProductSalesCount } from '@/lib/product-social-proof';
+import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { getProductById,getPublicProductsByStoreId,getStoreBySlug } from '@/lib/store-service';
 import type { Product } from '@/lib/types';
+import { ChevronRight,Home,Store } from 'lucide-react';
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound,redirect } from 'next/navigation';
+import { ReactNode } from 'react';
+import ProductDetailClientView from './ProductDetailClientView';
 
 interface ProductDetailPageProps {
   params: Promise<{

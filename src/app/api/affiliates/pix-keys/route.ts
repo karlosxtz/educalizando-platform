@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
 import { getAffiliateProfile } from '@/lib/affiliate-service';
-import { getActiveCreatorPixKey, registerCreatorPixKey } from '@/lib/withdrawal-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getActiveCreatorPixKey,registerCreatorPixKey } from '@/lib/withdrawal-service';
+import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
   try {

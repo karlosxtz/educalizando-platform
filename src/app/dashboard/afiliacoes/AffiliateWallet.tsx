@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Wallet, DollarSign, ArrowRightLeft, Key, CheckCircle, AlertCircle, Clock, Check, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { AlertCircle,ArrowRightLeft,Check,CheckCircle,Clock,Key,Loader2,Wallet } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 export function AffiliateWallet() {
   const [balance, setBalance] = useState({ available: 0, withdrawn: 0, pending: 0 });

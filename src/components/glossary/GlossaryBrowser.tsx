@@ -1,9 +1,9 @@
 'use client';
 
+import type { GlossaryTerm } from '@/lib/glossary';
+import { BookOpen,ChevronRight,GraduationCap,Lightbulb,Search,Sparkles,X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { BookOpen, ChevronRight, GraduationCap, Lightbulb, Search, Sparkles, X } from 'lucide-react';
-import type { GlossaryTerm } from '@/lib/glossary';
 
 export default function GlossaryBrowser({ terms }: { terms: GlossaryTerm[] }) {
   const [query, setQuery] = useState('');

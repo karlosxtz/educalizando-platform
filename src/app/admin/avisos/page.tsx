@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Megaphone, Trash2, Plus, Power, Link as LinkIcon } from 'lucide-react';
+import { Link as LinkIcon,Megaphone,Plus,Power,Trash2 } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 interface BannerData {
   id: string;
@@ -74,7 +74,7 @@ export default function SuperAdminAvisos() {
       } else {
         alert('Erro ao criar: ' + data.error);
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Erro inesperado');
     } finally {
       setSaving(false);
@@ -92,7 +92,7 @@ export default function SuperAdminAvisos() {
       } else {
         alert('Erro ao excluir: ' + data.error);
       }
-    } catch (e) {
+    } catch (_e) {
       alert('Erro inesperado.');
     }
   }
@@ -110,7 +110,7 @@ export default function SuperAdminAvisos() {
       } else {
         alert('Erro ao atualizar: ' + data.error);
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Erro inesperado');
     }
   }

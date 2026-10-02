@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
 import { CARD_PROCESSING_FEE_PERCENTAGES } from '@/lib/payment-fees';
+import { motion } from 'framer-motion';
+import { ArrowRight,Check } from 'lucide-react';
+import { useMemo,useState } from 'react';
 
 export default function Pricing() {
   const [productPrice, setProductPrice] = useState('50');

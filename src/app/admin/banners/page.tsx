@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MainBanner, getAllBanners, createBanner, updateBanner, deleteBanner } from '@/lib/banners-service';
 import FileUpload from '@/components/dashboard/FileUpload';
-import { MonitorPlay, Plus, Save, Trash2, Edit2, CheckCircle2, XCircle } from 'lucide-react';
+import { MainBanner,createBanner,deleteBanner,getAllBanners,updateBanner } from '@/lib/banners-service';
+import { CheckCircle2,Edit2,MonitorPlay,Plus,Save,Trash2,XCircle } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 export default function BannersAdminPage() {
   const [banners, setBanners] = useState<MainBanner[]>([]);

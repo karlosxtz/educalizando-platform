@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createInfinitePayCheckout, isValidCPF } from '@/lib/infinitepay-service';
-import { createOrderRecord, getOrderRecordById, OrderAlreadyExistsError, PaymentMethodType } from '@/lib/order-service';
-import { supabaseAdmin } from '@/lib/supabase';
-import { validateCouponCode } from '@/lib/coupon-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { checkoutAttemptMatches,createCheckoutOrderId,isValidCheckoutIdempotencyKey,type CheckoutAttempt } from '@/lib/checkout-idempotency';
+import { validateCouponCode } from '@/lib/coupon-service';
+import { assertCheckoutFinancialConfiguration,getConfiguredCryptoSecret,getFinancialConfiguration } from '@/lib/financial-configuration';
+import { createInfinitePayCheckout,isValidCPF } from '@/lib/infinitepay-service';
+import { createOrderRecord,getOrderRecordById,OrderAlreadyExistsError,PaymentMethodType } from '@/lib/order-service';
 import { getStorePromotion } from '@/lib/store-promotion';
-import { assertCheckoutFinancialConfiguration, getConfiguredCryptoSecret, getFinancialConfiguration } from '@/lib/financial-configuration';
-import { checkoutAttemptMatches, createCheckoutOrderId, isValidCheckoutIdempotencyKey, type CheckoutAttempt } from '@/lib/checkout-idempotency';
+import { supabaseAdmin } from '@/lib/supabase';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 const CHECKOUT_CONFIGURATION_ERROR = 'O checkout está temporariamente indisponível. Tente novamente em instantes.';
 const CHECKOUT_ATTEMPT_ERROR = 'Não foi possível retomar esta tentativa de compra. Atualize a página e tente novamente.';
@@ -380,7 +380,7 @@ export async function POST(request: Request) {
         if (parsed[effectiveStoreId]) {
           rawAffiliateId = parsed[effectiveStoreId];
         }
-      } catch (e) {
+      } catch (_e) {
         // Ignorar erro de parse
       }
     }

@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { CalendarDays, Copy, ExternalLink, GraduationCap, MessagesSquare, Save, Sparkles, Tag } from 'lucide-react';
-import { toast } from 'sonner';
-import { getCurrentCreatorStore, updateStore } from '@/lib/store-service';
+import { getCurrentCreatorStore,updateStore } from '@/lib/store-service';
 import type { Store } from '@/lib/types';
+import { CalendarDays,Copy,ExternalLink,GraduationCap,MessagesSquare,Save,Sparkles,Tag } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AtendimentoPage() {
   const [store, setStore] = useState<Store | null>(null); const [welcome, setWelcome] = useState(''); const [enabled, setEnabled] = useState(true); const [saving, setSaving] = useState(false);

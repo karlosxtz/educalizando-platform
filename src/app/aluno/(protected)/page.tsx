@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Sparkles, GraduationCap, LogIn, UserPlus, ShieldCheck, BookOpen, ArrowRight, Loader2 } from 'lucide-react';
 import { getCurrentStudentSession } from '@/lib/student-service';
+import { motion } from 'framer-motion';
+import { ArrowRight,GraduationCap,Loader2,LogIn,ShieldCheck,Sparkles,UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 export default function StudentPortalHomePage() {
   const router = useRouter();

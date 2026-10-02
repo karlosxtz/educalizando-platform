@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { sendWelcomeAffiliateEmail, sendWelcomeCreatorEmail, sendWelcomeStudentEmail } from '@/lib/mail-service';
+import { sendWelcomeAffiliateEmail,sendWelcomeCreatorEmail,sendWelcomeStudentEmail } from '@/lib/mail-service';
+import { NextRequest,NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   const user = await getRequestUser(request);

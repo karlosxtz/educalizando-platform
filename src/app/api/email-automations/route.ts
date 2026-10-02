@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getMailConfiguration, sendAutomationTestEmail } from '@/lib/mail-service';
-import { getRequestUser, isSuperAdmin } from '@/lib/api-auth';
+import { getRequestUser,isSuperAdmin } from '@/lib/api-auth';
+import { getMailConfiguration,sendAutomationTestEmail } from '@/lib/mail-service';
+import { NextRequest,NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { createNotification } from '@/lib/notification-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ success: false, message }, { status });

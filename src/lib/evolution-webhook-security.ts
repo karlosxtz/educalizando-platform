@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac,timingSafeEqual } from 'node:crypto';
 import { getConfiguredCryptoSecret } from './financial-configuration';
 
 const WEBHOOK_TOKEN_CONTEXT = 'educalizando:evolution-webhook:v1';

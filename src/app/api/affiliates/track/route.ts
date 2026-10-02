@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 import { getStoreBySlug } from '@/lib/store-service';
-import { supabaseAdmin } from '@/lib/supabase';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { supabaseAdmin } from '@/lib/supabase';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   const rateLimit = await consumeRequestRateLimit(request, { namespace: 'affiliate-track', limit: 60, windowMs: 60_000 });
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     if (existingCookie && existingCookie.value) {
       try {
         affiliatesData = JSON.parse(existingCookie.value);
-      } catch (e) {
+      } catch (_e) {
         affiliatesData = {};
       }
     }

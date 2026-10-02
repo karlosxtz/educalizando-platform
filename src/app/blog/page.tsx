@@ -1,9 +1,9 @@
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { getPublishedBlogPosts } from '@/lib/blog-service';
+import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
-import { getPublishedBlogPosts } from '@/lib/blog-service';
-import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 const blogTitle = 'Blog Educalizando | Ideias e Guias Pedagógicos';
 const blogDescription = 'Guias pedagógicos, ideias de atividades e estratégias para educadores aproveitarem melhor seus materiais didáticos.';

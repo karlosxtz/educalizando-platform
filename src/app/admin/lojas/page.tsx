@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Store, Trash2, ExternalLink, Package } from 'lucide-react';
+import { ExternalLink,Package,Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 interface StoreData {
   id: string;
@@ -51,7 +51,7 @@ export default function SuperAdminLojas() {
       } else {
         alert('Erro ao excluir: ' + data.error);
       }
-    } catch (e) {
+    } catch (_e) {
       alert('Erro inesperado.');
     }
   }

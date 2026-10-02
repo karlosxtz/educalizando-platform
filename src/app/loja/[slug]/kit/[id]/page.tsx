@@ -1,6 +1,6 @@
-import { notFound } from 'next/navigation';
-import { getStoreBySlug } from '@/lib/store-service';
 import { getKitById } from '@/lib/kit-service';
+import { getStoreBySlug } from '@/lib/store-service';
+import { notFound } from 'next/navigation';
 import KitDetailClientView from './KitDetailClientView';
 
 interface KitDetailPageProps {

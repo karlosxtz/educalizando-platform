@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { ArrowRight, CheckCircle2, FileText, Lightbulb, Search } from 'lucide-react';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
 import { searchProducts } from '@/lib/search-service';
-import { serializeJsonLd, SITE_URL } from '@/lib/seo';
+import { serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { ArrowRight,CheckCircle2,FileText,Lightbulb,Search } from 'lucide-react';
+import Link from 'next/link';
 
 export type IntentLanding = { slug: string; title: string; description: string; query: string; eyebrow: string; benefits: string[]; tips: string[]; faq: { question: string; answer: string }[] };
 

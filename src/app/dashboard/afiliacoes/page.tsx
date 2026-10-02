@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { getAffiliateProfile,getMyAffiliations } from '@/lib/affiliate-service';
 import { supabase } from '@/lib/supabase';
-import { getMyAffiliations, getAffiliateProfile } from '@/lib/affiliate-service';
 import { Affiliate } from '@/lib/types';
-import { Link2, Copy, Check, DollarSign, MousePointerClick, ShoppingBag, Store, TrendingUp, BarChart, Percent, Calendar, AlertCircle, Pencil } from 'lucide-react';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { AlertCircle,BarChart,Calendar,Check,Copy,DollarSign,Link2,MousePointerClick,Pencil,Percent,ShoppingBag,Store,TrendingUp } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 type StorePerformance = { storeName: string; cliques: number; vendas: number; conversao: number; comissao: number };
 type ProductPerformance = { productName: string; storeName: string; cliques: number; vendas: number; receita: number };
@@ -116,10 +116,8 @@ export default function AffiliateDashboardPage() {
 
   useEffect(() => {
     // The data refresh is intentionally driven by the selected reporting period.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
     // `dateFilter` is the explicit trigger for refreshing this dashboard.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFilter]);
 
   const handleCopyLink = async (url: string, id: string) => {

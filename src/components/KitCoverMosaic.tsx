@@ -1,5 +1,5 @@
-import { Boxes } from 'lucide-react';
 import type { Product } from '@/lib/types';
+import { Boxes } from 'lucide-react';
 
 export default function KitCoverMosaic({ products, className = '' }: { products: Product[]; className?: string }) {
   const covers = products.filter(product => Boolean(product.capa_url)).slice(0, 4);

@@ -1,7 +1,7 @@
-import { notFound } from 'next/navigation';
-import { getStoreBySlug } from '@/lib/store-service';
-import OrderSuccessClientView from './OrderSuccessClientView';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
+import { getStoreBySlug } from '@/lib/store-service';
+import { notFound } from 'next/navigation';
+import OrderSuccessClientView from './OrderSuccessClientView';
 
 interface OrderSuccessPageProps {
   params: Promise<{

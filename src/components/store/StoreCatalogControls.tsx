@@ -1,10 +1,10 @@
 'use client';
 
-import { CalendarDays, GraduationCap, Search, SlidersHorizontal, Tags, X } from 'lucide-react';
-import { Category, EducationLevel, StoreCollection } from '@/lib/types';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
 import StoreCollections from '@/components/store/StoreCollections';
+import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { Category,EducationLevel,StoreCollection } from '@/lib/types';
+import { CalendarDays,GraduationCap,Search,SlidersHorizontal,Tags,X } from 'lucide-react';
 
 interface StoreCatalogControlsProps {
   categories: Category[];

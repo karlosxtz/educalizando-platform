@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 /**
  * Retorna os dados comerciais e pedagógicos de um PLR já pago pelo criador.

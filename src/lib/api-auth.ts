@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { supabaseAdmin } from './supabase';
 
 /** Resolve a sessão tanto do Bearer token quanto do cookie SSR do Supabase. */

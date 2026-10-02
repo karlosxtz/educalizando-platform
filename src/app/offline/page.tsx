@@ -1,8 +1,7 @@
 'use client';
 
+import { Home,RefreshCw,WifiOff } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { WifiOff, RefreshCw, Home } from 'lucide-react';
 
 export default function OfflinePage() {
   return (

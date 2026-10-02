@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { CalendarDays, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import CalendarEventIcon, { calendarKindStyles } from '@/components/CalendarEventIcon';
+import CalendarEventIcon,{ calendarKindStyles } from '@/components/CalendarEventIcon';
 import type { SchoolCalendarEvent } from '@/lib/school-calendar';
+import { CalendarDays,ChevronLeft,ChevronRight,Search } from 'lucide-react';
+import Link from 'next/link';
 
 const MONTH_NAMES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];

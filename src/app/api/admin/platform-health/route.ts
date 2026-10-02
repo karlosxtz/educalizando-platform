@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
-import { getMailConfiguration } from '@/lib/mail-service';
-import { isRealSupabaseConfigured, supabaseAdmin } from '@/lib/supabase';
-import { getEvolutionInstanceHealth } from '@/lib/whatsapp-notification-service';
 import { getFinancialConfiguration } from '@/lib/financial-configuration';
+import { getMailConfiguration } from '@/lib/mail-service';
+import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
+import { getEvolutionInstanceHealth } from '@/lib/whatsapp-notification-service';
+import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 

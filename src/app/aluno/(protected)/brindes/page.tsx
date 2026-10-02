@@ -1,18 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Sparkles, Loader2, Gift, Download, ExternalLink, Store as StoreIcon
+import {
+ArrowLeft,BookOpen,
+Download,ExternalLink,
+FileText,
+Gift,
+HelpCircle,
+Layers,
+Loader2,
+Sparkles,
+Video
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
-import { getCurrentStudentSession } from '@/lib/student-service';
-import { Product, Store, ProductType } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { getCurrentStudentSession } from '@/lib/student-service';
+import { Product,ProductType,Store } from '@/lib/types';
 
 export default function StudentFreeProductsPage() {
   const router = useRouter();

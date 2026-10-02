@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { generateAiContent,getAiKey } from '@/lib/ai-provider';
 import { getRequestUser } from '@/lib/api-auth';
-import { generateAiContent, getAiKey } from '@/lib/ai-provider';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 const PRODUCT_TYPES = new Set(['pdf', 'ebook', 'video', 'curso', 'simulado']);
 

@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
-import { getStoreBySlug, getProductById } from '@/lib/store-service';
-import { getKitById } from '@/lib/kit-service';
-import CheckoutClientView from './CheckoutClientView';
-import StoreAnalytics from '@/components/store/StoreAnalytics';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
+import StoreAnalytics from '@/components/store/StoreAnalytics';
+import { getKitById } from '@/lib/kit-service';
+import { getProductById,getStoreBySlug } from '@/lib/store-service';
+import { notFound } from 'next/navigation';
+import CheckoutClientView from './CheckoutClientView';
 
 interface CheckoutPageProps {
   params: Promise<{ slug: string }>;

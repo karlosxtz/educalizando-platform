@@ -1,12 +1,12 @@
-import Link from 'next/link';
-import { BadgePercent, ChevronLeft, Sparkles } from 'lucide-react';
+import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
-import Footer from '@/components/Footer';
-import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
-import type { Metadata } from 'next';
 import { socialMetadata } from '@/lib/seo';
+import { getAllPublicMarketplaceProducts } from '@/lib/store-service';
+import { BadgePercent,ChevronLeft,Sparkles } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const revalidate = 60;
 

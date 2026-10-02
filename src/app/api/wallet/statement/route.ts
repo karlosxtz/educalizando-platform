@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 /**
  * API Server-Side para buscar extrato de transações financeiras do criador.

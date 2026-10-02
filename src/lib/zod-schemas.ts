@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { normalizeExternalUrl, type StoreSocialPlatform } from './social-links';
+import { normalizeExternalUrl,type StoreSocialPlatform } from './social-links';
 
 const optionalExternalLink = (platform: StoreSocialPlatform, label: string) => z
   .string()

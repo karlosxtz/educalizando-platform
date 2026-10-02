@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 async function access(id: string, userId: string) {
   const { data } = await supabaseAdmin.from('exclusive_material_requests').select('*, store:stores(nome_loja,logo_url)').eq('id', id).maybeSingle();

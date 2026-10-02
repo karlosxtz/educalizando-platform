@@ -1,8 +1,8 @@
 'use server';
 
+import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Affiliate } from '@/lib/types';
-import { getRequestUser } from '@/lib/api-auth';
 export async function getMarketplaceStoresAction() {
   const { data, error } = await supabaseAdmin
     .from('stores')

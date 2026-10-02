@@ -1,8 +1,8 @@
-import { randomUUID } from 'node:crypto';
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { creatorClubSlug } from '@/lib/creator-club';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 
 async function context(request: Request) {
   const user = await getRequestUser(request);

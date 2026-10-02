@@ -1,13 +1,13 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import ProductCard from '@/components/ProductCard';
 import { getEducationLevels } from '@/lib/category-service';
 import { searchProducts } from '@/lib/search-service';
-import { serializeJsonLd, socialMetadata } from '@/lib/seo';
-import ProductCard from '@/components/ProductCard';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
-import Link from 'next/link';
+import { serializeJsonLd,socialMetadata } from '@/lib/seo';
 import { CheckCircle2 } from 'lucide-react';
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 interface EducationLevelPageProps {
   params: Promise<{ slug: string }>;

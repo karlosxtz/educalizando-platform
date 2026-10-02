@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
-import { calculatePlatformFee } from '@/lib/payment-fees';
 import { summarizeAdditionalCreatorPayments } from '@/lib/creator-revenue-summary';
+import { calculatePlatformFee } from '@/lib/payment-fees';
+import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 // Constantes centralizadas de cálculo financeiro (devem espelhar order-service.ts)
 const ASAAS_PIX_FEE = 1.99;
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
 
     paidOrders.forEach((o: any) => {
       const gross = Number(o.total_amount || o.subtotal_amount || 0);
-      const productCount = Number(o.product_count || 1);
+      const _productCount = Number(o.product_count || 1);
       const method = (o.payment_method || 'pix').toString().toLowerCase();
       const platformFee = Number(o.platform_fee_amount ?? calculatePlatformFee(gross, method));
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { DollarSign, CheckCircle2, XCircle, Clock, Search, RefreshCw } from 'lucide-react';
+import { CheckCircle2,Clock,RefreshCw,Search,XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 interface WithdrawalData {
   id: string;
@@ -73,7 +73,7 @@ export default function SuperAdminSaques() {
       } else {
         alert('Erro: ' + data.error);
       }
-    } catch (e) {
+    } catch (_e) {
       alert('Erro inesperado.');
     }
   }

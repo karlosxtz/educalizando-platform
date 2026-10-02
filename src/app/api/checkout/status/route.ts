@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { getOrderRecordById, updateOrderStatus } from '@/lib/order-service';
-import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
-import { supabaseAdmin } from '@/lib/supabase';
+import { checkInfinitePayPayment } from '@/lib/infinitepay-service';
+import { getOrderRecordById,updateOrderStatus } from '@/lib/order-service';
+import { isSupportedInstallmentPayment,normalizePlatformPaymentMethod } from '@/lib/payment-fees';
 import { notifyConfirmedSale } from '@/lib/sale-notification-service';
-import { isSupportedInstallmentPayment, normalizePlatformPaymentMethod } from '@/lib/payment-fees';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);

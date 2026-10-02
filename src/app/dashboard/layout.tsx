@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import Sidebar from '@/components/dashboard/Sidebar';
 import AffiliateSidebar from '@/components/dashboard/AffiliateSidebar';
-import SaleToast from '@/components/dashboard/SaleToast';
-import { getCurrentUserSession, isRealSupabaseConfigured } from '@/lib/supabase';
-import { getCurrentCreatorStore } from '@/lib/store-service';
-import { Store } from '@/lib/types';
-import { resolveUserRoles, resolveContextForRoute, canAccessAffiliateCenter, UserRoles } from '@/lib/role-service';
-import { supabase } from '@/lib/supabase';
-import SystemBanners from '@/components/dashboard/SystemBanners';
-import OnboardingTour from '@/components/dashboard/OnboardingTour';
 import CreatorPWAInstallPrompt from '@/components/dashboard/CreatorPWAInstallPrompt';
+import OnboardingTour from '@/components/dashboard/OnboardingTour';
+import SaleToast from '@/components/dashboard/SaleToast';
+import Sidebar from '@/components/dashboard/Sidebar';
+import SystemBanners from '@/components/dashboard/SystemBanners';
+import { resolveContextForRoute,resolveUserRoles,UserRoles } from '@/lib/role-service';
+import { getCurrentCreatorStore } from '@/lib/store-service';
+import { getCurrentUserSession,isRealSupabaseConfigured,supabase } from '@/lib/supabase';
+import { Store } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
+import { usePathname,useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 export default function DashboardLayout({
   children,
@@ -102,7 +101,6 @@ export default function DashboardLayout({
       }
     }
     verifyAuthAndLoadStore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Executa apenas no mount para evitar loop de recarregamento
 
   useEffect(() => {
@@ -133,7 +131,6 @@ export default function DashboardLayout({
 
     if (activeContext !== context) {
       // This mirrors the route-derived context without changing authorization rules.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveContext(context);
     }
   }, [pathname, roles, checkingAuth, router, activeContext]);

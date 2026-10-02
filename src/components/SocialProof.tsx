@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, ShieldCheck, Headphones, Store, Sparkles } from 'lucide-react';
+import { Headphones,ShieldCheck,Sparkles,Store,Zap } from 'lucide-react';
 
 export default function SocialProof() {
   const TRUST_CARDS = [

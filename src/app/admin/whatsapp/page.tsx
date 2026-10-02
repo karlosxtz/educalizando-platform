@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Copy, MessageCircle, Power, QrCode, RefreshCw, RotateCcw, Save, Send, Sparkles, UserPlus, WalletCards, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle,CheckCircle2,Copy,MessageCircle,Power,QrCode,RefreshCw,RotateCcw,Save,Send,Sparkles,UserPlus,WalletCards,Wifi,WifiOff } from 'lucide-react';
+import { useEffect,useMemo,useState } from 'react';
 import { toast } from 'sonner';
 
 type TemplateKey = 'whatsapp_template_creator' | 'whatsapp_template_student' | 'whatsapp_template_affiliate' | 'whatsapp_template_creator_sale' | 'whatsapp_template_buyer_sale';

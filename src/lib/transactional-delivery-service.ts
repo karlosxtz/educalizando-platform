@@ -1,4 +1,4 @@
-import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, isRealSupabaseConfigured, supabaseAdmin } from './supabase';
+import { allowsLocalDevelopmentFallback,getSupabaseConfigurationError,isRealSupabaseConfigured,supabaseAdmin } from './supabase';
 
 export type TransactionalDeliveryChannel = 'EMAIL' | 'WHATSAPP';
 export type TransactionalDeliveryEvent = 'PAYMENT_CONFIRMED' | 'MATERIAL_DELIVERY' | 'CREATOR_SALE_ALERT';

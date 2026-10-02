@@ -1,18 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  ShieldCheck, Lock, ArrowLeft, CreditCard,
-  AlertCircle, Loader2, Ticket, CheckCircle2,
-  LogIn, UserPlus, UserCheck, Gift, PackageOpen
-} from 'lucide-react';
-import { Store, Product, Kit, CouponValidationResult } from '@/lib/types';
+import { useCart } from '@/components/store/CartContext';
 import { validateCouponCode } from '@/lib/coupon-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
-import { useCart } from '@/components/store/CartContext';
+import { CouponValidationResult,Kit,Product,Store } from '@/lib/types';
+import { AlertCircle, ArrowLeft, CheckCircle2, CreditCard, Gift, Loader2, Lock, LogIn, PackageOpen, ShieldCheck, Ticket, UserCheck, UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname,useSearchParams } from 'next/navigation';
+import { useEffect,useRef,useState } from 'react';
 
 import { isValidCPF } from '@/lib/infinitepay-service';
 
@@ -170,7 +166,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
             try {
               const { data } = await supabase.from('stores').select('nome_loja').eq('creator_id', session.userId).single();
               if (data) storeName = data.nome_loja;
-            } catch(e) {}
+            } catch(_e) {}
           }
           setIsStudentLoggedIn(true);
           setStudentSession({
@@ -334,7 +330,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
         if (session?.access_token) {
           token = session.access_token;
         }
-      } catch (e) {}
+      } catch (_e) {}
 
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       const idempotencySignature = JSON.stringify({

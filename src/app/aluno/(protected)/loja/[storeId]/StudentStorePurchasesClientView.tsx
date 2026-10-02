@@ -1,21 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, BookOpen, FileText, Video, Layers, 
-  HelpCircle, Boxes, ShieldCheck, ArrowRight, Loader2, AlertCircle, ChevronRight, Store as StoreIcon, Download, RotateCcw, X, Sparkles
-} from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, Boxes, ChevronRight, Download,
+  FileText, HelpCircle, Layers, Loader2, RotateCcw, ShieldCheck, Sparkles,
+  Store as StoreIcon, Video, X } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 import { toast } from 'sonner';
 
-import { getCurrentStudentSession, getStudentPurchasesByStoreId } from '@/lib/student-service';
-import { getStudentReviewsByStore } from '@/lib/review-service';
-import { Purchase, ProductType, Store, Review } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
 import StudentReviewModal from '@/components/StudentReviewModal';
+import { getStudentReviewsByStore } from '@/lib/review-service';
+import { getCurrentStudentSession,getStudentPurchasesByStoreId } from '@/lib/student-service';
+import { ProductType,Purchase,Review,Store } from '@/lib/types';
 import { Star } from 'lucide-react';
 
 interface StudentStorePurchasesClientViewProps {

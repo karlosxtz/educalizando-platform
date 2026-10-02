@@ -17,7 +17,7 @@ async function main() {
     await fs.access(sourceFile);
     console.log(`Processing source image: ${sourceFile}`);
 
-    const sourceImage = sharp(sourceFile);
+    const _sourceImage = sharp(sourceFile);
 
     // Definitions for all needed images
     const squareIcons = [

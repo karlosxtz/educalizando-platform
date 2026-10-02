@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Crown, Loader2, RefreshCw } from 'lucide-react';
 import StudentHeader from '@/components/aluno/StudentHeader';
+import { Crown,Loader2,RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 export default function StudentClubsPage() {
   type ClubSubscription = { id:string; status:string; expires_at:string|null; club:{ id:string; name:string; slug:string; cover_url:string|null; stores:{ nome_loja:string }|Array<{ nome_loja:string }> }|Array<{ id:string; name:string; slug:string; cover_url:string|null; stores:{ nome_loja:string }|Array<{ nome_loja:string }> }> };

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import ProductCard from '@/components/ProductCard';
+import { getSchoolCalendarArtworkForTag,getSchoolCalendarTagsForMonth,SCHOOL_CALENDAR_EVENTS,type SchoolCalendarTag } from '@/lib/school-calendar';
+import type { Product,Store } from '@/lib/types';
+import { BookOpen,CalendarDays,ChevronLeft,ChevronRight,Compass,Gift,Pause,Play,Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BookOpen, CalendarDays, ChevronLeft, ChevronRight, Compass, Gift, Pause, Play, Sparkles } from 'lucide-react';
-import ProductCard from '@/components/ProductCard';
-import type { Product, Store } from '@/lib/types';
-import { getSchoolCalendarTagsForMonth, getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_EVENTS, type SchoolCalendarTag } from '@/lib/school-calendar';
+import { useEffect,useRef,useState } from 'react';
 
 function normalizeTheme(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR');

@@ -1,10 +1,10 @@
 'use client';
 
-import { useCart } from './CartContext';
-import { X, ShoppingBag, Trash2, ArrowRight, Gift, Check } from 'lucide-react';
-import Link from 'next/link';
-import type { Store } from '@/lib/types';
 import { getStorePromotion } from '@/lib/store-promotion';
+import type { Store } from '@/lib/types';
+import { ArrowRight,Check,Gift,ShoppingBag,Trash2,X } from 'lucide-react';
+import Link from 'next/link';
+import { useCart } from './CartContext';
 
 interface CartSidebarProps {
   storeSlug?: string;

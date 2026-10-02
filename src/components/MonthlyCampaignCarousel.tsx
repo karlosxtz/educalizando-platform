@@ -1,10 +1,10 @@
 'use client';
 
+import CampaignTrackedLink from '@/components/CampaignTrackedLink';
+import { getSchoolCalendarArtworkForTag,SCHOOL_CALENDAR_EVENTS,type SchoolCalendarTag } from '@/lib/school-calendar';
+import { CalendarDays,ChevronRight,Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CalendarDays, ChevronRight, Sparkles } from 'lucide-react';
-import { getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_EVENTS, type SchoolCalendarTag } from '@/lib/school-calendar';
-import CampaignTrackedLink from '@/components/CampaignTrackedLink';
 
 export default function MonthlyCampaignCarousel({ tags, orderClass = '' }: { tags: readonly string[]; orderClass?: string }) {
   const campaigns = tags.map((tag) => ({

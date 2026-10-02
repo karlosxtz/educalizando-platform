@@ -1,7 +1,7 @@
 'use client';
 
-import { Flame, Layers3, Rocket, Sparkles } from 'lucide-react';
 import { StoreCollection } from '@/lib/types';
+import { Flame,Layers3,Rocket,Sparkles } from 'lucide-react';
 
 interface StoreCollectionsProps {
   active: StoreCollection;

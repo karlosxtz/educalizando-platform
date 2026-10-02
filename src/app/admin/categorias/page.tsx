@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Tags, Trash2, Plus, Pencil, X } from 'lucide-react';
+import { Pencil,Plus,Tags,Trash2,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface CategoryData {
@@ -57,7 +57,7 @@ export default function SuperAdminCategorias() {
       } else {
         toast.error(data.error || 'Não foi possível salvar a categoria.');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro inesperado ao salvar a categoria.');
     } finally {
       setSaving(false);
@@ -76,7 +76,7 @@ export default function SuperAdminCategorias() {
       } else {
         toast.error(data.error || 'Não foi possível excluir a categoria.');
       }
-    } catch (e) {
+    } catch (_e) {
       toast.error('Erro inesperado ao excluir a categoria.');
     }
   }

@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { registerStudentInSupabase,signInStudent } from '@/lib/student-service';
 import { motion } from 'framer-motion';
-import { GraduationCap, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, ShieldCheck, UserCheck, UserPlus, Phone, Sparkles, CheckCircle2, Download } from 'lucide-react';
-import { signInStudent, registerStudentInSupabase } from '@/lib/student-service';
+import { AlertCircle,ArrowRight,CheckCircle2,Download,GraduationCap,Loader2,Lock,Mail,Phone,ShieldCheck,ShoppingBag,Sparkles,UserCheck,UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { Suspense,useState } from 'react';
 
 function StudentLoginForm() {
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
   const action = searchParams.get('action');
@@ -46,7 +46,7 @@ function StudentLoginForm() {
     setLoading(true);
     try {
       await signInStudent({ email, password });
-      window.location.href = getSafeReturnUrl();
+      window.location.assign(getSafeReturnUrl());
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao realizar login de cliente. Verifique seus dados.');
@@ -74,7 +74,7 @@ function StudentLoginForm() {
         whatsapp
       });
       // Após cadastro, confirma autenticação e redireciona automaticamente para a compra via hard navigation
-      window.location.href = getSafeReturnUrl();
+      window.location.assign(getSafeReturnUrl());
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Erro ao criar conta de cliente.');

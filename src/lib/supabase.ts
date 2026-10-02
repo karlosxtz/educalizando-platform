@@ -59,7 +59,7 @@ export async function registerCreatorInSupabase({
   fullName,
   cpf,
   storeName,
-  category,
+  category: _category,
   whatsapp
   ,referralCode
 }: {
@@ -331,7 +331,7 @@ export async function signOutUser() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event: 'SIGNED_OUT' })
       });
-    } catch (e) {}
+    } catch (_e) {}
   }
 }
 

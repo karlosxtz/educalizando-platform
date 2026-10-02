@@ -1,5 +1,5 @@
-import { allowsLocalDevelopmentFallback, supabase, isRealSupabaseConfigured } from './supabase';
 import { getLocalOrders } from './sales-service';
+import { allowsLocalDevelopmentFallback,isRealSupabaseConfigured,supabase } from './supabase';
 
 export interface DashboardOrderItem {
   id: string;

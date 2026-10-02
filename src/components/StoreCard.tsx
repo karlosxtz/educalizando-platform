@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { ChevronRight, Star } from 'lucide-react';
 import { Store } from '@/lib/types';
+import { ChevronRight,Star } from 'lucide-react';
+import Link from 'next/link';
 
 export default function StoreCard({ store }: { store: Store }) {
   return (

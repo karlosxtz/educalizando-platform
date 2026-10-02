@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Review, ReviewStats } from './types';
+import { Review,ReviewStats } from './types';
 
 const isRealSupabase = () => Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&

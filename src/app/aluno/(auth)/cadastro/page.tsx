@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { GraduationCap, User, Lock, Mail, ArrowRight, Loader2, AlertCircle, ShoppingBag, CheckCircle2, Phone } from 'lucide-react';
 import { registerStudentInSupabase } from '@/lib/student-service';
+import { motion } from 'framer-motion';
+import { AlertCircle,ArrowRight,CheckCircle2,GraduationCap,Loader2,Lock,Mail,Phone,ShoppingBag,User } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { Suspense,useState } from 'react';
 
 function StudentSignupForm() {
   const router = useRouter();

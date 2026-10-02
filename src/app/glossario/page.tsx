@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
 import GlossaryBrowser from '@/components/glossary/GlossaryBrowser';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { glossaryTerms } from '@/lib/glossary';
+import { socialMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Glossário Pedagógico | Educalizando',

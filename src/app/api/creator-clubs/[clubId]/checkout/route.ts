@@ -1,9 +1,9 @@
-import { randomUUID } from 'node:crypto';
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { creatorClubFinancials } from '@/lib/creator-club';
 import { createInfinitePayCheckout } from '@/lib/infinitepay-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 
 export async function POST(request: Request, { params }: { params: Promise<{ clubId: string }> }) {
   let subscriptionId: string | null = null;

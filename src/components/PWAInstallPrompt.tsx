@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Download, X, Share, PlusSquare, Sparkles } from 'lucide-react';
+import { Download,PlusSquare,Share,Sparkles,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);

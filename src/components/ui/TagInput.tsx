@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, type KeyboardEvent } from 'react';
-import { X } from 'lucide-react';
 import { normalizeProductTags } from '@/lib/product-tags';
+import { X } from 'lucide-react';
+import { useState,type KeyboardEvent } from 'react';
 
 export default function TagInput({
   value,

@@ -1,5 +1,5 @@
+import { ArrowLeft,BookOpen,Megaphone,Store } from 'lucide-react';
 import Link from 'next/link';
-import { BookOpen, Store, Megaphone, ArrowLeft } from 'lucide-react';
 
 export default function LoginTriagePage() {
   return (

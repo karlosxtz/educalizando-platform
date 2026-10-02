@@ -1,9 +1,9 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { CalendarDays, CheckCircle2, CircleUserRound, FilePenLine, FileType2, Loader2, Send, Sparkles, Store } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { CheckCircle2,CircleUserRound,FilePenLine,Loader2,Send,Sparkles } from 'lucide-react';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { FormEvent,useEffect,useState } from 'react';
 
 export default function ClientExclusiveRequestComposer() {
   const query = useSearchParams(); const router = useRouter(); const slug = query.get('solicitar');

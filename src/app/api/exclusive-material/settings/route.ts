@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 async function ownStore(userId: string) { const { data } = await supabaseAdmin.from('stores').select('id, exclusive_material_requests_enabled').eq('creator_id', userId).maybeSingle(); return data; }
 export async function GET(request: Request) { const user = await getRequestUser(request); if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 }); const store = await ownStore(user.id); if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 }); return NextResponse.json({ enabled: store.exclusive_material_requests_enabled }); }
 export async function PATCH(request: Request) { const user = await getRequestUser(request); if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 }); const store = await ownStore(user.id); if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 }); const { enabled } = await request.json(); const { error } = await supabaseAdmin.from('stores').update({ exclusive_material_requests_enabled: Boolean(enabled), updated_at: new Date().toISOString() }).eq('id', store.id).eq('creator_id', user.id); if (error) throw error; return NextResponse.json({ enabled: Boolean(enabled) }); }

@@ -1,8 +1,8 @@
 'use client';
 
+import { ArrowLeft,HelpCircle,Store } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
-import { Store, ArrowLeft, HelpCircle } from 'lucide-react';
+import { useEffect,useRef } from 'react';
 
 export default function NotFound() {
   const headingRef = useRef<HTMLHeadingElement>(null);

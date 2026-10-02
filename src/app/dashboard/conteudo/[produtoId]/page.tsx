@@ -1,26 +1,16 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, FolderCheck, Plus, FileText, Link2, Download, ExternalLink, 
-  Trash2, AlertCircle, CheckCircle2, Info, VideoOff, ArrowUp, ArrowDown, 
-  Eye, Edit3, Lock, ShieldAlert, Sparkles, Clock, Check, Power, Settings
-} from 'lucide-react';
-import { 
-  getContentByProductId, 
-  createContentItem, 
-  updateContentItem, 
-  deleteContentItem, 
-  reorderContents,
-  ContentItem, 
-  ContentType 
-} from '@/lib/content-delivery-service';
-import { getProductById, getCurrentCreatorStore } from '@/lib/store-service';
-import { Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { ContentItem, ContentType, createContentItem, deleteContentItem,
+  getContentByProductId, reorderContents, updateContentItem } from '@/lib/content-delivery-service';
+import { getCurrentCreatorStore,getProductById } from '@/lib/store-service';
+import { Product } from '@/lib/types';
+import { AlertCircle, ArrowDown, ArrowLeft, ArrowUp, Edit3, FileText, FolderCheck,
+  Info, Link2, Plus, Power, Settings, Trash2, VideoOff } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { use,useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProductContentPageProps {

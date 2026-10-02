@@ -18,27 +18,27 @@ async function processDirectory(dir) {
 
       // Regular expression to match any version of the logo src
       const regex = /src=["']\/branding\/logo-educalizando\.png(\?v=\d+)?["']/g;
-      const newContent = content.replace(regex, (match) => {
+      const newContent = content.replace(regex, (_match) => {
         changed = true;
         return 'src="/branding/logo-educalizando.png?v=3"';
       });
 
       // Also replace logo-educalizando-icon.png just in case
       const iconRegex = /src=["']\/branding\/logo-educalizando-icon\.png(\?v=\d+)?["']/g;
-      const newContent2 = newContent.replace(iconRegex, (match) => {
+      const newContent2 = newContent.replace(iconRegex, (_match) => {
         changed = true;
         return 'src="/branding/logo-educalizando-icon.png?v=3"';
       });
       
       // Also layout.tsx metadata icons if any
       const ogRegex = /url:\s*['"]\/branding\/logo-og\.png(\?v=\d+)?['"]/g;
-      const newContent3 = newContent2.replace(ogRegex, (match) => {
+      const newContent3 = newContent2.replace(ogRegex, (_match) => {
         changed = true;
         return "url: '/branding/logo-og.png?v=3'";
       });
       
       const imagesOgRegex = /images:\s*\[['"]\/branding\/logo-og\.png(\?v=\d+)?['"]\]/g;
-      const newContent4 = newContent3.replace(imagesOgRegex, (match) => {
+      const newContent4 = newContent3.replace(imagesOgRegex, (_match) => {
         changed = true;
         return "images: ['/branding/logo-og.png?v=3']";
       });

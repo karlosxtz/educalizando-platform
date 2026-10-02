@@ -1,32 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, SubmitHandler, FieldErrors } from 'react-hook-form';
+import StoreLivePreview from '@/components/dashboard/StoreLivePreview';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Store as StoreIcon, Copy, ExternalLink, Check, Save, 
-  Palette, ImageIcon, Sparkles, Loader2, AlertCircle, MessageCircle 
+import {
+AlertCircle,
+Check,
+Copy,ExternalLink,
+Loader2,
+Palette,
+Save,
+Store as StoreIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-const InstagramIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
+import { useEffect,useState } from 'react';
+import { FieldErrors,SubmitHandler,useForm } from 'react-hook-form';
 
 const formatWhatsApp = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -37,10 +24,10 @@ const formatWhatsApp = (value: string) => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-import { storeSettingsSchema, type StoreSettingsFormValues } from '@/lib/zod-schemas';
-import { getCurrentCreatorStore, updateStore } from '@/lib/store-service';
-import { Store, StoreThemeProps } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
+import { getCurrentCreatorStore,updateStore } from '@/lib/store-service';
+import { Store } from '@/lib/types';
+import { storeSettingsSchema,type StoreSettingsFormValues } from '@/lib/zod-schemas';
 
 export default function StoreSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -590,90 +577,7 @@ export default function StoreSettingsPage() {
           </form>
         </div>
 
-        {/* Live Preview Panel (Real-time updates as user types or uploads files) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-wider">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span>Preview em Tempo Real da Sua Loja</span>
-          </div>
-
-          <div className={`relative overflow-hidden rounded-2xl border shadow-lg space-y-4 sticky top-6 ${watchedLayoutTheme === 'netflix' ? 'border-slate-700 bg-slate-950 text-white' : watchedLayoutTheme === 'pinterest' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
-            <div className="absolute right-3 top-3 z-20 rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-black text-white">Prévia: padrão</div>
-            {/* Banner Preview */}
-            <div className="h-32 bg-slate-800 relative overflow-hidden">
-              {watchedBannerUrl ? (
-                <img src={watchedBannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-slate-900 to-indigo-950 flex items-center justify-center text-slate-400 text-xs font-bold">
-                  Banner da Loja
-                </div>
-              )}
-            </div>
-
-            {/* Profile Avatar & Info Preview */}
-            <div className="px-6 pb-6 pt-0 -mt-12 space-y-3 relative">
-              <div className="w-20 h-20 rounded-full bg-white p-1 border-4 border-white shadow-md overflow-hidden">
-                {watchedLogoUrl ? (
-                  <img src={watchedLogoUrl} alt="Logo Preview" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <div
-                    className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-2xl"
-                    style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
-                  >
-                    {(watchedNomeLoja || 'L').charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-slate-900">
-                  {watchedNomeLoja || 'Nome da Sua Loja'}
-                </h3>
-                <p className="text-xs text-blue-600 font-mono font-bold">
-                  educalizando.com.br/loja/{watchedSlug || 'sua-loja'}
-                </p>
-                <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium">
-                  {watchedDescricao || 'Sua bio e apresentação oficial aparecerão aqui para os seus clientes.'}
-                </p>
-
-                {/* Preview Social Links */}
-                {(watchedWhatsapp || watchedInstagram) && (
-                  <div className="flex items-center gap-2 mt-3">
-                    {watchedInstagram && (
-                      <div className="p-1.5 bg-white rounded-full text-slate-400 border border-slate-200 flex items-center justify-center shadow-sm">
-                        <InstagramIcon className="w-4 h-4" />
-                      </div>
-                    )}
-                    {watchedWhatsapp && (
-                      <div className="px-3 py-1.5 bg-[#25D366] text-white rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
-                        <MessageCircle className="w-3 h-3 fill-white" />
-                        WhatsApp
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Cor de Destaque:</span>
-                <span
-                  className={`px-3 py-1 ${previewRadius} text-white text-[10px] font-extrabold uppercase`}
-                  style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}
-                >
-                  Botão de Compra
-                </span>
-              </div>
-              <div className={`grid gap-2 ${watchedLayoutTheme === 'linktree' ? 'grid-cols-1' : 'grid-cols-2'}`}><button type="button" className={`${previewRadius} min-h-10 bg-slate-100 px-3 text-xs font-black text-slate-700`}>Adicionar</button><button type="button" className={`${previewRadius} min-h-10 px-3 text-xs font-black text-white`} style={{ backgroundColor: watchedCorPrimaria || '#2563eb' }}>Comprar</button></div>
-            </div>
-            
-            {/* Simulated Floating WhatsApp Button in Preview */}
-            {watchedWhatsapp && (
-              <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center shadow-md">
-                <MessageCircle className="w-5 h-5 text-white fill-white" />
-              </div>
-            )}
-          </div>
-        </div>
+        <StoreLivePreview layoutTheme={watchedLayoutTheme} bannerUrl={watchedBannerUrl} logoUrl={watchedLogoUrl} primaryColor={watchedCorPrimaria} storeName={watchedNomeLoja} slug={watchedSlug} description={watchedDescricao} whatsapp={watchedWhatsapp} instagram={watchedInstagram} buttonRadius={previewRadius} />
 
       </div>
     </div>

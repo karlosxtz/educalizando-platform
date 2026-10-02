@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { supabaseAdmin } from '@/lib/supabase';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 const SURFACES = ['homepage_campaign', 'homepage_monthly', 'homepage_upcoming', 'calendar'] as const;
 type CampaignSurface = typeof SURFACES[number];

@@ -1,21 +1,28 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, CheckCircle2, ChevronRight, FileText, Video, BookOpen, 
-  Layers, HelpCircle, UploadCloud, Eye, Tags, GraduationCap, DollarSign, 
-  Sparkles, ShieldCheck, Loader2, AlertCircle, Save
+import { motion } from 'framer-motion';
+import {
+AlertCircle,
+ArrowLeft,CheckCircle2,ChevronRight,
+Eye,
+FileText,
+GraduationCap,
+Loader2,
+Save,
+Sparkles,
+Tags,
+UploadCloud
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { Suspense,useEffect,useState } from 'react';
 
-import { getCurrentCreatorStore, createProduct, updateProduct, getProductById } from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { ProductType, Category, EducationLevel, Store, Product } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
+import { getCategories,getEducationLevels } from '@/lib/category-service';
+import { createProduct,getCurrentCreatorStore,getProductById,updateProduct } from '@/lib/store-service';
+import { Category,EducationLevel,ProductType,Store } from '@/lib/types';
 
 function ProductWizardContent() {
   const router = useRouter();
@@ -42,9 +49,9 @@ function ProductWizardContent() {
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryId, setCategoryId] = useState<string>('');
   const [educationLevelId, setEducationLevelId] = useState<string>('');
-  const [isPlr, setIsPlr] = useState<boolean>(false);
+  const [_isPlr, setIsPlr] = useState<boolean>(false);
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
-  const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
+  const [_plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function initData() {
@@ -128,8 +135,8 @@ function ProductWizardContent() {
     setSaving(true);
     setErrorMsg(null);
 
-    const numericPrice = parseFloat(preco.replace(',', '.')) || 0;
-    const numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
+    const _numericPrice = parseFloat(preco.replace(',', '.')) || 0;
+    const _numericPrecoPlr = parseFloat(precoPlr.replace(',', '.')) || 0;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
 
     try {

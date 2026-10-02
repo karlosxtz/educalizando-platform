@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { socialMetadata } from '@/lib/seo';
 import { getAllPublicStores } from '@/lib/store-service';
 import { Store } from '@/lib/types';
-import { Store as StoreIcon, ChevronRight } from 'lucide-react';
+import { ChevronRight,Store as StoreIcon } from 'lucide-react';
 import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const revalidate = 0;
 

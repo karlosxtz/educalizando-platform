@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, CalendarDays, ExternalLink, GraduationCap, LogIn, MessageCircle, PackageSearch, RotateCcw, Search, Send, ShoppingBag, Sparkles, Store as StoreIcon, Tag, UserPlus, X, Zap } from 'lucide-react';
-import type { Product, Store } from '@/lib/types';
 import { useCart } from '@/components/store/CartContext';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
+import type { Product,Store } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
+import { ArrowLeft,CalendarDays,ExternalLink,GraduationCap,LogIn,MessageCircle,PackageSearch,RotateCcw,Search,Send,ShoppingBag,Sparkles,Store as StoreIcon,Tag,UserPlus,X,Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useMemo,useRef,useState } from 'react';
 
 type Message = { side: 'bot' | 'visitor'; text: string };
 type Filter = 'all' | 'category' | 'level' | 'offers' | 'date';

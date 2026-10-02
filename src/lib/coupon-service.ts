@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Coupon, CouponProduct, CouponValidationResult, CouponDiscountType, CouponStatus } from './types';
+import { Coupon,CouponDiscountType,CouponStatus,CouponValidationResult } from './types';
 
 function getLocalCoupons(): Coupon[] {
   if (typeof window === 'undefined') return [];

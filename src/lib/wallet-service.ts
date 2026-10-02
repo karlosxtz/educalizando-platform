@@ -1,7 +1,5 @@
-import { allowsLocalDevelopmentFallback, getSupabaseConfigurationError, supabase, isRealSupabaseConfigured } from './supabase';
-import { getOrderRecordById, OrderRecord } from './order-service';
-import { getLocalOrders } from './sales-service';
 import { calculatePlatformFee } from './payment-fees';
+import { allowsLocalDevelopmentFallback,getSupabaseConfigurationError,isRealSupabaseConfigured } from './supabase';
 
 export type WalletTransactionType = 'SALE' | 'REFUND' | 'ADJUSTMENT' | 'WITHDRAWAL' | 'AFFILIATE_COMMISSION' | 'AFFILIATE_COMMISSION_REFUND' | 'CREATOR_REFERRAL_COMMISSION' | 'CREATOR_REFERRAL_COMMISSION_REFUND';
 export type WalletTransactionStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
@@ -51,7 +49,7 @@ function getLocalWalletTransactions(): WalletTransaction[] {
   try {
     const raw = localStorage.getItem(LOCAL_WALLET_TRANSACTIONS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -180,7 +178,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
 
   paidOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
-    const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
+    const _productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     
     const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
     const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || calculatePlatformFee(gross, method));
@@ -208,7 +206,7 @@ export async function calculateCreatorWallet(storeId: string): Promise<CreatorWa
 
   pendingOrders.forEach((o: any) => {
     const gross = Number(o.total_amount || o.totalAmount || o.subtotal_amount || o.valorTotal || 0);
-    const productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
+    const _productCount = Array.isArray(o.items) && o.items.length > 0 ? o.items.length : 1;
     const method = (o.payment_method || o.paymentMethod || 'pix').toString().toLowerCase();
     const platformFee = Number(o.platform_fee_amount || o.platformFeeAmount || calculatePlatformFee(gross, method));
     

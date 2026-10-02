@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { generateAiContent,getAiKey } from '@/lib/ai-provider';
 import { getRequestUser } from '@/lib/api-auth';
-import { generateAiContent, getAiKey } from '@/lib/ai-provider';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
     const user = await getRequestUser(req);
     if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
-    const { titulo, descricao, storeId, field } = await req.json();
+    const { titulo, _descricao, storeId, _field } = await req.json();
 
     if (!storeId || !titulo) {
       return NextResponse.json({ error: 'Faltam parâmetros obrigatórios.' }, { status: 400 });

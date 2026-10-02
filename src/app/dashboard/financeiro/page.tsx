@@ -1,32 +1,32 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { 
-  Wallet, TrendingUp, Clock, CheckCircle2, AlertCircle, DollarSign, 
-  ArrowUpRight, Search, ChevronLeft, ChevronRight, Sparkles, RefreshCw, X, FileText, Loader2, Key
-} from 'lucide-react';
-import { 
-  calculateCreatorWallet, 
-  getWalletTransactionsStatement, 
-  CreatorWalletSummary, 
-  WalletTransaction 
-} from '@/lib/wallet-service';
-import { supabase } from '@/lib/supabase';
-import { MIN_WITHDRAWAL_AMOUNT, type CreatorPixKey, type WithdrawalRecord } from '@/lib/withdrawal-service';
+import FinancialDialogs from './FinancialDialogs';
+import FinancialOverview from './FinancialOverview';
+import { getTransactionPresentation } from './transaction-presentation';
+
 import CustomSelect from '@/components/ui/CustomSelect';
 import { getCurrentCreatorStore } from '@/lib/store-service';
-import Link from 'next/link';
-import { CARD_PROCESSING_FEE_PERCENTAGES, PLATFORM_FEE_PERCENTAGE, calculatePaymentProcessingFee, calculatePlatformFee } from '@/lib/payment-fees';
-
-function getTransactionPresentation(tx: WalletTransaction) {
-  const isRefund = tx.type === 'REFUND' || tx.type === 'AFFILIATE_COMMISSION_REFUND';
-  const isWithdrawal = tx.type === 'WITHDRAWAL';
-  const isPending = tx.status === 'PENDING';
-  if (isWithdrawal) return { label: 'Saque PIX', className: 'bg-purple-50 text-purple-700 border-purple-200', valueClass: 'text-rose-600', direction: 'Débito' };
-  if (isRefund) return { label: 'Estornado', className: 'bg-rose-50 text-rose-700 border-rose-200', valueClass: 'text-rose-600', direction: 'Débito' };
-  if (isPending) return { label: 'Pendente', className: 'bg-amber-50 text-amber-700 border-amber-200', valueClass: 'text-amber-700', direction: 'Pendente' };
-  return { label: 'Disponível', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', valueClass: 'text-emerald-700', direction: 'Crédito' };
-}
+import { supabase } from '@/lib/supabase';
+import {
+CreatorWalletSummary,
+WalletTransaction,
+calculateCreatorWallet,
+getWalletTransactionsStatement
+} from '@/lib/wallet-service';
+import { MIN_WITHDRAWAL_AMOUNT,type CreatorPixKey,type WithdrawalRecord } from '@/lib/withdrawal-service';
+import {
+ArrowUpRight,
+CheckCircle2,
+ChevronLeft,ChevronRight,
+Clock,
+DollarSign,
+FileText,
+RefreshCw,
+Search,
+TrendingUp,
+Wallet
+} from 'lucide-react';
+import { useEffect,useRef,useState } from 'react';
 
 export default function FinancialWalletDashboardPage() {
   const [storeId, setStoreId] = useState<string>('');
@@ -45,7 +45,6 @@ export default function FinancialWalletDashboardPage() {
     totalTaxas: 0
   });
 
-  // Statement Filters & Search
   const [periodFilter, setPeriodFilter] = useState<'today' | '7d' | '30d' | 'month' | 'last_month' | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'COMPLETED' | 'PENDING' | 'REFUND'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,14 +52,11 @@ export default function FinancialWalletDashboardPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Statement Data
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
 
-  // PIX Key & Withdrawals State
   const [activePixKey, setActivePixKey] = useState<CreatorPixKey | null>(null);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRecord[]>([]);
 
-  // Modals State
   const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRecord | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -68,7 +64,6 @@ export default function FinancialWalletDashboardPage() {
   const transactionTriggerRef = useRef<HTMLButtonElement | null>(null);
   const withdrawalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
-  // Withdrawal Form State
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
   const [minimumWithdrawalAmount, setMinimumWithdrawalAmount] = useState(MIN_WITHDRAWAL_AMOUNT);
   const [withdrawalFee, setWithdrawalFee] = useState(0);
@@ -205,7 +200,6 @@ export default function FinancialWalletDashboardPage() {
       setTotalCount(stmtData.totalCount);
       setWithdrawals(wtdData);
 
-      // Calcular total recebido real a partir dos saques concluídos
       const totalRec = wtdData
         .filter(w => w.status === 'COMPLETED')
         .reduce((sum, w) => sum + w.amount, 0);
@@ -260,20 +254,17 @@ export default function FinancialWalletDashboardPage() {
     setWithdrawSubmitting(true);
 
     try {
-      // 1. Obter o JWT atual da sessão do Supabase (A chave secreta da assinatura)
       const { data: authData } = await supabase.auth.getSession();
       const jwtToken = authData.session?.access_token;
       if (!jwtToken) throw new Error("Sessão inválida. Faça login novamente.");
       const creatorId = authData.session?.user?.id || 'user-demo';
 
-      // 2. Solicitar Ticket/Nonce criptográfico do servidor
       const nonceRes = await fetch('/api/financeiro/nonce');
       const nonceData = await nonceRes.json();
       if (!nonceRes.ok || !nonceData.success) {
         throw new Error("Falha ao iniciar transação segura. Tente novamente.");
       }
 
-      // 3. Assinar digitalmente o payload com HMAC-SHA256 no browser
       const payloadString = `${val}|${storeId}|${nonceData.nonce}`;
       const enc = new TextEncoder();
       const cryptoKey = await window.crypto.subtle.importKey(
@@ -282,7 +273,6 @@ export default function FinancialWalletDashboardPage() {
       const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, enc.encode(payloadString));
       const clientSignature = Array.from(new Uint8Array(signatureBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-      // 4. Enviar requisição criptografada para o Lock Atômico
       const res = await fetch('/api/financeiro/saque', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${jwtToken}` },
@@ -320,7 +310,6 @@ export default function FinancialWalletDashboardPage() {
   return (
     <div className="space-y-6 sm:space-y-8 font-sans pb-12">
       
-      {/* Top Header Card */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
@@ -345,7 +334,6 @@ export default function FinancialWalletDashboardPage() {
             <span className="hidden sm:inline">Atualizar</span>
           </button>
 
-          {/* Botão Solicitar Saque (Fase C — Ativo!) */}
           <button
             onClick={(event) => { withdrawTriggerRef.current = event.currentTarget; handleOpenWithdrawModal(); }}
             className="min-h-11 justify-center px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
@@ -356,10 +344,8 @@ export default function FinancialWalletDashboardPage() {
         </div>
       </div>
 
-      {/* 4 Cards de Saldo Principal */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
-        {/* Card 1: Total Vendido (Bruto) */}
         <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Total Vendido</span>
@@ -375,7 +361,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Saldo Pendente */}
         <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Saldo Pendente</span>
@@ -391,7 +376,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: Saldo Disponível (DESTACADO VISUALMENTE) */}
         <div className="bg-gradient-to-br from-brand-navy to-slate-900 rounded-3xl p-4 sm:p-6 shadow-xl space-y-2 flex flex-col justify-between text-white border border-brand-navy/30 relative overflow-hidden">
           <div className="absolute right-0 top-0 w-32 h-32 bg-brand-teal/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between text-slate-300 relative z-10">
@@ -408,7 +392,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Card 4: Total Recebido */}
         <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Total Recebido</span>
@@ -426,221 +409,8 @@ export default function FinancialWalletDashboardPage() {
 
       </div>
 
-      {/* SEÇÃO EDUCATIVA: Entenda nossas Taxas */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-8 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60 pointer-events-none"></div>
-        
-        <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-wide">
-            <Sparkles className="w-3.5 h-3.5" /> Transparência Total
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Taxas claras em cada venda <span className="text-emerald-600">(sem surpresas)</span>
-          </h2>
-          <p className="text-slate-600 font-medium leading-relaxed max-w-3xl">
-            A taxa da Educalizando é definida nas configurações da plataforma e registrada separadamente dos custos do meio de pagamento. O extrato mostra o valor bruto, cada desconto e o líquido do criador.
-          </p>
-        </div>
+      <FinancialOverview {...{ calculatorPrice, setCalculatorPrice, calculatorInstallments, activePixKey, summary, withdrawals, withdrawalTriggerRef, setSelectedWithdrawal, formatCurrency }} setCalculatorInstallments={setCalculatorInstallments} />
 
-        {/* Nossa Regra (Pix) */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 relative z-10 flex flex-col sm:flex-row gap-5 items-center">
-          <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center border border-slate-100">
-            <DollarSign className="w-6 h-6 text-emerald-600" />
-          </div>
-          <div className="space-y-1 text-center sm:text-left">
-            <h3 className="font-extrabold text-slate-900">Pagamento seguro: <span className="text-emerald-600">PIX, débito ou crédito em até 12x.</span></h3>
-            <p className="text-sm text-slate-500 font-medium">
-              A taxa da Educalizando é 13% sobre o valor original da venda. No cartão, os juros do parcelamento são pagos pelo cliente no checkout e não reduzem o saldo do criador.
-            </p>
-          </div>
-        </div>
-
-        {/* Calculadora de taxa */}
-        <div className="relative z-10 bg-white border border-emerald-200 rounded-2xl shadow-sm p-5 sm:p-6">
-          <h3 className="font-extrabold text-slate-900">Simule sua venda</h3>
-          <p className="text-sm text-slate-500 font-medium mt-1">Escolha o valor e o parcelamento para confirmar quanto o cliente assume de juros e quanto fica disponível para o criador.</p>
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-            <label className="text-xs font-bold text-slate-700">
-              Valor do produto
-              <div className="relative mt-1.5">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">R$</span>
-                <input value={calculatorPrice} onChange={(e) => setCalculatorPrice(e.target.value)} inputMode="decimal" className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3 font-bold outline-none focus:border-emerald-500" />
-              </div>
-            </label>
-            <label className="text-xs font-bold text-slate-700">Parcelas no crédito<select value={calculatorInstallments} onChange={(event) => setCalculatorInstallments(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 font-bold outline-none focus:border-emerald-500">{Object.keys(CARD_PROCESSING_FEE_PERCENTAGES).map((value) => <option key={value} value={value}>{value}x</option>)}</select></label>
-            {(() => { const gross = Math.max(0, Number(calculatorPrice.replace(',', '.')) || 0); const installments = Number(calculatorInstallments); const platformFee = calculatePlatformFee(gross); const processingFee = calculatePaymentProcessingFee(gross, 'credit_card', installments); return <>
-              <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><span className="block text-xs text-rose-700 font-bold">Educalizando ({PLATFORM_FEE_PERCENTAGE}%)</span><strong className="text-lg text-rose-800">-{formatCurrency(platformFee)}</strong></div>
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3"><span className="block text-xs text-amber-700 font-bold">Juros pagos pelo cliente ({CARD_PROCESSING_FEE_PERCENTAGES[installments as keyof typeof CARD_PROCESSING_FEE_PERCENTAGES]}%)</span><strong className="text-lg text-amber-800">{formatCurrency(processingFee)}</strong></div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><span className="block text-xs text-emerald-700 font-bold">Líquido do criador</span><strong className="text-lg text-emerald-800">{formatCurrency(Math.max(0, gross - platformFee))}</strong><span className="mt-1 block text-[10px] font-bold text-emerald-700">Recebe sempre 87% do preço original</span></div>
-            </>; })()}
-          </div>
-        </div>
-
-        <div className="relative z-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4"><h3 className="font-extrabold text-slate-900">Tabela completa do cartão</h3><p className="mt-1 text-xs font-medium text-slate-600">O criador paga somente 13% da Educalizando. A taxa de cada parcelamento é acrescentada ao pagamento do cliente pela InfinitePay.</p></div>
-          <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-white text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3">Pagamento</th><th className="px-5 py-3">Taxa Educalizando</th><th className="px-5 py-3">Juros do cliente</th><th className="px-5 py-3">Desconto do criador</th><th className="px-5 py-3">Criador recebe</th></tr></thead><tbody className="divide-y divide-slate-100">{Object.entries(CARD_PROCESSING_FEE_PERCENTAGES).map(([installments, processing]) => <tr key={installments} className="hover:bg-slate-50"><td className="px-5 py-3 font-black text-slate-900">Crédito em {installments}x</td><td className="px-5 py-3 font-bold text-blue-700">13,00%</td><td className="px-5 py-3 font-bold text-amber-700">{processing.toFixed(2).replace('.', ',')}% — cliente</td><td className="px-5 py-3 font-black text-rose-700">13,00%</td><td className="px-5 py-3 font-black text-emerald-700">87,00%</td></tr>)}</tbody></table></div>
-          <div className="border-t border-emerald-200 bg-emerald-50 px-5 py-4 text-xs font-semibold leading-relaxed text-emerald-900"><strong>Regra de repasse:</strong> no PIX, débito ou crédito de 1x a 12x, o criador recebe 87% do preço original. Os juros do cartão são cobrados do cliente.</div>
-        </div>
-
-        {/* Conclusão */}
-        <div className="relative z-10 text-center space-y-4 max-w-2xl mx-auto pt-4">
-          <p className="text-sm sm:text-base text-slate-700 font-bold">
-            Consulte cada lançamento para conferir a composição exata do valor líquido disponível para saque.
-          </p>
-          <div className="inline-flex px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black tracking-wide uppercase shadow-md">
-            Escale suas vendas e fique com o lucro de verdade!
-          </div>
-        </div>
-      </div>
-
-      {/* Banner / Card da Chave PIX Cadastrada */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
-            <Key className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold uppercase text-slate-500">Chave PIX Cadastrada</span>
-              {activePixKey ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  ✓ Validada
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                  Pendente
-                </span>
-              )}
-            </div>
-            <div className="text-sm font-black text-slate-900 font-mono mt-0.5">
-              {activePixKey ? `${activePixKey.pixKeyMasked} (Titular: ${activePixKey.holderName})` : 'Nenhuma chave PIX CPF cadastrada'}
-            </div>
-          </div>
-        </div>
-
-        <Link
-          href="/dashboard/conta"
-          className="min-h-11 w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy"
-        >
-          {activePixKey ? 'Gerenciar Chave PIX' : 'Cadastrar Chave PIX CPF'}
-        </Link>
-      </div>
-
-      {/* Resumo Transparente de Taxas Descontadas */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Detalhamento Transparente de Taxas
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Transparência total no repasse: a plataforma desconta 13%; os juros do parcelamento ficam com o cliente.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Taxas Educalizando</span>
-            <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasEducalizando)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">13% da plataforma em todas as vendas</span>
-          </div>
-
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase block">Descontos do meio de pagamento</span>
-            <div className="text-lg font-black text-slate-900">{formatCurrency(summary.taxasAsaas)}</div>
-            <span className="text-[10px] text-slate-500 font-medium block">Novas vendas: R$ 0,00 para o criador; juros pagos pelo cliente</span>
-          </div>
-
-          <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-2xl space-y-1">
-            <span className="text-[11px] font-bold text-rose-700 uppercase block">Total de Taxas Retidas</span>
-            <div className="text-lg font-black text-rose-800">{formatCurrency(summary.totalTaxas)}</div>
-            <span className="text-[10px] text-rose-600 font-medium block">Descontado do valor bruto das suas vendas</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Histórico de Saques Realizados (Item 26 & 27 da Especificação) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Histórico de Saques PIX
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Acompanhe suas solicitações e a confirmação manual do pagamento.
-            </p>
-          </div>
-        </div>
-
-        {withdrawals.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-400 font-medium bg-slate-50 rounded-2xl border border-slate-200">
-            Nenhum saque solicitado até o momento.
-          </div>
-        ) : (
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-            <div className="divide-y divide-slate-100 sm:hidden">
-              {withdrawals.map(wtd => {
-                const pending = wtd.status === 'PROCESSING' || wtd.status === 'PENDING';
-                const label = wtd.status === 'COMPLETED' ? 'Concluído' : pending ? 'Em processamento' : 'Falhou';
-                const className = wtd.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : pending ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200';
-                return <button key={wtd.id} type="button" onClick={(event) => { withdrawalTriggerRef.current = event.currentTarget; setSelectedWithdrawal(wtd); }} className="w-full space-y-2 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-inset"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Solicitado em</p><p className="mt-1 text-xs font-semibold text-slate-700">{new Date(wtd.requestedAt).toLocaleString('pt-BR')}</p></div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold ${className}`}>{label}</span></div><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Chave PIX</p><p className="mt-1 font-mono text-xs text-slate-700">{wtd.pixKeyMasked}</p></div><div className="text-right"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Valor</p><p className="mt-1 font-mono text-sm font-black text-slate-900">{formatCurrency(wtd.amount)}</p></div></div></button>;
-              })}
-            </div>
-            <table className="hidden w-full text-left border-collapse font-sans text-xs sm:table">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  <th className="py-3 px-4">Solicitado em</th>
-                  <th className="py-3 px-4">Valor</th>
-                  <th className="py-3 px-4">Chave PIX</th>
-                  <th className="py-3 px-4">Referência</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {withdrawals.map(wtd => (
-                  <tr 
-                    key={wtd.id}
-                    onClick={() => setSelectedWithdrawal(wtd)}
-                    className="hover:bg-slate-50 transition-colors cursor-pointer"
-                  >
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                      {new Date(wtd.requestedAt).toLocaleString('pt-BR')}
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                      {formatCurrency(wtd.amount)}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">
-                      {wtd.pixKeyMasked}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
-                      {wtd.paymentReference || wtd.asaasTransferId || 'Aguardando'}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {wtd.status === 'COMPLETED' ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                          ✓ Concluído
-                        </span>
-                      ) : wtd.status === 'PROCESSING' || wtd.status === 'PENDING' ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
-                          <Loader2 className="w-3 h-3 animate-spin" /> Em Processamento
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                          Falhou
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Extrato Financeiro & Lançamentos */}
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="w-full lg:w-auto">
@@ -663,7 +433,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Filters Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
           <div className="space-y-1">
             <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Período</label>
@@ -704,7 +473,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         </div>
 
-        {/* Statement Table */}
         {loading ? (
           <div className="p-12 text-center text-slate-400 text-xs font-medium">
             Carregando extrato financeiro...
@@ -794,7 +562,6 @@ export default function FinancialWalletDashboardPage() {
           </div>
         )}
 
-        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs font-medium text-slate-500">
             <span>Página {page} de {totalPages}</span>
@@ -818,250 +585,7 @@ export default function FinancialWalletDashboardPage() {
         )}
       </div>
 
-      {/* MODAL 1: Solicitar Saque PIX (Item 10, 11, 12, 13 & 16) */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4" role="presentation">
-          <div className="max-h-[calc(100vh-1.5rem)] overflow-y-auto bg-white rounded-3xl border border-slate-200 max-w-md w-full p-5 sm:p-8 shadow-2xl space-y-5" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
-                  Solicitação de Saque PIX
-                </span>
-                <h3 id="withdraw-modal-title" className="text-lg font-black text-slate-900">Solicitar Saque</h3>
-              </div>
-              <button onClick={() => { setShowWithdrawModal(false); window.requestAnimationFrame(() => withdrawTriggerRef.current?.focus()); }} aria-label="Fechar solicitação de saque" className="min-h-11 min-w-11 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {withdrawError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold" role="alert">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{withdrawError}</span>
-              </div>
-            )}
-
-            {withdrawSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs flex items-center gap-2 font-bold" role="status" aria-live="polite">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{withdrawSuccess}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleExecuteWithdrawal} className="space-y-4 text-xs font-sans">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                <div className="flex justify-between text-slate-600">
-                  <span>Saldo Disponível:</span>
-                  <strong className="text-slate-900 font-mono text-sm">{formatCurrency(summary.saldoDisponivel)}</strong>
-                </div>
-
-                <div className="flex justify-between text-slate-600">
-                  <span>Chave PIX (CPF):</span>
-                  <strong className="text-slate-900 font-mono">
-                    {activePixKey ? activePixKey.pixKeyMasked : 'Nenhuma chave cadastrada'}
-                  </strong>
-                </div>
-
-                {activePixKey && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Titular Confirmado:</span>
-                    <strong className="text-slate-900">{activePixKey.holderName}</strong>
-                  </div>
-                )}
-              </div>
-
-              {!activePixKey ? (
-                <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl space-y-2">
-                  <p className="font-bold">Chave PIX não cadastrada!</p>
-                  <p className="text-[11px]">Você precisa cadastrar e validar sua chave PIX CPF em Configurações da Conta antes de solicitar um saque.</p>
-                  <Link
-                    href="/dashboard/conta"
-                    className="inline-block mt-2 px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold text-[11px]"
-                  >
-                    Cadastrar Chave PIX Agora
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                      Valor do Saque (R$) *
-                    </label>
-                    <input
-                      type="text"
-                      value={withdrawAmountInput}
-                      onChange={(e) => setWithdrawAmountInput(e.target.value)}
-                      placeholder="0.00"
-                      className="min-h-12 w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-600 rounded-xl text-slate-900 text-lg font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                    />
-                    <span className="text-[10px] text-slate-500 block font-medium">
-                      Valor mínimo: {formatCurrency(minimumWithdrawalAmount)}. {withdrawalFee > 0 ? `Taxa de saque: ${formatCurrency(withdrawalFee)}. Reserva total: ${formatCurrency(Math.max(0, Number(withdrawAmountInput.replace(',', '.')) || 0) + withdrawalFee)}.` : 'Sem taxa adicional de saque.'}
-                    </span>
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={withdrawSubmitting || summary.saldoDisponivel < minimumWithdrawalAmount}
-                      className="min-h-12 w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                    >
-                      {withdrawSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Enviando solicitação...</span>
-                        </>
-                      ) : (
-                        <>
-                          <ArrowUpRight className="w-4 h-4" />
-                          <span>Solicitar Saque PIX</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 2: Detalhes da Venda no Extrato */}
-      {selectedTx && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-navy block">
-                  Detalhamento da Venda
-                </span>
-                <h3 className="text-lg font-black text-slate-900">
-                  {selectedTx.orderId ? `Pedido #${selectedTx.orderId.substring(4, 10).toUpperCase()}` : 'Lançamento Financeiro'}
-                </h3>
-              </div>
-              <button onClick={() => setSelectedTx(null)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-sans">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                <div className="flex justify-between text-slate-600">
-                  <span>Produto:</span>
-                  <strong className="text-slate-900">{selectedTx.productTitle || 'Infoproduto Digital'}</strong>
-                </div>
-                {selectedTx.buyerName && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Comprador:</span>
-                    <strong className="text-slate-900">{selectedTx.buyerName}</strong>
-                  </div>
-                )}
-                <div className="flex justify-between text-slate-600">
-                  <span>Data da Transação:</span>
-                  <strong className="text-slate-900">{new Date(selectedTx.createdAt).toLocaleString('pt-BR')}</strong>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 pt-2 border-t border-slate-100">
-                <div className="flex justify-between text-slate-700 font-bold">
-                  <span>Valor Bruto da Venda:</span>
-                  <span className="font-mono text-sm">{formatCurrency(selectedTx.grossAmount)}</span>
-                </div>
-                <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa fixa Educalizando (não aplicada):</span>
-                  <span className="font-mono">- {formatCurrency(selectedTx.platformFixedFeeAmount)}</span>
-                </div>
-                <div className="flex justify-between text-slate-500 pl-3 border-l-2 border-slate-200">
-                  <span>Taxa Educalizando (conforme o meio de pagamento):</span>
-                  <span className="font-mono">- {formatCurrency(selectedTx.platformPercentageFeeAmount)}</span>
-                </div>
-                <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
-                  <span>Total Taxas Educalizando:</span>
-                  <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.platformFeeAmount)}</span>
-                </div>
-                <div className="flex justify-between text-slate-700 font-bold pl-3 border-l-2 border-slate-300">
-                  <span>Taxa do meio de pagamento:</span>
-                  <span className="font-mono text-rose-600">- {formatCurrency(selectedTx.asaasFeeAmount)}</span>
-                </div>
-                <div className="flex justify-between font-black text-slate-900 text-base pt-3 border-t border-slate-200">
-                  <span>Valor Líquido do Criador:</span>
-                  <span className="font-mono text-emerald-600">{formatCurrency(selectedTx.netAmount)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100">
-              <button
-                onClick={() => setSelectedTx(null)}
-                className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
-              >
-                Fechar Detalhes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 3: Detalhes do Saque (Item 27 da Especificação) */}
-      {selectedWithdrawal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
-                  Detalhes da Transferência PIX
-                </span>
-                <h3 className="text-lg font-black text-slate-900">
-                  Saque #{selectedWithdrawal.id.substring(4, 10).toUpperCase()}
-                </h3>
-              </div>
-              <button onClick={() => setSelectedWithdrawal(null)} className="p-1 rounded-full text-slate-400 hover:text-slate-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-sans">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                <div className="flex justify-between text-slate-600">
-                  <span>Valor do Saque:</span>
-                  <strong className="text-slate-900 font-mono text-sm">{formatCurrency(selectedWithdrawal.amount)}</strong>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Chave PIX:</span>
-                  <strong className="text-slate-900 font-mono">{selectedWithdrawal.pixKeyMasked}</strong>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Solicitado em:</span>
-                  <strong className="text-slate-900">{new Date(selectedWithdrawal.requestedAt).toLocaleString('pt-BR')}</strong>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Status:</span>
-                  <strong className="text-emerald-700">{selectedWithdrawal.status}</strong>
-                </div>
-                {(selectedWithdrawal.paymentReference || selectedWithdrawal.asaasTransferId) && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Referência da transferência:</span>
-                    <strong className="text-slate-900 font-mono">{selectedWithdrawal.paymentReference || selectedWithdrawal.asaasTransferId}</strong>
-                  </div>
-                )}
-                {selectedWithdrawal.failureReason && (
-                  <div className="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] font-medium mt-2">
-                    Motivo da falha: {selectedWithdrawal.failureReason}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100">
-              <button
-                onClick={() => setSelectedWithdrawal(null)}
-                className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
-              >
-                Fechar Detalhes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FinancialDialogs {...{ showWithdrawModal, setShowWithdrawModal, withdrawTriggerRef, withdrawError, withdrawSuccess, handleExecuteWithdrawal, summary, activePixKey, withdrawAmountInput, setWithdrawAmountInput, minimumWithdrawalAmount, withdrawalFee, withdrawSubmitting, selectedTx, setSelectedTx, selectedWithdrawal, setSelectedWithdrawal, formatCurrency }} />
 
     </div>
   );

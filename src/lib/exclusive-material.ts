@@ -1,4 +1,4 @@
-import { calculatePaymentProcessingFee, calculatePlatformFee, getPaymentProcessingFeePercentage, getPlatformFeePercentage, type PlatformPaymentMethod } from './payment-fees';
+import { calculatePaymentProcessingFee,calculatePlatformFee,getPaymentProcessingFeePercentage,getPlatformFeePercentage,type PlatformPaymentMethod } from './payment-fees';
 
 export type ExclusiveMaterialStatus = 'open' | 'negotiating' | 'awaiting_payment' | 'paid' | 'in_production' | 'delivered' | 'cancelled' | 'rejected';
 

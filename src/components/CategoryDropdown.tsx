@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
-import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useId,useRef,useState } from 'react';
 
 const CATEGORIES = [
   { name: 'Alfabetização', href: '/buscar?categoria=alfabetizacao' },

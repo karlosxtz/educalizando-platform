@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Star, Loader2, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { submitProductReview } from '@/app/actions/review-actions';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence,motion } from 'framer-motion';
+import { Loader2,Star,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
+import { toast } from 'sonner';
 
 interface StudentReviewModalProps {
   isOpen: boolean;

@@ -1,10 +1,10 @@
-import { supabase } from './supabase';
-import { Product, Store } from './types';
+import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from './category-service';
+import { searchMatchScore } from './search-matching';
 import { getAllPublicMarketplaceProducts } from './store-service';
-import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from './category-service';
-import { normalizeSearchText, searchMatchScore } from './search-matching';
+import { supabase } from './supabase';
+import { Product,Store } from './types';
 
-export { getSearchTerms, normalizeSearchText, searchMatchScore } from './search-matching';
+export { getSearchTerms,normalizeSearchText,searchMatchScore } from './search-matching';
 
 export interface SearchFilters {
   q?: string;

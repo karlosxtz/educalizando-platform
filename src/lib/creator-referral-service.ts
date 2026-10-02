@@ -1,6 +1,6 @@
-import { supabaseAdmin } from './supabase';
 import { sendWelcomeCreatorEmail } from './mail-service';
 import { createNotification } from './notification-service';
+import { supabaseAdmin } from './supabase';
 
 export const CREATOR_REFERRAL_RATE_PERCENT = 3;
 export const CREATOR_REFERRAL_MONTHS = 12;

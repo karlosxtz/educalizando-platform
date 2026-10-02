@@ -1,11 +1,11 @@
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { getGlossaryTerm,glossaryTerms } from '@/lib/glossary';
+import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { ArrowLeft,BookOpen,CheckCircle2,ChevronRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, ChevronRight, CheckCircle2 } from 'lucide-react';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
-import { getGlossaryTerm, glossaryTerms } from '@/lib/glossary';
 import { notFound } from 'next/navigation';
-import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }> };
 export function generateStaticParams() { return glossaryTerms.map((term) => ({ slug: term.slug })); }

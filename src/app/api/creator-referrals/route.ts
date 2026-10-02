@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
-import { attributeCreatorReferral, getCreatorReferralDashboard } from '@/lib/creator-referral-service';
+import { attributeCreatorReferral,getCreatorReferralDashboard } from '@/lib/creator-referral-service';
 import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);

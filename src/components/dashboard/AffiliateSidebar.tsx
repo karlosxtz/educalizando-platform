@@ -1,14 +1,23 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, ShoppingBag, Link2, Wallet, Settings,
-  LogOut, Menu, X, ChevronRight, User, ArrowLeftRight, Palette
-} from 'lucide-react';
-import { signOutUser } from '@/lib/supabase';
 import { saveRolePreference } from '@/lib/role-service';
+import { signOutUser } from '@/lib/supabase';
+import {
+ArrowLeftRight,
+ChevronRight,
+LayoutDashboard,
+Link2,
+LogOut,Menu,
+Palette,
+Settings,
+ShoppingBag,
+User,
+Wallet,
+X
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname,useRouter } from 'next/navigation';
+import { useEffect,useRef,useState } from 'react';
 
 interface AffiliateSidebarProps {
   userName?: string;
@@ -52,7 +61,7 @@ export default function AffiliateSidebar({
 
   const handleSwitchToCreator = () => {
     saveRolePreference('creator');
-    window.location.href = '/dashboard';
+    window.location.assign(new URL('/dashboard', window.location.origin));
   };
 
   const NAV_ITEMS = [

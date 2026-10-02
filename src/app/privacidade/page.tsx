@@ -1,8 +1,8 @@
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { socialMetadata } from '@/lib/seo';
 import { ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
-import { socialMetadata } from '@/lib/seo';
 
 const title = 'Política de Privacidade | Educalizando';
 const description = 'Consulte como a Educalizando trata dados pessoais, cookies, pagamentos e os direitos previstos na LGPD.';

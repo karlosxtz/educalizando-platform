@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Star, MessageSquare, ShieldCheck, ThumbsUp, UserCheck } from 'lucide-react';
-import { Review, ReviewStats } from '@/lib/types';
 import { calculateReviewStats } from '@/lib/review-service';
+import { Review,ReviewStats } from '@/lib/types';
+import { MessageSquare,ShieldCheck,Star,UserCheck } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductReviewsSectionProps {
   reviews: Review[];
@@ -12,7 +12,7 @@ interface ProductReviewsSectionProps {
 
 export default function ProductReviewsSection({
   reviews,
-  primaryColor = '#093b6c'
+  primaryColor: _primaryColor = '#093b6c'
 }: ProductReviewsSectionProps) {
   const stats: ReviewStats = calculateReviewStats(reviews);
   const [filterRating, setFilterRating] = useState<number | 'all'>('all');

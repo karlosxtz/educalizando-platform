@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { UploadCloud, File, CheckCircle2, AlertCircle, X, Image as ImageIcon, Sparkles, VideoOff, Info, MoveLeft, MoveRight } from 'lucide-react';
-import imageCompression from 'browser-image-compression';
 import { uploadToObjectStorage } from '@/lib/object-storage-client';
+import imageCompression from 'browser-image-compression';
+import { AlertCircle,Image as ImageIcon,Info,MoveLeft,MoveRight,Sparkles,UploadCloud,X } from 'lucide-react';
+import { useRef,useState } from 'react';
 
 interface FileUploadMultipleProps {
   label: string;

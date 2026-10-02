@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { getMarketplaceProductsAction,getMarketplaceStoresAction } from '@/app/actions/affiliate-actions';
+import { applyForProductAffiliation,cancelAffiliation,getMyAffiliations } from '@/lib/affiliate-service';
+import { Affiliate,Product,Store as StoreModel } from '@/lib/types';
 import { motion } from 'framer-motion';
-import { Store, Search, AlertCircle, ShoppingBag, Loader2, CheckCircle2 } from 'lucide-react';
-import { applyForProductAffiliation, getMyAffiliations, cancelAffiliation } from '@/lib/affiliate-service';
-import { getMarketplaceProductsAction, getMarketplaceStoresAction } from '@/app/actions/affiliate-actions';
-import { Affiliate, Product, Store as StoreModel } from '@/lib/types';
+import { AlertCircle,CheckCircle2,Loader2,Search,ShoppingBag,Store } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 type MarketplaceStore = Pick<StoreModel, 'id' | 'nome_loja' | 'slug' | 'logo_url' | 'descricao' | 'affiliate_commission_type' | 'affiliate_commission_rate'>;
 type MarketplaceProduct = Product & { store?: Pick<StoreModel, 'nome_loja' | 'logo_url'> | null };

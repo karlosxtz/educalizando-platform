@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin, isRealSupabaseConfigured } from '@/lib/supabase';
-import { isValidCPF } from '@/lib/infinitepay-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { isValidCPF } from '@/lib/infinitepay-service';
+import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {

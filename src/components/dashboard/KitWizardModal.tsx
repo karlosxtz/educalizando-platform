@@ -1,15 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, CheckCircle2, ChevronRight, Boxes, FileText, UploadCloud, 
-  DollarSign, Eye, Loader2, AlertCircle, Save, Check, Sparkles, Package
+import { AnimatePresence,motion } from 'framer-motion';
+import {
+AlertCircle,
+Boxes,
+Check,
+CheckCircle2,ChevronRight,
+DollarSign,
+FileText,
+Loader2,
+Package,
+Save,
+Sparkles,
+UploadCloud,
+X
 } from 'lucide-react';
+import { useEffect,useState } from 'react';
 
-import { getPublicProductsByStoreId } from '@/lib/store-service';
-import { Product, Kit } from '@/lib/types';
 import FileUpload from '@/components/dashboard/FileUpload';
+import { getPublicProductsByStoreId } from '@/lib/store-service';
+import { Kit,Product } from '@/lib/types';
 
 interface KitWizardModalProps {
   isOpen: boolean;

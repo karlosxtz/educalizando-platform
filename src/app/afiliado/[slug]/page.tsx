@@ -1,7 +1,7 @@
+import { getAffiliateApprovedProducts,getAffiliateProfileBySlug } from '@/lib/affiliate-service';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getAffiliateProfileBySlug, getAffiliateApprovedProducts } from '@/lib/affiliate-service';
 import AffiliateStoreClientView from './AffiliateStoreClientView';
 
 function StoreSkeleton() {

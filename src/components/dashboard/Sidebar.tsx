@@ -1,15 +1,38 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { 
-  LayoutDashboard, Store, Package, Boxes, Ticket, Tags, ShoppingCart,
-  Wallet, Settings, ExternalLink, LogOut, Menu, X, ChevronRight, User, Users, PlaySquare, Library, Gift, Flame, Sparkles, Wrench, MessagesSquare, MessageCircle, ChartNoAxesCombined, MonitorDown, Crown
-} from 'lucide-react';
+import NotificationCenter from '@/components/dashboard/NotificationCenter';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
-import NotificationCenter from '@/components/dashboard/NotificationCenter';
+import {
+Boxes,
+ChartNoAxesCombined,
+ChevronRight,
+Crown,
+ExternalLink,
+Flame,
+Gift,
+LayoutDashboard,
+Library,
+LogOut,Menu,
+MessageCircle,
+MessagesSquare,
+MonitorDown,
+Package,
+PlaySquare,
+Settings,
+ShoppingCart,
+Sparkles,
+Store,
+Tags,
+Ticket,
+User,Users,
+Wallet,
+Wrench,
+X
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname,useRouter,useSearchParams } from 'next/navigation';
+import { useCallback,useEffect,useRef,useState } from 'react';
 interface SidebarProps {
   store?: StoreType | null;
   storeId?: string;

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
-import { supabaseAdmin } from '@/lib/supabase';
 import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { revalidatePath } from 'next/cache';
+import { NextResponse } from 'next/server';
 
 const isValidUUID = (str: string | null | undefined): boolean => {
   if (!str) return false;
@@ -100,7 +100,7 @@ export async function DELETE(request: Request) {
             await supabaseAdmin.from('kit_products').delete().eq('kit_id', validUUID);
             await supabaseAdmin.from('coupon_products').delete().eq('kit_id', validUUID);
             await supabaseAdmin.from('kits').delete().eq('id', validUUID);
-          } catch (delErr) {}
+          } catch (_delErr) {}
         }
       }
 
@@ -113,7 +113,7 @@ export async function DELETE(request: Request) {
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard', 'page');
       revalidatePath('/dashboard/kits', 'page');
-    } catch (e) {}
+    } catch (_e) {}
 
     return NextResponse.json({ success: true, softDeleted: true, id, validUUID });
   } catch (err: any) {

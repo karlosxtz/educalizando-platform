@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { ShoppingCart, UserRound, Menu, X } from 'lucide-react';
-import CategoryDropdown from './CategoryDropdown';
-import SearchBar from './SearchBar';
 import { useCart } from '@/components/store/CartContext';
 import { supabase } from '@/lib/supabase';
+import { Menu,ShoppingCart,UserRound,X } from 'lucide-react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense,useEffect,useRef,useState } from 'react';
+import CategoryDropdown from './CategoryDropdown';
+import SearchBar from './SearchBar';
 
 export default function MarketplaceHeader() {
   return (

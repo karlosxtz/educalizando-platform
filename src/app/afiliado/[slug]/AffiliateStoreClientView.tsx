@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  ShieldCheck, ExternalLink, Sparkles, Star, Flame
-} from 'lucide-react';
-import { AffiliateProfile, Product, Store } from '@/lib/types';
 import { searchMatchScore } from '@/lib/search-matching';
+import { AffiliateProfile,Product,Store } from '@/lib/types';
+import { motion } from 'framer-motion';
+import {
+ExternalLink,
+Flame,
+ShieldCheck,
+Sparkles,Star
+} from 'lucide-react';
+import { useState } from 'react';
 
 type AffiliateProduct = Product & {
   store?: Store;

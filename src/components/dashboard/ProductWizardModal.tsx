@@ -1,16 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, CheckCircle2, ChevronRight, ChevronLeft, Package, 
-  AlertTriangle, DollarSign, Sparkles, Loader2, Plus, Tags, GraduationCap 
+import CustomSelect from '@/components/ui/CustomSelect';
+import { createCustomCategory,getCategories,getEducationLevels } from '@/lib/category-service';
+import { Category,EducationLevel,Product,ProductType } from '@/lib/types';
+import { motion } from 'framer-motion';
+import {
+AlertTriangle,
+CheckCircle2,
+ChevronLeft,
+ChevronRight,
+DollarSign,
+GraduationCap,
+Loader2,Plus,
+Sparkles,
+Tags
 } from 'lucide-react';
-import FileUpload from './FileUpload';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
-import { Product, ProductType, Category, EducationLevel } from '@/lib/types';
-import { getCategories, getEducationLevels, createCustomCategory } from '@/lib/category-service';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
+import FileUpload from './FileUpload';
+import ProductWizardDialogs from './ProductWizardDialogs';
+import ProductWizardHeader from './ProductWizardHeader';
 
 interface ProductWizardModalProps {
   isOpen: boolean;
@@ -238,72 +247,7 @@ export default function ProductWizardModal({
         className="bg-white rounded-3xl border border-slate-200 w-full max-w-3xl overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh]"
       >
         
-        {/* Header Bar */}
-        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-              <Package className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-slate-900 leading-tight">
-                {editingProduct ? 'Editar Produto Didático' : 'Wizard de Cadastro de Produto'}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                Passo {currentStep} de 4 — {
-                  currentStep === 1 ? 'Informações & Categorização' :
-                  currentStep === 2 ? 'Capa do Material' :
-                  currentStep === 3 ? 'Arquivo Entregável' : 'Preço e Publicação'
-                }
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleRequestClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Progress Bar Indicator */}
-        <div className="bg-slate-100 px-6 py-3 border-b border-slate-200">
-          <div className="flex items-center justify-between gap-2 max-w-xl mx-auto">
-            {[
-              { num: 1, label: 'Básico' },
-              { num: 2, label: 'Capa' },
-              { num: 3, label: 'Arquivo' },
-              { num: 4, label: 'Revisão' }
-            ].map((step, idx) => {
-              const isCompleted = currentStep > step.num;
-              const isCurrent = currentStep === step.num;
-
-              return (
-                <div key={step.num} className="flex items-center gap-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
-                      isCompleted ? 'bg-emerald-600 text-white' :
-                      isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-100' :
-                      'bg-slate-200 text-slate-500'
-                    }`}>
-                      {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : step.num}
-                    </div>
-                    <span className={`text-xs font-bold hidden sm:inline ${
-                      isCurrent ? 'text-blue-600' : 'text-slate-500'
-                    }`}>
-                      {step.label}
-                    </span>
-                  </div>
-                  {idx < 3 && (
-                    <div className={`flex-1 h-1 rounded-full ${
-                      currentStep > step.num ? 'bg-emerald-500' : 'bg-slate-200'
-                    }`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <ProductWizardHeader currentStep={currentStep} editing={Boolean(editingProduct)} onClose={handleRequestClose} />
 
         {/* Step Body Content */}
         <div className="p-6 sm:p-8 flex-1 overflow-y-auto space-y-6">
@@ -613,104 +557,7 @@ export default function ProductWizardModal({
 
       </motion.div>
 
-      {/* Mini Modal for Creating Custom Category */}
-      <AnimatePresence>
-        {isCreatingCategory && (
-          <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 shadow-2xl"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Tags className="w-4 h-4 text-blue-600" />
-                  Criar Nova Categoria Customizada
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingCategory(false)}
-                  className="text-slate-400 hover:text-slate-700 p-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 block uppercase">Nome da Categoria *</label>
-                <input
-                  type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Ex: Apostilas de Medicina 2026"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Esta categoria será exclusiva da sua loja e aparecerá apenas nos seus produtos.
-                </p>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingCategory(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateNewCategory}
-                  disabled={isCategoryLoading || !newCategoryName.trim()}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {isCategoryLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                  <span>Criar Categoria</span>
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Close Confirmation AlertDialog */}
-      <AnimatePresence>
-        {showCloseConfirmation && (
-          <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 shadow-2xl text-center"
-            >
-              <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Cancelar o cadastro do produto?</h3>
-              <p className="text-xs text-slate-500">
-                Os dados preenchidos até agora neste produto não serão salvos.
-              </p>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCloseConfirmation(false)}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200"
-                >
-                  Continuar Editando
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmCancel}
-                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-rose-600 text-white hover:bg-rose-700 shadow-sm"
-                >
-                  Sim, Descartar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <ProductWizardDialogs isCreatingCategory={isCreatingCategory} setIsCreatingCategory={setIsCreatingCategory} newCategoryName={newCategoryName} setNewCategoryName={setNewCategoryName} handleCreateNewCategory={handleCreateNewCategory} isCategoryLoading={isCategoryLoading} showCloseConfirmation={showCloseConfirmation} setShowCloseConfirmation={setShowCloseConfirmation} confirmCancel={confirmCancel} />
 
     </div>
   );

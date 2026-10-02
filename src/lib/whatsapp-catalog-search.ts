@@ -26,7 +26,7 @@ export async function searchStoreCatalog(storeId: string, query: string): Promis
     const score = variants.reduce((sum, term) => sum + (haystack.includes(term) ? 2 : 0), 0) + (haystack.includes(terms[0]) ? 3 : 0);
     return { ...product, preco: Number(product.preco || 0), score };
   });
-  return scored.sort((a,b) => b.score - a.score).slice(0, 5).map(({ score, ...product }) => product);
+  return scored.sort((a,b) => b.score - a.score).slice(0, 5).map(({ score: _score, ...product }) => product);
 }
 export function formatCatalogSearchReply(query: string, products: WhatsAppCatalogProduct[], storeSlug?: string) {
   if (!products.length) return `Não encontrei “${query}” nesta loja. Tente outro tema, série ou categoria, ou escreva “catálogo” para ver os materiais disponíveis.`;

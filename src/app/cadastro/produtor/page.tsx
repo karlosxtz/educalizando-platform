@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { ArrowLeft, BookOpen, CheckCircle2, PenLine, Sparkles } from 'lucide-react';
 import SignupForm from '@/components/SignupForm';
+import { ArrowLeft,BookOpen,CheckCircle2,PenLine,Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ProducerSignupPage() {
   return (

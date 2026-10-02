@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ShoppingBag, X, CheckCircle2, Tags, GraduationCap,
-  MessageCircle, Plus, Sparkles, Search, Boxes, Percent, Star
-} from 'lucide-react';
 import { useCart } from '@/components/store/CartContext';
+import StoreCatalogControls from '@/components/store/StoreCatalogControls';
+import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
+import { ProductType,StoreListingProduct } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
+import { AnimatePresence,motion } from 'framer-motion';
+import { BookOpen, Boxes, CheckCircle2, FileText, GraduationCap, HelpCircle, Layers, MessageCircle, Search, ShieldCheck, ShoppingBag, Sparkles, Star, Tags, Video, X, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -29,30 +28,23 @@ const InstagramIcon = ({ className }: { className?: string }) => (
     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
   </svg>
 );
-import { Store, StoreListingProduct, ProductType, Category, EducationLevel, Kit } from '@/lib/types';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { getPublicKitsByStoreId } from '@/lib/kit-service';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
-import StoreCollections from '@/components/store/StoreCollections';
-import StoreCatalogControls from '@/components/store/StoreCatalogControls';
 
-import { getPublicProductsByStoreId } from '@/lib/store-service';
 
 import { StoreThemeProps } from '@/lib/types';
 
 export default function ThemeLinkTree(props: StoreThemeProps) {
-  const { 
-    store, 
-    products, 
-    filteredProducts, 
-    categories, 
-    educationLevels, 
+  const {
+    store,
+    products: _products,
+    filteredProducts,
+    categories,
+    educationLevels,
     kits,
-    selectedCategory, 
-    setSelectedCategory, 
-    selectedEducation, 
-    setSelectedEducation, 
-    searchFilter, 
+    selectedCategory,
+    setSelectedCategory,
+    selectedEducation,
+    setSelectedEducation,
+    searchFilter,
     setSearchFilter,
     selectedCollection,
     setSelectedCollection
@@ -92,7 +84,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
   const handleStartCheckout = () => {
     if (selectedProduct) {
       if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
-        window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+        window.location.assign(new URL(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`, window.location.origin));
         return;
       }
       addToCart({
@@ -113,11 +105,11 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
   const handleBuyNow = () => {
     if (!selectedProduct) return;
     if (selectedProduct.listing_mode !== 'plr' && (selectedProduct.is_free || Number(selectedProduct.preco) === 0)) {
-      window.location.assign(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`);
+      window.location.assign(new URL(`/loja/${store.slug}/produto/${selectedProduct.slug || selectedProduct.id}`, window.location.origin));
       return;
     }
     addToCart({ productId: selectedProduct.id, title: selectedProduct.titulo, price: selectedProduct.preco, isPlr: selectedProduct.listing_mode === 'plr', storeId: store.id, type: selectedProduct.tipo, imageUrl: selectedProduct.capa_url || undefined, quantity: 1 });
-    window.location.assign(`/loja/${store.slug}/checkout`);
+    window.location.assign(new URL(`/loja/${store.slug}/checkout`, window.location.origin));
   };
 
   // Build Options for CustomSelect Component
@@ -132,7 +124,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
   ];
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
@@ -161,22 +153,22 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
             </>
           ) : (
-            <div 
+            <div
               className="w-full h-full relative flex items-center justify-center overflow-hidden transition-all"
               style={{
                 background: `radial-gradient(circle at 50% 30%, ${primaryColor}30 0%, #090d16 85%)`
               }}
             >
               {/* Subtle geometric dot matrix pattern */}
-              <div 
-                className="absolute inset-0 opacity-20 pointer-events-none" 
+              <div
+                className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
                   backgroundImage: `radial-gradient(${primaryColor} 1.5px, transparent 1.5px)`,
                   backgroundSize: '24px 24px'
                 }}
               />
               <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4">
-                <div 
+                <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md transition-transform hover:scale-105"
                   style={{ backgroundColor: `${primaryColor}25` }}
                 >
@@ -193,13 +185,13 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
         {/* Store Profile Bar with Floating Circle Logo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
-            
+
             {/* Circular Logo Overlapping Banner */}
             <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white p-1.5 border-4 border-white shadow-xl overflow-hidden flex-shrink-0 relative z-10">
               {store.logo_url ? (
                 <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
               ) : (
-                <div 
+                <div
                   className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-3xl sm:text-4xl shadow-inner"
                   style={{ backgroundColor: primaryColor }}
                 >
@@ -301,7 +293,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
 
       {/* Main Store Products Catalog */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-        
+
         {/* Kits & Combos Section */}
         {kits.length > 0 && (
           <section className="space-y-4">
@@ -431,7 +423,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
-            <div 
+            <div
               className="w-20 h-20 rounded-full mx-auto flex items-center justify-center border border-slate-100 shadow-inner transition-transform hover:scale-105"
               style={{ backgroundColor: `${primaryColor}15` }}
             >
@@ -440,8 +432,8 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
 
             <div className="space-y-2">
               <h3 className="text-xl font-black text-slate-900">
-                {searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' 
-                  ? 'Nenhum material encontrado' 
+                {searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all'
+                  ? 'Nenhum material encontrado'
                   : 'Ainda não há materiais publicados aqui'}
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
@@ -466,7 +458,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                   key={`${prod.id}-${prod.listing_mode || 'standard'}`}
                   className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
-                  <Link 
+                  <Link
                     href={`/loja/${store.slug}/produto/${prod.slug || prod.id}${prod.listing_mode === 'plr' ? '?licenca=plr' : ''}`}
                     className="flex-1 p-5 flex flex-col justify-between space-y-4 cursor-pointer"
                   >
@@ -474,17 +466,17 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
                       <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {prod.capa_url ? (
-                          <img 
-                            src={prod.capa_url} 
-                            alt={prod.titulo} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          <img
+                            src={prod.capa_url}
+                            alt={prod.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
                             Material Didático Digital
                           </div>
                         )}
-                        <span 
+                        <span
                           className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs"
                           style={{ backgroundColor: primaryColor }}
                         >
@@ -518,7 +510,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                             {prod.descricao}
                           </p>
                         )}
-                        
+
                         {prod.average_rating ? (
                           <div className="flex items-center gap-1 mt-2">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -602,7 +594,7 @@ export default function ThemeLinkTree(props: StoreThemeProps) {
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <span 
+                    <span
                       className="p-2 rounded-lg text-white text-xs font-bold uppercase flex items-center gap-1"
                       style={{ backgroundColor: primaryColor }}
                     >

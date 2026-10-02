@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { NextResponse,type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
     cookies: {
       getAll() { return request.cookies.getAll() },
       setAll(keysToSet) {
-        keysToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+        keysToSet.forEach(({ name, value, options: _options }) => request.cookies.set(name, value))
         supabaseResponse = createProtectedResponse()
         keysToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
       },

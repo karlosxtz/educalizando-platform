@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 export default function WhatsAppButton() {
   const [isVisible, setIsVisible] = useState(false);

@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import type { Kit, Product, Store } from '@/lib/types';
+import type { Kit,Product,Store } from '@/lib/types';
 
 export type MarketplaceKit = Kit & { store?: Store };
 

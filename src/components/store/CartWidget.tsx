@@ -1,8 +1,8 @@
 'use client';
 
-import { useCart } from './CartContext';
 import { ShoppingBag } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useCart } from './CartContext';
 
 export default function CartWidget() {
   const { itemCount, toggleCart } = useCart();

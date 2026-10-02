@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { getAffiliateAvailableBalance, requestAffiliateWithdrawal } from '@/lib/affiliate-service';
+import { getAffiliateAvailableBalance,requestAffiliateWithdrawal } from '@/lib/affiliate-service';
 import { getRequestUser } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase';
 import { notifyWithdrawalRequested } from '@/lib/withdrawal-notification-service';
+import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
   try {

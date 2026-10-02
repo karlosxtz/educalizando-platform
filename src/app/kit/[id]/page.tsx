@@ -1,8 +1,8 @@
-import { notFound } from 'next/navigation';
-import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
 import KitDetailClientView from '@/app/loja/[slug]/kit/[id]/KitDetailClientView';
+import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getPublicMarketplaceKitById } from '@/lib/marketplace-kit-service';
+import { notFound } from 'next/navigation';
 
 export const revalidate = 0;
 

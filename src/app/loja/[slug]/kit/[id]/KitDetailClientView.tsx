@@ -1,19 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { validateCouponCode } from '@/lib/coupon-service';
+import { CouponValidationResult,Kit,ProductType,Review,Store } from '@/lib/types';
+import {
+AlertCircle,
+ArrowLeft,
+BookOpen,
+Boxes,
+Check,
+CheckCircle2,
+FileText,
+HelpCircle,
+Layers,
+Loader2,
+Lock,
+MessageCircle,
+Package,
+ShieldCheck,
+Sparkles,
+Ticket,
+Video,
+Zap
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  ShieldCheck, Zap, FileText, Video, BookOpen, 
-  Layers, HelpCircle, ArrowLeft, CheckCircle2,
-  MessageCircle, Sparkles, Lock, Check, Loader2, Boxes, Package, Tags, Ticket, AlertCircle 
-} from 'lucide-react';
-import { Store, Kit, ProductType, CouponValidationResult, Review } from '@/lib/types';
-import { validateCouponCode } from '@/lib/coupon-service';
+import { useEffect,useState } from 'react';
 // import { getReviews } from '@/lib/review-service'; // Kits no longer have direct reviews
+import KitCoverMosaic from '@/components/KitCoverMosaic';
 import ProductReviewsSection from '@/components/ProductReviewsSection';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
-import KitCoverMosaic from '@/components/KitCoverMosaic';
 
 interface KitDetailClientViewProps {
   store: Store;

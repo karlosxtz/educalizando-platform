@@ -1,9 +1,9 @@
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
-import Link from 'next/link';
-import { BookOpen, Baby, GraduationCap, School, Search, ChevronRight, CheckCircle2 } from 'lucide-react';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { Baby,BookOpen,CheckCircle2,ChevronRight,GraduationCap,School,Search } from 'lucide-react';
 import type { Metadata } from 'next';
-import { serializeJsonLd, SITE_URL, socialMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 const title = 'Materiais por ano escolar e etapa de ensino | Educalizando';
 const description = 'Encontre materiais didáticos por ano escolar, da Educação Infantil ao Ensino Médio, com recursos para diferentes etapas de ensino.';

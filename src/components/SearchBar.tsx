@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useDebounce } from '@/hooks/use-debounce';
 import { quickSearch } from '@/lib/search-service';
+import { Loader2,Search } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');

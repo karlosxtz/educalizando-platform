@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Award, Package, FileText, BookOpen, Video, Layers, HelpCircle, ArrowRight, Loader2 } from 'lucide-react';
-import { Product, TopProductStat, ProductType } from '@/lib/types';
 import { getTopProductsReport } from '@/lib/sales-service';
+import { Product,ProductType,TopProductStat } from '@/lib/types';
+import { ArrowRight,Award,BookOpen,FileText,HelpCircle,Layers,Loader2,Package,Video } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 interface TopProductsReportProps {
   products: Product[];

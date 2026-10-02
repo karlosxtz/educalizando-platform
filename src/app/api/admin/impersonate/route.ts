@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { isSuperAdmin } from '@/lib/api-auth';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {

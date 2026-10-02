@@ -1,22 +1,22 @@
-import MarketplaceHeader from '@/components/MarketplaceHeader';
 import Footer from '@/components/Footer';
-import SearchSidebar from '@/components/SearchSidebar';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
+import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 import ProductCard from '@/components/ProductCard';
+import SearchSidebar from '@/components/SearchSidebar';
+import SearchSort from '@/components/SearchSort';
 import StoreCard from '@/components/StoreCard';
+import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
+import { getDisciplines } from '@/lib/discipline-service';
+import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
+import { getSchoolCalendarArtworkForTag,SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { searchHref,searchPage } from '@/lib/search-navigation';
 import { searchProducts } from '@/lib/search-service';
 import { getTopMarketplaceStores } from '@/lib/store-service';
-import { INITIAL_GLOBAL_CATEGORIES, INITIAL_EDUCATION_LEVELS } from '@/lib/category-service';
-import { Frown, Sparkles } from 'lucide-react';
-import { getDisciplines } from '@/lib/discipline-service';
-import { searchHref, searchPage } from '@/lib/search-navigation';
-import SearchSort from '@/components/SearchSort';
-import SearchQuery from './SearchQuery';
-import Link from 'next/link';
-import Image from 'next/image';
-import { getSchoolCalendarArtworkForTag, SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
+import { Frown,Sparkles } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
-import MarketplaceKitCard from '@/components/MarketplaceKitCard';
+import Image from 'next/image';
+import Link from 'next/link';
+import SearchQuery from './SearchQuery';
 
 export const revalidate = 0;
 

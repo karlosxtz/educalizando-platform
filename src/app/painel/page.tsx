@@ -1,5 +1,5 @@
-﻿import MarketplaceHeader from '@/components/MarketplaceHeader';
-import Footer from '@/components/Footer';
+﻿import Footer from '@/components/Footer';
+import MarketplaceHeader from '@/components/MarketplaceHeader';
 
 export default function PlaceholderPage() {
   return (

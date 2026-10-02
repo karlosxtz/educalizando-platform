@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { UserPlus, Upload, Share2, Wallet } from 'lucide-react';
+import { Share2,Upload,UserPlus,Wallet } from 'lucide-react';
 
 export default function HowItWorks() {
   const STEPS = [

@@ -1,28 +1,42 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, Plus, Edit3, Trash2, Eye, EyeOff, 
-  FileText, Video, BookOpen, HelpCircle, Layers, Loader2, 
-  AlertTriangle, AlertCircle, Tags, GraduationCap, Filter, Search, LockKeyhole, RotateCcw, CheckCircle2
+import { AnimatePresence,motion } from 'framer-motion';
+import {
+AlertCircle,
+AlertTriangle,
+BookOpen,
+CheckCircle2,
+Edit3,
+Eye,EyeOff,
+FileText,
+Filter,
+GraduationCap,
+HelpCircle,Layers,Loader2,
+LockKeyhole,
+Package,Plus,
+RotateCcw,
+Search,
+Tags,
+Trash2,
+Video
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
-import { 
-  getCurrentCreatorStore, 
-  getProductsByStoreId, 
-  createProduct, 
-  updateProduct, 
-  deleteProduct,
-  getProductById
-} from '@/lib/store-service';
-import { getCategories, getEducationLevels } from '@/lib/category-service';
-import { Product, Store, ProductType, Category, EducationLevel } from '@/lib/types';
-import ProductWizardModal from '@/components/dashboard/ProductWizardModal';
 import CategoryManagerModal from '@/components/dashboard/CategoryManagerModal';
-import CustomSelect, { CustomSelectOption } from '@/components/ui/CustomSelect';
+import ProductWizardModal from '@/components/dashboard/ProductWizardModal';
+import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
+import { getCategories,getEducationLevels } from '@/lib/category-service';
+import {
+createProduct,
+deleteProduct,
+getCurrentCreatorStore,
+getProductById,
+getProductsByStoreId,
+updateProduct
+} from '@/lib/store-service';
+import { Category,EducationLevel,Product,ProductType,Store } from '@/lib/types';
 
 export default function ProductsManagementPage() {
   const router = useRouter();
@@ -78,7 +92,7 @@ export default function ProductsManagementPage() {
     setIsWizardOpen(true);
   };
 
-  const handleOpenEditWizard = async (prod: Product) => {
+  const _handleOpenEditWizard = async (prod: Product) => {
     const productWithDelivery = await getProductById(prod.id);
     setEditingProduct(productWithDelivery || prod);
     setActionError(null);

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, LoaderCircle, RefreshCw } from 'lucide-react';
+import { AlertTriangle,CheckCircle2,LoaderCircle,RefreshCw } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 type Attempt = { id: string; order_id: string; channel: string; event_type: string; status: 'PROCESSING' | 'SENT' | 'FAILED'; attempts?: number; last_error?: string | null; last_attempt_at: string; sent_at?: string | null; order?: { buyer_email?: string | null; buyer_name?: string | null } | null };

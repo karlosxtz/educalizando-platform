@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  Library, Search, Sparkles, Filter, 
-  ExternalLink, ShoppingCart, Loader2, ShieldCheck, FileText, CheckCircle2, Eye
-} from 'lucide-react';
-import { getPlrMarketplaceProducts } from '@/lib/store-service';
-import { Product, Store } from '@/lib/types';
 import { searchMatchScore } from '@/lib/search-matching';
+import { getPlrMarketplaceProducts } from '@/lib/store-service';
+import { Product,Store } from '@/lib/types';
+import { motion } from 'framer-motion';
+import {
+CheckCircle2,
+ExternalLink,
+Eye,
+FileText,
+Filter,
+Library,
+Loader2,
+Search,
+ShieldCheck,
+ShoppingCart,
+Sparkles
+} from 'lucide-react';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
 
 type PlrProduct = Product & { store?: Store };
 
