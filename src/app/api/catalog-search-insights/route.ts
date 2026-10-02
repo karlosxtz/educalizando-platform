@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 
 const normalize = (value: string) => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR').slice(0, 120);
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRequestRateLimit(request, { namespace: 'catalog-search', limit: 120, windowMs: 60_000 });
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   const body = await request.json().catch(() => ({}));
   const query = typeof body.query === 'string' ? normalize(body.query) : '';
   if (query.length < 2) return NextResponse.json({ recorded: false });

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRequestRateLimit(request, { namespace: 'leads', limit: 10, windowMs: 60 * 60_000 });
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const { email, source = 'site' } = await request.json();
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';

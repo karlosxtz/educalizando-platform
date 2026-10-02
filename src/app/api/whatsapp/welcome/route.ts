@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/api-auth';
 import { firstName, getWhatsAppTemplate, renderWhatsAppTemplate, sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 
 const allowedRoles = new Set(['creator', 'student', 'affiliate']);
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRequestRateLimit(request, { namespace: 'whatsapp-welcome', limit: 5, windowMs: 60 * 60_000 });
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const user = await getRequestUser(request);
     if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });

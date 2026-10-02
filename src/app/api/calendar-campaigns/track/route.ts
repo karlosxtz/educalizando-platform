@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { supabaseAdmin } from '@/lib/supabase';
+import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 
 const SURFACES = ['homepage_campaign', 'homepage_monthly', 'homepage_upcoming', 'calendar'] as const;
 type CampaignSurface = typeof SURFACES[number];
 
 export async function POST(request: Request) {
+  const rateLimit = consumeRequestRateLimit(request, { namespace: 'calendar-track', limit: 60, windowMs: 60_000 });
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const payload: unknown = await request.json();
     if (!payload || typeof payload !== 'object') return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400 });
