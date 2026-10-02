@@ -1,4 +1,5 @@
 import { supabaseAdmin } from './supabase';
+import { secureEvolutionWebhookUrl } from './evolution-webhook-security';
 
 export type WhatsAppTemplateKey =
   | 'creatorWelcome'
@@ -395,10 +396,15 @@ export async function getEvolutionConnectionQrCodeForInstance(instanceName: stri
 
 async function configureEvolutionWebhook(baseUrl: string, apiKey: string, instanceName: string, webhookUrl: string) {
   try {
+    const authenticatedWebhookUrl = secureEvolutionWebhookUrl(webhookUrl);
+    if (!authenticatedWebhookUrl) {
+      console.error('[WhatsApp] Não há uma chave segura disponível para autenticar o webhook da Evolution.');
+      return false;
+    }
     const response = await fetch(`${baseUrl}/webhook/set/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ webhook: { enabled: true, url: webhookUrl, webhook_by_events: false, events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'] } }),
+      body: JSON.stringify({ webhook: { enabled: true, url: authenticatedWebhookUrl, webhook_by_events: false, events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'] } }),
       cache: 'no-store',
     });
     if (!response.ok) console.error(`[WhatsApp] A Evolution recusou configurar webhook da instância ${instanceName} (${response.status}).`);

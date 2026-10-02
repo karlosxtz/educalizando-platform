@@ -3,6 +3,7 @@ import { formatCatalogSearchReply, searchStoreCatalog } from '@/lib/whatsapp-cat
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
 import { cancelLatestWithdrawalByWhatsApp } from '@/lib/withdrawal-cancellation-service';
+import { getEvolutionWebhookToken, verifyEvolutionWebhookToken } from '@/lib/evolution-webhook-security';
 
 export const runtime = 'nodejs';
 
@@ -42,8 +43,14 @@ function menuReply(storeName: string) {
 
 export async function POST(request: Request) {
   try {
-    const configuredSecret = process.env.EVOLUTION_WEBHOOK_SECRET;
-    if (configuredSecret && request.headers.get('x-webhook-secret') !== configuredSecret) {
+    if (!getEvolutionWebhookToken()) {
+      console.error('[WhatsApp Store Webhook] Segredo de autenticação ausente ou inválido.');
+      return NextResponse.json({ received: false, error: 'Webhook indisponível.' }, { status: 503 });
+    }
+
+    const url = new URL(request.url);
+    const suppliedToken = request.headers.get('x-webhook-secret') || url.searchParams.get('webhook_token');
+    if (!verifyEvolutionWebhookToken(suppliedToken)) {
       return NextResponse.json({ received: false }, { status: 401 });
     }
 

@@ -19,6 +19,7 @@
     "test:creator-whatsapp-campaigns": "ts-node -P tsconfig.test.json scripts/verify-creator-whatsapp-campaigns.ts",
     "test:creator-referral-foundation": "ts-node -P tsconfig.test.json scripts/verify-creator-referral-foundation.ts",
     "test:creator-club": "ts-node -P tsconfig.test.json scripts/verify-creator-club.ts",
+    "test:evolution-webhook-security": "ts-node -P tsconfig.test.json scripts/verify-evolution-webhook-security.ts",
     "test:e2e:mobile": "playwright test"
   },
   "dependencies": {
