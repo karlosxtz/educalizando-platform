@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
+import { isRealSupabaseConfigured, supabaseAdmin } from './supabase';
 
 type RateLimitEntry = { count: number; resetAt: number };
 type RateLimitStore = Map<string, RateLimitEntry>;
@@ -25,7 +26,7 @@ function prune(now: number) {
   while (store.size >= 5_000) store.delete(store.keys().next().value!);
 }
 
-export function consumeRequestRateLimit(request: Request, options: RateLimitOptions, now = Date.now()): RateLimitResult {
+function consumeLocalRateLimit(request: Request, options: RateLimitOptions, now = Date.now()): RateLimitResult {
   prune(now);
   const key = `${options.namespace}:${requestIdentity(request)}`;
   const current = store.get(key);
@@ -41,6 +42,28 @@ export function consumeRequestRateLimit(request: Request, options: RateLimitOpti
     remaining: Math.max(0, options.limit - entry.count),
     retryAfterSeconds: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
   };
+}
+
+export async function consumeRequestRateLimit(request: Request, options: RateLimitOptions, now = Date.now()): Promise<RateLimitResult> {
+  const identity = requestIdentity(request);
+  if (isRealSupabaseConfigured()) {
+    const { data, error } = await supabaseAdmin.rpc('consume_api_rate_limit', {
+      p_key: `${options.namespace}:${identity}`,
+      p_limit: options.limit,
+      p_window_seconds: Math.max(1, Math.ceil(options.windowMs / 1000)),
+    });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!error && row) {
+      return {
+        allowed: Boolean(row.allowed),
+        limit: options.limit,
+        remaining: Math.max(0, Number(row.remaining) || 0),
+        retryAfterSeconds: Math.max(1, Number(row.retry_after_seconds) || 1),
+      };
+    }
+    console.error('[rate-limit] Limite compartilhado indisponível; usando proteção local.', error);
+  }
+  return consumeLocalRateLimit(request, options, now);
 }
 
 export function rateLimitResponse(result: RateLimitResult) {

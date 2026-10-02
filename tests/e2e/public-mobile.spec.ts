@@ -67,8 +67,8 @@ test('homepage exibe campanha temática conectada ao calendário', async ({ page
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   const campaign = page.locator('[aria-labelledby="tema-em-destaque"]');
   await expect(campaign).toBeVisible();
-  await expect(campaign.getByText('Tema em destaque')).toBeVisible();
-  await expect(campaign.getByRole('link', { name: /ver no calendário|ver calendário/i })).toBeVisible();
+  await expect(campaign.getByText('Trilha Educalizando')).toBeVisible();
+  await expect(campaign.getByRole('link', { name: /planejar no calendário/i })).toBeVisible();
   await expect(campaign.getByRole('link', { name: /explorar materiais|ver material/i })).toBeVisible();
   const visualOrder = await page.evaluate(() => {
     const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;

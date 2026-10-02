@@ -27,6 +27,11 @@ for (const file of files) {
 const looseSql = readdirSync(join(root, 'supabase'))
   .filter(name => name.endsWith('.sql'))
   .sort();
+assert.deepEqual(looseSql, [], 'Não adicione SQL solto em supabase/. Use supabase/migrations/.');
+
+const legacySql = readdirSync(join(root, 'supabase', 'legacy'))
+  .filter(name => name.endsWith('.sql'))
+  .sort();
 const knownLegacyLooseSql = new Set([
   'migrations.sql',
   'migrations_atomic_withdraw.sql',
@@ -53,6 +58,6 @@ const knownLegacyLooseSql = new Set([
   'schema_orders_asaas_completo.sql',
 ]);
 
-assert.deepEqual(looseSql, [...knownLegacyLooseSql].sort(), 'Não adicione SQL solto em supabase/. Use supabase/migrations/.');
+assert.deepEqual(legacySql, [...knownLegacyLooseSql].sort(), 'O acervo SQL legado deve permanecer isolado e completo.');
 
 console.log(`${files.length} migrations verificadas; novos arquivos exigem timestamp UTC exclusivo de 14 dígitos.`);

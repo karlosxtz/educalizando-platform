@@ -8,7 +8,7 @@ const SURFACES = ['homepage_campaign', 'homepage_monthly', 'homepage_upcoming', 
 type CampaignSurface = typeof SURFACES[number];
 
 export async function POST(request: Request) {
-  const rateLimit = consumeRequestRateLimit(request, { namespace: 'calendar-track', limit: 60, windowMs: 60_000 });
+  const rateLimit = await consumeRequestRateLimit(request, { namespace: 'calendar-track', limit: 60, windowMs: 60_000 });
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const payload: unknown = await request.json();

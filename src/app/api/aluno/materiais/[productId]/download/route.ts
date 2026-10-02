@@ -267,47 +267,17 @@ export async function GET(
         activeUrl = await createDownloadUrl(location.bucket, location.key, humanFilename);
       }
 
-      // EXTRAÇÃO CRÍTICA: Se a URL no banco for uma URL pública do próprio Supabase (que falha em buckets privados),
-      // extraímos apenas o nome do arquivo para forçar a geração de Signed URL.
-      const publicStorageMatch = activeUrl.match(/\/object\/public\/product-files\/(.+)$/);
-      if (publicStorageMatch && publicStorageMatch[1]) {
-        activeUrl = publicStorageMatch[1];
-        console.log(`[Download API] URL pública detectada. Path relativo extraído: ${activeUrl}`);
-      }
-
-      // Se for caminho relativo do Supabase Storage, gerar Signed URL
+      // A plataforma não mantém arquivos no Supabase Storage. Referências
+      // internas precisam ser URIs privadas do MinIO; URLs externas continuam
+      // permitidas quando foram cadastradas pelo próprio criador.
       if (!activeUrl.startsWith('http://') && !activeUrl.startsWith('https://')) {
-        console.log(`[Download API] Gerando Signed URL para path relativo: ${activeUrl}`);
-        try {
-          // CRÍTICO: Devemos usar o supabaseAdmin (Service Role Key) porque o bucket 'product-files' 
-          // é privado. O client anon (supabase normal) falhará com "StorageApiError: Object not found"
-          // por causa do RLS bloqueando a leitura do bucket, mesmo que o arquivo exista perfeitamente.
-          const { data: signedData, error: signedError } = await supabaseAdmin.storage
-            .from('product-files')
-            .createSignedUrl(activeUrl, 3600, { download: humanFilename });
-            
-          if (signedError) {
-            console.error('[Download API] Erro ao criar Signed URL no Supabase:', signedError);
-          }
-
-          if (signedData?.signedUrl) {
-            console.log(`[Download API] Signed URL gerada com sucesso.`);
-            activeUrl = signedData.signedUrl;
-          } else {
-            console.warn(`[Download API] Fallback para getPublicUrl para o arquivo: ${activeUrl}`);
-            const { data: pubData } = supabaseAdmin.storage
-              .from('product-files')
-              .getPublicUrl(activeUrl);
-            if (pubData?.publicUrl) {
-              activeUrl = pubData.publicUrl;
-            }
-          }
-        } catch (storageErr) {
-          console.warn('[Download API] Erro ao obter URL do Supabase Storage:', storageErr);
-        }
+        return NextResponse.json({ error: 'O arquivo precisa ser reenviado pelo criador para o armazenamento seguro.' }, { status: 410 });
       }
 
       if (activeUrl.startsWith('https://') || activeUrl.startsWith('http://')) {
+        if (/supabase\.co\/storage\/v1\/object\//i.test(activeUrl)) {
+          return NextResponse.json({ error: 'O arquivo precisa ser reenviado pelo criador para o armazenamento seguro.' }, { status: 410 });
+        }
         // Links cadastrados pelo criador (ex.: Google Drive) não são arquivos
         // binários da Educalizando. O Drive responde com uma página HTML e não
         // pode passar pelo gerador de PDF licenciado. Redirecionamos o aluno

@@ -6,7 +6,7 @@ import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-l
 type RequestedItem = { productId?: string; quantity?: number };
 
 export async function POST(request: Request) {
-  const rateLimit = consumeRequestRateLimit(request, { namespace: 'abandoned-cart', limit: 10, windowMs: 60 * 60_000 });
+  const rateLimit = await consumeRequestRateLimit(request, { namespace: 'abandoned-cart', limit: 10, windowMs: 60 * 60_000 });
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const body = await request.json();

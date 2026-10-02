@@ -32,10 +32,10 @@ for (const viewport of [
 test('detalhe do calendário é acessível e slug inexistente retorna 404', async ({ page }) => {
   await page.goto('/calendario/dia-da-arvore', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Dia da Árvore' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /buscar materiais sobre este tema/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ver busca completa', exact: true })).toBeVisible();
   await page.goto('/calendario/primavera', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Primavera' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /buscar materiais sobre este tema/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Primavera', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ver busca completa', exact: true })).toBeVisible();
   await page.goto('/calendario/data-inexistente', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: /página ou material não encontrado/i })).toBeVisible();
 });

@@ -16,7 +16,7 @@ test('campanha alterna, pausa e atualiza o mês automaticamente', async ({ page 
   await expect(heading).not.toHaveText(initial!);
   await campaign.getByRole('button', { name: 'Dia da Árvore', exact: true }).click();
   await expect(heading).toHaveText('Dia da Árvore');
-  await expect(campaign.getByRole('link', { name: 'Ver no calendário' })).toHaveAttribute('href', '/calendario/dia-da-arvore');
+  await expect(campaign.getByRole('link', { name: 'Planejar no calendário' })).toHaveAttribute('href', '/calendario/dia-da-arvore');
   await page.clock.runFor(8100);
   await expect(heading).not.toHaveText('Dia da Árvore');
   await campaign.getByRole('button', { name: 'Dia da Árvore', exact: true }).click();

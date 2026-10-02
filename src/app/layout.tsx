@@ -88,7 +88,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
+    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden" data-scroll-behavior="smooth">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <Script id="creator-pwa-install-capture" strategy="beforeInteractive">{`
           (() => {

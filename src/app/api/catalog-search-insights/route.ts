@@ -6,7 +6,7 @@ import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-l
 const normalize = (value: string) => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR').slice(0, 120);
 
 export async function POST(request: Request) {
-  const rateLimit = consumeRequestRateLimit(request, { namespace: 'catalog-search', limit: 120, windowMs: 60_000 });
+  const rateLimit = await consumeRequestRateLimit(request, { namespace: 'catalog-search', limit: 120, windowMs: 60_000 });
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   const body = await request.json().catch(() => ({}));
   const query = typeof body.query === 'string' ? normalize(body.query) : '';

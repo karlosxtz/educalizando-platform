@@ -6,7 +6,9 @@
 
 As migrações até 1 de outubro de 2026 usam prefixos de data com oito dígitos e algumas compartilham o mesmo prefixo. Elas são um histórico já existente e não devem ser renomeadas depois de aplicadas, pois o Supabase registra a versão pelo nome do arquivo.
 
-Os arquivos SQL diretamente dentro de `supabase/` são scripts manuais legados. Eles não fazem parte da sequência automática e não devem ser executados em lote.
+Os scripts manuais anteriores ao controle automático ficam isolados em
+`supabase/legacy/`. Eles não fazem parte da sequência automática e não devem
+ser executados em lote. A raiz de `supabase/` não aceita arquivos SQL.
 
 ## Regra para novas migrações
 

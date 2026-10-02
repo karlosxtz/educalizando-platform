@@ -6,7 +6,7 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 
 export async function POST(request: Request) {
-  const rateLimit = consumeRequestRateLimit(request, { namespace: 'affiliate-track', limit: 60, windowMs: 60_000 });
+  const rateLimit = await consumeRequestRateLimit(request, { namespace: 'affiliate-track', limit: 60, windowMs: 60_000 });
   if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
   try {
     const { ref, pathname, referer } = await request.json();
