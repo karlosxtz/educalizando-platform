@@ -4,7 +4,7 @@ import { Purchase, Store } from './types';
 
 export async function getStudentPurchases(studentId: string): Promise<Purchase[]> {
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -117,8 +117,8 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
   }
 
   // Buscar acessos gravados no localStorage para compras locais
-  const localAccess = getLocalStudentAccess().filter(a => 
-    (a.studentId === studentId || (studentEmail && a.studentId === studentEmail)) && 
+  const localAccess = getLocalStudentAccess().filter(a =>
+    (a.studentId === studentId || (studentEmail && a.studentId === studentEmail)) &&
     a.status === 'ACTIVE'
   );
 

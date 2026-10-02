@@ -12,15 +12,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { 
-      store_id, 
-      titulo, 
-      descricao, 
-      tipo = 'pdf', 
-      preco = 0, 
+    const {
+      store_id,
+      titulo,
+      descricao,
+      tipo = 'pdf',
+      preco = 0,
       preco_original = null,
-      capa_url, 
-      arquivo_url, 
+      capa_url,
+      arquivo_url,
       arquivo_nome = null,
       status = 'publicado',
       category_id,
@@ -288,7 +288,7 @@ export async function POST(request: Request) {
           product_id: insertedProduct.id,
           bncc_skill_id: sanitizeUUID(skill_id)
         })).filter(item => item.bncc_skill_id !== null);
-        
+
         if (bnccToInsert.length > 0) {
           await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
         }
@@ -303,4 +303,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });
   }
 }
-

@@ -7,7 +7,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const deletedIds = getDeletedProductIds();
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -26,7 +26,7 @@ export async function getProductsByStoreId(storeId: string): Promise<Product[]> 
       if (!p.store_id) return false;
       if (p.excluido_em || p.status === 'excluido') return false;
       if (deletedIds.has(p.id) || deletedIds.has(p.id.replace(/^prod_/i, ''))) return false;
-      
+
       const lpClean = p.store_id.replace(/^store_/i, '');
       return lpClean === cleanStoreId;
     });
@@ -72,7 +72,7 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
   const cleanStoreId = (storeId || '').replace(/^store_/i, '');
   const deletedIds = getDeletedProductIds();
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -226,7 +226,7 @@ export async function getProductById(productIdOrSlug: string): Promise<Product |
 
   const cleanId = productIdOrSlug.replace(/^prod_/i, '');
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -293,7 +293,7 @@ export async function getProductById(productIdOrSlug: string): Promise<Product |
 // 11. Obter Produtos do Marketplace de PLR
 export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: Store })[]> {
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -324,11 +324,11 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
 
   // Fallback Local (Se estiver sem backend ou o backend falhar)
   const products = getLocalProducts();
-  const plrProducts = products.filter(p => 
-    p.is_plr === true && 
+  const plrProducts = products.filter(p =>
+    p.is_plr === true &&
     Number(p.preco_plr || 0) > 0 &&
     Boolean(p.has_plr_delivery || p.plr_license_url) &&
-    p.status === 'publicado' && 
+    p.status === 'publicado' &&
     !p.excluido_em
   );
   return plrProducts as (Product & { store?: Store })[];
@@ -340,7 +340,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
 
 export async function getAllFreeProducts(): Promise<(Product & { store?: Store })[]> {
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -369,9 +369,9 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
 
   // Fallback Local
   const products = getLocalProducts();
-  const freeProducts = products.filter(p => 
-    p.is_free === true && 
-    p.status === 'publicado' && 
+  const freeProducts = products.filter(p =>
+    p.is_free === true &&
+    p.status === 'publicado' &&
     !p.excluido_em
   );
   return freeProducts as (Product & { store?: Store })[];
@@ -379,7 +379,7 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
 
 export async function getAllPublicMarketplaceProducts(limit: number = 50): Promise<(Product & { store?: Store })[]> {
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id')
   );
 
@@ -408,8 +408,8 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50): Promi
 
   // Fallback Local
   const products = getLocalProducts();
-  const publicProducts = products.filter(p => 
-    p.status === 'publicado' && 
+  const publicProducts = products.filter(p =>
+    p.status === 'publicado' &&
     !p.excluido_em
   ).slice(0, limit);
   return publicProducts as (Product & { store?: Store })[];

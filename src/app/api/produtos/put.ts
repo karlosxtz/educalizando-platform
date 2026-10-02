@@ -141,7 +141,7 @@ export async function PUT(request: Request) {
       cleanedUpdates.preco_original = nextOriginalPrice;
       cleanedUpdates.is_featured_offer = Boolean(nextOriginalPrice !== null && nextOriginalPrice > nextPrice && !nextIsFree);
     }
-    
+
     // Validar movimentação de loja (novo store_id)
     if ('store_id' in cleanedUpdates && cleanedUpdates.store_id) {
       const cleanStoreId = cleanedUpdates.store_id.toString().replace(/^store_/i, '');
@@ -200,7 +200,7 @@ export async function PUT(request: Request) {
       try {
         // Excluir antigas
         await supabaseAdmin.from('product_images').delete().eq('product_id', data.id);
-        
+
         // Inserir novas
         if (Array.isArray(gallery_urls) && gallery_urls.length > 0) {
           const imagesToInsert = gallery_urls.slice(0, 10).map((url: string, index: number) => ({
@@ -220,14 +220,14 @@ export async function PUT(request: Request) {
       try {
         // Excluir antigas
         await supabaseAdmin.from('product_bncc_skills').delete().eq('product_id', data.id);
-        
+
         // Inserir novas
         if (Array.isArray(bncc_skill_ids) && bncc_skill_ids.length > 0) {
           const bnccToInsert = bncc_skill_ids.map((skill_id: string) => ({
             product_id: data.id,
             bncc_skill_id: sanitizeUUID(skill_id)
           })).filter(item => item.bncc_skill_id !== null);
-          
+
           if (bnccToInsert.length > 0) {
             await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
           }
@@ -251,4 +251,3 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: err.message || 'Erro interno ao atualizar produto.' }, { status: 500 });
   }
 }
-

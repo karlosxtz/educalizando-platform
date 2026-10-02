@@ -64,4 +64,3 @@ export async function uniqueProductSlug(title: string, excludeId?: string) {
   while (used.has(`${base}-${suffix}`)) suffix += 1;
   return `${base}-${suffix}`;
 }
-

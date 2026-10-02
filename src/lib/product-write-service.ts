@@ -126,7 +126,7 @@ export async function updateProduct(productId: string, updates: Partial<Product>
   }
 
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -221,7 +221,7 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
   if (!productId) return false;
   const cleanId = productId.replace(/^prod_/i, '');
   const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
   );
 
@@ -268,8 +268,8 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
       if (rawOrders) {
         const orders = JSON.parse(rawOrders);
         if (Array.isArray(orders)) {
-          const hasSold = orders.some(ord => 
-            Array.isArray(ord.items) && ord.items.some((it: any) => 
+          const hasSold = orders.some(ord =>
+            Array.isArray(ord.items) && ord.items.some((it: any) =>
               it.productId === productId || it.productId === cleanId || it.product_id === productId || it.product_id === cleanId
             )
           );
@@ -281,7 +281,7 @@ export async function checkProductHasSales(productId: string): Promise<boolean> 
       if (rawAccess) {
         const accesses = JSON.parse(rawAccess);
         if (Array.isArray(accesses)) {
-          const hasAcc = accesses.some((acc: any) => 
+          const hasAcc = accesses.some((acc: any) =>
             acc.productId === productId || acc.productId === cleanId || acc.product_id === productId || acc.product_id === cleanId
           );
           if (hasAcc) return true;
@@ -320,9 +320,9 @@ export async function deleteProduct(productId: string, storeId: string): Promise
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`/api/produtos?id=${productId}&store_id=${cleanStoreId}`, { 
+    const res = await fetch(`/api/produtos?id=${productId}&store_id=${cleanStoreId}`, {
       method: 'DELETE',
-      headers 
+      headers
     });
     const result = await res.json().catch(() => null);
 
@@ -356,7 +356,7 @@ export async function deleteProduct(productId: string, storeId: string): Promise
 
     if (typeof window !== 'undefined') {
       const filterFn = (p: any) => p && p.id !== productId && p.id !== cleanId && p.id !== `prod_${productId}` && p.id !== `prod_${cleanId}`;
-      
+
       const products = getLocalProducts().filter(filterFn);
       saveLocalProducts(products);
 

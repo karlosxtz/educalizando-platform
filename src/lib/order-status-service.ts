@@ -5,8 +5,8 @@ import { isRealSupabaseConfigured as isRealSupabaseConfiguredForOrders } from '.
 
 // 4. Atualizar Status do Pedido + Registrar Taxa Asaas Real + Idempotência
 export async function updateOrderStatus(
-  orderId: string, 
-  newStatus: OrderStatusType, 
+  orderId: string,
+  newStatus: OrderStatusType,
   asaasPaymentId?: string,
   realAsaasFee?: number,
   options: { onlyIfPending?: boolean; paymentMethod?: PaymentMethodType; installments?: number } = {},
@@ -35,7 +35,7 @@ export async function updateOrderStatus(
   if (realAsaasFee !== undefined && realAsaasFee >= 0) {
     updatedAsaasFee = Number(realAsaasFee.toFixed(2));
   }
-  
+
   const confirmedPaymentMethod = options.paymentMethod || order.paymentMethod;
   const updatedPlatformPercentageFee = calculatePlatformFee(order.subtotalAmount, confirmedPaymentMethod);
   const updatedPlatformFee = updatedPlatformPercentageFee;
@@ -46,7 +46,7 @@ export async function updateOrderStatus(
   if (isRealSupabaseConfiguredForOrders()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      
+
       // ATUALIZAÇÃO ATÔMICA (Optimistic Locking)
       // Tenta atualizar o status APENAS se ele já não for o novo status.
       const { data: updatedOrder, error } = await supabaseAdmin.from('orders').update({
@@ -265,10 +265,10 @@ export async function updateOrderStatus(
           const { data: deliveries } = await supabaseAdmin.from('product_deliveries').select('product_id, arquivo_url, arquivo_nome, plr_license_url').in('product_id', order.items.map(item => item.productId));
           deliveryByProduct = new Map((deliveries || []).map(item => [item.product_id, item]));
         }
-        const productTitles = order.items.length > 0 
+        const productTitles = order.items.length > 0
           ? order.items.map(it => it.productTitle || 'Material digital').join(', ')
           : 'Kit Combo Digital';
-          
+
         const mailResult = await sendSaleConfirmationToBuyer({
           buyerEmail: studentEmail,
           buyerName: order.buyerName,

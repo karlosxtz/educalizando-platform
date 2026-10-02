@@ -38,7 +38,7 @@ export default function OrderDetailsModal({ order, onClose }: { order: Dashboard
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm" role="presentation">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-3xl overflow-hidden max-h-[calc(100vh-1.5rem)] sm:max-h-[90vh] flex flex-col font-sans" role="dialog" aria-modal="true" aria-labelledby="order-details-title">
-        
+
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50">
           <h3 id="order-details-title" className="min-w-0 text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function OrderDetailsModal({ order, onClose }: { order: Dashboard
 
         {/* Footer */}
         <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-          <button 
+          <button
             onClick={onClose}
             className="min-h-11 w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
           >
@@ -162,5 +162,3 @@ export default function OrderDetailsModal({ order, onClose }: { order: Dashboard
     </div>
   );
 }
-
-
