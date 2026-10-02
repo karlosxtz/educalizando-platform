@@ -702,25 +702,3 @@ export async function getStudentPurchaseById(purchaseId: string, studentId: stri
   const purchases = await getStudentPurchases(studentId);
   return purchases.find(p => p.id === purchaseId || p.product_id === purchaseId) || purchases[0] || null;
 }
-
-// 12. Gerar Signed URL Seguro para Download de Arquivo Privado (Item 27 da Especificação)
-export async function generateSignedFileUrl(pathOrUrl: string): Promise<string> {
-  if (!pathOrUrl) return '';
-  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
-    return pathOrUrl;
-  }
-  const isRealSupabase = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
-  );
-
-  if (isRealSupabase) {
-    try {
-      const { data, error } = await supabase.storage.from('product-files').createSignedUrl(pathOrUrl, 3600);
-      if (!error && data?.signedUrl) return data.signedUrl;
-    } catch (e) {
-      console.error('[generateSignedFileUrl] Erro Supabase Storage:', e);
-    }
-  }
-  return pathOrUrl;
-}
