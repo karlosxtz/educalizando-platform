@@ -3,7 +3,7 @@
 import type { Product,Store } from '@/lib/types';
 import { BrainCircuit,CalendarDays,CheckCircle2,Clipboard,FlaskConical,Lightbulb,Loader2,MessageSquareMore,RefreshCw,Rocket,Save,Search,ShoppingBag,Sparkles,Target,Trash2,TrendingUp,Wand2 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback,useEffect,useState } from 'react';
+import { useCallback,useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 
 type Opportunity = { term: string; demand: number; source: 'search' | 'calendar'; daysUntil?: number; priority: number; competition: number; ownProductId: string | null; titleSuggestion: string };
@@ -50,6 +50,9 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   const [question, setQuestion] = useState('Qual produto devo divulgar hoje e por quê?');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [asking, setAsking] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const typingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,12 +77,15 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(chatStorageKey(store.id)) || '[]');
-      if (Array.isArray(saved)) setMessages(saved.filter(item => item?.role === 'user' || item?.role === 'assistant').slice(-20));
+      if (Array.isArray(saved)) setMessages(saved.filter(item => (item?.role === 'user' || item?.role === 'assistant') && typeof item?.content === 'string' && item.content.trim()).slice(-20));
     } catch { /* conversa nova */ }
   }, [store.id]);
   useEffect(() => {
-    try { localStorage.setItem(chatStorageKey(store.id), JSON.stringify(messages.slice(-20))); } catch { /* armazenamento indisponível */ }
-  }, [messages, store.id]);
+    if (typing) return;
+    try { localStorage.setItem(chatStorageKey(store.id), JSON.stringify(messages.filter(message => message.content.trim()).slice(-20))); } catch { /* armazenamento indisponível */ }
+  }, [messages, store.id, typing]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [messages, asking, typing]);
+  useEffect(() => () => { if (typingTimer.current) clearInterval(typingTimer.current); }, []);
 
   const post = async (body: Record<string, unknown>) => {
     const response = await fetch('/api/ai/marketing-copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, ...body }) });
@@ -115,18 +121,41 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
     const nextQuestion = suggestedQuestion || question;
     if (!nextQuestion.trim()) return;
     if (!aiConfigured) return toast.error('Configure sua chave de IA para conversar com o Copiloto.');
+    if (asking || typing) return;
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: nextQuestion.trim() };
     const previousMessages = messages;
     setMessages(current => [...current, userMessage]); setQuestion(''); setAsking(true);
     try {
       const payload = await post({ action: 'assistant', question: nextQuestion, history: previousMessages.map(({ role, content }) => ({ role, content })), brandVoice, primaryAudience });
-      setMessages(current => [...current, { id: crypto.randomUUID(), role: 'assistant', content: String(payload.answer || '').replace(/\*{1,3}|`{1,3}/g, '').trim() }]);
+      const answer = String(payload.answer || '').replace(/\*{1,3}|`{1,3}/g, '').trim();
+      if (answer.length < 20) throw new Error('A resposta chegou incompleta. Tente novamente.');
+      const responseId = crypto.randomUUID();
+      let cursor = 0;
+      setMessages(current => [...current, { id: responseId, role: 'assistant', content: '' }]);
+      setTyping(true);
+      typingTimer.current = setInterval(() => {
+        cursor = Math.min(answer.length, cursor + 8);
+        const visible = answer.slice(0, cursor);
+        setMessages(current => current.map(message => message.id === responseId ? { ...message, content: visible } : message));
+        if (cursor >= answer.length) {
+          if (typingTimer.current) clearInterval(typingTimer.current);
+          typingTimer.current = null;
+          setTyping(false);
+        }
+      }, 18);
     }
-    catch (error) { toast.error(error instanceof Error ? error.message : 'O Copiloto não conseguiu responder.'); }
+    catch (error) {
+      const message = error instanceof Error ? error.message : 'O Copiloto não conseguiu responder.';
+      setMessages(current => [...current, { id: crypto.randomUUID(), role: 'assistant', content: `Não consegui concluir esta análise agora. Motivo: ${message} Envie novamente para eu analisar os produtos da loja.` }]);
+      toast.error(message);
+    }
     finally { setAsking(false); }
   };
 
   const clearChat = () => {
+    if (typingTimer.current) clearInterval(typingTimer.current);
+    typingTimer.current = null;
+    setTyping(false);
     setMessages([]);
     setQuestion('Como está o estado da minha loja hoje?');
     localStorage.removeItem(chatStorageKey(store.id));
@@ -174,9 +203,9 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
 
       {data && activeTab === 'assistant' && <div>
         <div className="flex items-start justify-between gap-3"><SectionTitle icon={BrainCircuit} eyebrow="Converse com a sua loja" title="Chat analítico" description="A conversa mantém o contexto, compara os dados reais da loja e considera somente oportunidades futuras quando sugerir novos produtos." />{messages.length ? <button type="button" onClick={clearChat} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-black text-slate-600"><Trash2 className="h-4 w-4" />Limpar</button> : null}</div>
-        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" disabled={asking} onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 disabled:opacity-50">{item}</button>)}</div>
-        <div className="mt-5 max-h-[34rem] space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">{messages.length ? messages.map(message => <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[92%] rounded-2xl p-4 text-sm leading-7 shadow-sm sm:max-w-[82%] ${message.role === 'user' ? 'bg-blue-700 text-white' : 'border border-violet-100 bg-white text-slate-700'}`}><div className="mb-2 flex items-center justify-between gap-5"><strong className={`text-xs uppercase tracking-wider ${message.role === 'user' ? 'text-blue-100' : 'text-violet-800'}`}>{message.role === 'user' ? 'Você' : 'Copiloto'}</strong>{message.role === 'assistant' ? <button type="button" onClick={() => copy(message.content)} className="inline-flex items-center gap-1 text-[11px] font-black text-violet-700"><Clipboard className="h-3 w-3" />Copiar</button> : null}</div><p className="whitespace-pre-line">{message.content}</p></div></div>) : <div className="py-10 text-center"><BrainCircuit className="mx-auto h-9 w-9 text-violet-400" /><p className="mt-3 text-sm font-bold text-slate-700">Comece uma conversa sobre sua loja</p><p className="mt-1 text-xs text-slate-500">O histórico ficará disponível neste navegador para continuar a análise.</p></div>}{asking ? <div className="flex items-center gap-2 text-xs font-bold text-violet-700"><Loader2 className="h-4 w-4 animate-spin" />Analisando produtos, vendas, buscas e próximas datas...</div> : null}</div>
-        <div className="mt-3 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(); } }} className="min-h-24 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Continue a conversa sobre sua loja..." /><div className="mt-3 flex items-center justify-between gap-3"><p className="hidden text-[11px] text-slate-500 sm:block">Enter envia · Shift + Enter quebra a linha</p><button type="button" onClick={() => void ask()} disabled={asking || !question.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando...' : 'Enviar mensagem'}</button></div></div>
+        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" disabled={asking || typing} onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 disabled:opacity-50">{item}</button>)}</div>
+        <div className="mt-5 max-h-[34rem] space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">{messages.length ? messages.map(message => <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[92%] rounded-2xl p-4 text-sm leading-7 shadow-sm sm:max-w-[82%] ${message.role === 'user' ? 'bg-blue-700 text-white' : 'border border-violet-100 bg-white text-slate-700'}`}><div className="mb-2 flex items-center justify-between gap-5"><strong className={`text-xs uppercase tracking-wider ${message.role === 'user' ? 'text-blue-100' : 'text-violet-800'}`}>{message.role === 'user' ? 'Você' : 'Copiloto'}</strong>{message.role === 'assistant' && message.content ? <button type="button" onClick={() => copy(message.content)} className="inline-flex items-center gap-1 text-[11px] font-black text-violet-700"><Clipboard className="h-3 w-3" />Copiar</button> : null}</div>{message.content ? <p className="whitespace-pre-line">{message.content}</p> : <p className="flex items-center gap-1 font-bold text-violet-700"><span className="animate-pulse">●</span><span className="animate-pulse [animation-delay:150ms]">●</span><span className="animate-pulse [animation-delay:300ms]">●</span></p>}</div></div>) : <div className="py-10 text-center"><BrainCircuit className="mx-auto h-9 w-9 text-violet-400" /><p className="mt-3 text-sm font-bold text-slate-700">Comece uma conversa sobre sua loja</p><p className="mt-1 text-xs text-slate-500">O histórico ficará disponível neste navegador para continuar a análise.</p></div>}{asking ? <div className="flex items-center gap-2 text-xs font-bold text-violet-700"><Loader2 className="h-4 w-4 animate-spin" />Buscando e analisando todos os produtos publicados...</div> : null}<div ref={chatEndRef} /></div>
+        <div className="mt-3 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(); } }} className="min-h-24 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Continue a conversa sobre sua loja..." /><div className="mt-3 flex items-center justify-between gap-3"><p className="hidden text-[11px] text-slate-500 sm:block">Enter envia · Shift + Enter quebra a linha</p><button type="button" onClick={() => void ask()} disabled={asking || typing || !question.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking || typing ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando...' : typing ? 'Digitando...' : 'Enviar mensagem'}</button></div></div>
       </div>}
     </div>
   </section>;
