@@ -141,7 +141,7 @@ export default function MaterialReaderClientView({ purchaseId }: MaterialReaderC
     if (item.tipo === 'ARQUIVO') {
       const prodId = item.productId || purchase.product_id || purchase.id;
       const downloadUrl = item.orderIndex === -1 
-        ? `/api/aluno/materiais/${prodId}/download`
+        ? `/cliente/arquivos/${prodId}`
         : `/api/aluno/materiais/${prodId}/download?contentId=${item.id}`;
 
       try {

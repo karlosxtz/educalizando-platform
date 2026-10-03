@@ -10,14 +10,14 @@ UploadCloud,
 User
 } from 'lucide-react';
 
-import FileUpload from '@/components/dashboard/FileUpload';
+import DeliveryFilesUpload from '@/components/dashboard/DeliveryFilesUpload';
 import { isUploadedMaterial,normalizeDeliveryLink } from '@/lib/delivery-link';
 import { toast } from 'sonner';
 
 
 // The wizard owns state and persistence; this component only renders one visual step.
 export default function ProductWizardStepThree({ state }: { state: any }) {
-  const { editId, currentStep, preco, setPreco, precoOriginal, setPrecoOriginal, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryMethod, setPlrDeliveryMethod } = state;
+  const { editId, currentStep, preco, setPreco, precoOriginal, setPrecoOriginal, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod } = state;
   return <>
           {/* STEP 3: Preços e Entregáveis */}
           {currentStep === 3 && (
@@ -147,20 +147,17 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
                     >
                       <span className="flex items-start gap-3">
                         <span className={`mt-0.5 rounded-full p-1 ${deliveryMethod === 'upload' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}><UploadCloud className="w-4 h-4" /></span>
-                        <span><span className="text-sm font-black text-slate-900">Upload do arquivo</span><span className="mt-1 block text-xs font-medium text-slate-500">Envie do seu computador (até 15 MB).</span></span>
+                        <span><span className="text-sm font-black text-slate-900">Upload dos arquivos</span><span className="mt-1 block text-xs font-medium text-slate-500">Quantidade ilimitada, até 15 MB por arquivo.</span></span>
                       </span>
                     </button>
                   </div>
 
                   {deliveryMethod === 'upload' ? (
-                    <FileUpload
+                    <DeliveryFilesUpload
                       bucket="product-files"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
-                      maxSizeMB={15}
-                      value={arquivoUrl}
-                      onChange={(url: string | null) => setArquivoUrl(url)}
-                      label="Upload do Arquivo Final"
-                      helperText="Formatos suportados: PDF, DOCX, ZIP, etc. (máx. 15MB)."
+                      value={deliveryFiles}
+                      onChange={setDeliveryFiles}
                     />
                   ) : (
                     <div className="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl space-y-3">
@@ -249,7 +246,7 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
 
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block mb-2">
-                        Arquivo da Licença (PDF/Imagem)
+                        Arquivos da Licença PLR
                       </label>
                       <div className="flex bg-blue-100/50 p-1 rounded-xl w-full mb-4">
                         <button
@@ -283,14 +280,11 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
                       </div>
 
                       {plrDeliveryMethod === 'upload' ? (
-                        <FileUpload
+                        <DeliveryFilesUpload
                           bucket="plr-files"
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          maxSizeMB={5}
-                          value={plrLicenseUrl}
-                          onChange={(url: string | null) => setPlrLicenseUrl(url)}
-                          label="Licença de Revenda"
-                          helperText="PDF ou Imagem (máx. 5MB)."
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar,.png,.jpg,.jpeg,.webp"
+                          value={plrDeliveryFiles}
+                          onChange={setPlrDeliveryFiles}
                         />
                       ) : (
                         <div className="bg-white/50 border border-blue-200 p-4 rounded-xl space-y-3">

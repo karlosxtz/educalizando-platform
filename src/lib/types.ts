@@ -81,6 +81,15 @@ export interface ProductImage {
   created_at: string;
 }
 
+export interface ProductDeliveryFile {
+  id?: string;
+  url: string;
+  name: string;
+  size?: number | null;
+  mimeType?: string | null;
+  orderIndex?: number;
+}
+
 export interface Product {
   id: string;
   store_id: string;
@@ -99,6 +108,8 @@ export interface Product {
   plr_descricao?: string | null;
   preco_plr?: number;
   plr_license_url?: string | null;
+  delivery_files?: ProductDeliveryFile[];
+  plr_delivery_files?: ProductDeliveryFile[];
   has_original_delivery?: boolean;
   has_plr_delivery?: boolean;
   allow_affiliates?: boolean;

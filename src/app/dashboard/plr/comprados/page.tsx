@@ -182,7 +182,7 @@ export default function PLRsCompradosPage() {
 
                       {item.hasPlrFile ? (
                         <a
-                          href={`/api/aluno/materiais/${item.productId}/download?type=plr`}
+                          href={`/cliente/arquivos/${item.productId}?type=plr`}
                           target="_blank"
                           rel="noreferrer"
                           className="min-h-12 w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
@@ -265,7 +265,7 @@ export default function PLRsCompradosPage() {
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><GraduationCap className="mb-1 h-4 w-4 text-blue-600" /><strong>Indicação</strong><br /><span className="text-slate-600">{selectedItem.ageRange || (selectedItem.pageCount ? `${selectedItem.pageCount} páginas` : 'Conforme descrição')}</span></div>
                 </div>
                 <div className="mt-6 grid gap-2 sm:grid-cols-2">
-                  {selectedItem.hasPlrFile ? <a href={`/api/aluno/materiais/${selectedItem.productId}/download?type=plr`} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white hover:bg-blue-700"><Download className="h-4 w-4 shrink-0" /> Abrir arquivos PLR</a> : <span className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm text-slate-500">Arquivo PLR indisponível</span>}
+                  {selectedItem.hasPlrFile ? <a href={`/cliente/arquivos/${selectedItem.productId}?type=plr`} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white hover:bg-blue-700"><Download className="h-4 w-4 shrink-0" /> Abrir arquivos PLR</a> : <span className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm text-slate-500">Arquivo PLR indisponível</span>}
                   <Link href={`/dashboard/produtos/novo?licenca-plr=${encodeURIComponent(selectedItem.productId)}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-black text-blue-700 hover:bg-blue-50"><Plus className="h-4 w-4 shrink-0" /> Publicar na minha loja</Link>
                 </div>
                 <p className="mt-4 text-xs leading-relaxed text-amber-800">Ao publicar, altere título, descrição e capa para criar a sua própria versão e evitar conflito com o material original.</p>

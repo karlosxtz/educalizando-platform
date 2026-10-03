@@ -12,7 +12,7 @@ import { normalizeProductTags } from '@/lib/product-tags';
 import { getSchoolCalendarTagsForMonth,SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { createProduct,getCurrentCreatorStore,getProductById,getPublicProductsByStoreId,updateProduct } from '@/lib/store-service';
 import { supabase } from '@/lib/supabase';
-import { BnccSkill,Category,EducationLevel,Product,ProductType,Store } from '@/lib/types';
+import { BnccSkill,Category,EducationLevel,Product,ProductDeliveryFile,ProductType,Store } from '@/lib/types';
 import { toast } from 'sonner';
 
 import ProductWizardView from './ProductWizardView';
@@ -51,6 +51,7 @@ function ProductWizardContent() {
   const [deliveryMethod, setDeliveryMethod] = useState<'upload' | 'link'>('link');
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(null);
   const [arquivoNome, setArquivoNome] = useState('');
+  const [deliveryFiles, setDeliveryFiles] = useState<ProductDeliveryFile[]>([]);
   const [driveLinkDraft, setDriveLinkDraft] = useState('');
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
@@ -72,6 +73,7 @@ function ProductWizardContent() {
   const [plrDescricao, setPlrDescricao] = useState('');
   const [precoPlr, setPrecoPlr] = useState<string>('99,90');
   const [plrLicenseUrl, setPlrLicenseUrl] = useState<string | null>(null);
+  const [plrDeliveryFiles, setPlrDeliveryFiles] = useState<ProductDeliveryFile[]>([]);
   const [plrDeliveryMethod, setPlrDeliveryMethod] = useState<'upload' | 'link'>('upload');
   const [plrSourceTitle, setPlrSourceTitle] = useState<string | null>(null);
 
@@ -143,6 +145,7 @@ function ProductWizardContent() {
             
             setArquivoUrl(existing.arquivo_url);
             setArquivoNome(existing.arquivo_nome || '');
+            setDeliveryFiles(existing.delivery_files?.length ? existing.delivery_files : existing.arquivo_url && isUploadedMaterial(existing.arquivo_url) ? [{ url: existing.arquivo_url, name: existing.arquivo_nome || 'Arquivo principal' }] : []);
             setDeliveryMethod(isUploadedMaterial(existing.arquivo_url) ? 'upload' : 'link');
             setDriveLinkDraft(existing.arquivo_url || '');
             if (existing.arquivo_url && (existing.arquivo_url.startsWith('http://') || existing.arquivo_url.startsWith('https://'))) {
@@ -162,6 +165,7 @@ function ProductWizardContent() {
             if (existing.preco_plr) setPrecoPlr(existing.preco_plr.toString().replace('.', ','));
             
             setPlrLicenseUrl(existing.plr_license_url || null);
+            setPlrDeliveryFiles(existing.plr_delivery_files?.length ? existing.plr_delivery_files : existing.plr_license_url && isUploadedMaterial(existing.plr_license_url) ? [{ url: existing.plr_license_url, name: 'Arquivo da licença PLR' }] : []);
             setPlrDeliveryMethod(isUploadedMaterial(existing.plr_license_url) ? 'upload' : 'link');
             if (existing.plr_license_url && (existing.plr_license_url.startsWith('http://') || existing.plr_license_url.startsWith('https://'))) {
               if (!existing.plr_license_url.includes('supabase.co')) {
@@ -327,7 +331,7 @@ function ProductWizardContent() {
           return;
         }
       }
-      if (deliveryMethod === 'upload' && !isUploadedMaterial(arquivoUrl)) {
+      if (deliveryMethod === 'upload' && deliveryFiles.length === 0) {
         setErrorMsg('O Arquivo Didático Digital (Produto Final) é obrigatório. Faça o upload ou insira um link externo.');
         return;
       }
@@ -341,12 +345,12 @@ function ProductWizardContent() {
           setErrorMsg('Informe um preço maior que zero para a Licença PLR.');
           return;
         }
-        if (!plrLicenseUrl) {
+        if ((plrDeliveryMethod === 'upload' && plrDeliveryFiles.length === 0) || (plrDeliveryMethod === 'link' && !plrLicenseUrl)) {
           setErrorMsg('Envie o arquivo ou informe o link de entrega da Licença PLR.');
           return;
         }
         if (plrDeliveryMethod === 'link') {
-          try { setPlrLicenseUrl(normalizeDeliveryLink(plrLicenseUrl)); }
+          try { setPlrLicenseUrl(normalizeDeliveryLink(plrLicenseUrl || '')); }
           catch { setErrorMsg('Informe um link válido para a licença PLR.'); return; }
         }
       }
@@ -386,6 +390,11 @@ function ProductWizardContent() {
     const numericCommissionRate = parseFloat(affiliateCommissionRate.replace(',', '.')) || 0;
     const numericPageCount = pageCount.trim() ? Number(pageCount) : null;
     const computedCapaUrl = galleryUrls.length > 0 ? galleryUrls[0] : null;
+    const firstDeliveryFile = deliveryMethod === 'upload' ? deliveryFiles[0] : null;
+    const firstPlrDeliveryFile = plrDeliveryMethod === 'upload' ? plrDeliveryFiles[0] : null;
+    const finalArquivoUrl = deliveryMethod === 'upload' ? firstDeliveryFile?.url || null : arquivoUrl;
+    const finalArquivoNome = deliveryMethod === 'upload' ? firstDeliveryFile?.name || null : arquivoNome.trim() || null;
+    const finalPlrLicenseUrl = plrDeliveryMethod === 'upload' ? firstPlrDeliveryFile?.url || null : plrLicenseUrl;
 
     try {
       if (editId) {
@@ -401,8 +410,9 @@ function ProductWizardContent() {
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
-          arquivo_url: arquivoUrl,
-          arquivo_nome: arquivoNome.trim() || null,
+          arquivo_url: finalArquivoUrl,
+          arquivo_nome: finalArquivoNome,
+          delivery_files: deliveryMethod === 'upload' ? deliveryFiles : [],
           status,
           category_id: categoryIds[0] || null,
           category_ids: categoryIds,
@@ -416,7 +426,8 @@ function ProductWizardContent() {
           is_plr: isPlr,
           ...(plrDescricao.trim() ? { plr_descricao: plrDescricao.trim() } : {}),
           preco_plr: numericPrecoPlr,
-          plr_license_url: plrLicenseUrl,
+          plr_license_url: finalPlrLicenseUrl,
+          plr_delivery_files: isPlr && plrDeliveryMethod === 'upload' ? plrDeliveryFiles : [],
           allow_affiliates: allowAffiliates,
           affiliate_commission_rate: numericCommissionRate,
           order_bump_id: orderBumpId || null
@@ -435,8 +446,9 @@ function ProductWizardContent() {
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
-          arquivo_url: arquivoUrl,
-          arquivo_nome: arquivoNome.trim() || null,
+          arquivo_url: finalArquivoUrl,
+          arquivo_nome: finalArquivoNome,
+          delivery_files: deliveryMethod === 'upload' ? deliveryFiles : [],
           status,
           category_id: categoryIds[0] || null,
           category_ids: categoryIds,
@@ -450,7 +462,8 @@ function ProductWizardContent() {
           is_plr: isPlr,
           plr_descricao: isPlr ? plrDescricao.trim() : null,
           preco_plr: numericPrecoPlr,
-          plr_license_url: plrLicenseUrl,
+          plr_license_url: finalPlrLicenseUrl,
+          plr_delivery_files: isPlr && plrDeliveryMethod === 'upload' ? plrDeliveryFiles : [],
           allow_affiliates: allowAffiliates,
           affiliate_commission_rate: numericCommissionRate,
           order_bump_id: orderBumpId || null
@@ -479,7 +492,7 @@ function ProductWizardContent() {
     );
   }
 
-  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, status, setStatus, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
+  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, status, setStatus, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
 }
 
 export default function FullScreenProductWizardPage() {

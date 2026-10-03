@@ -2,6 +2,7 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function PUT(request: Request) {
@@ -40,6 +41,17 @@ export async function PUT(request: Request) {
       .maybeSingle();
 
     const cleanedUpdates: Record<string, any> = { ...updates };
+    const hasOriginalFilesUpdate = 'delivery_files' in cleanedUpdates;
+    const hasPlrFilesUpdate = 'plr_delivery_files' in cleanedUpdates;
+    const normalizedDeliveryFiles = normalizeDeliveryFiles(cleanedUpdates.delivery_files);
+    const normalizedPlrDeliveryFiles = normalizeDeliveryFiles(cleanedUpdates.plr_delivery_files);
+    validateDeliveryFiles(normalizedDeliveryFiles);
+    validateDeliveryFiles(normalizedPlrDeliveryFiles);
+    if (hasOriginalFilesUpdate && normalizedDeliveryFiles.length) {
+      cleanedUpdates.arquivo_url = normalizedDeliveryFiles[0].url;
+      cleanedUpdates.arquivo_nome = normalizedDeliveryFiles[0].name;
+    }
+    if (hasPlrFilesUpdate && normalizedPlrDeliveryFiles.length) cleanedUpdates.plr_license_url = normalizedPlrDeliveryFiles[0].url;
     if ('titulo' in cleanedUpdates && (typeof cleanedUpdates.titulo !== 'string' || cleanedUpdates.titulo.trim().length < 4 || cleanedUpdates.titulo.trim().length > 160)) {
       return NextResponse.json({ error: 'O título deve ter entre 4 e 160 caracteres.' }, { status: 400 });
     }
@@ -61,9 +73,9 @@ export async function PUT(request: Request) {
     }
     const nextIsPlr = 'is_plr' in cleanedUpdates ? Boolean(cleanedUpdates.is_plr) : Boolean(product?.is_plr);
     const nextPlrPrice = 'preco_plr' in cleanedUpdates ? Number(cleanedUpdates.preco_plr) : Number(product?.preco_plr || 0);
-    const nextPlrDelivery = 'plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : currentDelivery?.plr_license_url;
+    const nextPlrDelivery = hasPlrFilesUpdate ? normalizedPlrDeliveryFiles[0]?.url || cleanedUpdates.plr_license_url : ('plr_license_url' in cleanedUpdates ? cleanedUpdates.plr_license_url : currentDelivery?.plr_license_url);
     const nextStatus = 'status' in cleanedUpdates ? cleanedUpdates.status : product.status;
-    const nextOriginalDelivery = 'arquivo_url' in cleanedUpdates ? cleanedUpdates.arquivo_url : currentDelivery?.arquivo_url;
+    const nextOriginalDelivery = hasOriginalFilesUpdate ? normalizedDeliveryFiles[0]?.url || cleanedUpdates.arquivo_url : ('arquivo_url' in cleanedUpdates ? cleanedUpdates.arquivo_url : currentDelivery?.arquivo_url);
     if (nextIsPlr && (!(nextPlrPrice > 0) || !nextPlrDelivery)) {
       return NextResponse.json(
         { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
@@ -157,7 +169,7 @@ export async function PUT(request: Request) {
       }
     }
 
-    const { gallery_urls, bncc_skill_ids, arquivo_url, arquivo_nome, plr_license_url, ...otherUpdates } = cleanedUpdates;
+    const { gallery_urls, bncc_skill_ids, arquivo_url, arquivo_nome, plr_license_url, delivery_files: _deliveryFiles, plr_delivery_files: _plrDeliveryFiles, ...otherUpdates } = cleanedUpdates;
     if ('arquivo_url' in cleanedUpdates) otherUpdates.has_original_delivery = Boolean(arquivo_url);
     if ('plr_license_url' in cleanedUpdates) otherUpdates.has_plr_delivery = Boolean(plr_license_url);
     otherUpdates.updated_at = new Date().toISOString();
@@ -183,6 +195,23 @@ export async function PUT(request: Request) {
         updated_at: new Date().toISOString()
       }, { onConflict: 'product_id' });
       if (deliveryError) throw deliveryError;
+    }
+
+    if (hasOriginalFilesUpdate) {
+      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'original');
+      if (deleteError) throw deleteError;
+      if (normalizedDeliveryFiles.length) {
+        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(deliveryRows(id, 'original', normalizedDeliveryFiles));
+        if (filesError) throw filesError;
+      }
+    }
+    if (hasPlrFilesUpdate) {
+      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'plr');
+      if (deleteError) throw deleteError;
+      if (normalizedPlrDeliveryFiles.length) {
+        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(deliveryRows(id, 'plr', normalizedPlrDeliveryFiles));
+        if (filesError) throw filesError;
+      }
     }
 
     // Purga imediata do cache do Next.js para as páginas afetadas
@@ -243,7 +272,9 @@ export async function PUT(request: Request) {
         ...data,
         arquivo_url: arquivo_url !== undefined ? arquivo_url || null : currentDelivery?.arquivo_url || null,
         arquivo_nome: arquivo_nome !== undefined ? (typeof arquivo_nome === 'string' && arquivo_nome.trim() ? arquivo_nome.trim().slice(0, 160) : null) : currentDelivery?.arquivo_nome || null,
-        plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null
+        plr_license_url: plr_license_url !== undefined ? plr_license_url || null : currentDelivery?.plr_license_url || null,
+        delivery_files: hasOriginalFilesUpdate ? normalizedDeliveryFiles : undefined,
+        plr_delivery_files: hasPlrFilesUpdate ? normalizedPlrDeliveryFiles : undefined
       }
     });
   } catch (err: any) {

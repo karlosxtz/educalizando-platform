@@ -24,10 +24,23 @@ export async function GET(request: Request) {
     .select('arquivo_url, arquivo_nome, plr_license_url')
     .eq('product_id', id)
     .maybeSingle();
+  const { data: deliveryFiles } = await supabaseAdmin
+    .from('product_delivery_files')
+    .select('id, delivery_type, file_url, file_name, file_size_bytes, mime_type, order_index')
+    .eq('product_id', id)
+    .order('order_index', { ascending: true });
+  const mapFiles = (type: 'original' | 'plr') => (deliveryFiles || []).filter((file) => file.delivery_type === type).map((file) => ({
+    id: file.id,
+    url: file.file_url,
+    name: file.file_name,
+    size: file.file_size_bytes,
+    mimeType: file.mime_type,
+    orderIndex: file.order_index,
+  }));
   const { store: _store, ...safeProduct } = product;
   return NextResponse.json({
     success: true,
-    product: { ...safeProduct, arquivo_url: delivery?.arquivo_url || null, arquivo_nome: delivery?.arquivo_nome || null, plr_license_url: delivery?.plr_license_url || null }
+    product: { ...safeProduct, arquivo_url: delivery?.arquivo_url || null, arquivo_nome: delivery?.arquivo_nome || null, plr_license_url: delivery?.plr_license_url || null, delivery_files: mapFiles('original'), plr_delivery_files: mapFiles('plr') }
   });
 }
 

@@ -2,6 +2,7 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function POST(request: Request) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
       capa_url,
       arquivo_url,
       arquivo_nome = null,
+      delivery_files = [],
       status = 'publicado',
       category_id,
       category_ids = [],
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
       plr_descricao = null,
       preco_plr = 0,
       plr_license_url = null,
+      plr_delivery_files = [],
       allow_affiliates = false,
       affiliate_commission_rate = 0,
       order_bump_id = null,
@@ -45,6 +48,13 @@ export async function POST(request: Request) {
       tags = [],
       bncc_skill_ids
     } = body;
+    const normalizedDeliveryFiles = normalizeDeliveryFiles(delivery_files);
+    const normalizedPlrDeliveryFiles = normalizeDeliveryFiles(plr_delivery_files);
+    validateDeliveryFiles(normalizedDeliveryFiles);
+    validateDeliveryFiles(normalizedPlrDeliveryFiles);
+    const primaryOriginalUrl = normalizedDeliveryFiles[0]?.url || arquivo_url || null;
+    const primaryOriginalName = normalizedDeliveryFiles[0]?.name || arquivo_nome || null;
+    const primaryPlrUrl = normalizedPlrDeliveryFiles[0]?.url || plr_license_url || null;
 
     if (!titulo || !titulo.trim()) {
       return NextResponse.json({ error: 'O título do produto é obrigatório.' }, { status: 400 });
@@ -76,7 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O número de páginas deve ser um número inteiro maior que zero.' }, { status: 400 });
     }
 
-    if (Boolean(is_plr) && (!(Number(preco_plr) > 0) || !plr_license_url)) {
+    if (Boolean(is_plr) && (!(Number(preco_plr) > 0) || !primaryPlrUrl)) {
       return NextResponse.json(
         { error: 'Produtos PLR precisam ter um preço de licença maior que zero e um arquivo ou link de entrega.' },
         { status: 400 }
@@ -85,7 +95,7 @@ export async function POST(request: Request) {
     if (Boolean(is_plr) && (typeof plr_descricao !== 'string' || plr_descricao.trim().length < 20)) {
       return NextResponse.json({ error: 'A descrição exclusiva da Licença PLR é obrigatória e deve ter pelo menos 20 caracteres.' }, { status: 400 });
     }
-    if (status === 'publicado' && !arquivo_url) {
+    if (status === 'publicado' && !primaryOriginalUrl) {
       return NextResponse.json(
         { error: 'Envie o arquivo final ou informe um link de entrega antes de publicar o material.' },
         { status: 400 }
@@ -153,7 +163,7 @@ export async function POST(request: Request) {
       preco_original: normalizedOriginalPrice,
       is_featured_offer: normalizedOriginalPrice !== null && normalizedOriginalPrice > Number(preco) && !Boolean(is_free),
       capa_url: capa_url || null,
-      has_original_delivery: Boolean(arquivo_url),
+      has_original_delivery: Boolean(primaryOriginalUrl),
       status: status || 'publicado',
       category_id: normalizedCategoryIds[0] || null,
       category_ids: normalizedCategoryIds,
@@ -163,7 +173,7 @@ export async function POST(request: Request) {
       is_plr: Boolean(is_plr),
       plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
       preco_plr: Number(preco_plr) || 0,
-      has_plr_delivery: Boolean(plr_license_url),
+      has_plr_delivery: Boolean(primaryPlrUrl),
       allow_affiliates: Boolean(allow_affiliates),
       affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
       order_bump_id: isValidUUID(order_bump_id) ? order_bump_id : null,
@@ -209,7 +219,7 @@ export async function POST(request: Request) {
         preco_original: normalizedOriginalPrice,
         is_featured_offer: normalizedOriginalPrice !== null && normalizedOriginalPrice > Number(preco) && !Boolean(is_free),
         capa_url: capa_url || null,
-        has_original_delivery: Boolean(arquivo_url),
+        has_original_delivery: Boolean(primaryOriginalUrl),
         status: status || 'publicado',
         category_id: normalizedCategoryIds[0] || null,
         category_ids: normalizedCategoryIds,
@@ -219,7 +229,7 @@ export async function POST(request: Request) {
         is_plr: Boolean(is_plr),
         plr_descricao: Boolean(is_plr) ? plr_descricao.trim().slice(0, 8000) : null,
         preco_plr: Number(preco_plr) || 0,
-        has_plr_delivery: Boolean(plr_license_url),
+        has_plr_delivery: Boolean(primaryPlrUrl),
         allow_affiliates: Boolean(allow_affiliates),
         affiliate_commission_rate: Number(affiliate_commission_rate) || 0,
         page_count: normalizedPageCount,
@@ -250,12 +260,21 @@ export async function POST(request: Request) {
 
     const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
       product_id: insertedProduct.id,
-      arquivo_url: arquivo_url || null,
-      arquivo_nome: typeof arquivo_nome === 'string' && arquivo_nome.trim() ? arquivo_nome.trim().slice(0, 160) : null,
-      plr_license_url: plr_license_url || null,
+      arquivo_url: primaryOriginalUrl,
+      arquivo_nome: typeof primaryOriginalName === 'string' && primaryOriginalName.trim() ? primaryOriginalName.trim().slice(0, 160) : null,
+      plr_license_url: primaryPlrUrl,
       updated_at: new Date().toISOString()
     }, { onConflict: 'product_id' });
     if (deliveryError) throw deliveryError;
+
+    const allDeliveryRows = [
+      ...deliveryRows(insertedProduct.id, 'original', normalizedDeliveryFiles.length ? normalizedDeliveryFiles : primaryOriginalUrl ? [{ url: primaryOriginalUrl, name: primaryOriginalName || 'Arquivo principal' }] : []),
+      ...deliveryRows(insertedProduct.id, 'plr', normalizedPlrDeliveryFiles.length ? normalizedPlrDeliveryFiles : primaryPlrUrl ? [{ url: primaryPlrUrl, name: 'Arquivo da licença PLR' }] : []),
+    ];
+    if (allDeliveryRows.length) {
+      const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(allDeliveryRows);
+      if (filesError) throw filesError;
+    }
 
     // Purga imediata do cache do Next.js para as páginas afetadas
     try {
@@ -297,7 +316,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: arquivo_url || null, arquivo_nome: typeof arquivo_nome === 'string' ? arquivo_nome.trim() || null : null, plr_license_url: plr_license_url || null } });
+    return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: primaryOriginalUrl, arquivo_nome: primaryOriginalName, plr_license_url: primaryPlrUrl, delivery_files: normalizedDeliveryFiles, plr_delivery_files: normalizedPlrDeliveryFiles } });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
     return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });

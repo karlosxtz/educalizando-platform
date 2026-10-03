@@ -172,6 +172,8 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const contentId = searchParams.get('contentId');
     const downloadType = searchParams.get('type'); // 'plr' for PLR license
+    const fileId = searchParams.get('fileId');
+    const shouldListFiles = searchParams.get('list') === '1';
 
     try {
       if (contentId) {
@@ -201,18 +203,41 @@ export async function GET(
 
         if (productData) {
           if (productData.titulo) productTitle = downloadType === 'plr' ? `${productData.titulo} - Licenca PLR` : productData.titulo;
+          if (downloadType === 'plr' && !isPlrPurchase) {
+            return NextResponse.json({ error: 'Você não adquiriu a licença PLR deste material.' }, { status: 403 });
+          }
+          const deliveryType = downloadType === 'plr' ? 'plr' : 'original';
+          let filesQuery = supabaseAdmin
+            .from('product_delivery_files')
+            .select('id, file_url, file_name, file_size_bytes, mime_type, order_index')
+            .eq('product_id', productId)
+            .eq('delivery_type', deliveryType)
+            .order('order_index', { ascending: true });
+          if (fileId) filesQuery = filesQuery.eq('id', fileId);
+          const { data: deliveryFiles } = await filesQuery;
           const { data: delivery } = await supabaseAdmin
             .from('product_deliveries')
             .select('arquivo_url, plr_license_url')
             .eq('product_id', productId)
             .maybeSingle();
-          if (downloadType === 'plr') {
-            if (!isPlrPurchase) {
-              return NextResponse.json({ error: 'Você não adquiriu a licença PLR deste material.' }, { status: 403 });
-            }
-            fileUrl = delivery?.plr_license_url || null;
-          } else if (delivery?.arquivo_url) {
-            fileUrl = delivery.arquivo_url;
+          const legacyUrl = downloadType === 'plr' ? delivery?.plr_license_url : delivery?.arquivo_url;
+          const canUseLegacy = !fileId || fileId === 'legacy';
+          const availableFiles = deliveryFiles?.length ? deliveryFiles : legacyUrl && canUseLegacy ? [{ id: 'legacy', file_url: legacyUrl, file_name: downloadType === 'plr' ? 'Arquivo da licença PLR' : productData.titulo, file_size_bytes: null, mime_type: null, order_index: 0 }] : [];
+          if (shouldListFiles) {
+            return NextResponse.json({
+              files: availableFiles.map((file) => ({
+                id: file.id,
+                name: file.file_name,
+                size: file.file_size_bytes,
+                mimeType: file.mime_type,
+                downloadUrl: `/api/aluno/materiais/${productId}/download?${downloadType === 'plr' ? 'type=plr&' : ''}fileId=${encodeURIComponent(file.id)}`,
+              })),
+            }, { headers: { 'Cache-Control': 'private, no-store' } });
+          }
+          const selectedFile = availableFiles[0];
+          fileUrl = selectedFile?.file_url || null;
+          if (selectedFile?.file_name) productTitle = selectedFile.file_name.replace(/\.[^.]+$/, '') || productTitle;
+          if (downloadType !== 'plr' && fileUrl) {
             // A entrega principal também é um acesso real, embora não exista
             // como linha em digital_contents. Registramos o evento usando um
             // identificador estável para os indicadores do criador.

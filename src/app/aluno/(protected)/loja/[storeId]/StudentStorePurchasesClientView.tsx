@@ -118,7 +118,7 @@ export default function StudentStorePurchasesClientView({ storeId }: StudentStor
   const downloadSingleProduct = async (productId: string, title: string, type?: 'plr') => {
     // O material deve abrir fora da biblioteca para o aluno não perder a tela atual.
     // A rota mantém a autorização e pode devolver tanto um arquivo quanto um redirect.
-    const downloadUrl = `/api/aluno/materiais/${productId}/download${type === 'plr' ? '?type=plr' : ''}`;
+    const downloadUrl = `/cliente/arquivos/${productId}${type === 'plr' ? '?type=plr' : ''}`;
     window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 
