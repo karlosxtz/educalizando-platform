@@ -228,8 +228,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
 
         {/* Conteúdo Dinâmico */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 md:p-8">
-          <div className="max-w-6xl mx-auto space-y-8">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-4 md:p-8">
+          <div className="mx-auto w-full min-w-0 max-w-6xl space-y-8">
             {children}
           </div>
         </div>

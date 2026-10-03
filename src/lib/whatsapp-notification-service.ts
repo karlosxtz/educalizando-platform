@@ -75,9 +75,53 @@ function readEvolutionError(value: unknown): string | null {
   }
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>;
-    return readEvolutionError(record.message) || readEvolutionError(record.error) || JSON.stringify(record);
+    if (record.exists === false) return 'Nenhuma variação válida deste número foi encontrada no WhatsApp.';
+    return readEvolutionError(record.message)
+      || readEvolutionError(record.error)
+      || readEvolutionError(record.response)
+      || readEvolutionError(record.details)
+      || null;
   }
   return null;
+}
+
+export function readableEvolutionFailure(status: number, value: unknown, media = false) {
+  const remoteMessage = readEvolutionError(value);
+  if (media && /axioserror|status code 403|forbidden/i.test(remoteMessage || '')) {
+    return 'A Evolution não conseguiu baixar a imagem anexada. Envie novamente para a plataforma gerar um novo link seguro.';
+  }
+  if (/número verificado foi encontrado no whatsapp/i.test(remoteMessage || '')) {
+    return 'O número foi localizado no WhatsApp, mas a Evolution não concluiu o envio. Verifique a conexão da instância administrativa e tente novamente.';
+  }
+  if (status === 401 || status === 403) {
+    return 'A Evolution recusou a autenticação do envio. Verifique a chave e a conexão da instância administrativa.';
+  }
+  if (status === 408 || status === 429) {
+    return 'A Evolution está limitando os envios neste momento. Aguarde alguns instantes e tente novamente.';
+  }
+  if (status >= 500) {
+    return 'A Evolution está temporariamente indisponível. Tente novamente em alguns instantes.';
+  }
+  return remoteMessage?.slice(0, 300) || `A Evolution recusou o envio (status ${status}).`;
+}
+
+async function prepareEvolutionImageUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    if (parsed.pathname !== '/api/storage/public-image') return value;
+    const bucket = parsed.searchParams.get('bucket') || '';
+    const key = parsed.searchParams.get('key') || '';
+    const publicBucket = process.env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images';
+    if (bucket !== publicBucket || !key.startsWith('uploads/')) return value;
+
+    // A Evolution baixa a imagem fora do navegador. Um link assinado direto
+    // do armazenamento evita bloqueios de firewall/bot na rota pública do site.
+    const { createDownloadUrl } = await import('./object-storage');
+    return await createDownloadUrl(bucket, key);
+  } catch (error) {
+    console.warn('[WhatsApp] Não foi possível preparar o link temporário da imagem.', error);
+    return value;
+  }
 }
 
 export function firstName(value: string | null | undefined, fallback = 'Educador(a)') {
@@ -128,11 +172,8 @@ export async function sendEvolutionText(phone: unknown, text: string, instanceOv
     });
 
     if (!response.ok) {
-      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: unknown } | null;
-      const remoteMessage = readEvolutionError(body?.response) || readEvolutionError(body?.message) || readEvolutionError(body?.error);
-      const error = remoteMessage
-        ? remoteMessage.slice(0, 500)
-        : `A Evolution recusou o envio (status ${response.status}).`;
+      const body = await response.json().catch(() => null) as unknown;
+      const error = readableEvolutionFailure(response.status, body);
       console.error(`[WhatsApp] Evolution respondeu com status ${response.status}: ${error}`);
       return { sent: false, reason: `http_${response.status}`, error };
     }
@@ -171,19 +212,19 @@ export async function sendEvolutionImage(phone: unknown, url: string, caption: s
   try {
     const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
     if (!number) return invalidOrMissingWhatsApp(phone);
+    const media = await prepareEvolutionImageUrl(url);
     const response = await fetch(`${baseUrl}/message/sendMedia/${encodeURIComponent(instanceName)}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ number, mediatype: 'image', media: url, caption }),
+      body: JSON.stringify({ number, mediatype: 'image', media, caption }),
       cache: 'no-store',
     });
     if (!response.ok) {
-      const body = await response.json().catch(() => null) as { message?: unknown; error?: unknown; response?: unknown } | null;
-      const remoteMessage = readEvolutionError(body?.response) || readEvolutionError(body?.message) || readEvolutionError(body?.error);
+      const body = await response.json().catch(() => null) as unknown;
       return {
         sent: false,
         reason: `http_${response.status}`,
-        error: remoteMessage?.slice(0, 500) || `A Evolution recusou a imagem (status ${response.status}).`,
+        error: readableEvolutionFailure(response.status, body, true),
       };
     }
     return { sent: true };
