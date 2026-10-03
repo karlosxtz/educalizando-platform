@@ -17,6 +17,9 @@ assert.match(config, /script-src 'self' 'unsafe-inline'\$\{developmentScriptPoli
 assert.doesNotMatch(proxy, /xyzcompany|\|\| 'dummy'/);
 assert.doesNotMatch(authSync, /xyzcompany|\|\| 'dummy'/);
 assert.match(proxy, /status: 503/);
+assert.match(proxy, /supabase\.auth\.getClaims\(\)/, 'Rotas protegidas devem validar o JWT sem consultar getUser em toda navegação.');
+assert.match(proxy, /AUTH_CHECK_TIMEOUT_MS\s*=\s*8_000/, 'A validação da sessão deve possuir limite de tempo.');
+assert.match(proxy, /reason', 'session-timeout'/, 'Páginas protegidas devem recuperar sessões que excederem o tempo limite.');
 assert.match(protectedProxy, /'nonce-\$\{nonce\}' 'strict-dynamic'/);
 assert.match(protectedProxy, /requestHeaders\.set\('x-nonce', nonce\)/);
 assert.doesNotMatch(aiOptimize, /runtime\s*=\s*['"]edge/);
