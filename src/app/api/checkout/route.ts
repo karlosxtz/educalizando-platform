@@ -369,6 +369,18 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     let affiliateId = null;
     let affiliateCommissionAmount = 0;
+    let aiMarketingCampaignId: string | null = null;
+
+    const campaignCookie = cookieStore.get('educalizando_ai_campaign')?.value || '';
+    if (/^[0-9a-f-]{36}$/i.test(campaignCookie)) {
+      const { data: campaign } = await supabaseAdmin
+        .from('ai_marketing_campaigns')
+        .select('id,store_id,product_id')
+        .eq('id', campaignCookie)
+        .eq('store_id', effectiveStoreId)
+        .maybeSingle();
+      if (campaign && productIds.includes(campaign.product_id)) aiMarketingCampaignId = campaign.id;
+    }
     
     // 1. Tentar ler o novo cookie seguro JSON (Cross-store tracking)
     const secureCookie = cookieStore.get('educalizando_affiliates');
@@ -451,6 +463,7 @@ export async function POST(request: Request) {
         creatorReferralId: creatorReferral?.referralId,
         creatorReferralCommissionAmount: creatorReferral?.commissionAmount,
         couponId: appliedCouponId || undefined,
+        aiMarketingCampaignId: aiMarketingCampaignId || undefined,
         platformSettings: platformSettings || undefined
       });
     } catch (error) {

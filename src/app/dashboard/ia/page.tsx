@@ -9,6 +9,8 @@ import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 
+import MarketingCopilot from './MarketingCopilot';
+
 export default function IAConfigPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -460,6 +462,7 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
+      {store && <MarketingCopilot store={store} products={products} selectedProductId={selectedProductId} aiConfigured={hasApiKey} onOptimizeProduct={(productId) => { setSelectedProductId(productId); void generateProductTool('seo', 'product', productId); }} />}
       {activeTool === 'seo' && !editorOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">

@@ -57,6 +57,7 @@ export interface OrderRecord {
   creatorReferralId?: string | null;
   creatorReferralCommissionAmount?: number | null;
   couponId?: string | null;
+  aiMarketingCampaignId?: string | null;
   createdAt: string;
   paidAt?: string | null;
   statusTransitioned?: boolean;
@@ -219,6 +220,7 @@ export async function createOrderRecord(data: {
   creatorReferralId?: string;
   creatorReferralCommissionAmount?: number;
   couponId?: string;
+  aiMarketingCampaignId?: string;
   platformSettings?: { platform_fee_percentage: number; platform_fixed_fee: number };
 }): Promise<OrderRecord> {
 
@@ -278,6 +280,7 @@ export async function createOrderRecord(data: {
     creatorReferralId: data.creatorReferralId || null,
     creatorReferralCommissionAmount: data.creatorReferralCommissionAmount || null,
     couponId: data.couponId || null,
+    aiMarketingCampaignId: data.aiMarketingCampaignId || null,
     createdAt: now,
     paidAt: null
   };
@@ -286,7 +289,7 @@ export async function createOrderRecord(data: {
   if (isRealSupabaseConfigured()) {
     try {
       const { supabaseAdmin } = await import('./supabase');
-      const { error: orderInsertError } = await supabaseAdmin.from('orders').insert([{
+      const orderRow = {
         id: newOrder.id,
         store_id: newOrder.storeId,
         buyer_name: newOrder.buyerName,
@@ -315,8 +318,16 @@ export async function createOrderRecord(data: {
         creator_referral_id: newOrder.creatorReferralId,
         creator_referral_commission_amount: newOrder.creatorReferralCommissionAmount || 0,
         coupon_id: newOrder.couponId,
+        ai_marketing_campaign_id: newOrder.aiMarketingCampaignId,
         created_at: newOrder.createdAt
-      }]);
+      };
+      let { error: orderInsertError } = await supabaseAdmin.from('orders').insert([orderRow]);
+
+      // Mantém compras disponíveis durante a janela entre deploy e migration.
+      if (orderInsertError && /ai_marketing_campaign_id|column/i.test(orderInsertError.message || '')) {
+        const { ai_marketing_campaign_id: _campaignId, ...legacyOrderRow } = orderRow;
+        ({ error: orderInsertError } = await supabaseAdmin.from('orders').insert([legacyOrderRow]));
+      }
 
       if (orderInsertError) {
         if (orderInsertError.code === '23505') throw new OrderAlreadyExistsError();
@@ -443,6 +454,7 @@ export async function getOrderRecordById(orderId: string): Promise<OrderRecord |
           creatorReferralId: data.creator_referral_id || null,
           creatorReferralCommissionAmount: Number(data.creator_referral_commission_amount || 0),
           couponId: data.coupon_id || null,
+          aiMarketingCampaignId: data.ai_marketing_campaign_id || null,
           createdAt: data.created_at,
           paidAt: data.paid_at || null
         };
