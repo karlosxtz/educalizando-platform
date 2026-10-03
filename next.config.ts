@@ -26,6 +26,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Product metadata must be present in the initial <head>. This makes the
+  // canonical URL, site name and cover image deterministic for search and
+  // shopping crawlers instead of appending them after </head> as a stream.
+  htmlLimitedBots: /.*/,
   async redirects() {
     return [
       // URL histórica já registrada pelo Google antes da padronização do slug.
