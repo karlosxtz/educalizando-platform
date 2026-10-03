@@ -65,7 +65,7 @@ export default function StudentFreeProductDetailPage({ params }: { params: Promi
     
     setDownloading(true);
     try {
-      window.open(`/api/aluno/materiais/${product.id}/download`, '_blank');
+      window.open(`/cliente/arquivos/${product.id}`, '_blank');
     } catch (err) {
       console.error('Download error:', err);
       alert('Erro ao fazer download do material grátis.');
