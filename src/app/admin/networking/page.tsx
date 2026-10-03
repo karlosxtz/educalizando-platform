@@ -209,8 +209,8 @@ export default function CreatorNetworkingPage() {
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
-        <article className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
+      <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)]">
+        <article className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">2. Prepare o conteúdo</p>
           <h2 className="mt-1 text-xl font-black text-white">Texto e imagem</h2>
           <p className="mt-2 text-xs text-slate-400">Use <strong className="text-slate-200">{'{{nome}}'}</strong> e <strong className="text-slate-200">{'{{loja}}'}</strong> para personalizar cada envio.</p>
@@ -223,11 +223,11 @@ export default function CreatorNetworkingPage() {
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" disabled={uploading} onChange={(event) => { void uploadImage(event.target.files?.[0]); event.currentTarget.value = ''; }} />
               </label>
             </div>
-            {imageUrl && <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3"><Image src={imageUrl} alt="Imagem anexada à mensagem" width={80} height={80} unoptimized className="h-20 w-20 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-emerald-200">Imagem pronta para envio</p><p className="mt-1 truncate text-xs text-slate-500">{imageUrl}</p></div><button type="button" onClick={() => setImageUrl('')} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-rose-300 hover:bg-rose-500/10" aria-label="Remover imagem"><Trash2 className="h-4 w-4" /></button></div>}
+            {imageUrl && <div className="mt-4 flex min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3"><Image src={imageUrl} alt="Imagem anexada à mensagem" width={80} height={80} unoptimized className="h-20 w-20 shrink-0 rounded-lg object-cover" /><div className="min-w-0 flex-1 overflow-hidden"><p className="text-sm font-bold text-emerald-200">Imagem pronta para envio</p><p className="mt-1 block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs text-slate-500" title={imageUrl}>Imagem armazenada com segurança</p></div><button type="button" onClick={() => setImageUrl('')} className="flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-lg text-rose-300 hover:bg-rose-500/10" aria-label="Remover imagem"><Trash2 className="h-4 w-4" /></button></div>}
           </div>
         </article>
 
-        <article className="rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
+        <article className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Prévia personalizada</p>
           <div className="mt-4 rounded-3xl bg-[#0b141a] p-4 shadow-inner">
             <div className="ml-auto max-w-[92%] rounded-2xl rounded-tr-sm bg-[#005c4b] p-3 text-sm leading-relaxed text-white shadow">
