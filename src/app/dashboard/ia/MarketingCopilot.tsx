@@ -1,7 +1,7 @@
 'use client';
 
 import type { Product,Store } from '@/lib/types';
-import { BrainCircuit,CalendarDays,CheckCircle2,Clipboard,FlaskConical,Lightbulb,Loader2,MessageSquareMore,RefreshCw,Rocket,Save,Search,ShoppingBag,Sparkles,Target,TrendingUp,Wand2 } from 'lucide-react';
+import { BrainCircuit,CalendarDays,CheckCircle2,Clipboard,FlaskConical,Lightbulb,Loader2,MessageSquareMore,RefreshCw,Rocket,Save,Search,ShoppingBag,Sparkles,Target,Trash2,TrendingUp,Wand2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback,useEffect,useState } from 'react';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ type CampaignPack = {
   variantB?: { headline?: string; message?: string; link?: string };
   trackingReady?: boolean; trackingNotice?: string;
 };
+type ChatMessage = { id: string; role: 'user' | 'assistant'; content: string };
 
 const tabs = [
   { id: 'radar', label: 'Radar', icon: TrendingUp },
@@ -34,8 +35,9 @@ type TabId = typeof tabs[number]['id'];
 
 const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const preferenceStorageKey = (storeId: string) => `educalizando:ai-marketing-preferences:${storeId}`;
+const chatStorageKey = (storeId: string) => `educalizando:ai-marketing-chat:${storeId}`;
 
-export default function MarketingCopilot({ store, selectedProductId, aiConfigured, onOptimizeProduct }: { store: Store; products: Product[]; selectedProductId: string; aiConfigured: boolean; onOptimizeProduct: (productId: string) => void }) {
+export default function MarketingCopilot({ store, products, selectedProductId, aiConfigured, onOptimizeProduct }: { store: Store; products: Product[]; selectedProductId: string; aiConfigured: boolean; onOptimizeProduct: (productId: string) => void }) {
   const [activeTab, setActiveTab] = useState<TabId>('radar');
   const [data, setData] = useState<CopilotData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,8 +46,9 @@ export default function MarketingCopilot({ store, selectedProductId, aiConfigure
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [generatingPack, setGeneratingPack] = useState(false);
   const [pack, setPack] = useState<CampaignPack | null>(null);
+  const [campaignProductId, setCampaignProductId] = useState(selectedProductId);
   const [question, setQuestion] = useState('Qual produto devo divulgar hoje e por quê?');
-  const [answer, setAnswer] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [asking, setAsking] = useState(false);
 
   const load = useCallback(async () => {
@@ -66,6 +69,17 @@ export default function MarketingCopilot({ store, selectedProductId, aiConfigure
   }, [store.id]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (selectedProductId) setCampaignProductId(selectedProductId); }, [selectedProductId]);
+  useEffect(() => { if (!campaignProductId && products[0]?.id) setCampaignProductId(products[0].id); }, [campaignProductId, products]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(chatStorageKey(store.id)) || '[]');
+      if (Array.isArray(saved)) setMessages(saved.filter(item => item?.role === 'user' || item?.role === 'assistant').slice(-20));
+    } catch { /* conversa nova */ }
+  }, [store.id]);
+  useEffect(() => {
+    try { localStorage.setItem(chatStorageKey(store.id), JSON.stringify(messages.slice(-20))); } catch { /* armazenamento indisponível */ }
+  }, [messages, store.id]);
 
   const post = async (body: Record<string, unknown>) => {
     const response = await fetch('/api/ai/marketing-copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, ...body }) });
@@ -85,11 +99,11 @@ export default function MarketingCopilot({ store, selectedProductId, aiConfigure
   };
 
   const generatePack = async () => {
-    if (!selectedProductId) return toast.error('Selecione um produto acima.');
+    if (!campaignProductId) return toast.error('Escolha o produto da campanha.');
     if (!aiConfigured) return toast.error('Configure sua chave de IA para gerar a campanha.');
     setGeneratingPack(true); setPack(null);
     try {
-      const payload = await post({ action: 'campaign-pack', productId: selectedProductId, brandVoice, primaryAudience });
+      const payload = await post({ action: 'campaign-pack', productId: campaignProductId, brandVoice, primaryAudience });
       setPack(payload.pack);
       toast.success('Campanha completa e teste A/B criados.');
       await load();
@@ -101,10 +115,21 @@ export default function MarketingCopilot({ store, selectedProductId, aiConfigure
     const nextQuestion = suggestedQuestion || question;
     if (!nextQuestion.trim()) return;
     if (!aiConfigured) return toast.error('Configure sua chave de IA para conversar com o Copiloto.');
-    setQuestion(nextQuestion); setAsking(true); setAnswer('');
-    try { const payload = await post({ action: 'assistant', question: nextQuestion, brandVoice, primaryAudience }); setAnswer(payload.answer || ''); }
+    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: nextQuestion.trim() };
+    const previousMessages = messages;
+    setMessages(current => [...current, userMessage]); setQuestion(''); setAsking(true);
+    try {
+      const payload = await post({ action: 'assistant', question: nextQuestion, history: previousMessages.map(({ role, content }) => ({ role, content })), brandVoice, primaryAudience });
+      setMessages(current => [...current, { id: crypto.randomUUID(), role: 'assistant', content: String(payload.answer || '').replace(/\*{1,3}|`{1,3}/g, '').trim() }]);
+    }
     catch (error) { toast.error(error instanceof Error ? error.message : 'O Copiloto não conseguiu responder.'); }
     finally { setAsking(false); }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setQuestion('Como está o estado da minha loja hoje?');
+    localStorage.removeItem(chatStorageKey(store.id));
   };
 
   const copy = (text?: string) => {
@@ -132,23 +157,26 @@ export default function MarketingCopilot({ store, selectedProductId, aiConfigure
       </div>}
 
       {data && activeTab === 'conversion' && <div>
-        <SectionTitle icon={Target} eyebrow="Melhore antes de divulgar" title="Nota de conversão dos produtos" description="A nota considera clareza, classificação, capa, visitas e vendas confirmadas." />
-        <div className="mt-5 space-y-3">{data.productScores.map(product => <article key={product.id} className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[minmax(0,1fr)_130px_180px] md:items-center"><div className="min-w-0"><div className="flex items-center gap-3">{product.coverUrl ? <img src={product.coverUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50"><ShoppingBag className="h-5 w-5 text-blue-600" /></div>}<div className="min-w-0"><h3 className="truncate font-black text-slate-950">{product.title}</h3><p className="mt-1 text-xs text-slate-500">{product.views} visitas · {product.sales} vendas · conversão {product.conversionRate}%</p></div></div>{product.suggestions.length ? <ul className="mt-3 space-y-1 text-xs leading-5 text-slate-600">{product.suggestions.map(item => <li key={item}>• {item}</li>)}</ul> : <p className="mt-3 text-xs font-bold text-emerald-700">Cadastro completo. Continue acompanhando visitas e vendas.</p>}</div><div className="text-center md:text-left"><strong className={`text-3xl font-black ${product.score >= 80 ? 'text-emerald-600' : product.score >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>{product.score}</strong><span className="text-sm font-bold text-slate-400">/100</span><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${product.score >= 80 ? 'bg-emerald-500' : product.score >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${product.score}%` }} /></div></div><button type="button" onClick={() => onOptimizeProduct(product.id)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-black text-white"><Wand2 className="h-4 w-4" />Corrigir com IA</button></article>)}</div>
+        <SectionTitle icon={Target} eyebrow="Melhore antes de divulgar" title="Nota SEO dos produtos" description="Esta é a mesma regra da auditoria em Meus Produtos: título, descrição, capa, categoria, nível, tags e endereço público." />
+        <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold leading-5 text-blue-900">A IA prepara título, descrição, tags, temas, categoria, nível e faixa indicada. Antes de qualquer alteração, você revisa a proposta e confirma o salvamento.</p>
+        <div className="mt-5 space-y-3">{data.productScores.map(product => <article key={product.id} className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[minmax(0,1fr)_130px_210px] md:items-center"><div className="min-w-0"><div className="flex items-center gap-3">{product.coverUrl ? <img src={product.coverUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50"><ShoppingBag className="h-5 w-5 text-blue-600" /></div>}<div className="min-w-0"><h3 className="truncate font-black text-slate-950">{product.title}</h3><p className="mt-1 text-xs text-slate-500">Desempenho separado: {product.views} visitas · {product.sales} vendas · conversão {product.conversionRate}%</p></div></div>{product.suggestions.length ? <ul className="mt-3 space-y-1 text-xs leading-5 text-slate-600">{product.suggestions.map(item => <li key={item}>• {item}</li>)}</ul> : <p className="mt-3 text-xs font-bold text-emerald-700">Cadastro SEO completo. Continue acompanhando visitas e vendas.</p>}</div><div className="text-center md:text-left"><strong className={`text-3xl font-black ${product.score >= 80 ? 'text-emerald-600' : product.score >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>{product.score}</strong><span className="text-sm font-bold text-slate-400">/100 SEO</span><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${product.score >= 80 ? 'bg-emerald-500' : product.score >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${product.score}%` }} /></div></div><button type="button" onClick={() => onOptimizeProduct(product.id)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-black text-white"><Wand2 className="h-4 w-4" />Sugerir ajustes e revisar</button></article>)}</div>
       </div>}
 
       {data && activeTab === 'campaigns' && <div className="space-y-7">
         <SectionTitle icon={Rocket} eyebrow="Lançamento em um clique" title="Campanha completa e laboratório A/B" description="Crie conteúdo para vários canais e use links diferentes para medir qual mensagem gera mais vendas." />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><FunctionInfo title="Conteúdo multicanal" text="Prepara WhatsApp, Instagram, e-mail, anúncios e Stories para o mesmo produto." /><FunctionInfo title="Plano de 7 dias" text="Organiza quando e onde divulgar, sempre a partir da data atual." /><FunctionInfo title="Teste A/B" text="Cria duas mensagens diferentes para comparar cliques e vendas." /><FunctionInfo title="Voz da marca" text="Mantém o jeito de falar da sua loja e direciona a mensagem ao público certo." /></div>
+        <label className="block text-xs font-black uppercase tracking-wider text-slate-600">Produto que receberá a campanha<select value={campaignProductId} onChange={event => { setCampaignProductId(event.target.value); setPack(null); }} className="mt-2 min-h-12 w-full rounded-xl border border-blue-200 bg-white px-4 text-sm font-bold normal-case text-slate-800 outline-none focus:border-blue-500"><option value="">Escolha um produto publicado</option>{products.map(product => <option key={product.id} value={product.id}>{product.titulo}</option>)}</select><span className="mt-2 block text-[11px] font-medium normal-case leading-5 text-slate-500">A campanha usa o título, a descrição, as tags e os temas deste produto. Ela não altera preço, arquivo nem link.</span></label>
         <div className="grid gap-4 lg:grid-cols-2"><label className="text-xs font-black uppercase tracking-wider text-slate-600">Voz da marca<textarea value={brandVoice} onChange={event => setBrandVoice(event.target.value)} className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-sm font-medium normal-case outline-none focus:border-blue-500" placeholder="Ex.: alegre, acolhedora e cheia de energia" /></label><label className="text-xs font-black uppercase tracking-wider text-slate-600">Público principal<textarea value={primaryAudience} onChange={event => setPrimaryAudience(event.target.value)} className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-sm font-medium normal-case outline-none focus:border-blue-500" placeholder="Ex.: professoras da Educação Infantil" /></label></div>
-        <div className="flex flex-col gap-3 sm:flex-row"><button type="button" onClick={() => void savePreferences()} disabled={savingPreferences} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 px-5 text-sm font-black text-blue-800"><Save className="h-4 w-4" />{savingPreferences ? 'Salvando...' : 'Salvar voz da marca'}</button><button type="button" onClick={() => void generatePack()} disabled={generatingPack || !selectedProductId} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-violet-100 disabled:opacity-60">{generatingPack ? <Loader2 className="h-5 w-5 animate-spin" /> : <Rocket className="h-5 w-5" />}{generatingPack ? 'Montando lançamento...' : 'Gerar campanha completa para o produto selecionado'}</button></div>
+        <div className="flex flex-col gap-3 sm:flex-row"><button type="button" onClick={() => void savePreferences()} disabled={savingPreferences} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 px-5 text-sm font-black text-blue-800"><Save className="h-4 w-4" />{savingPreferences ? 'Salvando...' : 'Salvar voz da marca'}</button><button type="button" onClick={() => void generatePack()} disabled={generatingPack || !campaignProductId} className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-violet-100 disabled:opacity-60">{generatingPack ? <Loader2 className="h-5 w-5 animate-spin" /> : <Rocket className="h-5 w-5" />}{generatingPack ? 'Montando lançamento...' : 'Gerar campanha para o produto escolhido'}</button></div>
         {pack && <CampaignPackView pack={pack} copy={copy} />}
         <div><h3 className="text-lg font-black text-slate-950">Resultados dos testes A/B</h3><p className="mt-1 text-sm text-slate-500">Cliques e vendas são atribuídos automaticamente pelos links criados acima.</p>{data.campaignPerformance.length ? <div className="mt-4 overflow-x-auto rounded-2xl border"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-3">Campanha</th><th className="p-3">Versão</th><th className="p-3">Cliques</th><th className="p-3">Vendas</th><th className="p-3">Conversão</th><th className="p-3">Receita</th></tr></thead><tbody>{data.campaignPerformance.map(item => <tr key={item.id} className="border-t"><td className="p-3 font-bold text-slate-800">{item.name}</td><td className="p-3"><span className="rounded-full bg-violet-100 px-2 py-1 font-black text-violet-700">{item.variant}</span></td><td className="p-3">{item.clicks}</td><td className="p-3">{item.sales}</td><td className="p-3">{item.conversionRate}%</td><td className="p-3">{formatCurrency(item.revenue)}</td></tr>)}</tbody></table></div> : <EmptyState text="Gere a primeira campanha para começar a comparar as versões A e B." />}</div>
       </div>}
 
       {data && activeTab === 'assistant' && <div>
-        <SectionTitle icon={BrainCircuit} eyebrow="Converse com a sua loja" title="Assistente de decisões" description="Pergunte sobre produtos, procura, desempenho e próximas ações. A resposta usa os dados disponíveis da sua loja." />
-        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800">{item}</button>)}</div>
-        <div className="mt-5 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} className="min-h-28 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Faça uma pergunta sobre a sua loja..." /><button type="button" onClick={() => void ask()} disabled={asking || !question.trim()} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando sua loja...' : 'Perguntar ao Copiloto'}</button></div>
-        {answer && <div className="mt-5 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5"><div className="flex items-center justify-between gap-3"><p className="font-black text-violet-950">Resposta do Copiloto</p><button type="button" onClick={() => copy(answer)} className="inline-flex items-center gap-1 text-xs font-black text-violet-700"><Clipboard className="h-3.5 w-3.5" />Copiar</button></div><p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">{answer}</p></div>}
+        <div className="flex items-start justify-between gap-3"><SectionTitle icon={BrainCircuit} eyebrow="Converse com a sua loja" title="Chat analítico" description="A conversa mantém o contexto, compara os dados reais da loja e considera somente oportunidades futuras quando sugerir novos produtos." />{messages.length ? <button type="button" onClick={clearChat} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-black text-slate-600"><Trash2 className="h-4 w-4" />Limpar</button> : null}</div>
+        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" disabled={asking} onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 disabled:opacity-50">{item}</button>)}</div>
+        <div className="mt-5 max-h-[34rem] space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">{messages.length ? messages.map(message => <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[92%] rounded-2xl p-4 text-sm leading-7 shadow-sm sm:max-w-[82%] ${message.role === 'user' ? 'bg-blue-700 text-white' : 'border border-violet-100 bg-white text-slate-700'}`}><div className="mb-2 flex items-center justify-between gap-5"><strong className={`text-xs uppercase tracking-wider ${message.role === 'user' ? 'text-blue-100' : 'text-violet-800'}`}>{message.role === 'user' ? 'Você' : 'Copiloto'}</strong>{message.role === 'assistant' ? <button type="button" onClick={() => copy(message.content)} className="inline-flex items-center gap-1 text-[11px] font-black text-violet-700"><Clipboard className="h-3 w-3" />Copiar</button> : null}</div><p className="whitespace-pre-line">{message.content}</p></div></div>) : <div className="py-10 text-center"><BrainCircuit className="mx-auto h-9 w-9 text-violet-400" /><p className="mt-3 text-sm font-bold text-slate-700">Comece uma conversa sobre sua loja</p><p className="mt-1 text-xs text-slate-500">O histórico ficará disponível neste navegador para continuar a análise.</p></div>}{asking ? <div className="flex items-center gap-2 text-xs font-bold text-violet-700"><Loader2 className="h-4 w-4 animate-spin" />Analisando produtos, vendas, buscas e próximas datas...</div> : null}</div>
+        <div className="mt-3 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(); } }} className="min-h-24 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Continue a conversa sobre sua loja..." /><div className="mt-3 flex items-center justify-between gap-3"><p className="hidden text-[11px] text-slate-500 sm:block">Enter envia · Shift + Enter quebra a linha</p><button type="button" onClick={() => void ask()} disabled={asking || !question.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando...' : 'Enviar mensagem'}</button></div></div>
       </div>}
     </div>
   </section>;
@@ -158,6 +186,7 @@ function Metric({ label, value }: { label: string; value: string | number }) { r
 function SmallMetric({ label, value }: { label: string; value: string | number }) { return <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] font-bold uppercase text-slate-400">{label}</p><p className="mt-1 font-black text-slate-800">{value}</p></div>; }
 function EmptyState({ text }: { text: string }) { return <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-7 text-center text-sm text-slate-500">{text}</div>; }
 function SectionTitle({ icon: Icon, eyebrow, title, description }: { icon: any; eyebrow: string; title: string; description: string }) { return <div className="flex items-start gap-3"><span className="rounded-xl bg-blue-100 p-2 text-blue-700"><Icon className="h-5 w-5" /></span><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">{eyebrow}</p><h3 className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">{title}</h3><p className="mt-1 text-sm leading-6 text-slate-500">{description}</p></div></div>; }
+function FunctionInfo({ title, text }: { title: string; text: string }) { return <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4"><p className="text-sm font-black text-blue-950">{title}</p><p className="mt-1 text-xs leading-5 text-slate-600">{text}</p></div>; }
 
 function CampaignPackView({ pack, copy }: { pack: CampaignPack; copy: (text?: string) => void }) {
   const channels = [{ title: 'WhatsApp', text: pack.whatsapp }, { title: 'Instagram', text: pack.instagram }, { title: `E-mail${pack.email?.subject ? ` — ${pack.email.subject}` : ''}`, text: pack.email?.body }];
