@@ -4,7 +4,7 @@ import { getCategories,getEducationLevels } from '@/lib/category-service';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
 import { Category,EducationLevel,Product,Store } from '@/lib/types';
-import { BookOpen,Bot,Camera,CheckCircle2,Copy,FileText,Loader2,MessageSquare,Save,Search,Settings,Sparkles,Wand2,X } from 'lucide-react';
+import { BookOpen,Bot,Camera,CheckCircle2,Copy,FileText,Loader2,MessageCircle,MessageSquare,Save,Search,Settings,Sparkles,Wand2,X } from 'lucide-react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
@@ -256,6 +256,19 @@ export default function IAConfigPage() {
 
   const activeProduct = products.find(product => product.id === selectedProductId) || null;
 
+  const requestAITest = () => {
+    const storeName = store?.nome_loja?.trim() || 'Loja não identificada';
+    const message = [
+      'Olá, equipe Educalizando! 👋',
+      '',
+      `A loja *${storeName}* deseja realizar um teste da função Marketing IA.`,
+      '',
+      'Podem me orientar sobre a liberação do teste? 🤖✨',
+    ].join('\n');
+
+    window.open(`https://wa.me/5521965008441?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
@@ -277,14 +290,24 @@ export default function IAConfigPage() {
             <p className="text-slate-500 text-sm">Gerador de Campanhas & Copys de Alta Conversão</p>
           </div>
         </div>
-        {!showConfig && (
-          <button 
-            onClick={() => setShowConfig(true)}
-            className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-purple-600 bg-white border border-slate-200 px-3 py-2 rounded-lg transition-colors"
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button
+            type="button"
+            onClick={requestAITest}
+            className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-black text-white shadow-sm transition-colors hover:bg-emerald-600"
           >
-            <Settings className="w-4 h-4" /> Configurar Chave API
+            <MessageCircle className="h-4 w-4" /> Solicitar teste de IA
           </button>
-        )}
+          {!showConfig && (
+            <button
+              type="button"
+              onClick={() => setShowConfig(true)}
+              className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-purple-600"
+            >
+              <Settings className="w-4 h-4" /> Configurar Chave API
+            </button>
+          )}
+        </div>
       </div>
 
       {showConfig ? (
