@@ -4,6 +4,7 @@ import {
 CREATOR_NETWORKING_PRESETS,
 renderCreatorNetworkingMessage,
 suggestedGreetingPresetId,
+type CreatorNetworkingAudience,
 } from '@/lib/creator-networking';
 import { uploadToObjectStorage } from '@/lib/object-storage-client';
 import {
@@ -12,6 +13,8 @@ Clock3,
 ImagePlus,
 Loader2,
 MessageCircle,
+PackageOpen,
+Palette,
 Search,
 Send,
 Sparkles,
@@ -30,6 +33,11 @@ type CreatorRecipient = {
   storeSlug: string;
   phoneLabel: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  productCount: number;
+  hasLogo: boolean;
+  hasBanner: boolean;
+  storeReady: boolean;
   hasWhatsapp: boolean;
   groupInviteSent: boolean;
   groupInviteSentAt: string | null;
@@ -55,6 +63,7 @@ export default function CreatorNetworkingPage() {
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState(initialPreset.message);
   const [activePreset, setActivePreset] = useState(initialPreset.id);
+  const [audience, setAudience] = useState<CreatorNetworkingAudience>('all');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -62,19 +71,26 @@ export default function CreatorNetworkingPage() {
   const [result, setResult] = useState<SendResult | null>(null);
 
   const availableCreators = useMemo(() => creators.filter((creator) => creator.hasWhatsapp), [creators]);
+  const audienceCreators = useMemo(() => creators.filter((creator) => {
+    if (audience === 'low_products') return creator.productCount < 10;
+    if (audience === 'incomplete_branding') return !creator.storeReady;
+    return true;
+  }), [audience, creators]);
   const selectableCreators = useMemo(
-    () => availableCreators.filter((creator) => activePreset !== 'group' || !creator.groupInviteSent),
-    [activePreset, availableCreators],
+    () => audienceCreators.filter((creator) => creator.hasWhatsapp && (activePreset !== 'group' || !creator.groupInviteSent)),
+    [activePreset, audienceCreators],
   );
   const filteredCreators = useMemo(() => {
     const term = query.trim().toLocaleLowerCase('pt-BR');
-    if (!term) return creators;
-    return creators.filter((creator) => `${creator.name} ${creator.storeName} ${creator.phoneLabel}`.toLocaleLowerCase('pt-BR').includes(term));
-  }, [creators, query]);
+    if (!term) return audienceCreators;
+    return audienceCreators.filter((creator) => `${creator.name} ${creator.storeName} ${creator.phoneLabel}`.toLocaleLowerCase('pt-BR').includes(term));
+  }, [audienceCreators, query]);
   const selectedCreators = useMemo(() => creators.filter((creator) => selectedIds.has(creator.id)), [creators, selectedIds]);
   const previewCreator = selectedCreators[0] || availableCreators[0];
   const allAvailableSelected = selectableCreators.length > 0 && selectableCreators.every((creator) => selectedIds.has(creator.id));
   const groupInvitesSent = creators.filter((creator) => creator.groupInviteSent).length;
+  const lowProductCreators = creators.filter((creator) => creator.productCount < 10).length;
+  const incompleteBrandingCreators = creators.filter((creator) => !creator.storeReady).length;
 
   useEffect(() => {
     async function loadCreators() {
@@ -99,8 +115,27 @@ export default function CreatorNetworkingPage() {
     if (!preset) return;
     setActivePreset(preset.id);
     setMessage(preset.message);
+    const nextAudience: CreatorNetworkingAudience = preset.id === 'catalog' ? 'low_products' : preset.id === 'branding' ? 'incomplete_branding' : audience;
+    setAudience(nextAudience);
     setSelectedIds(new Set(creators
-      .filter((creator) => creator.hasWhatsapp && (preset.id !== 'group' || !creator.groupInviteSent))
+      .filter((creator) => creator.hasWhatsapp
+        && (nextAudience !== 'low_products' || creator.productCount < 10)
+        && (nextAudience !== 'incomplete_branding' || !creator.storeReady)
+        && (preset.id !== 'group' || !creator.groupInviteSent))
+      .map((creator) => creator.id)));
+    setResult(null);
+  }
+
+  function chooseAudience(nextAudience: CreatorNetworkingAudience, presetId?: 'catalog' | 'branding') {
+    const nextPreset = presetId ? CREATOR_NETWORKING_PRESETS.find((item) => item.id === presetId) : null;
+    setAudience(nextAudience);
+    if (nextPreset) {
+      setActivePreset(nextPreset.id);
+      setMessage(nextPreset.message);
+    }
+    setSelectedIds(new Set(creators.filter((creator) => creator.hasWhatsapp
+      && (nextAudience !== 'low_products' || creator.productCount < 10)
+      && (nextAudience !== 'incomplete_branding' || !creator.storeReady))
       .map((creator) => creator.id)));
     setResult(null);
   }
@@ -154,7 +189,7 @@ export default function CreatorNetworkingPage() {
       const response = await fetch('/api/admin/whatsapp-networking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanMessage, imageUrl: imageUrl || null, creatorIds: Array.from(selectedIds), presetId: activePreset }),
+        body: JSON.stringify({ text: cleanMessage, imageUrl: imageUrl || null, creatorIds: Array.from(selectedIds), presetId: activePreset, audience }),
       });
       const payload = await response.json();
       if (payload.result) setResult(payload.result as SendResult);
@@ -185,12 +220,28 @@ export default function CreatorNetworkingPage() {
             <h1 className="mt-3 text-3xl font-black text-white sm:text-4xl">Central de mensagens</h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">Converse com sua rede de criadores usando mensagens personalizadas pela Evolution API. Selecione um modelo, revise o texto, anexe uma imagem e escolha quem receberá.</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><strong className="block text-2xl text-white">{creators.length}</strong><span className="text-[10px] uppercase tracking-wide text-slate-400">Criadores</span></div>
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3"><strong className="block text-2xl text-emerald-300">{availableCreators.length}</strong><span className="text-[10px] uppercase tracking-wide text-emerald-200">Disponíveis</span></div>
             <div className="rounded-2xl border border-blue-400/20 bg-blue-400/10 px-4 py-3"><strong className="block text-2xl text-blue-300">{selectedIds.size}</strong><span className="text-[10px] uppercase tracking-wide text-blue-200">Selecionados</span></div>
             <div className="rounded-2xl border border-violet-400/20 bg-violet-400/10 px-4 py-3"><strong className="block text-2xl text-violet-300">{groupInvitesSent}</strong><span className="text-[10px] uppercase tracking-wide text-violet-200">Já convidados</span></div>
+            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3"><strong className="block text-2xl text-amber-300">{lowProductCreators}</strong><span className="text-[10px] uppercase tracking-wide text-amber-200">Menos de 10 produtos</span></div>
+            <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 px-4 py-3"><strong className="block text-2xl text-fuchsia-300">{incompleteBrandingCreators}</strong><span className="text-[10px] uppercase tracking-wide text-fuchsia-200">Visual incompleto</span></div>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-500/25 bg-slate-950 p-5 sm:p-6">
+        <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">Acompanhamento inteligente</p><h2 className="mt-1 text-xl font-black text-white">Ajude cada criador no ponto que limita sua loja</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Os públicos são atualizados pelos dados atuais da plataforma. Ao escolher uma ação, a mensagem adequada e todos os criadores elegíveis com WhatsApp são preparados automaticamente para revisão.</p></div>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <button type="button" onClick={() => chooseAudience('low_products', 'catalog')} className={`rounded-2xl border p-5 text-left transition ${audience === 'low_products' ? 'border-amber-400 bg-amber-400/10 ring-1 ring-amber-400' : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}`}>
+            <span className="flex items-center justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300"><PackageOpen className="h-5 w-5" /></span><strong className="text-2xl text-amber-300">{lowProductCreators}</strong></span>
+            <strong className="mt-4 block text-base text-white">Lojas com menos de 10 produtos</strong><span className="mt-2 block text-xs leading-5 text-slate-400">Oriente o criador a fortalecer o catálogo para ampliar buscas, variedade e oportunidades de venda.</span><span className="mt-4 block text-xs font-black text-amber-300">Preparar mensagem e selecionar público →</span>
+          </button>
+          <button type="button" onClick={() => chooseAudience('incomplete_branding', 'branding')} className={`rounded-2xl border p-5 text-left transition ${audience === 'incomplete_branding' ? 'border-fuchsia-400 bg-fuchsia-400/10 ring-1 ring-fuchsia-400' : 'border-slate-800 bg-slate-900 hover:border-fuchsia-500/50'}`}>
+            <span className="flex items-center justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-fuchsia-400/15 text-fuchsia-300"><Palette className="h-5 w-5" /></span><strong className="text-2xl text-fuchsia-300">{incompleteBrandingCreators}</strong></span>
+            <strong className="mt-4 block text-base text-white">Lojas sem logo ou imagem de capa</strong><span className="mt-2 block text-xs leading-5 text-slate-400">Explique como uma vitrine completa transmite confiança, organização e aparência profissional.</span><span className="mt-4 block text-xs font-black text-fuchsia-300">Preparar mensagem e selecionar público →</span>
+          </button>
         </div>
       </section>
 
@@ -243,12 +294,13 @@ export default function CreatorNetworkingPage() {
       <section className="rounded-2xl border border-slate-800 bg-slate-950">
         <div className="border-b border-slate-800 p-5 sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">3. Escolha os destinatários</p><h2 className="mt-1 text-xl font-black text-white">Criadores cadastrados</h2><p className="mt-1 text-xs text-slate-400">{activePreset === 'group' ? 'Quem já recebeu o convite fica identificado e não pode ser selecionado novamente.' : 'Criadores sem WhatsApp válido ficam visíveis, mas não podem ser selecionados.'}</p></div>
+            <div><p className="text-xs font-black uppercase tracking-[0.16em] text-blue-300">3. Escolha os destinatários</p><h2 className="mt-1 text-xl font-black text-white">Criadores cadastrados</h2><p className="mt-1 text-xs text-slate-400">{activePreset === 'group' ? 'Quem já recebeu o convite fica identificado e não pode ser selecionado novamente.' : audience === 'low_products' ? 'Mostrando somente lojas com menos de 10 produtos.' : audience === 'incomplete_branding' ? 'Mostrando somente lojas sem logo ou sem imagem de capa.' : 'Criadores sem WhatsApp válido ficam visíveis, mas não podem ser selecionados.'}</p></div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 sm:min-w-64"><Search className="h-4 w-4 text-slate-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar criador ou loja" className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none" /></label>
               <button type="button" onClick={toggleAll} disabled={!selectableCreators.length} className="min-h-11 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-black text-blue-200 hover:bg-blue-500/20 disabled:opacity-40">{allAvailableSelected ? 'Limpar seleção' : activePreset === 'group' ? 'Selecionar não convidados' : 'Selecionar todos'}</button>
             </div>
           </div>
+          <div className="mt-4 flex gap-2 overflow-x-auto"><AudienceButton active={audience === 'all'} onClick={() => chooseAudience('all')} label={`Todos (${creators.length})`} /><AudienceButton active={audience === 'low_products'} onClick={() => chooseAudience('low_products', 'catalog')} label={`Menos de 10 produtos (${lowProductCreators})`} /><AudienceButton active={audience === 'incomplete_branding'} onClick={() => chooseAudience('incomplete_branding', 'branding')} label={`Visual incompleto (${incompleteBrandingCreators})`} /></div>
         </div>
         <div className="p-3 sm:p-4">
           {loading ? <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Carregando criadores…</div> : filteredCreators.length ? <div className="grid gap-2 lg:grid-cols-2">{filteredCreators.map((creator) => {
@@ -256,7 +308,7 @@ export default function CreatorNetworkingPage() {
             const inviteLocked = activePreset === 'group' && creator.groupInviteSent;
             return <button key={creator.id} type="button" disabled={!creator.hasWhatsapp || inviteLocked} onClick={() => toggleCreator(creator)} className={`flex min-h-20 items-center gap-3 rounded-2xl border p-3 text-left transition ${!creator.hasWhatsapp || inviteLocked ? 'cursor-not-allowed border-slate-800 bg-slate-900/40 opacity-60' : selected ? 'border-blue-400 bg-blue-500/10 ring-1 ring-blue-400' : 'border-slate-800 bg-slate-900 hover:border-slate-600'}`}>
               <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-300'}`}>{selected ? <CheckCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}</span>
-              <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-white">{creator.name}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{creator.storeName}</span><span className={`mt-1 block text-[11px] ${creator.hasWhatsapp ? 'text-emerald-300' : 'text-rose-300'}`}>{creator.phoneLabel}</span>{creator.groupInviteSent && <span className="mt-1 block text-[10px] font-black uppercase tracking-wide text-violet-300">Convite enviado{creator.groupInviteSentAt ? ` em ${new Intl.DateTimeFormat('pt-BR').format(new Date(creator.groupInviteSentAt))}` : ''}</span>}</span>
+              <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-white">{creator.name}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{creator.storeName}</span><span className="mt-1 flex flex-wrap gap-1.5"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${creator.productCount < 10 ? 'bg-amber-400/10 text-amber-300' : 'bg-emerald-400/10 text-emerald-300'}`}>{creator.productCount} produto(s)</span>{!creator.hasLogo && <span className="rounded-full bg-fuchsia-400/10 px-2 py-0.5 text-[10px] font-bold text-fuchsia-300">Sem logo</span>}{!creator.hasBanner && <span className="rounded-full bg-fuchsia-400/10 px-2 py-0.5 text-[10px] font-bold text-fuchsia-300">Sem capa</span>}</span><span className={`mt-1 block text-[11px] ${creator.hasWhatsapp ? 'text-emerald-300' : 'text-rose-300'}`}>{creator.phoneLabel}</span>{creator.groupInviteSent && <span className="mt-1 block text-[10px] font-black uppercase tracking-wide text-violet-300">Convite enviado{creator.groupInviteSentAt ? ` em ${new Intl.DateTimeFormat('pt-BR').format(new Date(creator.groupInviteSentAt))}` : ''}</span>}</span>
             </button>;
           })}</div> : <p className="p-12 text-center text-sm text-slate-500">Nenhum criador encontrado.</p>}
         </div>
@@ -278,4 +330,8 @@ export default function CreatorNetworkingPage() {
 function ResultCard({ label, value, success = false, danger = false }: { label: string; value: number; success?: boolean; danger?: boolean }) {
   const color = success ? 'text-emerald-300' : danger ? 'text-rose-300' : 'text-slate-200';
   return <div className="rounded-xl bg-slate-900 p-4"><span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</span><div className="mt-1 flex items-center gap-2">{danger && value > 0 ? <XCircle className="h-4 w-4 text-rose-400" /> : success ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <MessageCircle className="h-4 w-4 text-slate-500" />}<strong className={`text-2xl ${color}`}>{value}</strong></div></div>;
+}
+
+function AudienceButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className={`min-h-10 shrink-0 rounded-full border px-4 text-xs font-black transition ${active ? 'border-blue-400 bg-blue-500/15 text-blue-200' : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500'}`}>{label}</button>;
 }

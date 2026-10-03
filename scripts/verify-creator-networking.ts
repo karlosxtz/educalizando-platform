@@ -4,12 +4,13 @@ import {
   renderCreatorNetworkingMessage,
   suggestedGreetingPresetId,
   isCreatorNetworkingPresetId,
+  creatorMatchesNetworkingAudience,
 } from '../src/lib/creator-networking';
 import { normalizeWhatsAppNumber, readableEvolutionFailure, whatsappNumberCandidates } from '../src/lib/whatsapp-notification-service';
 
 assert.deepEqual(
   CREATOR_NETWORKING_PRESETS.map((preset) => preset.id),
-  ['welcome', 'group', 'morning', 'afternoon', 'evening', 'support'],
+  ['welcome', 'group', 'catalog', 'branding', 'morning', 'afternoon', 'evening', 'support'],
 );
 assert.equal(suggestedGreetingPresetId(8), 'morning');
 assert.equal(suggestedGreetingPresetId(14), 'afternoon');
@@ -21,6 +22,10 @@ assert.equal(
 assert.ok(CREATOR_NETWORKING_PRESETS.every((preset) => preset.message.length > 30));
 assert.equal(isCreatorNetworkingPresetId('group'), true);
 assert.equal(isCreatorNetworkingPresetId('anything-else'), false);
+assert.equal(creatorMatchesNetworkingAudience('low_products', { productCount: 9, hasLogo: true, hasBanner: true }), true);
+assert.equal(creatorMatchesNetworkingAudience('low_products', { productCount: 10, hasLogo: true, hasBanner: true }), false);
+assert.equal(creatorMatchesNetworkingAudience('incomplete_branding', { productCount: 20, hasLogo: false, hasBanner: true }), true);
+assert.equal(creatorMatchesNetworkingAudience('incomplete_branding', { productCount: 20, hasLogo: true, hasBanner: true }), false);
 
 assert.equal(normalizeWhatsAppNumber('(12) 99999-9999'), '5512999999999');
 assert.equal(normalizeWhatsAppNumber('+55 (12) 99999-9999'), '5512999999999');

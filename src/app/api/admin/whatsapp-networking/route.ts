@@ -1,5 +1,5 @@
 import { isSuperAdmin } from '@/lib/api-auth';
-import { isCreatorNetworkingPresetId,renderCreatorNetworkingMessage,type CreatorNetworkingPresetId } from '@/lib/creator-networking';
+import { creatorMatchesNetworkingAudience,isCreatorNetworkingPresetId,renderCreatorNetworkingMessage,type CreatorNetworkingAudience,type CreatorNetworkingPresetId } from '@/lib/creator-networking';
 import { supabaseAdmin } from '@/lib/supabase';
 import { normalizeWhatsAppNumber,sendEvolutionImage,sendEvolutionText } from '@/lib/whatsapp-notification-service';
 import { NextResponse } from 'next/server';
@@ -15,6 +15,11 @@ type CreatorRecipient = {
   phone: string | null;
   phoneLabel: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  productCount: number;
+  hasLogo: boolean;
+  hasBanner: boolean;
+  storeReady: boolean;
   groupInviteSent: boolean;
   groupInviteSentAt: string | null;
 };
@@ -46,7 +51,7 @@ function readablePhone(phone: string | null) {
 async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
   const { data: stores, error } = await supabaseAdmin
     .from('stores')
-    .select('id, creator_id, nome_loja, slug, whatsapp, logo_url, created_at')
+    .select('id, creator_id, nome_loja, slug, whatsapp, logo_url, banner_url, created_at, products(count)')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
 
@@ -73,6 +78,9 @@ async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
   return Array.from(latestStoreByCreator.values()).map((store) => {
     const user = usersById.get(store.creator_id);
     const phone = normalizeWhatsAppNumber(store.whatsapp || user?.phone);
+    const productCount = Number(store.products?.[0]?.count || 0);
+    const hasLogo = Boolean(store.logo_url?.trim());
+    const hasBanner = Boolean(store.banner_url?.trim());
     return {
       id: store.creator_id,
       name: user?.name || store.nome_loja || 'Criador(a)',
@@ -81,6 +89,11 @@ async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
       phone,
       phoneLabel: readablePhone(phone),
       logoUrl: store.logo_url || null,
+      bannerUrl: store.banner_url || null,
+      productCount,
+      hasLogo,
+      hasBanner,
+      storeReady: hasLogo && hasBanner,
       groupInviteSent: user?.groupInvite.status === 'SENT',
       groupInviteSentAt: user?.groupInvite.status === 'SENT' ? user.groupInvite.sentAt || null : null,
     };
@@ -99,6 +112,8 @@ export async function GET(request: Request) {
         available: creators.filter((creator) => creator.phone).length,
         unavailable: creators.filter((creator) => !creator.phone).length,
         groupInviteSent: creators.filter((creator) => creator.groupInviteSent).length,
+        lowProducts: creators.filter((creator) => creator.productCount < 10).length,
+        incompleteBranding: creators.filter((creator) => !creator.storeReady).length,
       },
     });
   } catch (error) {
@@ -169,18 +184,19 @@ export async function POST(request: Request) {
   if (!(await isSuperAdmin(request))) return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
 
   try {
-    const body = await request.json() as { text?: unknown; imageUrl?: unknown; creatorIds?: unknown; presetId?: unknown };
+    const body = await request.json() as { text?: unknown; imageUrl?: unknown; creatorIds?: unknown; presetId?: unknown; audience?: unknown };
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 2000) : '';
     const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim().slice(0, 2000) : '';
     const selectedIds = parseSelectedIds(body.creatorIds);
     const presetId: CreatorNetworkingPresetId = isCreatorNetworkingPresetId(body.presetId) ? body.presetId : 'welcome';
+    const audience: CreatorNetworkingAudience = body.audience === 'low_products' || body.audience === 'incomplete_branding' ? body.audience : 'all';
     if (!text) return NextResponse.json({ error: 'Escreva a mensagem que será enviada.' }, { status: 400 });
     if (!selectedIds.length) return NextResponse.json({ error: 'Selecione pelo menos um criador.' }, { status: 400 });
     if (imageUrl && !/^https:\/\//i.test(imageUrl)) return NextResponse.json({ error: 'A imagem anexada é inválida.' }, { status: 400 });
 
     const selected = new Set(selectedIds);
     const allRecipients = await getCreatorRecipients();
-    const recipients = allRecipients.filter((recipient) => selected.has(recipient.id) && recipient.phone);
+    const recipients = allRecipients.filter((recipient) => selected.has(recipient.id) && recipient.phone && creatorMatchesNetworkingAudience(audience, recipient));
     const skipped = selectedIds.length - recipients.length;
     const uniqueRecipients = Array.from(new Map(recipients.map((recipient) => [recipient.phone, recipient])).values());
     if (!uniqueRecipients.length) {
