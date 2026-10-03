@@ -340,7 +340,14 @@ export async function getEvolutionInstanceHealth(): Promise<EvolutionInstanceHea
 }
 
 export async function logoutEvolutionInstance(): Promise<{ disconnected: boolean; error?: string }> {
-  const { apiKey, baseUrl, instanceName } = evolutionConfig();
+  const { apiKey, instanceName } = evolutionConfig();
+  if (!apiKey || !instanceName) return { disconnected: false, error: 'A Evolution não está configurada.' };
+
+  return logoutEvolutionInstanceByName(instanceName);
+}
+
+export async function logoutEvolutionInstanceByName(instanceName: string): Promise<{ disconnected: boolean; error?: string }> {
+  const { apiKey, baseUrl } = evolutionConfig();
   if (!apiKey || !instanceName) return { disconnected: false, error: 'A Evolution não está configurada.' };
 
   try {

@@ -1,4 +1,5 @@
 import { getRequestUser } from '@/lib/api-auth';
+import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import {
 isCreatorWhatsAppCampaignPresetId,
 renderCreatorWhatsAppCampaignMessage,
@@ -66,13 +67,8 @@ async function creatorContext(request: Request) {
     .eq('creator_id', user.id)
     .maybeSingle();
   if (!store) return null;
-  const { data: subscription } = await supabaseAdmin
-    .from('whatsapp_store_subscriptions')
-    .select('status,expires_at,instance_name,whatsapp_connected')
-    .eq('store_id', store.id)
-    .maybeSingle();
-  const active = Boolean(subscription?.status === 'active' && subscription.expires_at && new Date(subscription.expires_at) > new Date());
-  return { user, store: store as Store, subscription, active };
+  const access = await resolveCreatorWhatsAppAccess(store.id);
+  return { user, store: store as Store, subscription: access.subscription, active: access.active };
 }
 
 async function getCustomers(storeId: string): Promise<CampaignCustomer[]> {
@@ -215,6 +211,7 @@ export async function POST(request: Request) {
 
     const origin = new URL(request.url).origin;
     const link = campaignLink(origin, context.store, presetId, product);
+    const instanceName = context.subscription.instance_name;
     const failures: Array<{ id: string; name: string; error: string }> = [];
     let sent = 0;
     for (let offset = 0; offset < uniqueRecipients.length; offset += 5) {
@@ -228,8 +225,8 @@ export async function POST(request: Request) {
           link,
         });
         const result = imageUrl
-          ? await sendEvolutionImage(customer.phone, imageUrl, message, context.subscription!.instance_name)
-          : await sendEvolutionText(customer.phone, message, context.subscription!.instance_name);
+          ? await sendEvolutionImage(customer.phone, imageUrl, message, instanceName)
+          : await sendEvolutionText(customer.phone, message, instanceName);
         return { customer, result };
       }));
       for (const { customer, result } of results) {

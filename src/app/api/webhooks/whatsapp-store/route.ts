@@ -1,4 +1,5 @@
 import { getEvolutionWebhookToken,verifyEvolutionWebhookToken } from '@/lib/evolution-webhook-security';
+import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import { supabaseAdmin } from '@/lib/supabase';
 import { formatCatalogSearchReply,searchStoreCatalog } from '@/lib/whatsapp-catalog-search';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
@@ -95,18 +96,19 @@ export async function POST(request: Request) {
 
     const { data: subscription, error } = await supabaseAdmin
       .from('whatsapp_store_subscriptions')
-      .select('instance_name, expires_at, stores(id, nome_loja, slug)')
+      .select('instance_name, whatsapp_connected, stores(id, nome_loja, slug)')
       .eq('instance_name', incoming.instanceName)
-      .eq('status', 'active')
       .eq('whatsapp_connected', true)
       .maybeSingle();
     if (error) throw error;
-    if (!subscription || (subscription.expires_at && new Date(subscription.expires_at) <= new Date())) {
+    if (!subscription) {
       return NextResponse.json({ received: true, ignored: 'inactive_subscription' });
     }
 
     const store = Array.isArray(subscription.stores) ? subscription.stores[0] : subscription.stores;
     if (!store?.id) return NextResponse.json({ received: true, ignored: 'store_not_found' });
+    const access = await resolveCreatorWhatsAppAccess(store.id);
+    if (!access.active) return NextResponse.json({ received: true, ignored: 'inactive_subscription' });
 
     const response = /^(oi|ola|olá|menu|inicio|início|catalogo|catálogo)$/i.test(normalized)
       ? menuReply(store.nome_loja || 'esta loja')

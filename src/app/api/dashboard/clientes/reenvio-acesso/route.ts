@@ -1,4 +1,5 @@
 import { getRequestUser } from '@/lib/api-auth';
+import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import { sendAccessResendEmail } from '@/lib/mail-service';
 import { getPurchaseAccess } from '@/lib/purchase-access';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -24,13 +25,9 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (!store) return NextResponse.json({ error: 'Você não tem permissão para reenviar acessos desta loja.' }, { status: 403 });
 
-  const { data: subscription } = await supabaseAdmin
-    .from('whatsapp_store_subscriptions')
-    .select('instance_name, status, whatsapp_connected, expires_at')
-    .eq('store_id', store.id)
-    .maybeSingle();
-  const storeInstance = subscription?.status === 'active' && subscription?.whatsapp_connected && subscription?.expires_at && new Date(subscription.expires_at) > new Date()
-    ? subscription.instance_name
+  const whatsappAccess = await resolveCreatorWhatsAppAccess(store.id);
+  const storeInstance = whatsappAccess.active && whatsappAccess.subscription?.whatsapp_connected
+    ? whatsappAccess.subscription.instance_name as string | undefined
     : undefined;
 
   const { data: order } = await supabaseAdmin
@@ -91,9 +88,9 @@ export async function POST(request: Request) {
   const whatsappMessage = isPlrPurchase
     ? `🔐 *Reenvio de licença PLR solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Criador(a)')}! Reenviamos a licença PLR adquirida:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse suas licenças pelo painel do criador: ${accessUrl}`
     : `📚 *Reenvio de acesso solicitado*\n\nOlá, ${firstName(order.buyer_name, 'Cliente')}! Reenviamos o acesso aos materiais abaixo:\n• ${materials.map(material => material.title).join('\n• ')}${directLinks.length ? `\n\n${directLinks.join('\n')}` : ''}\n\nAcesse sua biblioteca com segurança: ${accessUrl}`;
-  const whatsappResult = order.buyer_phone
+  const whatsappResult = order.buyer_phone && storeInstance
     ? await sendEvolutionText(order.buyer_phone, whatsappMessage, storeInstance)
-    : { sent: false, error: 'Cliente sem WhatsApp cadastrado.' };
+    : { sent: false, error: !order.buyer_phone ? 'Cliente sem WhatsApp cadastrado.' : 'O módulo WhatsApp da Loja não está ativo e conectado.' };
 
   if (!emailResult.sent && !whatsappResult.sent) {
     return NextResponse.json({ error: emailResult.error || whatsappResult.error || 'Nenhum canal confirmou o envio.' }, { status: 502 });

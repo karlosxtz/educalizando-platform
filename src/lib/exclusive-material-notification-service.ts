@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { resolveCreatorWhatsAppAccess } from './creator-whatsapp-access';
 import { sendExclusiveMaterialDeliveredEmail,sendExclusivePaymentConfirmedToCustomer,sendExclusiveSaleNotificationToCreator } from './mail-service';
 import { createNotification } from './notification-service';
 import { supabaseAdmin } from './supabase';
@@ -20,20 +21,20 @@ const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'curren
 async function loadContext(requestId: string): Promise<ExclusiveContext | null> {
   const { data: request } = await supabaseAdmin.from('exclusive_material_requests').select('id,title,store_id,creator_id,customer_id').eq('id', requestId).maybeSingle();
   if (!request) return null;
-  const [storeResult, creatorResult, customerResult, subscriptionResult] = await Promise.all([
+  const [storeResult, creatorResult, customerResult, access] = await Promise.all([
     supabaseAdmin.from('stores').select('nome_loja,whatsapp').eq('id', request.store_id).maybeSingle(),
     supabaseAdmin.auth.admin.getUserById(request.creator_id),
     supabaseAdmin.auth.admin.getUserById(request.customer_id),
-    supabaseAdmin.from('whatsapp_store_subscriptions').select('instance_name,status,whatsapp_connected,expires_at').eq('store_id', request.store_id).maybeSingle(),
+    resolveCreatorWhatsAppAccess(request.store_id),
   ]);
-  const subscription = subscriptionResult.data;
-  const usesStoreInstance = subscription?.status === 'active' && subscription.whatsapp_connected === true && subscription.expires_at && new Date(subscription.expires_at) > new Date();
+  const subscription = access.subscription;
+  const usesStoreInstance = access.active && subscription?.whatsapp_connected === true;
   return {
     request,
     store: storeResult.data,
     creator: creatorResult.data.user,
     customer: customerResult.data.user,
-    instanceName: usesStoreInstance ? subscription.instance_name : undefined,
+    instanceName: usesStoreInstance ? subscription?.instance_name as string | undefined : undefined,
   };
 }
 

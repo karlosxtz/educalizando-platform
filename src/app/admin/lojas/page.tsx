@@ -1,8 +1,9 @@
 "use client";
 
-import { ExternalLink,Package,Trash2 } from 'lucide-react';
+import { ExternalLink,Gift,Loader2,MessageCircle,Package,Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect,useState } from 'react';
+import { toast } from 'sonner';
 
 interface StoreData {
   id: string;
@@ -12,12 +13,19 @@ interface StoreData {
   created_at: string;
   products: { count: number }[];
   withdrawals: { count: number }[];
+  whatsapp_module?: {
+    status?: string;
+    expires_at?: string | null;
+    whatsapp_connected?: boolean;
+    free_access_enabled?: boolean;
+  } | null;
 }
 
 export default function SuperAdminLojas() {
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [updatingWhatsapp, setUpdatingWhatsapp] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStores();
@@ -56,6 +64,30 @@ export default function SuperAdminLojas() {
     }
   }
 
+  async function toggleWhatsappBonus(store: StoreData) {
+    const enabled = store.whatsapp_module?.free_access_enabled === true;
+    setUpdatingWhatsapp(store.id);
+    try {
+      const res = await fetch('/api/admin/stores', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: store.id,
+          freeAccessEnabled: !enabled,
+          note: !enabled ? 'Cortesia liberada pelo painel administrativo.' : 'Cortesia encerrada pelo painel administrativo.',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Não foi possível alterar o acesso.');
+      setStores(current => current.map(item => item.id === store.id ? { ...item, whatsapp_module: data.subscription } : item));
+      toast.success(!enabled ? `WhatsApp liberado gratuitamente para ${store.nome_loja}.` : `Cortesia encerrada para ${store.nome_loja}.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível alterar o acesso.');
+    } finally {
+      setUpdatingWhatsapp(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -74,13 +106,14 @@ export default function SuperAdminLojas() {
                 <th scope="col" className="px-6 py-4">Nome da Loja</th>
                 <th scope="col" className="px-6 py-4">Slug (URL)</th>
                 <th scope="col" className="px-6 py-4">Produtos</th>
+                <th scope="col" className="px-6 py-4">WhatsApp da Loja</th>
                 <th scope="col" className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                       <p>Carregando lojas...</p>
@@ -89,14 +122,14 @@ export default function SuperAdminLojas() {
                 </tr>
               ) : errorMsg ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-red-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-red-500">
                     <p className="font-bold">Erro ao carregar lojas:</p>
                     <p className="text-sm">{errorMsg}</p>
                   </td>
                 </tr>
               ) : stores.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
                     Nenhuma loja encontrada.
                   </td>
                 </tr>
@@ -119,6 +152,25 @@ export default function SuperAdminLojas() {
                         <span className="bg-slate-800 text-slate-300 py-1 px-2 rounded font-medium text-xs">
                           {store.products?.[0]?.count || 0}
                         </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="min-w-52 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                          <span className={`rounded-full px-2 py-1 ${store.whatsapp_module?.free_access_enabled ? 'bg-violet-500/15 text-violet-300' : store.whatsapp_module?.status === 'active' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
+                            {store.whatsapp_module?.free_access_enabled ? 'Cortesia ativa' : store.whatsapp_module?.status === 'active' ? 'Assinatura paga' : 'Sem cortesia'}
+                          </span>
+                          {store.whatsapp_module?.whatsapp_connected ? <span className="inline-flex items-center gap-1 text-emerald-400"><MessageCircle className="h-3 w-3" />Conectado</span> : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void toggleWhatsappBonus(store)}
+                          disabled={updatingWhatsapp === store.id}
+                          className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-3 text-xs font-bold transition-colors disabled:opacity-50 ${store.whatsapp_module?.free_access_enabled ? 'border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20' : 'border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}`}
+                        >
+                          {updatingWhatsapp === store.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4" />}
+                          {store.whatsapp_module?.free_access_enabled ? 'Encerrar cortesia' : 'Liberar grátis'}
+                        </button>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
