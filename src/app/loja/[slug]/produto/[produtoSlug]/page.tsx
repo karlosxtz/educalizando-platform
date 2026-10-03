@@ -1,7 +1,7 @@
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
-import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { DEFAULT_SOCIAL_IMAGE,productCoverImageUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { getProductById,getPublicProductsByStoreId,getStoreBySlug } from '@/lib/store-service';
 import type { Product } from '@/lib/types';
 import { ChevronRight,Home,Store } from 'lucide-react';
@@ -41,7 +41,9 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
   const publicDescription = query.licenca === 'plr' && product.is_plr && product.plr_descricao ? product.plr_descricao : product.descricao;
   const description = publicDescription ? (publicDescription.substring(0, 155) + (publicDescription.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
   const url = `${SITE_URL}/produto/${product.slug || product.id}`;
-  const image = product.capa_url || DEFAULT_SOCIAL_IMAGE;
+  const image = product.capa_url
+    ? productCoverImageUrl(product.slug || product.id)
+    : DEFAULT_SOCIAL_IMAGE;
 
   return {
     title,
@@ -58,7 +60,7 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
       url,
       siteName: 'Educalizando',
       locale: 'pt_BR',
-      images: [image],
+      images: [{ url: image, alt: `Capa do material ${product.titulo}` }],
       type: 'website',
     },
     twitter: {
@@ -150,7 +152,9 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     '@type': 'Product',
     name: product.titulo,
     description: product.descricao || 'Material didático digital.',
-    image: product.capa_url ? [product.capa_url] : [],
+    ...(product.capa_url ? {
+      image: [productCoverImageUrl(product.slug || product.id)],
+    } : {}),
     sku: product.id,
     offers: {
       '@type': 'Offer',

@@ -40,8 +40,10 @@ export default async function Home() {
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name: 'Educalizando',
-    url: SITE_URL,
+    alternateName: ['Educalizando Plataforma Digital', 'Educalizando Digital'],
+    url: `${SITE_URL}/`,
     inLanguage: 'pt-BR',
     potentialAction: {
       '@type': 'SearchAction',

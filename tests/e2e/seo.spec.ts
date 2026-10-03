@@ -18,7 +18,9 @@ test('homepage entrega metadata, imagem social, H1 único e JSON-LD', async ({ p
 
   const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
   const schemas = jsonLd.map((value) => JSON.parse(value));
-  expect(schemas.some((schema) => schema['@type'] === 'WebSite')).toBe(true);
+  const website = schemas.find((schema) => schema['@type'] === 'WebSite');
+  expect(website).toMatchObject({ name: 'Educalizando', url: `${siteUrl}/` });
+  expect(website.alternateName).toContain('Educalizando Plataforma Digital');
   expect(schemas.some((schema) => schema['@type'] === 'Organization')).toBe(true);
 });
 
@@ -62,6 +64,7 @@ test('robots mantém áreas privadas bloqueadas para crawlers gerais e Googlebot
     expect(body).toContain(`Disallow: ${path}`);
   }
   expect(body).toMatch(/User-Agent: Googlebot[\s\S]*?Disallow: \/dashboard\//i);
+  expect(body).toMatch(/User-Agent: Googlebot[\s\S]*?Allow: \/api\/storage\/public-image/i);
 });
 
 test('asset social existe no build público e tem conteúdo', async ({ request }) => {

@@ -2,7 +2,7 @@ import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
-import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { DEFAULT_SOCIAL_IMAGE,productCoverImageUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { getProductById,getPublicProductsByStoreId,getStoreById } from '@/lib/store-service';
 import type { Product } from '@/lib/types';
 import { ChevronRight,Home } from 'lucide-react';
@@ -38,7 +38,9 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
   const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
   const description = product.descricao ? (product.descricao.substring(0, 155) + (product.descricao.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
   const url = `${SITE_URL}/produto/${product.slug || product.id}`;
-  const image = product.capa_url || DEFAULT_SOCIAL_IMAGE;
+  const image = product.capa_url
+    ? productCoverImageUrl(product.slug || product.id)
+    : DEFAULT_SOCIAL_IMAGE;
 
   return {
     title,
@@ -52,7 +54,7 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
       url,
       siteName: 'Educalizando',
       locale: 'pt_BR',
-      images: [image],
+      images: [{ url: image, alt: `Capa do material ${product.titulo}` }],
       type: 'website',
     },
     twitter: {
@@ -142,7 +144,9 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     '@type': 'Product',
     name: product.titulo,
     description: product.descricao || 'Material didático digital.',
-    image: product.capa_url ? [product.capa_url] : [],
+    ...(product.capa_url ? {
+      image: [productCoverImageUrl(product.slug || product.id)],
+    } : {}),
     sku: product.id,
     brand: {
       '@type': 'Brand',

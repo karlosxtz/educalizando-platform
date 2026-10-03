@@ -3,6 +3,7 @@ import { getCategories,getEducationLevels } from '@/lib/category-service';
 import { getDisciplines } from '@/lib/discipline-service';
 import { glossaryTerms } from '@/lib/glossary';
 import { SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
+import { productCoverImageUrl } from '@/lib/seo';
 import { seoLandings } from '@/lib/seo-landings';
 import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
 import { MetadataRoute } from 'next';
@@ -157,6 +158,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: product.updated_at || product.created_at ? new Date(product.updated_at || product.created_at) : new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
+        ...(product.capa_url ? { images: [productCoverImageUrl(product.slug || product.id)] } : {}),
       });
     });
   } catch (error) {

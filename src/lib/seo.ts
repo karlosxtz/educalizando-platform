@@ -44,6 +44,10 @@ export function absoluteUrl(pathname: string) {
   return new URL(pathname, SITE_URL).toString();
 }
 
+export function productCoverImageUrl(productSlugOrId: string) {
+  return absoluteUrl(`/imagens/produtos/${encodeURIComponent(productSlugOrId)}/capa`);
+}
+
 export function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
