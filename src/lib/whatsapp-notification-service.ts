@@ -33,26 +33,27 @@ export function whatsappNumberCandidates(phone: unknown): string[] {
   let digits = String(phone ?? '').replace(/\D/g, '');
   if (!digits) return [];
 
-  // Prefixo de discagem internacional (00 55) e zero de operadora/tronco.
-  if (digits.startsWith('0055')) digits = digits.slice(2);
-  if (digits.startsWith('550') && (digits.length === 13 || digits.length === 14)) {
-    digits = `55${digits.slice(3)}`;
-  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
-    digits = digits.slice(1);
+  // Prefixos de discagem internacional, tronco e operadora brasileira.
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  const hasBrazilCode = digits.startsWith('55');
+  let national = hasBrazilCode ? digits.slice(2) : digits;
+  if (national.startsWith('0')) {
+    national = national.slice(1);
+    // 0 + código da operadora (2 dígitos) + DDD + telefone.
+    if (national.length === 12 || national.length === 13) national = national.slice(2);
   }
+  digits = `55${national}`;
 
   let primary: string | null = null;
-  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+  if (digits.length === 12 || digits.length === 13) {
     primary = digits;
-  } else if (digits.length === 10 || digits.length === 11) {
-    primary = `55${digits}`;
   }
   if (!primary) return [];
 
   const candidates = [primary];
-  const national = primary.slice(2);
-  const ddd = national.slice(0, 2);
-  const subscriber = national.slice(2);
+  const normalizedNational = primary.slice(2);
+  const ddd = normalizedNational.slice(0, 2);
+  const subscriber = normalizedNational.slice(2);
 
   if (subscriber.length === 8) {
     candidates.push(`55${ddd}9${subscriber}`);
@@ -60,7 +61,7 @@ export function whatsappNumberCandidates(phone: unknown): string[] {
     candidates.push(`55${ddd}${subscriber.slice(1)}`);
   }
 
-  return [...new Set(candidates)].filter((candidate) => /^55\d{10,11}$/.test(candidate));
+  return [...new Set(candidates)].filter((candidate) => /^55[1-9]{2}\d{8,9}$/.test(candidate));
 }
 
 export function normalizeWhatsAppNumber(phone: unknown): string | null {
@@ -162,22 +163,7 @@ export async function sendEvolutionText(phone: unknown, text: string, instanceOv
   }
 
   try {
-    const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
-    if (!number) return invalidOrMissingWhatsApp(phone);
-    const response = await fetch(`${baseUrl}/message/sendText/${encodeURIComponent(instanceName)}`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ number, text }),
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null) as unknown;
-      const error = readableEvolutionFailure(response.status, body);
-      console.error(`[WhatsApp] Evolution respondeu com status ${response.status}: ${error}`);
-      return { sent: false, reason: `http_${response.status}`, error };
-    }
-    return { sent: true };
+    return await deliverEvolutionMessage(phone, { apiKey, baseUrl, instanceName }, 'sendText', (number) => ({ number, text }));
   } catch (error) {
     console.error('[WhatsApp] Falha de rede ao enviar mensagem pela Evolution.', error);
     return { sent: false, reason: 'network_error', error: 'Não foi possível alcançar a Evolution para enviar a mensagem.' };
@@ -210,24 +196,8 @@ export async function sendEvolutionImage(phone: unknown, url: string, caption: s
   if (!apiKey || !instanceName) return { sent: false, reason: 'not_configured', error: 'A Evolution não está configurada no ambiente.' };
 
   try {
-    const number = await resolveEvolutionWhatsAppNumber(phone, { apiKey, baseUrl, instanceName });
-    if (!number) return invalidOrMissingWhatsApp(phone);
     const media = await prepareEvolutionImageUrl(url);
-    const response = await fetch(`${baseUrl}/message/sendMedia/${encodeURIComponent(instanceName)}`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: apiKey },
-      body: JSON.stringify({ number, mediatype: 'image', media, caption }),
-      cache: 'no-store',
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null) as unknown;
-      return {
-        sent: false,
-        reason: `http_${response.status}`,
-        error: readableEvolutionFailure(response.status, body, true),
-      };
-    }
-    return { sent: true };
+    return await deliverEvolutionMessage(phone, { apiKey, baseUrl, instanceName }, 'sendMedia', (number) => ({ number, mediatype: 'image', media, caption }), true);
   } catch {
     return { sent: false, reason: 'network_error', error: 'Não foi possível enviar a imagem pela Evolution.' };
   }
@@ -241,6 +211,50 @@ function evolutionConfig() {
 }
 
 type ConfiguredEvolution = { apiKey: string; baseUrl: string; instanceName: string };
+
+type EvolutionDeliveryResult = { sent: boolean; reason?: string; error?: string };
+
+async function deliverEvolutionMessage(
+  phone: unknown,
+  config: ConfiguredEvolution,
+  endpoint: 'sendText' | 'sendMedia',
+  payload: (number: string) => Record<string, unknown>,
+  media = false,
+): Promise<EvolutionDeliveryResult> {
+  const candidates = whatsappNumberCandidates(phone);
+  if (!candidates.length) return invalidOrMissingWhatsApp(phone);
+  const preferred = await resolveEvolutionWhatsAppNumber(phone, config);
+  const ordered = preferred ? [preferred, ...candidates.filter(candidate => candidate !== preferred)] : candidates;
+  let lastFailure: EvolutionDeliveryResult = invalidOrMissingWhatsApp(phone);
+
+  candidateLoop: for (let index = 0; index < ordered.length; index += 1) {
+    const number = ordered[index];
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await fetch(`${config.baseUrl}/message/${endpoint}/${encodeURIComponent(config.instanceName)}`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', apikey: config.apiKey },
+        body: JSON.stringify(payload(number)),
+        cache: 'no-store',
+      });
+      if (response.ok) return { sent: true };
+
+      const body = await response.json().catch(() => null) as unknown;
+      const error = readableEvolutionFailure(response.status, body, media);
+      lastFailure = { sent: false, reason: `http_${response.status}`, error };
+      const transient = response.status === 408 || response.status === 429 || response.status >= 500;
+      if (transient && attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 900));
+        continue;
+      }
+      const numberRejected = response.status === 400 || response.status === 404 || response.status === 409 || response.status === 422
+        || /número|numero|whatsapp|jid|exists|not found/i.test(JSON.stringify(body));
+      if (numberRejected && index + 1 < ordered.length) continue candidateLoop;
+      console.error(`[WhatsApp] Evolution recusou ${number}: ${error}`);
+      return lastFailure;
+    }
+  }
+  return lastFailure;
+}
 
 function invalidOrMissingWhatsApp(phone: unknown): { sent: false; reason: string; error: string } {
   if (!whatsappNumberCandidates(phone).length) {

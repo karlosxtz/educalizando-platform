@@ -1,7 +1,7 @@
 import { isSuperAdmin } from '@/lib/api-auth';
 import { creatorMatchesNetworkingAudience,isCreatorNetworkingPresetId,renderCreatorNetworkingMessage,type CreatorNetworkingAudience,type CreatorNetworkingPresetId } from '@/lib/creator-networking';
 import { supabaseAdmin } from '@/lib/supabase';
-import { normalizeWhatsAppNumber,sendEvolutionImage,sendEvolutionText } from '@/lib/whatsapp-notification-service';
+import { getEvolutionInstanceHealth,normalizeWhatsAppNumber,sendEvolutionImage,sendEvolutionText } from '@/lib/whatsapp-notification-service';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
 
 function parseSelectedIds(value: unknown) {
   if (!Array.isArray(value)) return [];
-  return [...new Set(value.filter((id): id is string => typeof id === 'string' && id.length <= 100))].slice(0, 2000);
+  return [...new Set(value.filter((id): id is string => typeof id === 'string' && id.length <= 100))].slice(0, 500);
 }
 
 async function pause(milliseconds: number) {
@@ -193,6 +193,9 @@ export async function POST(request: Request) {
     if (!text) return NextResponse.json({ error: 'Escreva a mensagem que será enviada.' }, { status: 400 });
     if (!selectedIds.length) return NextResponse.json({ error: 'Selecione pelo menos um criador.' }, { status: 400 });
     if (imageUrl && !/^https:\/\//i.test(imageUrl)) return NextResponse.json({ error: 'A imagem anexada é inválida.' }, { status: 400 });
+    const health = await getEvolutionInstanceHealth();
+    if (!health.configured) return NextResponse.json({ error: 'A Evolution ainda não está configurada no servidor.' }, { status: 503 });
+    if (!health.connected) return NextResponse.json({ error: 'O WhatsApp administrativo está desconectado. Reconecte a instância antes de enviar.' }, { status: 503 });
 
     const selected = new Set(selectedIds);
     const allRecipients = await getCreatorRecipients();
@@ -206,28 +209,35 @@ export async function POST(request: Request) {
     const sentIds: string[] = [];
     let sent = 0;
     let alreadySent = 0;
+    let textFallbacks = 0;
 
-    for (let offset = 0; offset < uniqueRecipients.length; offset += 5) {
-      const batch = uniqueRecipients.slice(offset, offset + 5);
+    for (let offset = 0; offset < uniqueRecipients.length; offset += 4) {
+      const batch = uniqueRecipients.slice(offset, offset + 4);
       const results = await Promise.all(batch.map(async (recipient) => {
         const message = renderCreatorNetworkingMessage(text, recipient);
         let historyToken: string | null = null;
         try {
           historyToken = presetId === 'group' ? await claimGroupInvite(recipient) : null;
-          if (presetId === 'group' && !historyToken) return { recipient, result: null, alreadySent: true };
-          const result = imageUrl
-            ? await sendEvolutionImage(recipient.phone, imageUrl, message)
-            : await sendEvolutionText(recipient.phone, message);
+          if (presetId === 'group' && !historyToken) return { recipient, result: null, alreadySent: true, usedTextFallback: false };
+          let result = imageUrl ? await sendEvolutionImage(recipient.phone, imageUrl, message) : await sendEvolutionText(recipient.phone, message);
+          let usedTextFallback = false;
+          if (imageUrl && !result.sent && result.reason !== 'invalid_phone' && result.reason !== 'not_on_whatsapp') {
+            const textResult = await sendEvolutionText(recipient.phone, message);
+            if (textResult.sent) {
+              result = textResult;
+              usedTextFallback = true;
+            }
+          }
           if (historyToken) await finishGroupInvite(recipient.id, historyToken, result.sent, result.error);
-          return { recipient, result, alreadySent: false };
+          return { recipient, result, alreadySent: false, usedTextFallback };
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Não foi possível registrar este envio.';
           if (historyToken) await finishGroupInvite(recipient.id, historyToken, false, message).catch(() => undefined);
-          return { recipient, result: { sent: false, error: message }, alreadySent: false };
+          return { recipient, result: { sent: false, error: message }, alreadySent: false, usedTextFallback: false };
         }
       }));
 
-      for (const { recipient, result, alreadySent: skippedHistory } of results) {
+      for (const { recipient, result, alreadySent: skippedHistory, usedTextFallback } of results) {
         if (skippedHistory || !result) {
           alreadySent += 1;
           continue;
@@ -235,10 +245,11 @@ export async function POST(request: Request) {
         if (result.sent) {
           sent += 1;
           sentIds.push(recipient.id);
+          if (usedTextFallback) textFallbacks += 1;
         }
         else failures.push({ id: recipient.id, name: recipient.name, error: result.error || 'Falha não identificada.' });
       }
-      if (offset + 5 < uniqueRecipients.length) await pause(500);
+      if (offset + 4 < uniqueRecipients.length) await pause(900);
     }
 
     return NextResponse.json({
@@ -251,6 +262,7 @@ export async function POST(request: Request) {
         skipped,
         duplicates: recipients.length - uniqueRecipients.length,
         alreadySent,
+        textFallbacks,
         failures: failures.slice(0, 50),
         sentIds,
       },

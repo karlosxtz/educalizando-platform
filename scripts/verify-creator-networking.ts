@@ -31,6 +31,8 @@ assert.equal(normalizeWhatsAppNumber('(12) 99999-9999'), '5512999999999');
 assert.equal(normalizeWhatsAppNumber('+55 (12) 99999-9999'), '5512999999999');
 assert.equal(normalizeWhatsAppNumber('0055 12 99999-9999'), '5512999999999');
 assert.equal(normalizeWhatsAppNumber('0 (12) 99999-9999'), '5512999999999');
+assert.equal(normalizeWhatsAppNumber('021 (12) 99999-9999'), '5512999999999');
+assert.equal(normalizeWhatsAppNumber('+55 021 (12) 99999-9999'), '5512999999999');
 assert.deepEqual(whatsappNumberCandidates('(12) 3456-7890'), ['551234567890', '5512934567890']);
 assert.deepEqual(whatsappNumberCandidates('(12) 93456-7890'), ['5512934567890', '551234567890']);
 assert.equal(normalizeWhatsAppNumber('(12) 123456'), null);

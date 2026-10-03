@@ -51,6 +51,7 @@ type SendResult = {
   skipped: number;
   duplicates: number;
   alreadySent: number;
+  textFallbacks: number;
   failures: Array<{ id: string; name: string; error: string }>;
   sentIds: string[];
 };
@@ -195,6 +196,7 @@ export default function CreatorNetworkingPage() {
       if (payload.result) setResult(payload.result as SendResult);
       if (!response.ok) throw new Error(payload.error || payload.result?.failures?.[0]?.error || 'O envio não foi concluído.');
       if (payload.result.failed) toast.warning(`${payload.result.sent} enviada(s) e ${payload.result.failed} com falha.`);
+      else if (payload.result.textFallbacks) toast.success(`${payload.result.sent} enviada(s). ${payload.result.textFallbacks} seguiram sem imagem para garantir a entrega.`);
       else toast.success(`${payload.result.sent} mensagem(ns) enviada(s) com sucesso.`);
       if (activePreset === 'group' && payload.result.sent > 0) {
         const sentAt = new Date().toISOString();
@@ -321,7 +323,7 @@ export default function CreatorNetworkingPage() {
         </div>
       </section>
 
-      {result && <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><h2 className="text-lg font-black text-white">Resultado do último envio</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5"><ResultCard label="Enviadas" value={result.sent} success /><ResultCard label="Falhas" value={result.failed} danger /><ResultCard label="Sem WhatsApp" value={result.skipped} /><ResultCard label="Já convidados" value={result.alreadySent} /><ResultCard label="Duplicados evitados" value={result.duplicates} /></div>{result.failures.length > 0 && <div className="mt-4 min-w-0 overflow-hidden rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="text-xs font-black uppercase tracking-wide text-rose-300">Falhas para revisar</p><p className="mt-1 text-xs leading-relaxed text-slate-400">Os motivos abaixo já estão traduzidos. Corrija somente os números indicados ou tente reenviar após conferir a conexão da Evolution.</p><ul className="mt-3 min-w-0 space-y-2 text-xs text-rose-100">{result.failures.map((failure) => <li key={failure.id} className="min-w-0 break-all rounded-lg bg-slate-950/50 px-3 py-2 leading-relaxed"><strong className="text-white">{failure.name}:</strong> {failure.error}</li>)}</ul></div>}</section>}
+      {result && <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6"><h2 className="text-lg font-black text-white">Resultado do último envio</h2><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6"><ResultCard label="Enviadas" value={result.sent} success /><ResultCard label="Falhas" value={result.failed} danger /><ResultCard label="Entregues sem imagem" value={result.textFallbacks} /><ResultCard label="Sem WhatsApp" value={result.skipped} /><ResultCard label="Já convidados" value={result.alreadySent} /><ResultCard label="Duplicados evitados" value={result.duplicates} /></div>{result.textFallbacks > 0 && <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs leading-5 text-amber-100">A imagem não foi aceita pela Evolution em {result.textFallbacks} envio(s), mas o texto foi entregue automaticamente para que o criador não ficasse sem a mensagem.</p>}{result.failures.length > 0 && <div className="mt-4 min-w-0 overflow-hidden rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="text-xs font-black uppercase tracking-wide text-rose-300">Falhas para revisar</p><p className="mt-1 text-xs leading-relaxed text-slate-400">Os motivos abaixo já estão traduzidos. Corrija somente os números indicados ou tente reenviar após conferir a conexão da Evolution.</p><ul className="mt-3 min-w-0 space-y-2 text-xs text-rose-100">{result.failures.map((failure) => <li key={failure.id} className="min-w-0 break-all rounded-lg bg-slate-950/50 px-3 py-2 leading-relaxed"><strong className="text-white">{failure.name}:</strong> {failure.error}</li>)}</ul></div>}</section>}
 
     </div>
   );
