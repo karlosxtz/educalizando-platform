@@ -40,31 +40,11 @@ function authenticationUnavailable(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  const developmentPolicy = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''
-  const protectedContentSecurityPolicy = `
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${developmentPolicy};
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https:;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.checkout.infinitepay.io https://api.asaas.com https://arquivos.educalizando.com.br;
-    frame-src 'self' https://www.youtube.com;
-    worker-src 'self' blob:;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'self';
-  `.replace(/\s{2,}/g, ' ').trim()
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-nonce', nonce)
-  requestHeaders.set('Content-Security-Policy', protectedContentSecurityPolicy)
-  const createProtectedResponse = () => {
-    const response = NextResponse.next({ request: { headers: requestHeaders } })
-    response.headers.set('Content-Security-Policy', protectedContentSecurityPolicy)
-    return response
-  }
-  let supabaseResponse = createProtectedResponse()
+  // As rotas protegidas ainda são pré-renderizadas pelo Next. Um CSP baseado
+  // em nonce só funciona com renderização dinâmica, pois o nonce precisa ser
+  // inserido nos scripts durante cada resposta. O CSP global de next.config.ts
+  // permanece ativo; o proxy cuida somente de sessão e autorização.
+  let supabaseResponse = NextResponse.next({ request })
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -76,7 +56,7 @@ export async function proxy(request: NextRequest) {
       getAll() { return request.cookies.getAll() },
       setAll(keysToSet) {
         keysToSet.forEach(({ name, value, options: _options }) => request.cookies.set(name, value))
-        supabaseResponse = createProtectedResponse()
+        supabaseResponse = NextResponse.next({ request })
         keysToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
       },
     },
