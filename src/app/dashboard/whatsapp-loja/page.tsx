@@ -1,6 +1,7 @@
 'use client';
 
 import CreatorWhatsAppCampaignCenter from '@/components/creator/CreatorWhatsAppCampaignCenter';
+import CreatorChatbotApiPanel from '@/components/creator/CreatorChatbotApiPanel';
 import { CheckCircle2,MessageCircle,QrCode,RefreshCw,Send,ShieldCheck,Sparkles,X } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
@@ -79,6 +80,7 @@ export default function WhatsAppLojaPage() {
 
     {loading ? <div className="rounded-2xl border bg-white p-8 text-center">Carregando...</div> : active ? <ActiveModule data={data!} connecting={connecting} onConnect={() => void connect(false)} /> : <InactiveModule paying={paying} priceCents={data?.priceCents || 1990} onBuy={() => void buy()} />}
 
+    {active && <CreatorChatbotApiPanel />}
     {active && <CreatorWhatsAppCampaignCenter connected={Boolean(data?.subscription?.whatsapp_connected)} />}
     {connection && <ConnectionModal connection={connection} qrSource={qrSource} connecting={connecting} onClose={() => setConnection(null)} onRefresh={() => void connect(true)} />}
   </div>;
@@ -97,7 +99,7 @@ function ActiveModule({ data, connecting, onConnect }: { data: Data; connecting:
 }
 
 function InactiveModule({ paying, priceCents, onBuy }: { paying: boolean; priceCents: number; onBuy: () => void }) {
-  const benefits = ['Busca por tema, série e categoria', 'Campanhas para seus clientes', 'Divulgação de produtos com capa', 'Convite para material exclusivo', 'Pagamento e entrega automáticos', 'QR Code e número da sua loja'];
+  const benefits = ['Busca por tema, série e categoria', 'API privada para chatbot e n8n', 'Campanhas para seus clientes', 'Divulgação de produtos com capa', 'Convite para material exclusivo', 'Pagamento e entrega automáticos', 'QR Code e número da sua loja'];
   const price = (priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   return <section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><div className="rounded-3xl border bg-white p-6 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-emerald-600">O que você ganha</p><h2 className="mt-2 text-2xl font-black">Mais vendas. Menos respostas repetidas.</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{benefits.map((item) => <p key={item} className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-900"><MessageCircle className="h-4 w-4" />{item}</p>)}</div></div><aside className="rounded-3xl bg-slate-950 p-6 text-white shadow-xl"><p className="text-sm font-bold text-emerald-300">WHATSAPP DA LOJA</p><p className="mt-3 text-4xl font-black">{price}</p><p className="text-sm text-slate-300">por 30 dias de automação</p><ul className="my-5 space-y-2 text-sm text-slate-200"><li>✓ Assinatura do módulo: {price} a cada 30 dias</li><li>✓ Atendimento automático e campanhas</li><li>✓ Sem assinatura ou cortesia, a comunicação é interrompida</li></ul><button onClick={onBuy} disabled={paying} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 text-sm font-black text-slate-950 disabled:opacity-60"><Send className="h-4 w-4" />{paying ? 'Abrindo pagamento...' : 'Ativar agora'}</button></aside></section>;
 }
