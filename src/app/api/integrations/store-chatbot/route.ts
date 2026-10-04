@@ -14,28 +14,58 @@ function text(value: unknown) {
   return typeof value === 'string' ? value : null;
 }
 
+function absoluteUrl(value: unknown, origin: string) {
+  const candidate = text(value)?.trim();
+  if (!candidate) return null;
+  try { return new URL(candidate, origin).toString(); } catch { return null; }
+}
+
+function money(value: number) {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function whatsappMessage(input: { title: string; description: string | null; price: number; url: string; free?: boolean }) {
+  const summary = input.description?.replace(/\s+/g, ' ').trim().slice(0, 320);
+  return [
+    `📚 ${input.title}`,
+    summary || null,
+    input.free ? '🎁 Material gratuito' : `💰 ${money(input.price)}`,
+    `🔗 Veja os detalhes: ${input.url}`,
+  ].filter(Boolean).join('\n\n');
+}
+
 function publicProduct(product: ProductRow, storeSlug: string, origin: string, categoryNames: Map<string, string>, levelNames: Map<string, string>) {
   const categoryIds = [...new Set([product.category_id, ...(product.category_ids || [])].filter((id): id is string => Boolean(id)))];
   const levelIds = [...new Set([product.education_level_id, ...(product.education_level_ids || [])].filter((id): id is string => Boolean(id)))];
   const path = `/loja/${encodeURIComponent(storeSlug)}/produto/${encodeURIComponent(product.slug || product.id)}`;
+  const publicUrl = `${origin}${path}`;
+  const coverUrl = absoluteUrl(product.capa_url, origin);
+  const description = text(product.descricao);
+  const price = Number(product.preco || 0);
+  const plrPrice = Number(product.preco_plr || 0);
+  const plrUrl = `${publicUrl}?licenca=plr`;
   return {
     id: product.id,
     title: product.titulo,
     slug: product.slug || product.id,
-    description: text(product.descricao),
+    description,
     type: text(product.tipo),
-    price: Number(product.preco || 0),
+    price,
     originalPrice: product.preco_original == null ? null : Number(product.preco_original),
     isFree: product.is_free === true,
     isPlr: product.is_plr === true,
     plr: product.is_plr === true ? {
       description: text(product.plr_descricao),
-      price: Number(product.preco_plr || 0),
-      publicUrl: `${origin}${path}?licenca=plr`,
+      price: plrPrice,
+      publicUrl: plrUrl,
+      whatsapp: {
+        imageUrl: coverUrl,
+        message: whatsappMessage({ title: product.titulo, description: text(product.plr_descricao) || description, price: plrPrice, url: plrUrl }),
+      },
     } : null,
-    coverUrl: text(product.capa_url),
-    previewUrl: text(product.preview_url),
-    instagramVideoUrl: text(product.instagram_video_url),
+    coverUrl,
+    previewUrl: absoluteUrl(product.preview_url, origin),
+    instagramVideoUrl: absoluteUrl(product.instagram_video_url, origin),
     pageCount: product.page_count == null ? null : Number(product.page_count),
     ageRange: text(product.age_range),
     formatDetails: text(product.format_details),
@@ -43,7 +73,11 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     educationLevels: levelIds.map((id) => ({ id, name: levelNames.get(id) || null })),
     themes: Array.isArray(product.seasonal_tags) ? product.seasonal_tags : [],
     tags: Array.isArray(product.tags) ? product.tags : [],
-    publicUrl: `${origin}${path}`,
+    publicUrl,
+    whatsapp: {
+      imageUrl: coverUrl,
+      message: whatsappMessage({ title: product.titulo, description, price, url: publicUrl, free: product.is_free === true }),
+    },
     createdAt: product.created_at,
     updatedAt: product.updated_at || null,
   };

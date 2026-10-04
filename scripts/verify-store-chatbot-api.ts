@@ -16,6 +16,8 @@ assert.match(integration, /readStoreChatbotApiKey\(request\)/, 'O endpoint preci
 assert.match(integration, /resolveCreatorWhatsAppAccess\(keyRecord\.store_id\)/, 'Cada chamada precisa revalidar o acesso comercial.');
 assert.match(integration, /\.eq\('store_id', keyRecord\.store_id\)/, 'As consultas precisam ser isoladas pelo store_id da chave.');
 assert.match(integration, /externalSearch: false/, 'A resposta precisa declarar que não pesquisa fontes externas.');
+assert.match(integration, /imageUrl: coverUrl/, 'Cada material precisa expor a capa pronta para envio no WhatsApp.');
+assert.match(integration, /whatsappMessage/, 'Cada material precisa expor uma legenda simples pronta para envio.');
 assert.doesNotMatch(integration, /orders|purchases|product_deliveries|arquivo_url/, 'A API pública não pode consultar pedidos, compras nem arquivos de entrega.');
 assert.match(management, /key_hash: generated\.hash/, 'A rota de geração não deve persistir a chave completa.');
 assert.doesNotMatch(management, /apiKey:\s*record/, 'A leitura da configuração nunca pode devolver a chave persistida.');
