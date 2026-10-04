@@ -28,18 +28,3 @@ export function readStoreChatbotApiKey(request: Request) {
 export function isStoreChatbotApiKey(value: string) {
   return value.startsWith(STORE_CHATBOT_KEY_PREFIX) && value.length >= 48 && value.length <= 100;
 }
-
-export function normalizeCatalogSearch(value: unknown) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase('pt-BR')
-    .trim()
-    .slice(0, 120);
-}
-
-export function catalogItemMatches(item: Record<string, unknown>, query: string) {
-  if (!query) return true;
-  const text = normalizeCatalogSearch(Object.values(item).map((value) => Array.isArray(value) ? value.join(' ') : value).join(' '));
-  return query.split(/\s+/).filter(Boolean).every((term) => text.includes(term));
-}

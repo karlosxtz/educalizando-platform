@@ -1,6 +1,7 @@
 import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
-import { catalogItemMatches, hashStoreChatbotApiKey, isStoreChatbotApiKey, normalizeCatalogSearch, readStoreChatbotApiKey } from '@/lib/store-chatbot-api';
+import { hashStoreChatbotApiKey, isStoreChatbotApiKey, readStoreChatbotApiKey } from '@/lib/store-chatbot-api';
+import { catalogItemMatches, normalizeCatalogSearch } from '@/lib/store-chatbot-catalog-search';
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
@@ -27,7 +28,11 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     originalPrice: product.preco_original == null ? null : Number(product.preco_original),
     isFree: product.is_free === true,
     isPlr: product.is_plr === true,
-    plr: product.is_plr === true ? { description: text(product.plr_descricao), price: Number(product.preco_plr || 0) } : null,
+    plr: product.is_plr === true ? {
+      description: text(product.plr_descricao),
+      price: Number(product.preco_plr || 0),
+      publicUrl: `${origin}${path}?licenca=plr`,
+    } : null,
     coverUrl: text(product.capa_url),
     previewUrl: text(product.preview_url),
     instagramVideoUrl: text(product.instagram_video_url),
@@ -133,6 +138,7 @@ export async function GET(request: Request) {
     const matches = (items: Array<Record<string, unknown>>) => query ? items.filter((item) => catalogItemMatches(item, query)) : items;
     const paidProducts = matches(products.filter((product) => !product.isFree));
     const freeMaterials = matches(products.filter((product) => product.isFree));
+    const plrProducts = matches(products.filter((product) => product.isPlr));
     const visibleClubs = matches(clubs);
     const visibleKits = matches(kits);
     const payload = {
@@ -153,8 +159,9 @@ export async function GET(request: Request) {
         contact: { whatsapp: text(store.whatsapp), website: text(store.website) },
         socialNetworks: { instagram: text(store.instagram), tiktok: text(store.tiktok), facebook: text(store.facebook), youtube: text(store.youtube) },
       },
-      counts: { products: paidProducts.length, freeMaterials: freeMaterials.length, clubs: visibleClubs.length, kits: visibleKits.length },
+      counts: { products: paidProducts.length, plrProducts: plrProducts.length, freeMaterials: freeMaterials.length, clubs: visibleClubs.length, kits: visibleKits.length },
       ...(section === 'all' || section === 'products' ? { products: paidProducts } : {}),
+      ...(section === 'all' || section === 'plr' ? { plrProducts } : {}),
       ...(section === 'all' || section === 'free_materials' ? { freeMaterials } : {}),
       ...(section === 'all' || section === 'clubs' ? { clubs: visibleClubs } : {}),
       ...(section === 'all' || section === 'kits' ? { kits: visibleKits } : {}),

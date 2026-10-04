@@ -24,6 +24,12 @@ export function buildStoreChatbotN8nWorkflow(input: {
                 value: 'alfabetização',
                 type: 'string',
               },
+              {
+                id: 'educalizando-search-section',
+                name: 'secao',
+                value: 'all',
+                type: 'string',
+              },
             ],
           },
           options: {},
@@ -39,7 +45,10 @@ export function buildStoreChatbotN8nWorkflow(input: {
           url: input.endpoint,
           sendQuery: true,
           queryParameters: {
-            parameters: [{ name: 'q', value: '={{ $json.termo }}' }],
+            parameters: [
+              { name: 'q', value: '={{ $json.termo }}' },
+              { name: 'section', value: '={{ $json.secao }}' },
+            ],
           },
           sendHeaders: true,
           headerParameters: {

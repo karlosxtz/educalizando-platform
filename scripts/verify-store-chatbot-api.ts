@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildStoreChatbotN8nWorkflow } from '../src/lib/store-chatbot-n8n-workflow';
+import { catalogItemMatches, normalizeCatalogSearch } from '../src/lib/store-chatbot-catalog-search';
 
 const root = process.cwd();
 const integration = readFileSync(join(root, 'src', 'app', 'api', 'integrations', 'store-chatbot', 'route.ts'), 'utf8');
@@ -26,5 +27,8 @@ assert.match(workflowText, /n8n-nodes-base\.httpRequest/, 'O arquivo importável
 assert.match(workflowText, /Authorization/, 'O fluxo precisa configurar a autenticação automaticamente.');
 assert.match(workflowText, /Bearer edu_live_test_secret/, 'A chave deve ser incluída no cabeçalho do nó.');
 assert.doesNotMatch(workflowText, /api[_-]?key=/i, 'A chave não pode ser colocada na URL da consulta.');
+assert.match(workflowText, /section/, 'O fluxo precisa permitir escolher produtos, PLRs, gratuitos, clubes e kits.');
+assert.equal(catalogItemMatches({ title: 'Material pedagógico', isPlr: true }, normalizeCatalogSearch('PLR')), true, 'Uma busca por PLR deve encontrar licenças de revenda.');
+assert.equal(catalogItemMatches({ title: 'Jogo de letras', isFree: true }, normalizeCatalogSearch('material grátis')), true, 'Uma busca por material grátis deve reconhecer produtos gratuitos.');
 
 console.log('API privada por loja validada: chave com hash, acesso comercial, isolamento e catálogo público.');
