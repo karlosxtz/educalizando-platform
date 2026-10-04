@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildStoreChatbotN8nWorkflow } from '../src/lib/store-chatbot-n8n-workflow';
-import { catalogItemMatches, normalizeCatalogSearch } from '../src/lib/store-chatbot-catalog-search';
+import { buildWhatsAppCatalogMessage, catalogItemMatches, normalizeCatalogSearch } from '../src/lib/store-chatbot-catalog-search';
 
 const root = process.cwd();
 const integration = readFileSync(join(root, 'src', 'app', 'api', 'integrations', 'store-chatbot', 'route.ts'), 'utf8');
@@ -17,7 +17,7 @@ assert.match(integration, /resolveCreatorWhatsAppAccess\(keyRecord\.store_id\)/,
 assert.match(integration, /\.eq\('store_id', keyRecord\.store_id\)/, 'As consultas precisam ser isoladas pelo store_id da chave.');
 assert.match(integration, /externalSearch: false/, 'A resposta precisa declarar que não pesquisa fontes externas.');
 assert.match(integration, /imageUrl: coverUrl/, 'Cada material precisa expor a capa pronta para envio no WhatsApp.');
-assert.match(integration, /whatsappMessage/, 'Cada material precisa expor uma legenda simples pronta para envio.');
+assert.match(integration, /preparedWhatsAppMessage/, 'Cada material precisa expor uma legenda simples pronta para envio.');
 assert.doesNotMatch(integration, /orders|purchases|product_deliveries|arquivo_url/, 'A API pública não pode consultar pedidos, compras nem arquivos de entrega.');
 assert.match(management, /key_hash: generated\.hash/, 'A rota de geração não deve persistir a chave completa.');
 assert.doesNotMatch(management, /apiKey:\s*record/, 'A leitura da configuração nunca pode devolver a chave persistida.');
@@ -32,5 +32,16 @@ assert.doesNotMatch(workflowText, /api[_-]?key=/i, 'A chave não pode ser coloca
 assert.match(workflowText, /section/, 'O fluxo precisa permitir escolher produtos, PLRs, gratuitos, clubes e kits.');
 assert.equal(catalogItemMatches({ title: 'Material pedagógico', isPlr: true }, normalizeCatalogSearch('PLR')), true, 'Uma busca por PLR deve encontrar licenças de revenda.');
 assert.equal(catalogItemMatches({ title: 'Jogo de letras', isFree: true }, normalizeCatalogSearch('material grátis')), true, 'Uma busca por material grátis deve reconhecer produtos gratuitos.');
+
+const dualLicenseMessage = buildWhatsAppCatalogMessage({
+  title: 'Jogo das Sílabas',
+  description: 'Descrição cadastrada pelo criador.',
+  finalPrice: 6.99,
+  finalUrl: 'https://example.com/produto/jogo-das-silabas',
+  plr: { price: 18.99, url: 'https://example.com/produto/jogo-das-silabas?licenca=plr' },
+});
+assert.match(dualLicenseMessage, /Descrição cadastrada pelo criador\./, 'A mensagem deve usar a descrição oficial do catálogo.');
+assert.match(dualLicenseMessage, /Comprar versão final: https:\/\/example\.com\/produto\/jogo-das-silabas/, 'A mensagem deve incluir o link da versão final.');
+assert.match(dualLicenseMessage, /Comprar versão PLR: https:\/\/example\.com\/produto\/jogo-das-silabas\?licenca=plr/, 'A mensagem deve incluir o link da versão PLR.');
 
 console.log('API privada por loja validada: chave com hash, acesso comercial, isolamento e catálogo público.');

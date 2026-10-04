@@ -25,3 +25,32 @@ export function catalogItemMatches(item: Record<string, unknown>, query: string)
   const text = normalizeCatalogSearch(values.join(' '));
   return query.split(/\s+/).filter(Boolean).every((term) => text.includes(term));
 }
+
+type WhatsAppCatalogMessageInput = {
+  title: string;
+  description: string | null;
+  finalPrice: number;
+  finalUrl: string;
+  free?: boolean;
+  plr?: { price: number; url: string } | null;
+};
+
+function money(value: number) {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+export function buildWhatsAppCatalogMessage(input: WhatsAppCatalogMessageInput) {
+  const catalogDescription = input.description?.replace(/\s+/g, ' ').trim().slice(0, 1200);
+  const purchaseOptions = input.free
+    ? ['🎁 Versão final gratuita', `🔗 Acessar versão final: ${input.finalUrl}`]
+    : [`💰 Versão final: ${money(input.finalPrice)}`, `🛒 Comprar versão final: ${input.finalUrl}`];
+
+  if (input.plr) {
+    purchaseOptions.push(
+      `♻️ Versão PLR com licença de revenda: ${money(input.plr.price)}`,
+      `🛒 Comprar versão PLR: ${input.plr.url}`,
+    );
+  }
+
+  return [`📚 ${input.title}`, catalogDescription || null, ...purchaseOptions].filter(Boolean).join('\n\n');
+}

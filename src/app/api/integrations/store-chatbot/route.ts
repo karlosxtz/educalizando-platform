@@ -1,7 +1,7 @@
 import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 import { hashStoreChatbotApiKey, isStoreChatbotApiKey, readStoreChatbotApiKey } from '@/lib/store-chatbot-api';
-import { catalogItemMatches, normalizeCatalogSearch } from '@/lib/store-chatbot-catalog-search';
+import { buildWhatsAppCatalogMessage, catalogItemMatches, normalizeCatalogSearch } from '@/lib/store-chatbot-catalog-search';
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
@@ -20,20 +20,6 @@ function absoluteUrl(value: unknown, origin: string) {
   try { return new URL(candidate, origin).toString(); } catch { return null; }
 }
 
-function money(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function whatsappMessage(input: { title: string; description: string | null; price: number; url: string; free?: boolean }) {
-  const summary = input.description?.replace(/\s+/g, ' ').trim().slice(0, 320);
-  return [
-    `📚 ${input.title}`,
-    summary || null,
-    input.free ? '🎁 Material gratuito' : `💰 ${money(input.price)}`,
-    `🔗 Veja os detalhes: ${input.url}`,
-  ].filter(Boolean).join('\n\n');
-}
-
 function publicProduct(product: ProductRow, storeSlug: string, origin: string, categoryNames: Map<string, string>, levelNames: Map<string, string>) {
   const categoryIds = [...new Set([product.category_id, ...(product.category_ids || [])].filter((id): id is string => Boolean(id)))];
   const levelIds = [...new Set([product.education_level_id, ...(product.education_level_ids || [])].filter((id): id is string => Boolean(id)))];
@@ -44,6 +30,14 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
   const price = Number(product.preco || 0);
   const plrPrice = Number(product.preco_plr || 0);
   const plrUrl = `${publicUrl}?licenca=plr`;
+  const preparedWhatsAppMessage = buildWhatsAppCatalogMessage({
+    title: product.titulo,
+    description,
+    finalPrice: price,
+    finalUrl: publicUrl,
+    free: product.is_free === true,
+    plr: product.is_plr === true ? { price: plrPrice, url: plrUrl } : null,
+  });
   return {
     id: product.id,
     title: product.titulo,
@@ -60,7 +54,8 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
       publicUrl: plrUrl,
       whatsapp: {
         imageUrl: coverUrl,
-        message: whatsappMessage({ title: product.titulo, description: text(product.plr_descricao) || description, price: plrPrice, url: plrUrl }),
+        message: preparedWhatsAppMessage,
+        descriptionSource: 'catalog',
       },
     } : null,
     coverUrl,
@@ -76,7 +71,8 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     publicUrl,
     whatsapp: {
       imageUrl: coverUrl,
-      message: whatsappMessage({ title: product.titulo, description, price, url: publicUrl, free: product.is_free === true }),
+      message: preparedWhatsAppMessage,
+      descriptionSource: 'catalog',
     },
     createdAt: product.created_at,
     updatedAt: product.updated_at || null,
