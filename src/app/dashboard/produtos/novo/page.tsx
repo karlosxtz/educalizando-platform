@@ -247,7 +247,13 @@ function ProductWizardContent() {
     const term = bnccSearch.trim().toLocaleLowerCase('pt-BR');
     const matches = bnccSkillsMaster.filter(skill => {
       const code = skill.code.toUpperCase();
-      const stageMatches = bnccStage === 'all' || code.startsWith(bnccStage);
+      const gradeLevel = (skill.grade_level || '').toLocaleLowerCase('pt-BR');
+      const ererStageMatches = code.startsWith('ERER') && (
+        (bnccStage === 'EI' && gradeLevel.includes('educação infantil')) ||
+        (bnccStage === 'EF' && gradeLevel.includes('ensino fundamental')) ||
+        (bnccStage === 'EM' && gradeLevel.includes('ensino médio'))
+      );
+      const stageMatches = bnccStage === 'all' || code.startsWith(bnccStage) || ererStageMatches;
       const subjectMatches = bnccSubject === 'all' || skill.subject === bnccSubject;
       const searchMatches = !term || `${skill.code} ${skill.description} ${skill.grade_level || ''} ${skill.subject || ''}`
         .toLocaleLowerCase('pt-BR').includes(term);

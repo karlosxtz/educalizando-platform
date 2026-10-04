@@ -246,15 +246,15 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                 <div className="pt-2">
                   <label className="flex items-center gap-3 mb-3 cursor-pointer">
                     <input type="checkbox" checked={usesBncc} onChange={(e) => { setUsesBncc(e.target.checked); if (!e.target.checked) setSelectedBnccSkills([]); }} className="w-4 h-4 accent-blue-600" />
-                    <span className="text-sm font-bold text-slate-800">Este material é alinhado à BNCC</span>
+                    <span className="text-sm font-bold text-slate-800">Este material é alinhado à BNCC ou à Educação para as Relações Étnico-Raciais</span>
                   </label>
                   {!usesBncc ? <p className="text-xs text-slate-500">Marque esta opção para informar as habilidades BNCC trabalhadas.</p> : null}
                   {usesBncc && <>
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">
-                    Habilidades da BNCC (Opcional)
+                    Habilidades da BNCC e ERER (Opcional)
                   </label>
                   <p className="text-xs text-slate-500 mb-3">
-                    Selecione as habilidades da Base Nacional Comum Curricular que este material desenvolve.
+                    Selecione habilidades da Base Nacional Comum Curricular e temas transversais de Educação para as Relações Étnico-Raciais que este material desenvolve.
                     Isso ajuda os professores a encontrarem seu conteúdo mais rápido.
                   </p>
 
