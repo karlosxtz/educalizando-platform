@@ -12,7 +12,7 @@ import { normalizeProductTags } from '@/lib/product-tags';
 import { getSchoolCalendarTagsForMonth,SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { createProduct,getCurrentCreatorStore,getProductById,getPublicProductsByStoreId,updateProduct } from '@/lib/store-service';
 import { supabase } from '@/lib/supabase';
-import { BnccSkill,Category,EducationLevel,Product,ProductDeliveryFile,ProductType,Store } from '@/lib/types';
+import { BnccSkill,Category,EducationLevel,Product,ProductColorMode,ProductDeliveryFile,ProductType,Store } from '@/lib/types';
 import { toast } from 'sonner';
 
 import ProductWizardView from './ProductWizardView';
@@ -43,6 +43,7 @@ function ProductWizardContent() {
   const [pageCount, setPageCount] = useState('');
   const [ageRange, setAgeRange] = useState('');
   const [formatDetails, setFormatDetails] = useState('');
+  const [colorMode, setColorMode] = useState<ProductColorMode | ''>('');
   const [previewUrl, setPreviewUrl] = useState('');
   const [instagramVideoUrl, setInstagramVideoUrl] = useState('');
   const [preco, setPreco] = useState<string>('');
@@ -54,6 +55,8 @@ function ProductWizardContent() {
   const [deliveryFiles, setDeliveryFiles] = useState<ProductDeliveryFile[]>([]);
   const [driveLinkDraft, setDriveLinkDraft] = useState('');
   const [status, setStatus] = useState<'publicado' | 'rascunho'>('publicado');
+  const [isImportedWoo, setIsImportedWoo] = useState(false);
+  const [confirmImportPrice, setConfirmImportPrice] = useState(false);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [educationLevelIds, setEducationLevelIds] = useState<string[]>([]);
   const [seasonalTags, setSeasonalTags] = useState<string[]>([]);
@@ -126,6 +129,7 @@ function ProductWizardContent() {
             setPageCount(existing.page_count ? String(existing.page_count) : '');
             setAgeRange(existing.age_range || '');
             setFormatDetails(existing.format_details || '');
+            setColorMode(existing.color_mode || '');
             setPreviewUrl(existing.preview_url || '');
             setInstagramVideoUrl(existing.instagram_video_url || '');
             setPreco(existing.preco.toString().replace('.', ','));
@@ -155,6 +159,8 @@ function ProductWizardContent() {
             }
 
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
+            setIsImportedWoo(existing.import_source === 'woocommerce' && Boolean(existing.import_incomplete));
+            setConfirmImportPrice(Boolean(existing.import_price_confirmed));
             setCategoryIds((existing.category_ids?.length ? existing.category_ids : existing.category_id ? [existing.category_id] : []).slice(0, 5));
             setEducationLevelIds((existing.education_level_ids?.length ? existing.education_level_ids : existing.education_level_id ? [existing.education_level_id] : []).slice(0, 5));
             setSeasonalTags(existing.seasonal_tags || []);
@@ -209,6 +215,7 @@ function ProductWizardContent() {
             setPageCount(source.pageCount ? String(source.pageCount) : '');
             setAgeRange(source.ageRange || '');
             setFormatDetails(source.formatDetails || '');
+            setColorMode(source.colorMode || '');
             setSelectedBnccSkills(Array.isArray(source.bnccSkillIds) ? source.bnccSkillIds : []);
             setUsesBncc(Array.isArray(source.bnccSkillIds) && source.bnccSkillIds.length > 0);
           }
@@ -217,7 +224,7 @@ function ProductWizardContent() {
           if (savedDraft) {
             try {
               const draft = JSON.parse(savedDraft);
-              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryIds(Array.isArray(draft.categoryIds) ? draft.categoryIds.slice(0, 5) : draft.categoryId ? [draft.categoryId] : []); setEducationLevelIds(Array.isArray(draft.educationLevelIds) ? draft.educationLevelIds.slice(0, 5) : draft.educationLevelId ? [draft.educationLevelId] : []); setSeasonalTags(draft.seasonalTags || []); setProductTags(normalizeProductTags(Array.isArray(draft.productTags) ? draft.productTags : typeof draft.productTags === 'string' ? [draft.productTags] : [])); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
+              setTitulo(draft.titulo || ''); setDescricao(draft.descricao || ''); setTipo(draft.tipo || 'pdf'); setPageCount(draft.pageCount || ''); setAgeRange(draft.ageRange || ''); setFormatDetails(draft.formatDetails || ''); setColorMode(draft.colorMode || ''); setPreco(draft.preco || ''); setPrecoOriginal(draft.precoOriginal || ''); setCategoryIds(Array.isArray(draft.categoryIds) ? draft.categoryIds.slice(0, 5) : draft.categoryId ? [draft.categoryId] : []); setEducationLevelIds(Array.isArray(draft.educationLevelIds) ? draft.educationLevelIds.slice(0, 5) : draft.educationLevelId ? [draft.educationLevelId] : []); setSeasonalTags(draft.seasonalTags || []); setProductTags(normalizeProductTags(Array.isArray(draft.productTags) ? draft.productTags : typeof draft.productTags === 'string' ? [draft.productTags] : [])); setIsFree(Boolean(draft.isFree)); setIsPlr(Boolean(draft.isPlr)); setPlrDescricao(draft.plrDescricao || ''); setPrecoPlr(draft.precoPlr || '99,90'); setCurrentStep(draft.currentStep || 1);
             } catch { localStorage.removeItem('educalizando_product_draft_v1'); }
           }
           if (suggestedTheme && SCHOOL_CALENDAR_TAGS.includes(suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number])) setSeasonalTags([suggestedTheme as typeof SCHOOL_CALENDAR_TAGS[number]]);
@@ -235,9 +242,9 @@ function ProductWizardContent() {
 
   useEffect(() => {
     if (loading || editId || plrProductId) return;
-    const draft = { titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep };
+    const draft = { titulo, descricao, tipo, pageCount, ageRange, formatDetails, colorMode, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep };
     if (Object.values(draft).some(value => Array.isArray(value) ? value.length : Boolean(value))) localStorage.setItem('educalizando_product_draft_v1', JSON.stringify(draft));
-  }, [loading, editId, plrProductId, titulo, descricao, tipo, pageCount, ageRange, formatDetails, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep]);
+  }, [loading, editId, plrProductId, titulo, descricao, tipo, pageCount, ageRange, formatDetails, colorMode, preco, precoOriginal, categoryIds, educationLevelIds, seasonalTags, productTags, isFree, isPlr, plrDescricao, precoPlr, currentStep]);
 
   const bnccSubjects = useMemo(() => Array.from(new Set(
     bnccSkillsMaster.map(skill => skill.subject).filter((subject): subject is string => Boolean(subject))
@@ -315,6 +322,10 @@ function ProductWizardContent() {
         setErrorMsg('Por favor, informe o título do produto didático.');
         return;
       }
+      if (!colorMode) {
+        setErrorMsg('Escolha se o material é colorido ou em preto e branco.');
+        return;
+      }
     }
     if (currentStep === 3) {
       if (!isFree) {
@@ -375,6 +386,11 @@ function ProductWizardContent() {
 
   const handleSaveProduct = async () => {
     if (!store) return;
+    if (!colorMode && !isImportedWoo) {
+      setCurrentStep(1);
+      setErrorMsg('Escolha se o material é colorido ou em preto e branco.');
+      return;
+    }
 
     // Guarda de segurança: verificar se a loja possui um ID real no banco
     const isValidUUID = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -402,6 +418,13 @@ function ProductWizardContent() {
     const finalArquivoNome = deliveryMethod === 'upload' ? firstDeliveryFile?.name || null : arquivoNome.trim() || null;
     const finalPlrLicenseUrl = plrDeliveryMethod === 'upload' ? firstPlrDeliveryFile?.url || null : plrLicenseUrl;
 
+    if (isImportedWoo && !confirmImportPrice) {
+      setCurrentStep(4);
+      setErrorMsg('Confira o preço e marque a confirmação antes de publicar o produto importado.');
+      setSaving(false);
+      return;
+    }
+
     try {
       if (editId) {
         await updateProduct(editId, {
@@ -411,6 +434,7 @@ function ProductWizardContent() {
           page_count: numericPageCount,
           age_range: ageRange.trim() || null,
           format_details: formatDetails.trim() || null,
+          ...(colorMode ? { color_mode: colorMode } : {}),
           preview_url: previewUrl.trim() || null,
           instagram_video_url: instagramVideoUrl.trim() || null,
           preco: numericPrice,
@@ -436,7 +460,8 @@ function ProductWizardContent() {
           plr_delivery_files: isPlr && plrDeliveryMethod === 'upload' ? plrDeliveryFiles : [],
           allow_affiliates: allowAffiliates,
           affiliate_commission_rate: numericCommissionRate,
-          order_bump_id: orderBumpId || null
+          order_bump_id: orderBumpId || null,
+          confirm_import_price: isImportedWoo ? confirmImportPrice : undefined
         });
       } else {
         await createProduct({
@@ -447,6 +472,7 @@ function ProductWizardContent() {
           page_count: numericPageCount,
           age_range: ageRange.trim() || null,
           format_details: formatDetails.trim() || null,
+          color_mode: colorMode as ProductColorMode,
           preview_url: previewUrl.trim() || null,
           instagram_video_url: instagramVideoUrl.trim() || null,
           preco: numericPrice,
@@ -498,7 +524,7 @@ function ProductWizardContent() {
     );
   }
 
-  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, status, setStatus, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
+  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, status, setStatus, isImportedWoo, confirmImportPrice, setConfirmImportPrice, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
 }
 
 export default function FullScreenProductWizardPage() {

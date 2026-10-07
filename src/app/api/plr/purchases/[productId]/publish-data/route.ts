@@ -46,7 +46,7 @@ export async function GET(
 
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('titulo, descricao, capa_url, preview_url, instagram_video_url, seasonal_tags, tags, tipo, category_id, category_ids, education_level_id, education_level_ids, page_count, age_range, format_details')
+      .select('titulo, descricao, capa_url, preview_url, instagram_video_url, seasonal_tags, tags, tipo, category_id, category_ids, education_level_id, education_level_ids, page_count, age_range, format_details, color_mode')
       .eq('id', productId)
       .eq('is_plr', true)
       .is('excluido_em', null)
@@ -86,6 +86,7 @@ export async function GET(
         pageCount: product.page_count,
         ageRange: product.age_range,
         formatDetails: product.format_details,
+        colorMode: product.color_mode,
         bnccSkillIds: (productSkills || []).map((skill) => skill.bncc_skill_id).filter(Boolean)
       }
     });

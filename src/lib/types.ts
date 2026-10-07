@@ -1,5 +1,6 @@
 export type ProductType = 'pdf' | 'ebook' | 'video' | 'curso' | 'simulado';
 export type ProductStatus = 'rascunho' | 'publicado' | 'excluido';
+export type ProductColorMode = 'colorido' | 'preto_e_branco';
 
 export interface AffiliateProfile {
   id: string;
@@ -121,6 +122,12 @@ export interface Product {
   page_count?: number | null;
   age_range?: string | null;
   format_details?: string | null;
+  color_mode?: ProductColorMode | null;
+  import_source?: 'woocommerce' | null;
+  import_incomplete?: boolean;
+  import_price_confirmed?: boolean;
+  /** Campo transitório usado ao revisar um preço importado. */
+  confirm_import_price?: boolean;
   preview_url?: string | null;
   /** Link público de um Reel/post do Instagram exibido na galeria do produto. */
   instagram_video_url?: string | null;

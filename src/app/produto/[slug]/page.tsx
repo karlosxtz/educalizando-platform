@@ -153,9 +153,10 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
       name: store.nome_loja,
     },
     ...(category ? { category: category.nome } : {}),
-    ...(product.format_details || product.age_range || product.tags?.length ? {
+    ...(product.format_details || product.color_mode || product.age_range || product.tags?.length ? {
       additionalProperty: [
         ...(product.format_details ? [{ '@type': 'PropertyValue', name: 'Formato', value: product.format_details }] : []),
+        ...(product.color_mode ? [{ '@type': 'PropertyValue', name: 'Apresentação', value: product.color_mode === 'colorido' ? 'Material colorido' : 'Material em preto e branco' }] : []),
         ...(product.age_range ? [{ '@type': 'PropertyValue', name: 'Faixa etária', value: product.age_range }] : []),
         ...(product.tags?.length ? [{ '@type': 'PropertyValue', name: 'Temas de busca', value: product.tags.join(', ') }] : []),
       ],

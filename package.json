@@ -23,12 +23,13 @@
     "test:creator-referral-foundation": "ts-node -P tsconfig.test.json scripts/verify-creator-referral-foundation.ts",
     "test:creator-club": "ts-node -P tsconfig.test.json scripts/verify-creator-club.ts",
     "test:evolution-webhook-security": "ts-node -P tsconfig.test.json scripts/verify-evolution-webhook-security.ts",
+    "test:woocommerce-integration": "ts-node -P tsconfig.test.json scripts/verify-woocommerce-integration.ts",
     "test:migrations": "ts-node -P tsconfig.test.json scripts/verify-migrations.ts",
     "test:creator-revenue-summary": "ts-node -P tsconfig.test.json scripts/verify-creator-revenue-summary.ts",
     "test:request-rate-limit": "ts-node -P tsconfig.test.json scripts/verify-request-rate-limit.ts",
     "test:security-headers": "ts-node -P tsconfig.test.json scripts/verify-security-headers.ts",
     "test:source-size": "ts-node -P tsconfig.test.json scripts/verify-source-size.ts",
-    "test:verify": "npm run test:financial && npm run test:financial-config && npm run test:checkout-idempotency && npm run test:infinitepay-webhook && npm run test:delivery-access && npm run test:search-matching && npm run test:social-links && npm run test:product-tags && npm run test:erer-calendar && npm run test:creator-networking && npm run test:creator-whatsapp-campaigns && npm run test:creator-whatsapp-access && npm run test:store-chatbot-api && npm run test:creator-referral-foundation && npm run test:creator-club && npm run test:evolution-webhook-security && npm run test:migrations && npm run test:creator-revenue-summary && npm run test:request-rate-limit && npm run test:security-headers && npm run test:source-size",
+    "test:verify": "npm run test:financial && npm run test:financial-config && npm run test:checkout-idempotency && npm run test:infinitepay-webhook && npm run test:delivery-access && npm run test:search-matching && npm run test:social-links && npm run test:product-tags && npm run test:erer-calendar && npm run test:creator-networking && npm run test:creator-whatsapp-campaigns && npm run test:creator-whatsapp-access && npm run test:store-chatbot-api && npm run test:creator-referral-foundation && npm run test:creator-club && npm run test:evolution-webhook-security && npm run test:woocommerce-integration && npm run test:migrations && npm run test:creator-revenue-summary && npm run test:request-rate-limit && npm run test:security-headers && npm run test:source-size",
     "test:e2e:mobile": "playwright test"
   },
   "dependencies": {

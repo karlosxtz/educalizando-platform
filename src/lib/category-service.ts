@@ -49,7 +49,8 @@ export const INITIAL_GLOBAL_CATEGORIES: Category[] = [
   { id: '11111111-1111-4111-a111-111111111143', nome: 'BNCC', slug: 'bncc', store_id: null, created_at: new Date().toISOString() },
   { id: '11111111-1111-4111-a111-111111111144', nome: 'Catequese', slug: 'catequese', store_id: null, created_at: new Date().toISOString() },
   { id: '11111111-1111-4111-a111-111111111145', nome: 'Escola Bíblica Dominical', slug: 'escola-biblica-dominical', store_id: null, created_at: new Date().toISOString() },
-  { id: '11111111-1111-4111-a111-111111111146', nome: 'Bíblia e Histórias Bíblicas', slug: 'biblia-historias-biblicas', store_id: null, created_at: new Date().toISOString() }
+  { id: '11111111-1111-4111-a111-111111111146', nome: 'Bíblia e Histórias Bíblicas', slug: 'biblia-historias-biblicas', store_id: null, created_at: new Date().toISOString() },
+  { id: '11111111-1111-4111-a111-111111111147', nome: 'Material adaptado', slug: 'material-adaptado', store_id: null, created_at: new Date().toISOString() }
 ];
 
 export const INITIAL_EDUCATION_LEVELS: EducationLevel[] = [

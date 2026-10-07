@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
+import { syncSavedProductToWoo } from '@/lib/woocommerce-service';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function POST(request: Request) {
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       page_count = null,
       age_range = null,
       format_details = null,
+      color_mode = null,
       preview_url = null,
       instagram_video_url = null,
       seasonal_tags = [],
@@ -64,6 +66,9 @@ export async function POST(request: Request) {
     }
     if ((Array.isArray(category_ids) && category_ids.length > 5) || (Array.isArray(education_level_ids) && education_level_ids.length > 5)) {
       return NextResponse.json({ error: 'Selecione no máximo 5 categorias e 5 níveis de escolaridade.' }, { status: 400 });
+    }
+    if (!['colorido', 'preto_e_branco'].includes(color_mode)) {
+      return NextResponse.json({ error: 'Escolha se o material é colorido ou em preto e branco.' }, { status: 400 });
     }
     const normalizedCategoryIds = sanitizeUUIDList(category_ids, category_id);
     const normalizedEducationLevelIds = sanitizeUUIDList(education_level_ids, education_level_id);
@@ -180,6 +185,7 @@ export async function POST(request: Request) {
       page_count: normalizedPageCount,
       age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
       format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
+      color_mode,
       preview_url: normalizedPreviewUrl,
       instagram_video_url: normalizedInstagramVideoUrl,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
@@ -235,6 +241,7 @@ export async function POST(request: Request) {
         page_count: normalizedPageCount,
         age_range: typeof age_range === 'string' && age_range.trim() ? age_range.trim().slice(0, 120) : null,
         format_details: typeof format_details === 'string' && format_details.trim() ? format_details.trim().slice(0, 180) : null,
+        color_mode,
         preview_url: normalizedPreviewUrl,
         instagram_video_url: normalizedInstagramVideoUrl,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
@@ -275,6 +282,9 @@ export async function POST(request: Request) {
       const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(allDeliveryRows);
       if (filesError) throw filesError;
     }
+
+    try { await syncSavedProductToWoo(insertedProduct.store_id, insertedProduct.id, new URL(request.url).origin); }
+    catch (syncError) { console.error('[API /api/produtos POST] Sincronização WooCommerce:', syncError); }
 
     // Purga imediata do cache do Next.js para as páginas afetadas
     try {

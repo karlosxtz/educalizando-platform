@@ -66,6 +66,12 @@ export function platformPublicImageUrl(bucket: string, key: string) {
   return `${origin}/api/storage/public-image?${params.toString()}`;
 }
 
+export function platformPublicMediaUrl(bucket: string, key: string) {
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br').replace(/\/+$/, '');
+  const params = new URLSearchParams({ bucket, key });
+  return `${origin}/api/storage/public-media?${params.toString()}`;
+}
+
 export async function createUploadUrl({ bucket, key, contentType }: { bucket: string; key: string; contentType: string }) {
   return getSignedUrl(client(), new PutObjectCommand({
     Bucket: bucket,

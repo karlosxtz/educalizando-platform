@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
+import { syncSavedProductToWoo } from '@/lib/woocommerce-service';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function PUT(request: Request) {
@@ -22,7 +23,7 @@ export async function PUT(request: Request) {
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('store_id, status, is_plr, preco, preco_original, is_free, preco_plr, has_plr_delivery')
+      .select('store_id,status,is_plr,preco,preco_original,is_free,preco_plr,has_plr_delivery,titulo,descricao,capa_url,category_id,education_level_id,color_mode,import_source,import_incomplete,import_price_confirmed')
       .eq('id', id)
       .maybeSingle();
     if (product) {
@@ -41,6 +42,11 @@ export async function PUT(request: Request) {
       .maybeSingle();
 
     const cleanedUpdates: Record<string, any> = { ...updates };
+    const confirmsImportedPrice = cleanedUpdates.confirm_import_price === true;
+    delete cleanedUpdates.confirm_import_price;
+    delete cleanedUpdates.import_source;
+    delete cleanedUpdates.import_incomplete;
+    delete cleanedUpdates.import_price_confirmed;
     const hasOriginalFilesUpdate = 'delivery_files' in cleanedUpdates;
     const hasPlrFilesUpdate = 'plr_delivery_files' in cleanedUpdates;
     const normalizedDeliveryFiles = normalizeDeliveryFiles(cleanedUpdates.delivery_files);
@@ -124,6 +130,9 @@ export async function PUT(request: Request) {
         cleanedUpdates[field] = typeof value === 'string' && value.trim() ? value.trim().slice(0, 180) : null;
       }
     }
+    if ('color_mode' in cleanedUpdates && !['colorido', 'preto_e_branco'].includes(cleanedUpdates.color_mode)) {
+      return NextResponse.json({ error: 'Escolha se o material é colorido ou em preto e branco.' }, { status: 400 });
+    }
     if ('preview_url' in cleanedUpdates) {
       const previewUrl = normalizePreviewUrl(cleanedUpdates.preview_url);
       if (typeof cleanedUpdates.preview_url === 'string' && cleanedUpdates.preview_url.trim() && !previewUrl) {
@@ -152,6 +161,18 @@ export async function PUT(request: Request) {
       }
       cleanedUpdates.preco_original = nextOriginalPrice;
       cleanedUpdates.is_featured_offer = Boolean(nextOriginalPrice !== null && nextOriginalPrice > nextPrice && !nextIsFree);
+    }
+
+    if (product.import_incomplete) {
+      const missing: string[] = [];
+      const priceConfirmed = Boolean(product.import_price_confirmed || confirmsImportedPrice);
+      if (!priceConfirmed) missing.push('confirmação do preço');
+      if (!nextOriginalDelivery) missing.push('arquivo ou link de entrega');
+      if (nextStatus === 'publicado' && missing.length) {
+        return NextResponse.json({ error: `Complete o produto antes de publicar: ${missing.join(', ')}.` }, { status: 400 });
+      }
+      if (priceConfirmed) cleanedUpdates.import_price_confirmed = true;
+      if (!missing.length) cleanedUpdates.import_incomplete = false;
     }
 
     // Validar movimentação de loja (novo store_id)
@@ -265,6 +286,9 @@ export async function PUT(request: Request) {
         console.error('[API /api/produtos PUT] Erro ao atualizar product_bncc_skills:', e);
       }
     }
+
+    try { await syncSavedProductToWoo(product.store_id, data.id, new URL(request.url).origin); }
+    catch (syncError) { console.error('[API /api/produtos PUT] Sincronização WooCommerce:', syncError); }
 
     return NextResponse.json({
       success: true,

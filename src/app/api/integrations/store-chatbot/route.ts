@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 type Row = Record<string, unknown>;
 type ProductRow = Row & { id: string; titulo: string; slug?: string | null; is_free?: boolean; category_id?: string | null; category_ids?: string[] | null; education_level_id?: string | null; education_level_ids?: string[] | null };
 
-const PRODUCT_FIELDS = 'id,titulo,slug,descricao,tipo,preco,preco_original,is_free,is_plr,plr_descricao,preco_plr,capa_url,preview_url,instagram_video_url,page_count,age_range,format_details,category_id,category_ids,education_level_id,education_level_ids,seasonal_tags,tags,created_at,updated_at';
+const PRODUCT_FIELDS = 'id,titulo,slug,descricao,tipo,preco,preco_original,is_free,is_plr,plr_descricao,preco_plr,capa_url,preview_url,instagram_video_url,page_count,age_range,format_details,color_mode,category_id,category_ids,education_level_id,education_level_ids,seasonal_tags,tags,created_at,updated_at';
 
 function text(value: unknown) {
   return typeof value === 'string' ? value : null;
@@ -64,6 +64,7 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     pageCount: product.page_count == null ? null : Number(product.page_count),
     ageRange: text(product.age_range),
     formatDetails: text(product.format_details),
+    colorMode: text(product.color_mode),
     categories: categoryIds.map((id) => ({ id, name: categoryNames.get(id) || null })),
     educationLevels: levelIds.map((id) => ({ id, name: levelNames.get(id) || null })),
     themes: Array.isArray(product.seasonal_tags) ? product.seasonal_tags : [],

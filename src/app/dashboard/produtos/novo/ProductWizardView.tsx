@@ -20,7 +20,7 @@ import ProductWizardStepThree from './ProductWizardStepThree';
 
 // State and actions stay in the page controller; this component renders the wizard shell.
 export default function ProductWizardView({ state }: { state: any }) {
-  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, galleryUrls, setGalleryUrls, status, setStatus, isFree, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct } = state;
+  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, galleryUrls, setGalleryUrls, status, setStatus, isFree, isImportedWoo, confirmImportPrice, setConfirmImportPrice, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct } = state;
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Top Fixed Navigation Header */}
@@ -143,6 +143,8 @@ export default function ProductWizardView({ state }: { state: any }) {
                   Confira o visual do seu produto antes de salvar na plataforma.
                 </p>
               </div>
+
+              {isImportedWoo && <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><input type="checkbox" checked={confirmImportPrice} onChange={event => setConfirmImportPrice(event.target.checked)} className="mt-0.5 h-5 w-5 accent-amber-600" /><span><b className="block">Confirmo o preço deste produto</b>Revise o valor de {isFree ? 'Grátis' : `R$ ${preco || '0,00'}`} antes de publicar na Educalizando.</span></label>}
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-6">
                 <div className="w-36 h-48 rounded-xl bg-slate-200 overflow-hidden flex-shrink-0 relative shadow-md">

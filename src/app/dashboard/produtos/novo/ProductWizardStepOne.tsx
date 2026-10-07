@@ -21,7 +21,7 @@ import { ProductType } from '@/lib/types';
 
 // The wizard owns state and persistence; this component only renders one visual step.
 export default function ProductWizardStepOne({ state }: { state: any }) {
-  const { bnccSkillsMaster, currentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, aiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, plrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, categoryOptions, educationOptions } = state;
+  const { bnccSkillsMaster, currentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, aiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, plrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, categoryOptions, educationOptions } = state;
   return <>
           {/* STEP 1: Basic Information & Categorization */}
           {currentStep === 1 && (
@@ -110,6 +110,23 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                     <option value="simulado">Simulado & Gabarito Comentado</option>
                   </select>
                 </div>
+
+                <fieldset className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                  <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-700">Apresentação do material</legend>
+                  <p className="mb-3 text-xs text-slate-500">Escolha apenas uma opção.</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { value: 'colorido', label: 'Material colorido' },
+                      { value: 'preto_e_branco', label: 'Material em preto e branco' }
+                    ].map((option) => {
+                      const selected = colorMode === option.value;
+                      return <label key={option.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${selected ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'}`}>
+                        <input type="radio" name="colorMode" value={option.value} checked={selected} onChange={() => setColorMode(option.value)} className="h-4 w-4 accent-blue-600" />
+                        <span className="text-sm font-bold">{option.label}</span>
+                      </label>;
+                    })}
+                  </div>
+                </fieldset>
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-2">
                   <div>
