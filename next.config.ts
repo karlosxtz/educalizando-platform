@@ -37,7 +37,21 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         has: [{ type: 'host', value: 'educalizando.com.br' }],
         destination: 'https://www.educalizando.com.br/:path*',
-        permanent: true,
+        statusCode: 301,
+      },
+      {
+        source: '/:path*',
+        has: [
+          { type: 'host', value: 'www.educalizando.com.br' },
+          { type: 'header', key: 'x-forwarded-proto', value: 'http' },
+        ],
+        destination: 'https://www.educalizando.com.br/:path*',
+        statusCode: 301,
+      },
+      {
+        source: '/vender',
+        destination: '/cadastro/produtor',
+        statusCode: 301,
       },
       // URL histórica já registrada pelo Google antes da padronização do slug.
       // A regra é aplicada antes da página para responder com 308 a todo crawler.

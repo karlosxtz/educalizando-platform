@@ -36,7 +36,8 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
 
   const store = await getStoreById(product.store_id);
   const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
-  const description = product.descricao ? (product.descricao.substring(0, 155) + (product.descricao.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
+  const description = (product.descricao?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    || `${product.titulo} — material didático digital de ${store?.nome_loja || 'Educalizando'}.`).slice(0, 155);
   const url = `${SITE_URL}/produto/${product.slug || product.id}`;
   const image = product.capa_url
     ? productCoverImageUrl(product.slug || product.id)
@@ -45,6 +46,7 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
   return {
     title,
     description,
+    robots: { index: true, follow: true },
     alternates: {
       canonical: url,
     },

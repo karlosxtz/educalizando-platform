@@ -4,6 +4,20 @@ const { createClient } = require('@supabase/supabase-js');
 
 const SITE_URL = 'https://www.educalizando.com.br';
 
+const REQUIRED_PUBLIC_PATHS = [
+  '/ajuda',
+  '/atividades-ensino-fundamental',
+  '/atividades-para-imprimir',
+  '/atividades-por-ano/ensino-fundamental-1',
+  '/atividades-por-ano/ensino-fundamental-2',
+  '/atividades-por-ano/ensino-medio',
+  '/atividades-por-ano/idiomas-cursos-livres',
+  '/atividades-por-ano/pre-vestibular-enem',
+  '/cadastro/produtor',
+  '/calendario',
+  '/vender',
+];
+
 // Crawl rules are intentionally narrower than sitemap exclusions.
 const ROBOTS_DISALLOW = [
   '/admin/',
@@ -287,6 +301,11 @@ module.exports = {
   },
   additionalPaths: async () => {
     const editorialPaths = [
+      ...REQUIRED_PUBLIC_PATHS.map((loc) => ({
+        loc,
+        changefreq: 'weekly',
+        priority: 0.7,
+      })),
       ...CALENDAR_SLUGS.map((slug) => ({
         loc: `/calendario/${slug}`,
         changefreq: 'yearly',
