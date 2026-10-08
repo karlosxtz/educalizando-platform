@@ -287,7 +287,7 @@ module.exports = {
   changefreq: 'weekly',
   priority: 0.7,
   sitemapSize: 5000,
-  exclude: PRIVATE_PATHS,
+  exclude: [...PRIVATE_PATHS, '/sitemap-catalogo.xml'],
   transform: async (config, path) => {
     if (path.includes('[')) return null;
 
@@ -321,6 +321,7 @@ module.exports = {
     return [...editorialPaths, ...(await getSupabasePaths())];
   },
   robotsTxtOptions: {
+    additionalSitemaps: [`${SITE_URL}/sitemap-catalogo.xml`],
     policies: [
       {
         userAgent: '*',
