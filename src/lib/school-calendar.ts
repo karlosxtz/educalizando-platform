@@ -7,7 +7,7 @@ export const SCHOOL_CALENDAR_TAGS = [
   'Combate ao Bullying', 'Meio Ambiente', 'Festa Junina', 'Dia dos Namorados', 'Dia do Orgulho Autista',
   'Dia do Soldado', 'Dia do Folclore', 'Dia do Estudante', 'Dia dos Pais', 'Dia do Psicólogo',
   'Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito',
-  'Dia dos Animais', 'Dia das Crianças', 'Dia dos Professores', 'Dia do Médico', 'Halloween',
+  'Dia dos Animais', 'Dia das Crianças', 'Dia dos Professores', 'Dia do Médico', 'Halloween', '31 de outubro – Dia da Reforma Protestante',
   'Setembro Amarelo', 'Outubro Rosa', 'Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Natal', 'Ano Novo',
   'Formatura', 'Cabelo Maluco', 'Dia do Brinquedo', 'Dia do Amigo', 'Dia da Polícia',
   'Educação no Trânsito', 'Educação Financeira', 'Alimentação Saudável', 'Saúde Bucal', 'Inclusão e Acessibilidade',
@@ -122,6 +122,7 @@ export const SCHOOL_CALENDAR_EVENTS: readonly SchoolCalendarEvent[] = [
   { slug: 'dia-do-transito', name: 'Dia do Trânsito', month: 9, day: 25, kind: 'segurança', description: 'Tema de planejamento para materiais sobre convivência e segurança no trânsito.', searchTerm: 'Dia do Trânsito', icon: 'shield', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 150 },
   { slug: 'dia-das-criancas', name: 'Dia das Crianças', month: 10, day: 12, kind: 'data comemorativa', description: 'Tema disponível para propostas lúdicas e atividades voltadas à infância.', searchTerm: 'Dia das Crianças', icon: 'sparkles', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 160 },
   { slug: 'dia-dos-professores', name: 'Dia dos Professores', month: 10, day: 15, kind: 'data pedagógica', description: 'Tema disponível para reconhecer o trabalho docente em projetos pedagógicos.', searchTerm: 'Dia dos Professores', icon: 'calendar', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 170 },
+  { slug: 'dia-da-reforma-protestante', name: '31 de outubro – Dia da Reforma Protestante', month: 10, day: 31, kind: 'data comemorativa', description: 'Tema disponível para materiais educativos sobre a Reforma Protestante, sua história e seus impactos culturais e religiosos.', searchTerm: '31 de outubro – Dia da Reforma Protestante', icon: 'book', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-10-08', editorialStatus: 'requer-revisao', displayOrder: 175 },
   { slug: 'proclamacao-da-republica', name: 'Proclamação da República', month: 11, day: 15, kind: 'cidadania', description: 'Tema disponível para pesquisas e propostas pedagógicas relacionadas à história do Brasil.', searchTerm: 'Proclamação da República', icon: 'landmark', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 180 },
   { slug: 'dia-da-bandeira', name: 'Dia da Bandeira', month: 11, day: 19, kind: 'cidadania', description: 'Tema disponível para organizar pesquisas e materiais relacionados a símbolos nacionais.', searchTerm: 'Dia da Bandeira', icon: 'landmark', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 190 },
   { slug: 'dia-da-consciencia-negra', name: 'Dia da Consciência Negra', month: 11, day: 20, kind: 'diversidade e direitos humanos', description: 'Tema disponível para encontrar materiais relacionados à educação e cultura afro-brasileira.', searchTerm: 'Dia da Consciência Negra', icon: 'heart', sourceName: 'Catálogo editorial Educalizando', reviewedAt: '2026-09-23', editorialStatus: 'requer-revisao', displayOrder: 200 },
@@ -150,7 +151,7 @@ const MONTHLY_TAGS: Record<number, SchoolCalendarTag[]> = {
   6: ['Festa Junina', 'Educação Financeira', 'Inclusão e Acessibilidade'],
   7: ['Dia dos Pais', 'Dia do Estudante', 'Dia do Folclore', 'Dia do Psicólogo', 'Dia do Amigo'],
   8: ['Semana da Pátria', 'Independência do Brasil', 'Dia da Árvore', 'Primavera', 'Dia do Trânsito', 'Setembro Amarelo', 'Educação no Trânsito'],
-  9: ['Dia das Crianças', 'Dia dos Professores', 'Cabelo Maluco', 'Halloween', 'Dia dos Animais', 'Dia do Médico', 'Outubro Rosa', 'Semana da Criança', 'Dia do Brinquedo'],
+  9: ['Dia das Crianças', 'Dia dos Professores', 'Cabelo Maluco', 'Halloween', '31 de outubro – Dia da Reforma Protestante', 'Dia dos Animais', 'Dia do Médico', 'Outubro Rosa', 'Semana da Criança', 'Dia do Brinquedo'],
   10: ['Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Cultura Afro-Brasileira', 'Cultura Indígena', 'Saúde Bucal'],
   11: ['Natal', 'Ano Novo', 'Formatura', 'Dia da Polícia'],
 };
@@ -179,7 +180,7 @@ const UPCOMING_EVENTS: Array<{ tag: SchoolCalendarTag; month: number; day: numbe
   { tag: 'Dia dos Pais', month: 8, day: 9 }, { tag: 'Dia do Folclore', month: 8, day: 22 }, { tag: 'Dia do Soldado', month: 8, day: 25 },
   { tag: 'Setembro Amarelo', month: 9, day: 1 }, { tag: 'Independência do Brasil', month: 9, day: 7 }, { tag: 'Dia da Árvore', month: 9, day: 21 },
   { tag: 'Primavera', month: 9, day: 22 }, { tag: 'Dia do Trânsito', month: 9, day: 25 }, { tag: 'Dia das Crianças', month: 10, day: 12 },
-  { tag: 'Dia dos Professores', month: 10, day: 15 }, { tag: 'Outubro Rosa', month: 10, day: 1 }, { tag: 'Dia da Consciência Negra', month: 11, day: 20 },
+  { tag: 'Dia dos Professores', month: 10, day: 15 }, { tag: 'Outubro Rosa', month: 10, day: 1 }, { tag: '31 de outubro – Dia da Reforma Protestante', month: 10, day: 31 }, { tag: 'Dia da Consciência Negra', month: 11, day: 20 },
   { tag: 'Natal', month: 12, day: 25 },
 ];
 
