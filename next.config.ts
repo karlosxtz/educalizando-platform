@@ -60,6 +60,21 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      ...[
+        '/admin/:path*',
+        '/dashboard/:path*',
+        '/painel/:path*',
+        '/checkout/:path*',
+        '/loja/:slug/checkout/:path*',
+        '/login',
+        '/entrar',
+        '/afiliados/login',
+        '/aluno/login',
+        '/cliente/login',
+      ].map((source) => ({
+        source,
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      })),
     ];
   },
 };

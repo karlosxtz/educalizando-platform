@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: 'Buscar materiais didáticos | Educalizando',
   description: 'Pesquise materiais didáticos digitais por tema, etapa de ensino, disciplina e formato na Educalizando.',
   alternates: { canonical: '/buscar' },
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true },
 };
 
 export default async function BuscarPage({ 

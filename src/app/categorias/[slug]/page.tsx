@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return {
     title,
     description,
+    robots: { index: true, follow: true },
     alternates: {
       canonical: `https://www.educalizando.com.br/categorias/${slug}`,
     },
