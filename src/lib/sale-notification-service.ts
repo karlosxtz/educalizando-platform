@@ -6,7 +6,10 @@ import { supabaseAdmin } from './supabase';
 import { claimTransactionalDelivery,completeTransactionalDelivery,failTransactionalDelivery } from './transactional-delivery-service';
 import { firstName,getWhatsAppTemplate,renderWhatsAppTemplate,sendEvolutionText } from './whatsapp-notification-service';
 
-export async function notifyConfirmedSale(order: OrderRecord, options: { retryWhatsApp?: boolean } = {}) {
+export async function notifyConfirmedSale(order: OrderRecord, options: {
+  retryWhatsApp?: boolean;
+  retryWhatsAppEvent?: 'CREATOR_SALE_ALERT' | 'MATERIAL_DELIVERY';
+} = {}) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
   const isPlrPurchase = order.is_plr_purchase === true;
   const purchaseAccess = getPurchaseAccess(isPlrPurchase, appUrl);
@@ -101,8 +104,14 @@ export async function notifyConfirmedSale(order: OrderRecord, options: { retryWh
       acesso: accessUrl,
     }).replace(/https?:\/\/[^\s]+\/cliente\/dashboard/gi, accessUrl);
 
-    const creatorAttempt = await claimTransactionalDelivery(order.id, 'WHATSAPP', 'CREATOR_SALE_ALERT');
-    const buyerAttempt = await claimTransactionalDelivery(order.id, 'WHATSAPP', 'MATERIAL_DELIVERY');
+    const shouldSendCreator = !options.retryWhatsAppEvent || options.retryWhatsAppEvent === 'CREATOR_SALE_ALERT';
+    const shouldSendBuyer = !options.retryWhatsAppEvent || options.retryWhatsAppEvent === 'MATERIAL_DELIVERY';
+    const creatorAttempt = shouldSendCreator
+      ? await claimTransactionalDelivery(order.id, 'WHATSAPP', 'CREATOR_SALE_ALERT')
+      : null;
+    const buyerAttempt = shouldSendBuyer
+      ? await claimTransactionalDelivery(order.id, 'WHATSAPP', 'MATERIAL_DELIVERY')
+      : null;
     const sendTracked = async (attemptId: string | null, send: () => ReturnType<typeof sendEvolutionText>) => {
       if (!attemptId) return;
       try {

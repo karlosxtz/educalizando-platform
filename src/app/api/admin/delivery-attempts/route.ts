@@ -38,7 +38,10 @@ export async function POST(request: Request) {
     try {
       const order = await getOrderRecordById(attempt.order_id);
       if (!order) throw new Error('Pedido não encontrado.');
-      await notifyConfirmedSale(order, { retryWhatsApp: true });
+      await notifyConfirmedSale(order, {
+        retryWhatsApp: true,
+        retryWhatsAppEvent: attempt.event_type as 'MATERIAL_DELIVERY' | 'CREATOR_SALE_ALERT',
+      });
       return NextResponse.json({ success: true });
     } catch (retryError) {
       const message = retryError instanceof Error ? retryError.message : 'Falha inesperada ao reenviar WhatsApp.';
