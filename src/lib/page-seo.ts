@@ -101,10 +101,15 @@ export function pageMetadata(path: string): Metadata {
   };
 }
 
-export function shortSeoTitle(name: string, suffix = ' | Educalizando') {
+export function shortSeoTitle(name: string, suffix = ' | Educalizando', preserveEnding = false) {
   const available = 60 - suffix.length;
   const clean = name.replace(/\s+/g, ' ').trim();
-  return `${clean.length > available ? clean.slice(0, available - 1).trimEnd() + '…' : clean}${suffix}`;
+  if (clean.length <= available) return clean + suffix;
+  const endingSize = Math.floor(available / 2);
+  const shortened = preserveEnding
+    ? `${clean.slice(0, available - endingSize - 1).trimEnd()}…${clean.slice(-endingSize).trimStart()}`
+    : clean.slice(0, available - 1).trimEnd() + '…';
+  return shortened + suffix;
 }
 
 export function productSeoDescription(title: string, description?: string | null) {
@@ -115,7 +120,16 @@ export function productSeoDescription(title: string, description?: string | null
 export function storeSeoDescription(name: string, count: number, category: string) {
   const clip = (value: string, max: number) => value.length > max ? value.slice(0, max - 1).trimEnd() + '…' : value;
   const intro = `${clip(name, 35)}: ${count} materiais didáticos em ${clip(category, 30)}.`;
-  const detail = ' Recursos digitais para professores planejarem aulas e apoiarem a aprendizagem da turma.';
-  const cta = ' Explore a loja!';
-  return (intro + detail).slice(0, 155 - cta.length).trimEnd() + cta;
+  const endings = [
+    'Encontre recursos digitais para professores planejarem suas aulas e apoiarem a aprendizagem da turma. Explore a loja!',
+    'Encontre recursos para professores planejarem aulas e apoiarem a aprendizagem da turma. Explore a loja!',
+    'Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!',
+    'Encontre recursos digitais para apoiar suas aulas e o planejamento. Explore a loja!',
+    'Escolha recursos digitais para apoiar as aulas da sua turma. Explore a loja!',
+    'Escolha recursos para o planejamento das suas aulas. Explore a loja!',
+    'Recursos para apoiar o planejamento. Explore a loja!',
+    'Materiais para suas aulas. Explore a loja!',
+  ];
+  return endings.map(ending => `${intro} ${ending}`).find(text => text.length >= 140 && text.length <= 155)
+    || `${intro} Explore a loja na Educalizando!`;
 }

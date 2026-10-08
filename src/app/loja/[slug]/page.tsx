@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   for (const product of products) if (product.category_id) counts.set(product.category_id, (counts.get(product.category_id) || 0) + 1);
   const categoryId = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0];
   const category = categories.find(item => item.id === categoryId)?.nome || 'educação';
-  const title = shortSeoTitle(store.nome_loja, ' | Materiais Didáticos | Educalizando');
+  const title = shortSeoTitle(store.nome_loja, ' | Materiais Didáticos | Educalizando', true);
   const description = storeSeoDescription(store.nome_loja, products.length, category);
   return {
     metadataBase: new URL(SITE_URL),

@@ -15,7 +15,10 @@ async function worker() {
       const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] || '';
       const description = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"/i)?.[1] || '';
       const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]*)"/i)?.[1] || '';
-      results.push({ url, status: response.status, title, description, canonical });
+      const schemas = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)].map(match => JSON.parse(match[1]));
+      const product = schemas.find(schema => schema['@type'] === 'Product');
+      const productSchemaValid = !url.startsWith(`${origin}/produto/`) || Boolean(product?.name && product?.description && product?.brand?.name === 'Educalizando' && product?.offers?.priceCurrency === 'BRL' && product?.offers?.price !== undefined);
+      results.push({ url, status: response.status, title, description, canonical, productSchemaValid });
     } catch (error) { results.push({ url, error: error.message }); }
     if (results.length % 25 === 0) console.log(`${results.length}/${urls.length} páginas verificadas`);
   }
@@ -26,6 +29,6 @@ function duplicates(field) {
   for (const item of results) if (item[field]) map.set(item[field], [...(map.get(item[field]) || []), item.url]);
   return [...map].filter(([, values]) => values.length > 1).map(([value, pages]) => ({ value, pages }));
 }
-const report = { checked: results.length, failures: results.filter(item => item.error || item.status !== 200 || !item.title || !item.description || !item.canonical), duplicateTitles: duplicates('title'), duplicateDescriptions: duplicates('description'), results };
+const report = { checked: results.length, failures: results.filter(item => item.error || item.status !== 200 || !item.title || !item.description || !item.canonical || !item.productSchemaValid), duplicateTitles: duplicates('title'), duplicateDescriptions: duplicates('description'), results };
 writeFileSync('seo-audit-report.json', JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ checked: report.checked, failures: report.failures.length, duplicateTitles: report.duplicateTitles, duplicateDescriptions: report.duplicateDescriptions }, null, 2));
