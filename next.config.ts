@@ -26,12 +26,19 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  trailingSlash: false,
   // Product metadata must be present in the initial <head>. This makes the
   // canonical URL, site name and cover image deterministic for search and
   // shopping crawlers instead of appending them after </head> as a stream.
   htmlLimitedBots: /.*/,
   async redirects() {
     return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'educalizando.com.br' }],
+        destination: 'https://www.educalizando.com.br/:path*',
+        permanent: true,
+      },
       // URL histórica já registrada pelo Google antes da padronização do slug.
       // A regra é aplicada antes da página para responder com 308 a todo crawler.
       {

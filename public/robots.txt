@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /cliente/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /loja/*/checkout/
+Disallow: /aluno/login
+Disallow: /aluno/painel/
+Disallow: /aluno/dashboard/
+
+Sitemap: https://www.educalizando.com.br/sitemap.xml

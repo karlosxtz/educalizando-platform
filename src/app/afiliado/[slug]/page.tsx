@@ -62,6 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `Vitrine de ${profile.nome || 'Afiliado'} — Educalizando`,
     description: profile.descricao || `Confira as recomendações de ${profile.nome || 'Afiliado'} na Educalizando.`,
+    alternates: { canonical: `/afiliado/${profile.slug}` },
     openGraph: {
       title: `Vitrine de ${profile.nome || 'Afiliado'} — Educalizando`,
       images: profile.logo_url ? [{ url: profile.logo_url }] : []
