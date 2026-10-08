@@ -1,6 +1,6 @@
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
-import { socialMetadata } from '@/lib/seo';
+import { pageMetadata } from '@/lib/page-seo';
 import {
 ChevronDown,
 GraduationCap,
@@ -10,14 +10,7 @@ Megaphone,
 MessageCircle,
 Store
 } from 'lucide-react';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Central de ajuda | Educalizando',
-  description: 'Encontre orientações para comprar, vender e usar materiais didáticos digitais na Educalizando.',
-  alternates: { canonical: '/ajuda' },
-  ...socialMetadata({ title: 'Central de ajuda | Educalizando', description: 'Encontre orientações para comprar, vender e usar materiais didáticos digitais na Educalizando.', url: '/ajuda' }),
-};
+export function generateMetadata() { return pageMetadata('/ajuda'); }
 
 export default function AjudaPage() {
   return (

@@ -13,19 +13,20 @@ import { searchHref,searchPage } from '@/lib/search-navigation';
 import { searchProducts } from '@/lib/search-service';
 import { getTopMarketplaceStores } from '@/lib/store-service';
 import { Frown,Sparkles } from 'lucide-react';
-import type { Metadata } from 'next';
+import { pageMetadata, PAGE_SEO } from '@/lib/page-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchQuery from './SearchQuery';
 
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: 'Buscar materiais didáticos | Educalizando',
-  description: 'Pesquise materiais didáticos digitais por tema, etapa de ensino, disciplina e formato na Educalizando.',
-  alternates: { canonical: 'https://www.educalizando.com.br/buscar' },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
+  const { categoria } = await searchParams;
+  if (categoria === 'ensino-fundamental') return pageMetadata('/atividades-ensino-fundamental');
+  const categoryPath = `/buscar?categoria=${categoria}`;
+  const path = categoria && PAGE_SEO[categoryPath] ? categoryPath : '/buscar';
+  return pageMetadata(path);
+}
 
 export default async function BuscarPage({ 
   searchParams 

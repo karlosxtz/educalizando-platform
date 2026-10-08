@@ -1,9 +1,7 @@
-import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/page-seo';
 import type { ReactNode } from 'react';
 
-export const metadata: Metadata = {
-  alternates: { canonical: '/afiliados/cadastro' },
-};
+export function generateMetadata() { return pageMetadata('/afiliados/cadastro'); }
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   return children;

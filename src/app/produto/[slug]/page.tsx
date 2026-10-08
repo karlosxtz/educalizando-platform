@@ -5,6 +5,7 @@ import { getPaidProductSalesCount } from '@/lib/product-social-proof';
 import { DEFAULT_SOCIAL_IMAGE,productCoverImageUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { getProductById,getPublicProductsByStoreId,getStoreById } from '@/lib/store-service';
 import type { Product } from '@/lib/types';
+import { shortSeoTitle, productSeoDescription } from '@/lib/page-seo';
 import { ChevronRight,Home } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -34,16 +35,16 @@ export async function generateMetadata({ params }: GlobalProductDetailPageProps)
     return { title: 'Produto não encontrado | Educalizando' };
   }
 
-  const store = await getStoreById(product.store_id);
-  const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
-  const description = (product.descricao?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    || `${product.titulo} — material didático digital de ${store?.nome_loja || 'Educalizando'}.`).slice(0, 155);
+  const title = shortSeoTitle(product.titulo);
+  const description = productSeoDescription(product.titulo, product.descricao);
   const url = `${SITE_URL}/produto/${product.slug || product.id}`;
   const image = product.capa_url
     ? productCoverImageUrl(product.slug || product.id)
     : DEFAULT_SOCIAL_IMAGE;
 
   return {
+    metadataBase: new URL(SITE_URL),
+    keywords: [product.titulo, 'material didático digital', ...(product.tags || [])],
     title,
     description,
     robots: { index: true, follow: true },
@@ -145,14 +146,14 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.titulo,
-    description: product.descricao || 'Material didático digital.',
+    description: productSeoDescription(product.titulo, product.descricao),
     ...(product.capa_url ? {
       image: [productCoverImageUrl(product.slug || product.id)],
     } : {}),
     sku: product.id,
     brand: {
       '@type': 'Brand',
-      name: store.nome_loja,
+      name: 'Educalizando',
     },
     ...(category ? { category: category.nome } : {}),
     ...(product.format_details || product.color_mode || product.age_range || product.tags?.length ? {

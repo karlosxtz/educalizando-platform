@@ -4,6 +4,7 @@ import ProductCard from '@/components/ProductCard';
 import { getEducationLevels } from '@/lib/category-service';
 import { searchProducts } from '@/lib/search-service';
 import { serializeJsonLd,socialMetadata } from '@/lib/seo';
+import { pageMetadata, PAGE_SEO } from '@/lib/page-seo';
 import { CheckCircle2 } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -18,6 +19,8 @@ export async function generateMetadata({ params }: EducationLevelPageProps): Pro
   const level = (await getEducationLevels()).find((item) => item.slug === slug);
 
   if (!level) return { title: 'Nível de ensino não encontrado | Educalizando' };
+
+  if (PAGE_SEO[`/atividades-por-ano/${slug}`]) return pageMetadata(`/atividades-por-ano/${slug}`);
 
   const title = `Atividades para ${level.nome} para Imprimir | Educalizando`;
   const description = `Encontre os melhores materiais didáticos, apostilas e atividades prontas para ${level.nome}. Alinhados à BNCC e desenvolvidos por especialistas para potencializar suas aulas.`;

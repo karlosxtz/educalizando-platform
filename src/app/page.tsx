@@ -6,12 +6,9 @@ import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getActiveBanners } from '@/lib/banners-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
-import { absoluteUrl,DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import { absoluteUrl,DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
-import type { Metadata } from 'next';
-
-const homeTitle = 'Materiais Didáticos Digitais para Professores | Educalizando';
-const homeDescription = 'Encontre materiais didáticos digitais, atividades pedagógicas, apostilas, planos de aula e jogos educativos criados por professores.';
+import { pageMetadata } from '@/lib/page-seo';
 
 async function loadPublicSection<T>(name: string, loader: () => Promise<T[]>): Promise<T[]> {
   try {
@@ -22,12 +19,7 @@ async function loadPublicSection<T>(name: string, loader: () => Promise<T[]>): P
   }
 }
 
-export const metadata: Metadata = {
-  title: homeTitle,
-  description: homeDescription,
-  alternates: { canonical: '/' },
-  ...socialMetadata({ title: homeTitle, description: homeDescription, url: '/' }),
-};
+export function generateMetadata() { return pageMetadata('/'); }
 
 export default async function Home() {
   const [products, banners, stores, kits] = await Promise.all([

@@ -1,6 +1,8 @@
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { getPublicCreatorClubsByStoreId } from '@/lib/creator-club-service';
 import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { getCategories } from '@/lib/category-service';
+import { shortSeoTitle, storeSeoDescription } from '@/lib/page-seo';
 import {
 getPublicProductsByStoreId,
 getStoreBySlug
@@ -29,15 +31,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const [allProducts, categories] = await Promise.all([getPublicProductsByStoreId(store.id), getCategories(store.id)]);
+  const products = allProducts.filter(product => (!product.is_free && Number(product.preco || 0) > 0)
+    || (product.is_plr === true && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery === true));
+  const counts = new Map<string, number>();
+  for (const product of products) if (product.category_id) counts.set(product.category_id, (counts.get(product.category_id) || 0) + 1);
+  const categoryId = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const category = categories.find(item => item.id === categoryId)?.nome || 'educação';
+  const title = shortSeoTitle(store.nome_loja, ' | Materiais Didáticos | Educalizando');
+  const description = storeSeoDescription(store.nome_loja, products.length, category);
   return {
-    title: `${store.nome_loja} — Educalizando`,
-    description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+    metadataBase: new URL(SITE_URL),
+    title,
+    description,
+    keywords: [store.nome_loja, category, 'materiais didáticos', 'recursos para professores'],
+    robots: { index: true, follow: true },
     alternates: {
       canonical: `https://www.educalizando.com.br/loja/${store.slug}`,
     },
     openGraph: {
-      title: `${store.nome_loja} — Materiais Didáticos Digitais`,
-      description: store.descricao || `Confira os materiais didáticos de ${store.nome_loja} com PIX instantâneo.`,
+      title,
+      description,
       url: `https://www.educalizando.com.br/loja/${store.slug}`,
       siteName: 'Educalizando',
       locale: 'pt_BR',
@@ -46,8 +60,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${store.nome_loja} — Materiais Didáticos Digitais`,
-      description: store.descricao || `Confira os materiais didáticos digitais de ${store.nome_loja} na Educalizando.`,
+      title,
+      description,
       images: [store.banner_url || store.logo_url || DEFAULT_SOCIAL_IMAGE],
     },
   };

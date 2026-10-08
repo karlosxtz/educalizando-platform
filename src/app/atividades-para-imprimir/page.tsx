@@ -1,7 +1,7 @@
 import IntentLandingPage from '@/components/seo/IntentLandingPage';
-import { intentLandingMetadata,seoLandings } from '@/lib/seo-landings';
-import type { Metadata } from 'next';
+import { seoLandings } from '@/lib/seo-landings';
+import { pageMetadata } from '@/lib/page-seo';
 
 const landing = seoLandings['atividades-para-imprimir'];
-export const metadata: Metadata = intentLandingMetadata(landing);
+export function generateMetadata() { return pageMetadata('/atividades-para-imprimir'); }
 export default function Page() { return <IntentLandingPage landing={landing} />; }

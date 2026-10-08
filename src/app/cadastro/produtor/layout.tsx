@@ -1,9 +1,7 @@
-import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/page-seo';
 import type { ReactNode } from 'react';
 
-export const metadata: Metadata = {
-  alternates: { canonical: '/cadastro/produtor' },
-};
+export function generateMetadata() { return pageMetadata('/cadastro/produtor'); }
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   return children;
