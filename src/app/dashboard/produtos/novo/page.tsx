@@ -323,7 +323,7 @@ function ProductWizardContent() {
         return;
       }
       if (!colorMode) {
-        setErrorMsg('Escolha se o material é colorido ou em preto e branco.');
+        setErrorMsg('Escolha se o material é colorido, em preto e branco ou inclui ambas as versões.');
         return;
       }
     }
@@ -388,7 +388,7 @@ function ProductWizardContent() {
     if (!store) return;
     if (!colorMode && !isImportedWoo) {
       setCurrentStep(1);
-      setErrorMsg('Escolha se o material é colorido ou em preto e branco.');
+      setErrorMsg('Escolha se o material é colorido, em preto e branco ou inclui ambas as versões.');
       return;
     }
 

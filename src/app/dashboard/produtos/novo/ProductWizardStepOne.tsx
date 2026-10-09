@@ -113,11 +113,12 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
 
                 <fieldset className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
                   <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-700">Apresentação do material</legend>
-                  <p className="mb-3 text-xs text-slate-500">Escolha apenas uma opção.</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <p className="mb-3 text-xs text-slate-500">Escolha a apresentação incluída no material. Se ele oferece as duas versões, marque colorido e preto e branco.</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
                     {[
                       { value: 'colorido', label: 'Material colorido' },
-                      { value: 'preto_e_branco', label: 'Material em preto e branco' }
+                      { value: 'preto_e_branco', label: 'Material em preto e branco' },
+                      { value: 'colorido_e_preto_e_branco', label: 'Material colorido e em preto e branco' }
                     ].map((option) => {
                       const selected = colorMode === option.value;
                       return <label key={option.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${selected ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'}`}>

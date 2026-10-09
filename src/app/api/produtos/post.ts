@@ -67,8 +67,8 @@ export async function POST(request: Request) {
     if ((Array.isArray(category_ids) && category_ids.length > 5) || (Array.isArray(education_level_ids) && education_level_ids.length > 5)) {
       return NextResponse.json({ error: 'Selecione no máximo 5 categorias e 5 níveis de escolaridade.' }, { status: 400 });
     }
-    if (!['colorido', 'preto_e_branco'].includes(color_mode)) {
-      return NextResponse.json({ error: 'Escolha se o material é colorido ou em preto e branco.' }, { status: 400 });
+    if (!['colorido', 'preto_e_branco', 'colorido_e_preto_e_branco'].includes(color_mode)) {
+      return NextResponse.json({ error: 'Escolha se o material é colorido, em preto e branco ou inclui ambas as versões.' }, { status: 400 });
     }
     const normalizedCategoryIds = sanitizeUUIDList(category_ids, category_id);
     const normalizedEducationLevelIds = sanitizeUUIDList(education_level_ids, education_level_id);

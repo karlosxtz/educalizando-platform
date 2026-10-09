@@ -1,6 +1,6 @@
 export type ProductType = 'pdf' | 'ebook' | 'video' | 'curso' | 'simulado';
 export type ProductStatus = 'rascunho' | 'publicado' | 'excluido';
-export type ProductColorMode = 'colorido' | 'preto_e_branco';
+export type ProductColorMode = 'colorido' | 'preto_e_branco' | 'colorido_e_preto_e_branco';
 
 export interface AffiliateProfile {
   id: string;

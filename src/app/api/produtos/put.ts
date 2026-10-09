@@ -130,8 +130,8 @@ export async function PUT(request: Request) {
         cleanedUpdates[field] = typeof value === 'string' && value.trim() ? value.trim().slice(0, 180) : null;
       }
     }
-    if ('color_mode' in cleanedUpdates && !['colorido', 'preto_e_branco'].includes(cleanedUpdates.color_mode)) {
-      return NextResponse.json({ error: 'Escolha se o material é colorido ou em preto e branco.' }, { status: 400 });
+    if ('color_mode' in cleanedUpdates && !['colorido', 'preto_e_branco', 'colorido_e_preto_e_branco'].includes(cleanedUpdates.color_mode)) {
+      return NextResponse.json({ error: 'Escolha se o material é colorido, em preto e branco ou inclui ambas as versões.' }, { status: 400 });
     }
     if ('preview_url' in cleanedUpdates) {
       const previewUrl = normalizePreviewUrl(cleanedUpdates.preview_url);
