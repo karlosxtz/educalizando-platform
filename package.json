@@ -58,6 +58,7 @@
     "react-hook-form": "^7.85.0",
     "recharts": "^3.10.1",
     "resend": "^6.22.1",
+    "sharp": "^0.35.5",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "zod": "^3.25.76"
@@ -72,7 +73,6 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
-    "sharp": "0.35.5",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

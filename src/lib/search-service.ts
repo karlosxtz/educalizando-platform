@@ -1,5 +1,6 @@
 import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from './category-service';
 import { searchMatchScore } from './search-matching';
+import { parseRecommendedAges } from './age-range';
 import { getAllPublicMarketplaceProducts } from './store-service';
 import { supabase } from './supabase';
 import { Product,Store } from './types';
@@ -16,6 +17,10 @@ export interface SearchFilters {
   sort?: string;
   filter?: string;
   data?: string;
+  idade?: string;
+  tema?: string;
+  bncc?: string;
+  cor?: string;
   page?: number;
 }
 
@@ -71,6 +76,13 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       }
 
       if (filters.data) query = query.contains('seasonal_tags', [filters.data]);
+      if (filters.cor) query = ['colorido', 'preto_e_branco'].includes(filters.cor)
+        ? query.in('color_mode', [filters.cor, 'colorido_e_preto_e_branco'])
+        : query.eq('color_mode', filters.cor);
+      if (filters.tema) {
+        const theme = filters.tema.replace(/[%_,()]/g, ' ').trim();
+        if (theme) query = query.or(`titulo.ilike.%${theme}%,descricao.ilike.%${theme}%,tags.cs.{${theme}}`);
+      }
 
       if (filters.preco) {
         if (filters.preco === 'gratis') {
@@ -119,6 +131,17 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         }
       }
 
+      if (filters.bncc) {
+        const code = filters.bncc.trim().toLocaleLowerCase('pt-BR');
+        const { data: skills } = await supabase.from('bncc_skills').select('id').ilike('code', `%${code}%`);
+        const skillIds = (skills || []).map(skill => skill.id);
+        const { data: links } = skillIds.length
+          ? await supabase.from('product_bncc_skills').select('product_id').in('bncc_skill_id', skillIds)
+          : { data: [] as { product_id: string }[] };
+        const productIds = [...new Set((links || []).map(link => link.product_id))];
+        query = productIds.length ? query.in('id', productIds) : query.eq('id', '00000000-0000-0000-0000-000000000000');
+      }
+
       // 6. Formato. PDF é um tipo próprio; Word, PowerPoint e planilha são
       // detalhes declarados pelo criador e não devem ser confundidos com
       // e-book ou simulado.
@@ -129,14 +152,21 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
         if (filters.formato === 'planilha') query = query.or('format_details.ilike.%planilha%,format_details.ilike.%excel%');
       }
 
-      if (filters.q) {
+      if (filters.q || filters.idade) {
         const { data, error } = await query.order('created_at', { ascending: false }).limit(500);
         if (!error && data) {
           const matching = (data as (Product & { store?: Store })[])
-            .filter(product => searchMatchScore(product, filters.q as string) > 0)
+            .filter(product => !filters.q || searchMatchScore(product, filters.q) > 0)
+            .filter(product => !filters.idade || parseRecommendedAges(product.age_range).includes(Number(filters.idade)))
             .sort((a, b) => {
-              const score = searchMatchScore(b, filters.q as string) - searchMatchScore(a, filters.q as string);
-              return score || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+              if (filters.sort === 'recentes') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+              if (filters.sort === 'popular') return Number(b.views_count || 0) - Number(a.views_count || 0);
+              if (filters.sort === 'menor-preco') return Number(filters.filter === 'plr' ? a.preco_plr : a.preco) - Number(filters.filter === 'plr' ? b.preco_plr : b.preco);
+              if (filters.sort === 'maior-preco') return Number(filters.filter === 'plr' ? b.preco_plr : b.preco) - Number(filters.filter === 'plr' ? a.preco_plr : a.preco);
+              if (filters.sort === 'avaliacao') return Number(b.average_rating || 0) - Number(a.average_rating || 0) || Number(b.review_count || 0) - Number(a.review_count || 0);
+              if (filters.sort === 'vendas') return Number(b.sales_count || 0) - Number(a.sales_count || 0);
+              const score = filters.q ? searchMatchScore(b, filters.q) - searchMatchScore(a, filters.q) : 0;
+              return score || Number(b.views_count || 0) - Number(a.views_count || 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });
           return {
             data: matching.slice(from, to + 1),
@@ -155,6 +185,10 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
           query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: true });
         } else if (filters.sort === 'maior-preco') {
           query = query.order(filters.filter === 'plr' ? 'preco_plr' : 'preco', { ascending: false });
+        } else if (filters.sort === 'avaliacao') {
+          query = query.order('average_rating', { ascending: false }).order('review_count', { ascending: false });
+        } else if (filters.sort === 'vendas') {
+          query = query.order('sales_count', { ascending: false });
         } else {
           query = query.order('created_at', { ascending: false });
         }
@@ -184,7 +218,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 
   // O fallback não contém os vínculos BNCC: não apresentar materiais como
   // correspondentes a uma disciplina que não pudemos verificar.
-  if (filters.disciplina) return { data: [], count: 0, totalPages: 0 };
+  if (filters.disciplina || filters.bncc) return { data: [], count: 0, totalPages: 0 };
 
   if (filters.q) {
     allProducts = allProducts.filter((product) => searchMatchScore(product, filters.q as string) > 0);
@@ -196,6 +230,15 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     );
   }
   if (filters.data) allProducts = allProducts.filter((product) => product.seasonal_tags?.includes(filters.data as string));
+  if (filters.cor) allProducts = allProducts.filter(product => product.color_mode === filters.cor || (['colorido', 'preto_e_branco'].includes(filters.cor!) && product.color_mode === 'colorido_e_preto_e_branco'));
+  if (filters.idade) {
+    const age = Number.parseInt(filters.idade, 10);
+    if (Number.isFinite(age)) allProducts = allProducts.filter(product => parseRecommendedAges(product.age_range).includes(age));
+  }
+  if (filters.tema) {
+    const theme = filters.tema.toLocaleLowerCase('pt-BR');
+    allProducts = allProducts.filter(product => [product.titulo, product.descricao, ...(product.tags || [])].filter(Boolean).join(' ').toLocaleLowerCase('pt-BR').includes(theme));
+  }
 
   if (filters.categoria) {
     const categoryObj = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === filters.categoria);
@@ -249,6 +292,12 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       allProducts.sort((a, b) => filters.filter === 'plr'
         ? Number(b.preco_plr || 0) - Number(a.preco_plr || 0)
         : b.preco - a.preco);
+    } else if (filters.sort === 'avaliacao') {
+      allProducts.sort((a, b) => Number(b.average_rating || 0) - Number(a.average_rating || 0) || Number(b.review_count || 0) - Number(a.review_count || 0));
+    } else if (filters.sort === 'vendas') {
+      allProducts.sort((a, b) => Number(b.sales_count || 0) - Number(a.sales_count || 0));
+    } else if (filters.sort === 'relevancia' && filters.q) {
+      allProducts.sort((a, b) => searchMatchScore(b, filters.q!) - searchMatchScore(a, filters.q!));
     } else {
       allProducts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }

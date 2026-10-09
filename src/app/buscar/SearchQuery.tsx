@@ -1,5 +1,6 @@
 'use client';
 import { searchHref } from '@/lib/search-navigation';
+import { addSearchHistory } from '@/lib/search-history';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 
@@ -11,6 +12,7 @@ export default function SearchQuery() {
     event.preventDefault();
     if (pending) return;
     const q = String(new FormData(event.currentTarget).get('q') || '').trim();
+    addSearchHistory(q);
     if (q.length >= 2) void fetch('/api/catalog-search-insights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
     startTransition(() => router.push(searchHref(params.toString(), { q: q || null }), { scroll: false }));
   }}>

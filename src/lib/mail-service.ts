@@ -38,6 +38,9 @@ async function send(to: string, subject: string, html: string): Promise<MailResu
 export async function sendWelcomeStudentEmail({ buyerEmail, buyerName }: { buyerEmail: string; buyerName: string }) {
   return send(buyerEmail, 'Boas-vindas à Educalizando — seu acesso está pronto', layout('🎉 Boas-vindas à Educalizando!', `<p>Olá, ${firstName(buyerName)}!</p><p>Sua conta de cliente foi criada com sucesso. Entre para conhecer seus materiais e acompanhar suas compras.</p>${button(`${appUrl}/login`, 'Acessar minha conta', '#2563eb')}`));
 }
+export async function sendOperationalAlertEmail(email: string, failures: string[]) {
+  return send(email, 'Alerta operacional — Educalizando', layout('Serviços precisam de atenção', `<ul>${failures.map(message => `<li>${escapeHtml(message)}</li>`).join('')}</ul>${button(`${appUrl}/admin/operacao`, 'Verificar operação')}`));
+}
 export async function sendWelcomeCreatorEmail({ producerEmail, producerName }: { producerEmail: string; producerName: string }) {
   return send(producerEmail, 'Boas-vindas à Educalizando — sua loja está pronta', layout('🚀 Sua conta de criador está ativa!', `<p>Olá, ${firstName(producerName)}!</p><p>Agora você pode configurar sua loja, publicar materiais e acompanhar suas vendas.</p>${button(`${appUrl}/dashboard`, 'Abrir painel do criador')}`));
 }

@@ -12,11 +12,14 @@ export default function SearchSort() {
     <label className="flex max-w-full flex-wrap items-center gap-2 text-sm text-slate-600">
       Ordenar por:
       <select
-        value={params.get('sort') || 'recentes'}
+        value={params.get('sort') || (params.get('q') ? 'relevancia' : 'recentes')}
         disabled={pending}
         onChange={(event) => startTransition(() => router.push(searchHref(params.toString(), { sort: event.target.value }), { scroll: false }))}
         className="min-h-11 max-w-full rounded-lg border border-slate-200 bg-slate-50 px-3 font-bold text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600"
       >
+        <option value="relevancia">Mais relevantes</option>
+        <option value="avaliacao">Melhor avaliados</option>
+        <option value="vendas">Mais vendidos</option>
         <option value="recentes">Mais recentes</option>
         <option value="menor-preco">Menor preço</option>
         <option value="maior-preco">Maior preço</option>

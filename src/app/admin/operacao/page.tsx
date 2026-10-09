@@ -1,4 +1,5 @@
 'use client';
+import AuditLog from './AuditLog';
 
 import { Activity,AlertTriangle,CheckCircle2,RefreshCw,ServerCrash,Wrench } from 'lucide-react';
 import Link from 'next/link';
@@ -47,5 +48,6 @@ export default function AdminOperationPage() {
         return <article key={service.id} className={`rounded-2xl border p-5 ${state.card}`}><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950/70"><Icon className="h-5 w-5 text-white" /></span><div><h2 className="font-bold text-white">{service.label}</h2><span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${state.badge}`}>{state.title}</span></div></div></div><p className="mt-5 min-h-10 text-sm leading-5 text-slate-300">{service.message}</p>{service.href && <Link href={service.href} className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-bold text-cyan-300 hover:text-cyan-200"><Wrench className="h-4 w-4" />Abrir área responsável</Link>}</article>;
       })}
     </section>
+    <AuditLog />
   </div>;
 }

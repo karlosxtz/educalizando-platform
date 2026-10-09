@@ -4,13 +4,14 @@ import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 import ProductCard from '@/components/ProductCard';
 import SearchSidebar from '@/components/SearchSidebar';
 import SearchSort from '@/components/SearchSort';
+import SearchDiscovery from '@/components/SearchDiscovery';
 import StoreCard from '@/components/StoreCard';
 import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
 import { getDisciplines } from '@/lib/discipline-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
 import { getSchoolCalendarArtworkForTag,SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { searchHref,searchPage } from '@/lib/search-navigation';
-import { searchProducts } from '@/lib/search-service';
+import { quickSearch,searchProducts } from '@/lib/search-service';
 import { getTopMarketplaceStores } from '@/lib/store-service';
 import { Frown,Sparkles } from 'lucide-react';
 import { pageMetadata, PAGE_SEO } from '@/lib/page-seo';
@@ -31,10 +32,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function BuscarPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, disciplina?: string, formato?: string, sort?: string, filter?: string, data?: string, page?: string }>
+  searchParams: Promise<{ q?: string, categoria?: string, preco?: string, ano_escolar?: string, idade?: string, disciplina?: string, tema?: string, bncc?: string, formato?: string, cor?: string, sort?: string, filter?: string, data?: string, page?: string }>
 }) {
   const resolvedParams = await searchParams;
-  const { q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data } = resolvedParams;
+  const { q, categoria, preco, ano_escolar, idade, disciplina, tema, bncc, formato, cor, sort, filter, data } = resolvedParams;
   const isPlrMarketplace = filter === 'plr';
   const isComboMarketplace = categoria === 'combo';
   const page = searchPage(resolvedParams.page);
@@ -44,8 +45,12 @@ export default async function BuscarPage({
     { key: 'q', value: q, label: `Busca: ${q}` },
     { key: 'categoria', value: categoria, label: INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === categoria)?.nome || categoria },
     { key: 'ano_escolar', value: ano_escolar, label: INITIAL_EDUCATION_LEVELS.find(e => e.slug === ano_escolar)?.nome || ano_escolar },
+    { key: 'idade', value: idade, label: `${idade} anos` },
     { key: 'disciplina', value: disciplina, label: disciplina },
+    { key: 'tema', value: tema, label: `Tema: ${tema}` },
+    { key: 'bncc', value: bncc, label: `BNCC: ${bncc}` },
     { key: 'formato', value: formato, label: formato?.toUpperCase() },
+    { key: 'cor', value: cor, label: cor === 'colorido' ? 'Colorido' : cor === 'preto_e_branco' ? 'Preto e branco' : cor ? 'Colorido e preto e branco' : undefined },
     { key: 'preco', value: preco, label: preco === 'gratis' ? 'Produto final grátis' : 'Produto final pago' },
     { key: 'filter', value: filter, label: filter === 'plr' ? 'Licença PLR' : filter },
     { key: 'data', value: data, label: data },
@@ -54,12 +59,14 @@ export default async function BuscarPage({
   // Realiza a busca no service
   const productResult = isComboMarketplace
     ? { data: [], count: 0, totalPages: 0, matchMode: 'exact' as const }
-    : await searchProducts({ q, categoria, preco, ano_escolar, disciplina, formato, sort, filter, data, page });
+    : await searchProducts({ q, categoria, preco, ano_escolar, idade, disciplina, tema, bncc, formato, cor, sort, filter, data, page });
   const kits = isComboMarketplace ? (await getPublicMarketplaceKits(100)).filter(kit => !q || `${kit.titulo} ${kit.descricao || ''}`.toLocaleLowerCase('pt-BR').includes(q.toLocaleLowerCase('pt-BR'))) : [];
   const products = productResult.data;
   const count = isComboMarketplace ? kits.length : productResult.count;
   const totalPages = productResult.totalPages;
   const matchMode = productResult.matchMode;
+  const spellingSuggestions = count === 0 && q ? await quickSearch(q) : [];
+  const relaxedResult = count === 0 && q && activeFilters.length > 1 ? await searchProducts({ q, sort: 'relevancia', page: 1 }) : null;
 
   // Resolve título dinâmico da página
   let pageTitle = "Todos os Materiais";
@@ -106,6 +113,7 @@ export default async function BuscarPage({
               {pageSubtitle}
             </p>
             <SearchQuery />
+            <SearchDiscovery />
           </div>
         </div>
 
@@ -179,6 +187,8 @@ export default async function BuscarPage({
                     Tente remover alguns filtros ou pesquisar por termos mais amplos, como alfabetização ou jogos.
                   </p>
                   <Link href={q ? searchHref('', { q }) : '/buscar'} className="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">{q ? 'Buscar este termo sem filtros' : 'Ver todos os materiais'}</Link>
+                  {spellingSuggestions.length > 0 && <div className="mt-6"><p className="text-sm font-bold text-slate-700">Você quis dizer:</p><div className="mt-2 flex flex-wrap justify-center gap-2">{spellingSuggestions.map(item => <Link key={item.titulo} href={`/buscar?q=${encodeURIComponent(item.titulo)}`} className="inline-flex min-h-10 items-center rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-800">{item.titulo}</Link>)}</div></div>}
+                  {relaxedResult && relaxedResult.data.length > 0 && <div className="mt-8 w-full border-t border-slate-100 pt-8 text-left"><h3 className="text-center text-xl font-black text-slate-900">Opções parecidas com a sua busca</h3><p className="mt-1 text-center text-sm text-slate-500">Removemos os filtros mais restritivos para não deixar você sem alternativas.</p><div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">{relaxedResult.data.slice(0, 4).map(product => <ProductCard key={product.id} product={product} />)}</div></div>}
                   <p className="mt-6 mb-3 text-sm text-slate-500">Ou explore outro tema:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {['Alfabetização', 'Matemática', 'Jogos'].map(term => <Link key={term} href={searchHref('', { q: term, filter: isPlrMarketplace ? 'plr' : null })} className="inline-flex min-h-11 items-center rounded-full border border-slate-200 px-4 text-sm font-semibold text-blue-700">{term}</Link>)}

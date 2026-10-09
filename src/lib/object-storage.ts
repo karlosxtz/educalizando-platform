@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { DeleteObjectCommand,GetObjectCommand,PutObjectCommand,S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand,GetObjectCommand,HeadBucketCommand,PutObjectCommand,S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export type LegacyUploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars' | 'main-banners';
@@ -106,6 +106,12 @@ export async function getObject(bucket: string, key: string) {
 
 export async function deleteObject(bucket: string, key: string) {
   return client().send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+}
+
+export async function checkObjectStorageHealth() {
+  const bucket = process.env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images';
+  await client().send(new HeadBucketCommand({ Bucket: bucket }), { abortSignal: AbortSignal.timeout(8000) });
+  return true;
 }
 
 export async function createDownloadUrl(bucket: string, key: string, filename?: string) {

@@ -20,7 +20,17 @@ export function addRecentView(product: RecentProduct) {
     views = views.filter((p) => p.id !== product.id);
 
     // Adicionar no início
-    views.unshift(product);
+    // Guarde somente dados da vitrine, sem URLs privadas de entrega.
+    views.unshift({
+      id: product.id, store_id: product.store_id, titulo: product.titulo,
+      slug: product.slug, descricao: null, tipo: product.tipo,
+      preco: product.preco, preco_original: product.preco_original,
+      capa_url: product.capa_url, arquivo_url: null,
+      status: product.status, created_at: product.created_at,
+      is_free: product.is_free, is_plr: product.is_plr, preco_plr: product.preco_plr,
+      has_plr_delivery: product.has_plr_delivery,
+      store: product.store ? { ...product.store, descricao: null, author_bio: null, welcome_message: null } : undefined,
+    });
 
     // Limitar tamanho
     if (views.length > MAX_RECENT_VIEWS) {

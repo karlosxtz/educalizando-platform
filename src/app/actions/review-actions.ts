@@ -84,10 +84,11 @@ export async function submitProductReview(params: {
     
     // Fallback: se for uma compra antiga concedida manualmente ou num formato legado, 
     // checar a tabela student_product_access que é a ponte atual de liberação
-    if (!hasBought) {
+    if (!hasBought && paidOrders?.length) {
       const { data: manualAccess } = await supabaseAdmin
         .from('student_product_access')
         .select('id')
+        .in('order_id', paidOrders.map(order => order.id))
         .eq('product_id', params.productId)
         .eq('status', 'ACTIVE')
         .eq('student_id', currentUser.id)

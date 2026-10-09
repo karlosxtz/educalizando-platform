@@ -17,5 +17,7 @@ assert.ok(searchMatchScore(material, 'arvore') > 0, 'encontra tag e descrição 
 assert.ok(searchMatchScore(material, 'powerpoint') > 0, 'encontra formato declarado');
 assert.ok(searchMatchScore(material, 'consciencia fonologica') > 0, 'encontra tags de busca sem acento');
 assert.equal(searchMatchScore(material, 'quimica quantica'), 0, 'não inventa associação inexistente');
+assert.ok(searchMatchScore(material, 'alfabetizacoa') === 0, 'não aceita duas alterações como correção segura');
+assert.ok(searchMatchScore(material, 'alfabetizaca') > 0, 'tolera um caractere ausente');
 
 console.log('Search matching verification passed.');

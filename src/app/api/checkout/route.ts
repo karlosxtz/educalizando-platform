@@ -8,6 +8,8 @@ import { getStorePromotion } from '@/lib/store-promotion';
 import { supabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
+import { recordOperationalFailure } from '@/lib/operational-events';
 
 const CHECKOUT_CONFIGURATION_ERROR = 'O checkout está temporariamente indisponível. Tente novamente em instantes.';
 const CHECKOUT_ATTEMPT_ERROR = 'Não foi possível retomar esta tentativa de compra. Atualize a página e tente novamente.';
@@ -40,6 +42,8 @@ async function loadReservedAttempt(orderId: string) {
 }
 
 export async function POST(request: Request) {
+  const limit = await consumeRequestRateLimit(request, { namespace: 'checkout', limit: 20, windowMs: 60_000 });
+  if (!limit.allowed) return rateLimitResponse(limit);
   try {
     const body = await request.json();
     const idempotencyKey = request.headers.get('idempotency-key') || '';
@@ -538,6 +542,7 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('[API Checkout Error]:', error);
+    await recordOperationalFailure('checkout');
     return NextResponse.json(
       { success: false, error: 'Não foi possível processar o checkout com segurança. Tente novamente em instantes.' },
       { status: 500 }

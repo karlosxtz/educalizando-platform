@@ -33,6 +33,18 @@ function productSearchText(product: SearchableProduct) {
   ].filter(Boolean).join(' '));
 }
 
+function isOneEditAway(first: string, second: string) {
+  if (first.length < 5 || Math.abs(first.length - second.length) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < first.length && j < second.length) {
+    if (first[i] === second[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (first.length >= second.length) i++;
+    if (second.length >= first.length) j++;
+  }
+  return edits + Number(i < first.length || j < second.length) <= 1;
+}
+
 /**
  * Não cria associações artificiais: só considera textos, formatos e tags que
  * já pertencem ao próprio produto. A pontuação prioriza a frase/todos os
@@ -47,5 +59,7 @@ export function searchMatchScore(product: SearchableProduct, query: string) {
   if (haystack.includes(normalizedQuery)) return 3;
   if (terms.length && terms.every((term) => haystack.includes(term))) return 2;
   if (terms.some((term) => haystack.includes(term))) return 1;
+  const words = haystack.split(' ');
+  if (terms.length && terms.every(term => words.some(word => word === term || isOneEditAway(term, word)))) return 0.5;
   return 0;
 }

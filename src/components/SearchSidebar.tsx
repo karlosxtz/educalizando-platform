@@ -8,7 +8,7 @@ import { SlidersHorizontal,X } from 'lucide-react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useId,useRef,useState,useTransition } from 'react';
 
-const keys = ['categoria', 'ano_escolar', 'preco', 'disciplina', 'formato', 'filter', 'data'];
+const keys = ['categoria', 'ano_escolar', 'idade', 'preco', 'disciplina', 'tema', 'bncc', 'formato', 'cor', 'filter', 'data'];
 
 export default function SearchSidebar({ disciplines = [] }: { disciplines?: Discipline[] }) {
   const router = useRouter();
@@ -31,9 +31,13 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
   const groups = [
     { key: 'categoria', label: 'Categoria', options: INITIAL_GLOBAL_CATEGORIES.map(c => [c.slug, c.nome]) },
     { key: 'ano_escolar', label: 'Nível de ensino', options: INITIAL_EDUCATION_LEVELS.map(c => [c.slug, c.nome]) },
+    { key: 'idade', label: 'Idade recomendada', options: Array.from({ length: 81 }, (_, age) => [String(age), age === 1 ? '1 ano' : `${age} anos`]) },
     { key: 'preco', label: 'Preço do produto final', options: [['gratis', 'Grátis'], ['pago', 'Pago']] },
     { key: 'disciplina', label: 'Disciplina (BNCC)', options: disciplines.map(d => [d.name, d.name]) },
+    { key: 'tema', label: 'Tema', options: INITIAL_GLOBAL_CATEGORIES.map(c => [c.nome, c.nome]) },
+    { key: 'bncc', label: 'Código BNCC', kind: 'text', placeholder: 'Ex.: EF03LP05' },
     { key: 'formato', label: 'Formato', options: [['pdf', 'PDF'], ['word', 'Word'], ['ppt', 'Apresentação (PPT)'], ['planilha', 'Planilha']] },
+    { key: 'cor', label: 'Cores do material', options: [['colorido', 'Colorido'], ['preto_e_branco', 'Preto e branco'], ['colorido_e_preto_e_branco', 'Colorido e preto e branco']] },
     { key: 'filter', label: 'Licença', options: [['plr', 'Com licença PLR para revenda']] },
     { key: 'data', label: 'Data ou campanha', options: SCHOOL_CALENDAR_TAGS.map(tag => [tag, tag]) },
   ];
@@ -49,11 +53,11 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
     }} className="space-y-4">
       {groups.map(group => <label key={group.key} className="block text-sm font-semibold text-slate-700">
         {group.label}
-        <select name={group.key} defaultValue={values.get(group.key) || ''} className="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-base focus-visible:outline-2 focus-visible:outline-blue-600">
+        {'kind' in group ? <input name={group.key} defaultValue={values.get(group.key) || ''} placeholder={group.placeholder} className="mt-2 block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-blue-600" /> : <select name={group.key} defaultValue={values.get(group.key) || ''} className="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-base focus-visible:outline-2 focus-visible:outline-blue-600">
           <option value="">Todas as opções</option>
           {values.get(group.key) && !group.options.some(([value]) => value === values.get(group.key)) && <option value={values.get(group.key)!}>{values.get(group.key)}</option>}
           {group.options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        </select>}
       </label>)}
       <p className="text-xs leading-5 text-slate-600">Disciplina considera as habilidades BNCC cadastradas. Em PLR, Grátis/Pago filtra o produto final; a licença possui seu próprio valor.</p>
       <div className="grid gap-2 pb-2">

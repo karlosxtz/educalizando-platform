@@ -13,6 +13,7 @@ UploadCloud
 import Link from 'next/link';
 
 import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
+import { productCompleteness } from '@/lib/product-completeness';
 
 
 import ProductWizardStepOne from './ProductWizardStepOne';
@@ -20,7 +21,8 @@ import ProductWizardStepThree from './ProductWizardStepThree';
 
 // State and actions stay in the page controller; this component renders the wizard shell.
 export default function ProductWizardView({ state }: { state: any }) {
-  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, ageRange, galleryUrls, setGalleryUrls, status, setStatus, isFree, isImportedWoo, confirmImportPrice, setConfirmImportPrice, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct } = state;
+  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, ageRange, galleryUrls, setGalleryUrls, status, setStatus, isFree, isImportedWoo, confirmImportPrice, setConfirmImportPrice, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct, previewUrl, categoryIds, educationLevelIds, arquivoUrl, deliveryFiles } = state;
+  const completeness = productCompleteness({ titulo, descricao, tipo, preco: Number(String(preco || '0').replace(',', '.')), age_range: ageRange, gallery_urls: galleryUrls, capa_url: galleryUrls[0], is_free: isFree, category_ids: categoryIds, education_level_ids: educationLevelIds, preview_url: previewUrl, arquivo_url: arquivoUrl, delivery_files: deliveryFiles });
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Top Fixed Navigation Header */}
@@ -145,6 +147,7 @@ export default function ProductWizardView({ state }: { state: any }) {
               </div>
 
               {isImportedWoo && <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><input type="checkbox" checked={confirmImportPrice} onChange={event => setConfirmImportPrice(event.target.checked)} className="mt-0.5 h-5 w-5 accent-amber-600" /><span><b className="block">Confirmo o preço deste produto</b>Revise o valor de {isFree ? 'Grátis' : `R$ ${preco || '0,00'}`} antes de publicar na Educalizando.</span></label>}
+              <div className={`rounded-2xl border p-4 ${completeness.completeRequired ? 'border-emerald-200 bg-emerald-50' : 'border-amber-300 bg-amber-50'}`}><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-slate-900">Cadastro {completeness.score}% completo</p><p className="mt-1 text-xs font-medium text-slate-700">{completeness.missing.length ? `Revise: ${completeness.missing.join(', ')}.` : 'Todos os campos de confiança estão preenchidos.'}</p></div><strong className="text-2xl text-slate-900">{completeness.score}%</strong></div>{completeness.previewRecommended && <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-xs font-bold text-blue-800">Prévia recomendada: uma amostra clara aumenta a confiança antes da compra.</p>}</div>
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-6">
                 <div className="w-36 h-48 rounded-xl bg-slate-200 overflow-hidden flex-shrink-0 relative shadow-md">

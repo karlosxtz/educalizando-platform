@@ -32,6 +32,7 @@ import { useEffect,useMemo,useRef,useState } from 'react';
 import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
 import { getCategories,getEducationLevels } from '@/lib/category-service';
 import { searchMatchScore } from '@/lib/search-matching';
+import { productCompleteness } from '@/lib/product-completeness';
 import {
 deleteProduct,
 getCurrentCreatorStore,
@@ -445,6 +446,7 @@ export default function ProductsManagementPage() {
           {filteredProducts.map(prod => {
             const catName = getCategoryName(prod.category_id);
             const edName = getEducationName(prod.education_level_id);
+            const completeness = productCompleteness(prod);
 
             return (
               <div
@@ -452,6 +454,7 @@ export default function ProductsManagementPage() {
                 className="relative min-w-0 flex flex-col justify-between space-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-5"
               >
                 {prod.import_source === 'woocommerce' && prod.import_incomplete && <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900"><span className="block text-sm font-black">Produto importado · confirmação pendente</span>Confirme o preço e envie o arquivo ou link de entrega antes de publicar.</div>}
+                <div className={`rounded-xl border px-3 py-2 text-xs font-bold ${completeness.score === 100 ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : completeness.completeRequired ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}><span className="flex items-center justify-between gap-2"><b>Cadastro {completeness.score}% completo</b><span>{completeness.score === 100 ? 'Pronto' : completeness.completeRequired ? 'Pode publicar' : 'Requer atenção'}</span></span>{completeness.missing.length > 0 && <span className="mt-1 block font-medium">Falta: {completeness.missing.join(', ')}.</span>}</div>
                 {showSeo && getSeoReport(prod.id) && <span className={`absolute right-3 top-3 z-10 rounded-full px-2 py-1 text-[10px] font-black ${(getAiSeoReport(prod.id)?.score ?? getSeoReport(prod.id)!.score) >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`} title={getAiSeoReport(prod.id)?.issues.join(' · ') || getSeoReport(prod.id)!.suggestions.join(' · ') || 'Critérios SEO preenchidos'}>SEO {getAiSeoReport(prod.id)?.score ?? getSeoReport(prod.id)!.score}</span>}
                 <div className="space-y-3">
                   <div className="h-40 rounded-xl overflow-hidden bg-slate-100 relative">

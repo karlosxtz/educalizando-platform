@@ -3,6 +3,7 @@ import { getFinancialConfiguration } from '@/lib/financial-configuration';
 import { getMailConfiguration } from '@/lib/mail-service';
 import { isRealSupabaseConfigured,supabaseAdmin } from '@/lib/supabase';
 import { getEvolutionInstanceHealth } from '@/lib/whatsapp-notification-service';
+import { checkObjectStorageHealth } from '@/lib/object-storage';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,12 @@ export async function GET(request: Request) {
   ]);
 
   const services: ServiceHealth[] = [];
+  try {
+    await checkObjectStorageHealth();
+    services.push({ id: 'storage', label: 'MinIO e materiais', status: 'healthy', message: 'Conexão com o armazenamento confirmada.' });
+  } catch {
+    services.push({ id: 'storage', label: 'MinIO e materiais', status: 'error', message: 'O armazenamento está indisponível ou sem configuração.' });
+  }
   services.push(
     databaseCheck.error
       ? { id: 'database', label: 'Supabase e banco de dados', status: 'error', message: 'A plataforma não conseguiu consultar o banco de dados.', href: '/admin/configuracoes' }

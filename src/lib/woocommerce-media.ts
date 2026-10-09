@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { platformPublicImageUrl,platformPublicMediaUrl,resolveBucket,uploadObject } from '@/lib/object-storage';
+import sharp from 'sharp';
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -68,9 +69,13 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
   const isImage = media.contentType.startsWith('image/');
   if (isImage && media.size > MAX_IMAGE_BYTES) throw new Error('A imagem remota ultrapassa 15 MB.');
   const bucket = resolveBucket('product-covers');
-  const key = `uploads/woocommerce/${integrationId}/${wooProductId}/media/${index}-${stableName(media.finalUrl)}.${extension(media.contentType, media.finalUrl)}`;
-  await uploadObject({ bucket, key, body: media.body, contentType: media.contentType });
-  return { url: isImage ? platformPublicImageUrl(bucket, key) : platformPublicMediaUrl(bucket, key), contentType: media.contentType, size: media.size };
+  if (media.contentType === 'image/svg+xml') throw new Error('Formato de imagem não permitido.');
+  const optimize = isImage && media.contentType !== 'image/gif';
+  const body = optimize ? new Uint8Array(await sharp(media.body).rotate().resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true }).webp({ quality: 84 }).toBuffer()) : media.body;
+  const contentType = optimize ? 'image/webp' : media.contentType;
+  const key = `uploads/woocommerce/${integrationId}/${wooProductId}/media/${index}-${stableName(media.finalUrl)}.${optimize ? 'webp' : extension(contentType, media.finalUrl)}`;
+  await uploadObject({ bucket, key, body, contentType });
+  return { url: isImage ? platformPublicImageUrl(bucket, key) : platformPublicMediaUrl(bucket, key), contentType, size: body.byteLength };
 }
 
 export async function mirrorWooDelivery(input: string, name: string, integrationId: string, wooProductId: number, index: number) {
