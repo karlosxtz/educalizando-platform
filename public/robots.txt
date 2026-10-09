@@ -9,5 +9,6 @@ Disallow: /loja/*/checkout/
 Disallow: /aluno/login
 Disallow: /aluno/painel/
 Disallow: /aluno/dashboard/
+Disallow: /aluno/favoritos/
 
 Sitemap: https://www.educalizando.com.br/sitemap.xml

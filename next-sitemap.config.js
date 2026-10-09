@@ -29,6 +29,7 @@ const ROBOTS_DISALLOW = [
   '/aluno/login',
   '/aluno/painel/',
   '/aluno/dashboard/',
+  '/aluno/favoritos/',
 ];
 
 const PRIVATE_PATHS = [
@@ -47,6 +48,7 @@ const PRIVATE_PATHS = [
   '/aluno/clubes/*',
   '/aluno/conta',
   '/aluno/dashboard',
+  '/aluno/favoritos',
   '/aluno/login',
   '/aluno/loja/*',
   '/aluno/materiais-exclusivos',

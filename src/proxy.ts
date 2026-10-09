@@ -99,7 +99,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone(); url.pathname = '/login'; return NextResponse.redirect(url)
   }
 
-  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais', '/cliente/clubes']
+  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais', '/cliente/clubes', '/cliente/favoritos']
   if (privateClientRoutes.some((route) => pathname.startsWith(route)) && !userId) {
     const url = request.nextUrl.clone(); url.pathname = '/cliente/login'; return NextResponse.redirect(url)
   }
@@ -116,7 +116,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*', '/api/admin/:path*', '/dashboard/:path*', '/painel/:path*',
-    '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*',
+    '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*', '/cliente/favoritos/:path*',
     '/api/produtos/:path*', '/api/financeiro/:path*', '/api/aluno/materiais/:path*',
   ],
 }

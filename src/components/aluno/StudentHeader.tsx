@@ -1,7 +1,7 @@
 'use client';
 
 import { signOutStudent } from '@/lib/student-service';
-import { BookOpen,Crown,FilePenLine,GraduationCap,LogOut } from 'lucide-react';
+import { BookOpen,Crown,FilePenLine,GraduationCap,Heart,LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -48,6 +48,10 @@ export default function StudentHeader({
           >
             <BookOpen className="w-4 h-4 text-brand-teal" />
             <span>Meus Materiais</span>
+          </Link>
+          <Link href="/cliente/favoritos" className="hidden items-center gap-1.5 text-xs font-bold text-slate-600 transition-colors hover:text-rose-600 lg:flex">
+            <Heart className="h-4 w-4 text-rose-500" />
+            <span>Favoritos</span>
           </Link>
           <Link
             href="/cliente/brindes"

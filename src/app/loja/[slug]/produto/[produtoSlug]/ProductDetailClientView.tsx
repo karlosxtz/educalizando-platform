@@ -8,10 +8,11 @@ import { validateCouponCode } from '@/lib/coupon-service';
 import { addRecentView } from '@/lib/recent-views';
 import { incrementProductViews } from '@/lib/store-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
+import { supabase } from '@/lib/supabase';
 import { BnccSkill,Category,CouponValidationResult,EducationLevel,Product,ProductType,Review,Store } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 import { AnimatePresence,motion } from 'framer-motion';
-import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Search, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, UserCheck, UserX, Video, X, Zap } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, Clock3, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, Heart, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Printer, Search, Share2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, UserCheck, UserX, Video, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
@@ -61,6 +62,9 @@ export default function ProductDetailClientView({
   // Reviews State
   const [reviews, setReviews] = useState<Review[]>([]);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState('');
 
   // Gallery State
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -148,6 +152,89 @@ export default function ProductDetailClientView({
   const productPath = context === 'marketplace'
     ? `/produto/${product.slug || product.id}`
     : `/loja/${store.slug}/produto/${product.slug || product.id}`;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadFavorite() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !active) return;
+
+      const { data } = await supabase
+        .from('product_favorites')
+        .select('product_id')
+        .eq('user_id', user.id)
+        .eq('product_id', product.id)
+        .maybeSingle();
+
+      if (active) setIsFavorite(Boolean(data));
+    }
+
+    void loadFavorite();
+    return () => { active = false; };
+  }, [product.id]);
+
+  const handleToggleFavorite = async () => {
+    if (favoriteLoading) return;
+    setFavoriteLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push(`/cliente/login?returnTo=${encodeURIComponent(productPath)}&action=favorite`);
+        return;
+      }
+
+      if (isFavorite) {
+        const { error } = await supabase
+          .from('product_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', product.id);
+        if (error) throw error;
+        setIsFavorite(false);
+      } else {
+        const { error } = await supabase
+          .from('product_favorites')
+          .upsert({ user_id: user.id, product_id: product.id }, { onConflict: 'user_id,product_id' });
+        if (error) throw error;
+        setIsFavorite(true);
+      }
+    } catch {
+      setPurchaseError('Não foi possível atualizar seus favoritos agora. Tente novamente.');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: product.titulo,
+      text: `Confira este material na Educalizando: ${product.titulo}`,
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareFeedback('Compartilhado');
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareFeedback('Link copiado');
+      }
+      window.setTimeout(() => setShareFeedback(''), 2500);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setShareFeedback('Não foi possível compartilhar');
+      window.setTimeout(() => setShareFeedback(''), 2500);
+    }
+  };
+
+  const productFormatLabel = product.format_details?.trim()
+    || (product.tipo === 'video' ? 'Digital (vídeo)' : product.tipo === 'curso' ? 'Digital (curso)' : `Digital (${product.tipo.toUpperCase()})`);
+  const updatedAtLabel = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' })
+    .format(new Date(product.updated_at || product.created_at));
 
   const handleClaimFreeMaterial = async () => {
     setPurchaseError(null);
@@ -325,6 +412,27 @@ export default function ProductDetailClientView({
 
       {/* Main Page Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-40 lg:pb-12">
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            disabled={favoriteLoading}
+            aria-pressed={isFavorite}
+            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-bold shadow-sm transition-all disabled:opacity-60 ${isFavorite ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-200 hover:text-rose-700'}`}
+          >
+            {favoriteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />}
+            {isFavorite ? 'Favoritado' : 'Favoritar'}
+          </button>
+          {isFavorite && <Link href="/cliente/favoritos" className="inline-flex min-h-11 items-center rounded-full px-2 text-xs font-black text-rose-700 hover:underline">Ver favoritos</Link>}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition-all hover:border-blue-200 hover:text-blue-700"
+          >
+            <Share2 className="h-4 w-4" />
+            {shareFeedback || 'Compartilhar'}
+          </button>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: Content */}
@@ -430,14 +538,27 @@ export default function ProductDetailClientView({
               </div>
             </section>
 
+            {/* Premium product details */}
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="product-details-title">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-700"><FileText className="h-5 w-5" /></span>
+                <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-blue-600">Ficha do material</p><h2 id="product-details-title" className="text-xl font-black text-slate-950">Detalhes</h2></div>
+              </div>
+              <dl className="divide-y divide-slate-100">
+                {category && <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Categoria</dt><dd className="text-sm font-bold text-blue-700 sm:text-right">{category.nome}</dd></div>}
+                {product.seasonal_tags && product.seasonal_tags.length > 0 && <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Datas comemorativas</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{product.seasonal_tags.join(', ')}</dd></div>}
+                <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Série / ano</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{educationLevel?.nome || 'Todas as séries'}</dd></div>
+                {product.age_range && <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Faixa etária</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{product.age_range}</dd></div>}
+                <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Formato</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{productFormatLabel}</dd></div>
+                {product.color_mode && <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Apresentação</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{product.color_mode === 'colorido_e_preto_e_branco' ? 'Colorido e preto e branco' : product.color_mode === 'colorido' ? 'Colorido' : 'Preto e branco'}</dd></div>}
+                {product.page_count && <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">{product.tipo === 'video' ? 'Aulas / telas' : 'Quantidade'}</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{product.page_count} {product.tipo === 'video' ? 'itens' : product.page_count === 1 ? 'página' : 'páginas'}</dd></div>}
+                <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Criado por</dt><dd className="sm:text-right"><Link href={`/loja/${store.slug}`} className="text-sm font-bold text-blue-700 hover:underline">{store.nome_loja}</Link></dd></div>
+                <div className="grid gap-1 py-3.5 sm:grid-cols-[180px_1fr] sm:items-center"><dt className="text-sm font-medium text-slate-500">Atualizado em</dt><dd className="text-sm font-bold text-slate-900 sm:text-right">{updatedAtLabel}</dd></div>
+              </dl>
+            </section>
+
             {/* Description Box */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
-              <dl className="grid grid-cols-1 gap-3 border-b border-slate-100 pb-5 sm:grid-cols-2">
-                <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Formato informado</dt><dd className="mt-1 text-sm font-bold uppercase text-slate-900">{product.tipo}</dd></div>
-                <div className={`rounded-2xl p-4 ${isPlrPurchase ? 'bg-purple-50' : 'bg-blue-50'}`}><dt className="text-xs font-semibold text-slate-500">Sua compra</dt><dd className="mt-1 text-sm font-bold text-slate-900">{isPlrPurchase ? 'Licença PLR para revenda' : 'Produto final para uso'}</dd></div>
-                {educationLevel && <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Etapa escolar</dt><dd className="mt-1 text-sm font-bold text-slate-900">{educationLevel.nome}</dd></div>}
-                {category && <div className="rounded-2xl bg-slate-50 p-4"><dt className="text-xs font-semibold text-slate-500">Categoria</dt><dd className="mt-1 text-sm font-bold text-slate-900">{category.nome}</dd></div>}
-              </dl>
               <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-4">
                 <FileText className="w-5 h-5" style={{ color: primaryColor }} />
                 {isPlrPurchase ? 'Conheça o conteúdo e a licença' : 'O que você encontra neste material'}
@@ -487,26 +608,17 @@ export default function ProductDetailClientView({
               </div>
             </div>}
 
-            {(bnccSkills.length > 0 || product.age_range || product.page_count || product.format_details || product.color_mode) && (
+            {bnccSkills.length > 0 && (
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Para quem é e como usar</h3>
-                  <p className="text-xs text-slate-500 mt-1">Detalhes informados pelo criador para facilitar sua escolha.</p>
+                  <h3 className="text-lg font-black text-slate-900">Habilidades da BNCC</h3>
+                  <p className="text-xs text-slate-500 mt-1">Referências pedagógicas relacionadas a este material.</p>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {product.age_range && <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4"><span className="text-[10px] uppercase tracking-wide font-bold text-indigo-600">Faixa etária</span><p className="mt-1 text-sm font-bold text-slate-800">{product.age_range}</p></div>}
-                  {product.page_count && <div className="rounded-xl bg-blue-50 border border-blue-100 p-4"><span className="text-[10px] uppercase tracking-wide font-bold text-blue-600">{product.tipo === 'video' ? 'Aulas / telas' : 'Páginas'}</span><p className="mt-1 text-sm font-bold text-slate-800">{product.page_count} {product.tipo === 'video' ? 'itens' : product.page_count === 1 ? 'página' : 'páginas'}</p></div>}
-                  {product.format_details && <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 sm:col-span-2"><span className="text-[10px] uppercase tracking-wide font-bold text-slate-500">Formato e uso</span><p className="mt-1 text-sm font-bold text-slate-800">{product.format_details}</p></div>}
-                  {product.color_mode && <div className="rounded-xl bg-slate-50 border border-slate-200 p-4"><span className="text-[10px] uppercase tracking-wide font-bold text-slate-500">Apresentação</span><p className="mt-1 text-sm font-bold text-slate-800">{product.color_mode === 'colorido_e_preto_e_branco' ? 'Material colorido e em preto e branco' : product.color_mode === 'colorido' ? 'Material colorido' : 'Material em preto e branco'}</p></div>}
-                </div>
-                {bnccSkills.length > 0 && (
-                  <div className="border-t border-slate-100 pt-4">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 mb-3">Habilidades da BNCC</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {bnccSkills.map((skill) => <span key={skill.id} title={skill.description} className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-800">{skill.code}</span>)}
-                    </div>
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex flex-wrap gap-2">
+                    {bnccSkills.map((skill) => <span key={skill.id} title={skill.description} className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-800">{skill.code}</span>)}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -633,6 +745,13 @@ export default function ProductDetailClientView({
 
               <PurchaseLicenseSummary isPlr={!!isPlrPurchase} />
 
+              <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-lime-50 p-4 text-slate-800">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-emerald-600 shadow-sm"><Clock3 className="h-5 w-5" /></span>
+                  <div><p className="text-sm font-black">Compra única, acesso organizado.</p><p className="mt-1 text-xs leading-relaxed text-slate-600">Após a confirmação do pagamento, o material fica disponível na sua área de cliente.</p>{product.tipo === 'pdf' && <p className="mt-2 flex items-center gap-1.5 text-xs font-bold text-slate-700"><Printer className="h-3.5 w-3.5" />Pronto para imprimir conforme as orientações do arquivo.</p>}</div>
+                </div>
+              </div>
+
               {purchaseError && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800" role="alert">{purchaseError}</p>}
 
               {product.preview_url && (
@@ -696,7 +815,7 @@ export default function ProductDetailClientView({
                   type="button"
                   onClick={handleStartCheckout}
                   disabled={isBuying}
-                  className="w-full py-4 rounded-2xl font-black text-base text-white shadow-xl hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-500 font-black text-base text-white shadow-xl shadow-emerald-200 hover:brightness-105 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[52px]"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {isBuying ? (
@@ -704,7 +823,7 @@ export default function ProductDetailClientView({
                   ) : (
                     <>
                       <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
-                      <span className="tracking-wide">{isFreeProduct ? 'Resgatar Grátis' : 'Comprar Agora'}</span>
+                      <span className="tracking-wide">{isFreeProduct ? 'Resgatar Grátis' : 'Comprar agora no Pix'}</span>
                     </>
                   )}
                 </button>
@@ -712,7 +831,8 @@ export default function ProductDetailClientView({
                   type="button"
                   onClick={handleAddOnly}
                   disabled={isBuying}
-                  className="w-full py-4 rounded-2xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[44px]"
+                  className="w-full py-4 rounded-2xl border-2 bg-white font-bold text-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[50px]"
+                  style={{ borderColor: primaryColor, color: primaryColor }}
                 >
                   {isBuying ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
