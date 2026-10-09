@@ -20,7 +20,7 @@ import ProductWizardStepThree from './ProductWizardStepThree';
 
 // State and actions stay in the page controller; this component renders the wizard shell.
 export default function ProductWizardView({ state }: { state: any }) {
-  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, galleryUrls, setGalleryUrls, status, setStatus, isFree, isImportedWoo, confirmImportPrice, setConfirmImportPrice, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct } = state;
+  const { editId, saving, errorMsg, currentStep, titulo, descricao, tipo, preco, ageRange, galleryUrls, setGalleryUrls, status, setStatus, isFree, isImportedWoo, confirmImportPrice, setConfirmImportPrice, orderBumpId, setOrderBumpId, availableProducts, handleNextStep, handlePrevStep, handleSaveProduct } = state;
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Top Fixed Navigation Header */}
@@ -164,6 +164,11 @@ export default function ProductWizardView({ state }: { state: any }) {
                     </span>
                     <h3 className="text-lg font-black text-slate-900 mt-2">{titulo || 'Título não preenchido'}</h3>
                     <p className="text-xs text-slate-500 line-clamp-3 mt-1">{descricao || 'Sem descrição'}</p>
+                    {ageRange && (
+                      <p className="mt-2 inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-900">
+                        Faixa etária: {ageRange}
+                      </p>
+                    )}
                   </div>
 
                   <div className="pt-2 flex items-center justify-between border-t border-slate-200">

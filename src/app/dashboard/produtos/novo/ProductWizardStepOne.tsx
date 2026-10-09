@@ -13,6 +13,7 @@ X
 } from 'lucide-react';
 import Link from 'next/link';
 
+import AgeRangePicker from '@/components/dashboard/AgeRangePicker';
 import LimitedMultiSelect from '@/components/ui/LimitedMultiSelect';
 import TagInput from '@/components/ui/TagInput';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
@@ -129,7 +130,7 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                   </div>
                 </fieldset>
 
-                <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                <div className="pt-2">
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
                       Número de páginas / telas
@@ -146,20 +147,9 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                     />
                     <p className="mt-1 text-[11px] text-slate-500">Opcional. Para vídeos, informe a quantidade de aulas/telas.</p>
                   </div>
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
-                      Faixa etária recomendada
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={120}
-                      value={ageRange}
-                      onChange={(event) => setAgeRange(event.target.value)}
-                      placeholder="Ex.: 6 a 8 anos"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
-                    />
-                  </div>
                 </div>
+
+                <AgeRangePicker value={ageRange} onChange={setAgeRange} />
 
                 <div className="rounded-2xl border border-pink-100 bg-pink-50/60 p-4">
                   <label className="text-xs font-bold uppercase tracking-wider text-pink-800 block mb-1.5">Vídeo do Instagram na galeria</label>

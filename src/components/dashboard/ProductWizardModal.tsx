@@ -17,6 +17,7 @@ Tags
 } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
+import AgeRangePicker from './AgeRangePicker';
 import FileUpload from './FileUpload';
 import ProductWizardDialogs from './ProductWizardDialogs';
 import ProductWizardHeader from './ProductWizardHeader';
@@ -65,7 +66,7 @@ export default function ProductWizardModal({
   const [status, setStatus] = useState<'publicado' | 'rascunho'>(editingProduct?.status === 'rascunho' ? 'rascunho' : 'publicado');
   const [categoryId, setCategoryId] = useState<string | null>(editingProduct?.category_id || null);
   const [educationLevelId, setEducationLevelId] = useState<string | null>(editingProduct?.education_level_id || null);
-  const [faixaEtaria, setFaixaEtaria] = useState('');
+  const [faixaEtaria, setFaixaEtaria] = useState(editingProduct?.age_range || '');
   const [bnccReferences, setBnccReferences] = useState('');
   const [paginas, setPaginas] = useState('');
 
@@ -347,8 +348,9 @@ export default function ProductWizardModal({
 
               </div>
 
-              <div className="grid sm:grid-cols-3 gap-4 mt-4">
-                <input value={faixaEtaria} onChange={(e) => setFaixaEtaria(e.target.value)} placeholder="Faixa etária (ex.: 6 a 8 anos)" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
+              <AgeRangePicker value={faixaEtaria} onChange={setFaixaEtaria} className="mt-4" />
+
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
                 <input value={paginas} onChange={(e) => setPaginas(e.target.value)} type="number" min="1" placeholder="Nº de páginas" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
                 <input value={bnccReferences} onChange={(e) => setBnccReferences(e.target.value)} placeholder="Habilidades BNCC (opcional)" className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900" />
               </div>
@@ -500,6 +502,10 @@ export default function ProductWizardModal({
                   <div>
                     <span className="text-slate-400 block font-bold">Escolaridade:</span>
                     <span className="font-bold text-indigo-600">{selectedEducationObj?.nome || 'Não definido'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-bold">Faixa etária:</span>
+                    <span className="font-bold text-blue-700">{faixaEtaria || 'Não definida'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 block font-bold">Investimento:</span>
