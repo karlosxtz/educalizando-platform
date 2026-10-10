@@ -1,6 +1,7 @@
 'use client';
 
 import CustomSelect from '@/components/ui/CustomSelect';
+import { readableProductDescription } from '@/lib/product-description';
 import { createCustomCategory,getCategories,getEducationLevels } from '@/lib/category-service';
 import { Category,EducationLevel,Product,ProductType } from '@/lib/types';
 import { motion } from 'framer-motion';
@@ -58,7 +59,8 @@ export default function ProductWizardModal({
   // Form State
   const [titulo, setTitulo] = useState(editingProduct?.titulo || '');
   const [tipo, setTipo] = useState<ProductType>(editingProduct?.tipo || 'pdf');
-  const [descricao, setDescricao] = useState(editingProduct?.descricao || '');
+  const [descricao, setDescricaoValue] = useState(readableProductDescription(editingProduct?.descricao || ''));
+  const setDescricao = (value: string) => setDescricaoValue(readableProductDescription(value));
   const [capaUrl, setCapaUrl] = useState<string | null>(editingProduct?.capa_url || null);
   const [arquivoUrl, setArquivoUrl] = useState<string | null>(editingProduct?.arquivo_url || null);
   const [videoLink, setVideoLink] = useState<string>(editingProduct?.arquivo_url || '');

@@ -9,6 +9,7 @@ import { Suspense,useEffect,useMemo,useState } from 'react';
 import { getBnccSkills,getCategories,getEducationLevels } from '@/lib/category-service';
 import { isUploadedMaterial,normalizeDeliveryLink } from '@/lib/delivery-link';
 import { normalizeProductTags } from '@/lib/product-tags';
+import { readableProductDescription } from '@/lib/product-description';
 import { getSchoolCalendarTagsForMonth,SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { createProduct,getCurrentCreatorStore,getProductById,getPublicProductsByStoreId,updateProduct } from '@/lib/store-service';
 import { supabase } from '@/lib/supabase';
@@ -38,7 +39,8 @@ function ProductWizardContent() {
 
   // Form Fields
   const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
+  const [descricao, setDescricaoValue] = useState('');
+  const setDescricao = (value: string) => setDescricaoValue(readableProductDescription(value));
   const [tipo, setTipo] = useState<ProductType>('pdf');
   const [pageCount, setPageCount] = useState('');
   const [ageRange, setAgeRange] = useState('');
