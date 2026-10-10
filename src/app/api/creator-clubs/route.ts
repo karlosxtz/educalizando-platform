@@ -1,5 +1,5 @@
 import { getRequestUser } from '@/lib/api-auth';
-import { creatorClubSlug } from '@/lib/creator-club';
+import { creatorClubMaterialEligible, creatorClubSlug } from '@/lib/creator-club';
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     if (!ctx) return NextResponse.json({ error: 'Entre como criador para configurar seus clubes.' }, { status: 401 });
     const [{ data: clubs, error: clubsError }, { data: products, error: productError }] = await Promise.all([
       supabaseAdmin.from('creator_clubs').select('*').eq('store_id', ctx.store.id).order('created_at', { ascending: false }),
-      supabaseAdmin.from('products').select('id,titulo,capa_url,status').eq('store_id', ctx.store.id).eq('status', 'publicado').is('excluido_em', null).order('created_at', { ascending: false }).limit(2000),
+      supabaseAdmin.from('products').select('id,titulo,capa_url,status,is_plr,has_plr_delivery').eq('store_id', ctx.store.id).eq('status', 'publicado').is('excluido_em', null).order('created_at', { ascending: false }).limit(2000),
     ]);
     if (clubsError || productError) throw clubsError || productError;
     const clubIds = (clubs || []).map((club) => club.id);
@@ -48,24 +48,28 @@ export async function PUT(request: Request) {
     const coverUrl = typeof body.coverUrl === 'string' ? body.coverUrl.trim().slice(0, 2000) : '';
     const monthlyPrice = Number(body.monthlyPrice);
     const status = body.status === 'published' ? 'published' : 'draft';
+    const clubType = body.clubType === 'plr' ? 'plr' : 'final';
     const productIds = Array.isArray(body.productIds) ? [...new Set(body.productIds.filter((productId): productId is string => typeof productId === 'string'))] : [];
     if (name.length < 3) return NextResponse.json({ error: 'Informe um nome com pelo menos 3 caracteres.' }, { status: 400 });
     if (!Number.isFinite(monthlyPrice) || monthlyPrice < 1) return NextResponse.json({ error: 'A mensalidade mínima é R$ 1,00.' }, { status: 400 });
     if (coverUrl && !/^https:\/\//i.test(coverUrl)) return NextResponse.json({ error: 'A capa precisa ter uma URL HTTPS válida.' }, { status: 400 });
     if (status === 'published' && productIds.length === 0) return NextResponse.json({ error: 'Adicione pelo menos um material antes de publicar.' }, { status: 400 });
-    const { data: validProducts, error: productsError } = productIds.length ? await supabaseAdmin.from('products').select('id').eq('store_id', ctx.store.id).eq('status', 'publicado').in('id', productIds).is('excluido_em', null) : { data: [], error: null };
+    const { data: validProducts, error: productsError } = productIds.length ? await supabaseAdmin.from('products').select('id,is_plr,has_plr_delivery').eq('store_id', ctx.store.id).eq('status', 'publicado').in('id', productIds).is('excluido_em', null) : { data: [], error: null };
     if (productsError) throw productsError;
     if ((validProducts || []).length !== productIds.length) return NextResponse.json({ error: 'Um dos materiais não pertence à sua loja ou ainda não está publicado.' }, { status: 400 });
+    if ((validProducts || []).some(product => !creatorClubMaterialEligible(clubType, product))) return NextResponse.json({ error: 'Selecione apenas produtos com licença PLR para este clube.' }, { status: 400 });
+    if (status === 'published' && (validProducts || []).some(product => !creatorClubMaterialEligible(clubType, product, true))) return NextResponse.json({ error: 'Cadastre os arquivos da licença PLR de todos os materiais antes de publicar o clube.' }, { status: 400 });
 
-    let existing: { id: string; slug: string } | null = null;
+    let existing: { id: string; slug: string; club_type: string } | null = null;
     if (id) {
-      const result = await supabaseAdmin.from('creator_clubs').select('id,slug').eq('id', id).eq('store_id', ctx.store.id).maybeSingle();
+      const result = await supabaseAdmin.from('creator_clubs').select('id,slug,club_type').eq('id', id).eq('store_id', ctx.store.id).maybeSingle();
       if (result.error) throw result.error;
       existing = result.data;
       if (!existing) return NextResponse.json({ error: 'Clube não encontrado.' }, { status: 404 });
+      if (existing.club_type !== clubType) return NextResponse.json({ error: 'O tipo de um clube existente não pode ser alterado. Crie outro clube para oferecer a licença PLR.' }, { status: 400 });
     }
     const slug = existing?.slug || `${creatorClubSlug(`${ctx.store.slug || ctx.store.nome_loja}-${name}`)}-${randomUUID().slice(0, 6)}`;
-    const payload = { store_id: ctx.store.id, creator_id: ctx.user.id, name, slug, description, cover_url: coverUrl || null, monthly_price: Number(monthlyPrice.toFixed(2)), status, updated_at: new Date().toISOString() };
+    const payload = { store_id: ctx.store.id, creator_id: ctx.user.id, club_type: clubType, name, slug, description, cover_url: coverUrl || null, monthly_price: Number(monthlyPrice.toFixed(2)), status, updated_at: new Date().toISOString() };
     const clubResult = existing
       ? await supabaseAdmin.from('creator_clubs').update(payload).eq('id', existing.id).eq('store_id', ctx.store.id).select('*').single()
       : await supabaseAdmin.from('creator_clubs').insert(payload).select('*').single();

@@ -92,11 +92,12 @@ export async function GET(
     // its line item as a fallback, while keeping the product-level check.
     let accessOrderId = access?.order_id || null;
     let clubAccess: { id: string; club_id: string; store_id: string } | null = null;
-    if (!accessOrderId && requestedType !== 'plr') {
+    if (!accessOrderId || requestedType === 'plr') {
       const { data: clubLinks } = await supabaseAdmin
         .from('creator_club_materials')
-        .select('club_id')
-        .eq('product_id', productId);
+        .select('club_id,creator_clubs!inner(club_type)')
+        .eq('product_id', productId)
+        .eq('creator_clubs.club_type', requestedType === 'plr' ? 'plr' : 'final');
       const clubIds = (clubLinks || []).map((item) => item.club_id);
       if (clubIds.length) {
         const { data: subscription } = await supabaseAdmin
@@ -163,6 +164,8 @@ export async function GET(
       }
     }
 
+    if (clubAccess && requestedType === 'plr') isPlrPurchase = true;
+
     // 3. Buscar Dados do Produto ou Conteúdo no Banco Supabase
     let productTitle = 'Material Didatico Educalizando';
     let fileUrl: string | null = null;
@@ -174,6 +177,7 @@ export async function GET(
     const downloadType = searchParams.get('type'); // 'plr' for PLR license
     const fileId = searchParams.get('fileId');
     const shouldListFiles = searchParams.get('list') === '1';
+    if (contentId && downloadType === 'plr') return NextResponse.json({ error: 'Use os arquivos da licença PLR deste material.' }, { status: 403 });
 
     try {
       if (contentId) {
@@ -196,12 +200,15 @@ export async function GET(
       if (!fileUrl) {
         const { data: productData } = await supabaseAdmin
           .from('products')
-          .select('titulo, store_id')
+          .select('titulo, store_id, is_plr, has_plr_delivery, status')
           .eq('id', productId)
           .is('excluido_em', null)
           .maybeSingle();
 
         if (productData) {
+          if (clubAccess && (productData.store_id !== clubAccess.store_id || productData.status !== 'publicado' || (downloadType === 'plr' && (!productData.is_plr || !productData.has_plr_delivery)))) {
+            return NextResponse.json({ error: 'Este material não está disponível no acervo do clube.' }, { status: 403 });
+          }
           if (productData.titulo) productTitle = downloadType === 'plr' ? `${productData.titulo} - Licenca PLR` : productData.titulo;
           if (downloadType === 'plr' && !isPlrPurchase) {
             return NextResponse.json({ error: 'Você não adquiriu a licença PLR deste material.' }, { status: 403 });

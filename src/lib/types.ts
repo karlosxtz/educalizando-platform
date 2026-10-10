@@ -333,6 +333,7 @@ export interface StoreThemeProps {
 }
 
 export interface CreatorClubListing {
+  club_type?: 'final' | 'plr';
   id: string;
   name: string;
   slug: string;

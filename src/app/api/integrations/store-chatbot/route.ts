@@ -112,7 +112,7 @@ export async function GET(request: Request) {
       supabaseAdmin.from('products').select(PRODUCT_FIELDS)
         .eq('store_id', keyRecord.store_id).eq('status', 'publicado').is('excluido_em', null)
         .order('created_at', { ascending: false }).limit(5000),
-      supabaseAdmin.from('creator_clubs').select('id,name,slug,description,cover_url,monthly_price,created_at,updated_at')
+      supabaseAdmin.from('creator_clubs').select('id,name,slug,description,cover_url,monthly_price,club_type,created_at,updated_at')
         .eq('store_id', keyRecord.store_id).eq('status', 'published').order('created_at', { ascending: false }),
       supabaseAdmin.from('kits').select('id,titulo,descricao,capa_url,preco_kit,created_at,updated_at,kit_items(product_id)')
         .eq('store_id', keyRecord.store_id).eq('status', 'publicado').is('excluido_em', null).order('created_at', { ascending: false }),
@@ -147,8 +147,9 @@ export async function GET(request: Request) {
       description: club.description,
       coverUrl: club.cover_url,
       monthlyPrice: Number(club.monthly_price || 0),
+      licenseType: club.club_type,
       publicUrl: `${origin}/clube/${encodeURIComponent(club.slug)}`,
-      materials: clubMaterials.filter((item) => item.club_id === club.id).map((item) => productById.get(item.product_id)).filter(Boolean),
+      materials: clubMaterials.filter((item) => item.club_id === club.id).map((item) => productById.get(item.product_id)).filter((product) => Boolean(product) && (club.club_type !== 'plr' || product?.isPlr === true)),
       createdAt: club.created_at,
       updatedAt: club.updated_at || null,
     }));

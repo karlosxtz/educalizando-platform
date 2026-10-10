@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { creatorClubFinancials, CREATOR_CLUB_DURATION_DAYS } from '../src/lib/creator-club';
+import { creatorClubFinancials, creatorClubMaterialEligible, CREATOR_CLUB_DURATION_DAYS } from '../src/lib/creator-club';
+
+assert.equal(creatorClubMaterialEligible('plr', { is_plr: false, has_plr_delivery: true }, true), false, 'Arquivo PLR sozinho não concede licença.');
+assert.equal(creatorClubMaterialEligible('plr', { is_plr: true }), true, 'Um material licenciado pode ser selecionado para rascunho.');
+assert.equal(creatorClubMaterialEligible('plr', { is_plr: true }, true), false, 'Clube publicado exige entrega PLR.');
+assert.equal(creatorClubMaterialEligible('plr', { is_plr: true, has_plr_delivery: true }, true), true);
+assert.equal(creatorClubMaterialEligible('final', { is_plr: false }, true), true, 'Clubes finais continuam aceitando os materiais existentes.');
+assert.equal(creatorClubMaterialEligible('outro', { is_plr: true, has_plr_delivery: true }), false);
 
 const financials = creatorClubFinancials(100, 'credit_card', 12);
 assert.equal(financials.grossAmount, 100, 'O valor do clube deve ser preservado como base da venda.');
@@ -18,6 +25,8 @@ assert.match(webhook, /status: 'active'[\s\S]+expires_at/, 'O webhook deve ativa
 
 const download = readFileSync('src/app/api/aluno/materiais/[productId]/download/route.ts', 'utf8');
 assert.match(download, /creator_club_subscriptions[\s\S]+\.eq\('status', 'active'\)[\s\S]+\.gt\('expires_at'/, 'O download deve exigir assinatura ativa e não expirada.');
+assert.match(download, /\.eq\('creator_clubs.club_type', requestedType === 'plr' \? 'plr' : 'final'\)/, 'Uma assinatura final não pode liberar o arquivo PLR.');
+assert.match(download, /clubAccess && requestedType === 'plr'\) isPlrPurchase = true/, 'Uma assinatura PLR ativa deve autorizar a entrega PLR.');
 
 const manager = readFileSync('src/app/api/creator-clubs/route.ts', 'utf8');
 assert.match(manager, /\.from\('creator_clubs'\)\.insert\(payload\)/, 'O criador deve conseguir cadastrar novos clubes sem substituir os anteriores.');

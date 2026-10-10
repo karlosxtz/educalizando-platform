@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const user = await getRequestUser(request);
     if (!user) return NextResponse.json({ error: 'Faça login para ver seus clubes.' }, { status: 401 });
     const { data, error } = await supabaseAdmin.from('creator_club_subscriptions')
-      .select('id,club_id,status,starts_at,expires_at,created_at,club:creator_clubs(id,name,slug,description,cover_url,monthly_price,store_id,stores(nome_loja,logo_url))')
+      .select('id,club_id,status,starts_at,expires_at,created_at,club:creator_clubs(id,name,slug,description,cover_url,monthly_price,club_type,store_id,stores(nome_loja,logo_url))')
       .eq('student_id', user.id).order('created_at', { ascending: false });
     if (error) throw error;
     const unique = new Map<string, unknown>();

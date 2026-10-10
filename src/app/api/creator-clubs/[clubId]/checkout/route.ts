@@ -12,10 +12,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ clu
     const user = await getRequestUser(request);
     if (!user) return NextResponse.json({ error: 'Faça login como cliente para assinar.', loginRequired: true }, { status: 401 });
     const { clubId } = await params;
-    const { data: club, error } = await supabaseAdmin.from('creator_clubs').select('id,name,slug,monthly_price,store_id,creator_id,status').eq('id', clubId).maybeSingle();
+    const { data: club, error } = await supabaseAdmin.from('creator_clubs').select('id,name,slug,monthly_price,store_id,creator_id,status,club_type').eq('id', clubId).maybeSingle();
     if (error) throw error;
     if (!club || club.status !== 'published') return NextResponse.json({ error: 'Este clube não está disponível.' }, { status: 404 });
     if (club.creator_id === user.id) return NextResponse.json({ error: 'O criador não pode assinar o próprio clube.' }, { status: 400 });
+    if (club.club_type === 'plr') {
+      const { data: available, error: availableError } = await supabaseAdmin.from('creator_club_materials').select('product_id,products!inner(id)').eq('club_id', club.id).eq('products.store_id', club.store_id).eq('products.status', 'publicado').eq('products.is_plr', true).eq('products.has_plr_delivery', true).is('products.excluido_em', null).limit(1);
+      if (availableError) throw availableError;
+      if (!available?.length) return NextResponse.json({ error: 'Este clube ainda não possui materiais PLR disponíveis para entrega.' }, { status: 409 });
+    }
     const now = new Date().toISOString();
     const { data: active } = await supabaseAdmin.from('creator_club_subscriptions').select('id,expires_at').eq('club_id', club.id).eq('student_id', user.id).eq('status', 'active').gt('expires_at', now).limit(1).maybeSingle();
     if (active) return NextResponse.json({ success: true, alreadyActive: true, redirectUrl: `/cliente/clubes/${club.id}` });

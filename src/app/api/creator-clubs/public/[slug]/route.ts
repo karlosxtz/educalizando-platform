@@ -5,15 +5,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   try {
     const { slug } = await params;
     const { data: club, error } = await supabaseAdmin.from('creator_clubs')
-      .select('id,name,slug,description,cover_url,monthly_price,store_id,stores(nome_loja,slug,logo_url)')
+      .select('id,name,slug,description,cover_url,monthly_price,club_type,store_id,stores(nome_loja,slug,logo_url)')
       .eq('slug', slug).eq('status', 'published').maybeSingle();
     if (error) throw error;
     if (!club) return NextResponse.json({ error: 'Clube não encontrado.' }, { status: 404 });
     const { data: links, error: linksError } = await supabaseAdmin.from('creator_club_materials').select('product_id').eq('club_id', club.id);
     if (linksError) throw linksError;
     const ids = (links || []).map((item) => item.product_id);
+    let productsQuery = supabaseAdmin.from('products').select('id,titulo,capa_url,tipo').in('id', ids).eq('store_id', club.store_id).eq('status', 'publicado').is('excluido_em', null);
+    if (club.club_type === 'plr') productsQuery = productsQuery.eq('is_plr', true).eq('has_plr_delivery', true);
     const { data: products, error: productsError } = ids.length
-      ? await supabaseAdmin.from('products').select('id,titulo,capa_url,tipo').in('id', ids).eq('status', 'publicado').is('excluido_em', null)
+      ? await productsQuery
       : { data: [], error: null };
     if (productsError) throw productsError;
     return NextResponse.json({ club, products: products || [] });
