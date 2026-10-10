@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { lookup } from 'node:dns/promises';
+import { resolveRemoteAddresses } from '@/lib/remote-addresses';
 import { isIP } from 'node:net';
 import { supabaseAdmin } from '@/lib/supabase';
 import { decryptWooSecret } from '@/lib/woocommerce-security';
@@ -18,7 +18,7 @@ export async function normalizeWooUrl(input: string) {
   if (url.protocol !== 'https:') throw new Error('A loja WooCommerce precisa usar HTTPS.');
   if (url.username || url.password || url.port) throw new Error('Informe somente o endereço principal da loja.');
   if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de loja inválido.');
-  const addresses = await lookup(url.hostname, { all: true });
+  const addresses = await resolveRemoteAddresses(url.hostname);
   if (!addresses.length || addresses.some(item => privateIp(item.address))) throw new Error('O endereço da loja não pode apontar para uma rede privada.');
   return `${url.origin}${url.pathname.replace(/\/+$/, '')}`;
 }

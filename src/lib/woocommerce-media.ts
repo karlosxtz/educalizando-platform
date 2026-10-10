@@ -1,10 +1,10 @@
 import 'server-only';
 
 import { createHash } from 'node:crypto';
-import { lookup } from 'node:dns/promises';
+import { resolveRemoteAddresses } from '@/lib/remote-addresses';
 import { isIP } from 'node:net';
 import { platformPublicImageUrl,platformPublicMediaUrl,resolveBucket,uploadObject } from '@/lib/object-storage';
-import sharp from 'sharp';
+import { optimizeProductImage } from '@/lib/product-image-optimizer';
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -18,7 +18,7 @@ async function safeRemoteUrl(input: string) {
   const url = new URL(input);
   if (url.protocol !== 'https:' || url.username || url.password) throw new Error('A mídia remota precisa usar HTTPS.');
   if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de mídia inválido.');
-  const addresses = await lookup(url.hostname, { all: true });
+  const addresses = await resolveRemoteAddresses(url.hostname);
   if (!addresses.length || addresses.some(address => privateIp(address.address))) throw new Error('A mídia não pode apontar para uma rede privada.');
   return url;
 }
@@ -71,7 +71,7 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
   const bucket = resolveBucket('product-covers');
   if (media.contentType === 'image/svg+xml') throw new Error('Formato de imagem não permitido.');
   const optimize = isImage && media.contentType !== 'image/gif';
-  const body = optimize ? new Uint8Array(await sharp(media.body).rotate().resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true }).webp({ quality: 84 }).toBuffer()) : media.body;
+  const body = optimize ? await optimizeProductImage(media.body) : media.body;
   const contentType = optimize ? 'image/webp' : media.contentType;
   const key = `uploads/woocommerce/${integrationId}/${wooProductId}/media/${index}-${stableName(media.finalUrl)}.${optimize ? 'webp' : extension(contentType, media.finalUrl)}`;
   await uploadObject({ bucket, key, body, contentType });

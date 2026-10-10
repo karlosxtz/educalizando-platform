@@ -2,7 +2,7 @@ import { getRequestUser } from '@/lib/api-auth';
 import { platformPublicImageUrl,resolveBucket,uploadObject,type LegacyUploadBucket } from '@/lib/object-storage';
 import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
-import sharp from 'sharp';
+import { optimizeProductImage } from '@/lib/product-image-optimizer';
 import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
 
 export const runtime = 'nodejs';
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const source = new Uint8Array(await fileValue.arrayBuffer());
     const shouldOptimize = !['image/svg+xml', 'image/gif'].includes(fileValue.type);
     const body = shouldOptimize
-      ? new Uint8Array(await sharp(source, { failOn: 'none' }).rotate().resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true }).webp({ quality: 84, effort: 4 }).toBuffer())
+      ? await optimizeProductImage(source, true)
       : source;
     const contentType = shouldOptimize ? 'image/webp' : fileValue.type;
     const fileExtension = shouldOptimize ? 'webp' : extension(fileValue.name);
