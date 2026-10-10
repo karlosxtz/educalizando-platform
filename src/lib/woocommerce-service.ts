@@ -4,6 +4,7 @@ import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { supabaseAdmin } from '@/lib/supabase';
 import { decryptWooSecret } from '@/lib/woocommerce-security';
+import { readableProductDescription } from '@/lib/product-description';
 import { mirrorWooDelivery,mirrorWooDescriptionMedia,mirrorWooPublicMedia } from '@/lib/woocommerce-media';
 export { decryptWooSecret,encryptWooSecret,validWooSignature } from '@/lib/woocommerce-security';
 
@@ -151,7 +152,8 @@ export async function importWooProduct(integration: any, item: WooProduct) {
   const wooPrice = Number(item.price || item.regular_price || 0);
   const gallery = shouldRefreshContent ? await Promise.all((item.images || []).map(image => image.src).filter((url): url is string => Boolean(url)).slice(0, 10).map(async (url, index) => (await mirrorWooPublicMedia(url, integration.id, item.id, index)).url)) : [];
   const rawDescription = item.description || item.short_description || '';
-  const mirroredDescription = shouldRefreshContent && rawDescription ? await mirrorWooDescriptionMedia(rawDescription, integration.id, item.id) : rawDescription;
+  const mirroredHtml = shouldRefreshContent && rawDescription ? await mirrorWooDescriptionMedia(rawDescription, integration.id, item.id) : rawDescription;
+  const mirroredDescription = readableProductDescription(mirroredHtml);
   const values = { store_id: integration.store_id, titulo: item.name.slice(0, 160), descricao: mirroredDescription || null, tipo: 'pdf', preco: Number.isFinite(wooPrice) ? wooPrice : 0, capa_url: gallery[0] || null, preview_url: item.permalink || null, category_id: matchedCategories[0]?.id || null, category_ids: matchedCategories.map(category => category.id), education_level_id: matchedEducation[0]?.id || null, education_level_ids: matchedEducation.map(level => level.id), tags: [...new Set(sourceLabels.map(label => label.trim()).filter(Boolean))].slice(0, 30), updated_at: new Date().toISOString() };
   let productId = mapping?.product_id;
   if (productId) {
