@@ -137,7 +137,7 @@ function LoginPageContent() {
           {activeTab === 'login' ? (
             /* Login Form Tab */
             <div className="space-y-6">
-              <PasswordlessAccess destination={safeCreatorReturnTo || '/dashboard'} />
+
               {searchParams.get('confirmation') === 'pending' && <p role="status" className="rounded-xl bg-blue-50 p-4 text-sm">Confira seu e-mail para confirmar o cadastro. Sua loja será criada após a confirmação.</p>}
               <div className="text-center space-y-3">
                 <img
@@ -249,6 +249,7 @@ function LoginPageContent() {
                 </button>
               </form>
 
+              <PasswordlessAccess destination={safeCreatorReturnTo || '/dashboard'} />
               <div className="text-center pt-4 border-t border-slate-100 text-xs text-slate-600">
                 Ainda não possui uma loja?{' '}
                 <Link href="/cadastro/produtor" className="text-brand-navy font-bold hover:underline">

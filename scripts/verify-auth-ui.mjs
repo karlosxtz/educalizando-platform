@@ -55,6 +55,14 @@ try {
   await page.getByRole('status').filter({ hasText: 'Identidade confirmada' }).waitFor();
   await expect(page.getByRole('button', { name: 'Salvar nova senha' })).toBeEnabled();
   assert.equal(attempted, 2);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: '.cloudflare/security-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: '.cloudflare/security-mobile.png', fullPage: true });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  await page.goto(`${origin}/login`);
+  await page.getByText('Outras formas de acessar', { exact: true }).waitFor();
+  await page.screenshot({ path: '.cloudflare/login-mobile.png', fullPage: true });
   await context.close();
   console.log('Interface validada: MFA bloqueia alterações, rejeita código errado, libera após confirmar e oculta Google/SMS não configurados. Nenhum e-mail/SMS enviado.');
 } catch (error) {

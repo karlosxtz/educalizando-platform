@@ -4,6 +4,7 @@ import { authCapabilities } from '@/lib/auth-capabilities';
 import { supabase } from '@/lib/supabase';
 import { syncAuthSession } from '@/lib/auth-session';
 import { safeAuthDestination } from '@/lib/auth-navigation';
+import { ChevronDown, Mail } from 'lucide-react';
 
 export default function PasswordlessAccess({ destination = '/entrar' }: { destination?: string }) {
   const [email, setEmail] = useState('');
@@ -45,9 +46,9 @@ export default function PasswordlessAccess({ destination = '/entrar' }: { destin
     } catch { setMessage('Código inválido ou vencido. Solicite um novo e-mail.'); }
     finally { setBusy(false); }
   }
-  return <details className="rounded-2xl border border-slate-200 bg-white p-4">
-    <summary className="cursor-pointer font-bold text-blue-700">Entrar sem senha ou confirmar meu e-mail</summary>
-    <div className="mt-4 space-y-3">
+  return <details className="group rounded-2xl border border-slate-100 bg-slate-50/70 transition open:border-blue-100 open:bg-white">
+    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-semibold text-slate-600 transition hover:text-blue-800 [&::-webkit-details-marker]:hidden"><span className="inline-flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" />Outras formas de acessar</span><ChevronDown className="h-4 w-4 transition group-open:rotate-180" /></summary>
+    <div className="space-y-3 border-t border-slate-100 p-4">
       {google && mode === 'login' && <button type="button" className="rounded-lg border px-4 py-3 text-blue-700 disabled:opacity-50" disabled={busy} onClick={async () => {
         setBusy(true); setMessage('');
         const redirect = new URL('/auth/confirmar', window.location.origin); redirect.searchParams.set('next', safeAuthDestination(destination));

@@ -1,7 +1,7 @@
 'use client';
 
 import { getCurrentUserSession } from '@/lib/supabase';
-import Link from 'next/link';
+import SecurityAccessCard from '@/components/auth/SecurityAccessCard';
 import { maskCPF } from '@/lib/withdrawal-service';
 import { AlertCircle,Check,Key,Loader2,Lock,Mail,Save,Settings,ShieldCheck } from 'lucide-react';
 import { useEffect,useState } from 'react';
@@ -199,7 +199,7 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-3xl font-sans pb-12">
-      <Link href="/seguranca" className="block rounded-2xl border bg-blue-50 p-5 font-bold text-blue-700">Segurança e acesso: senha, e-mail e duas etapas →</Link>
+      <SecurityAccessCard />
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
           <Settings className="w-6 h-6 text-brand-navy" /> Configurações da Conta
