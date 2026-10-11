@@ -2,6 +2,8 @@
 
 import { registerStudentInSupabase,signInStudent } from '@/lib/student-service';
 import PasswordlessAccess from '@/components/auth/PasswordlessAccess';
+import PasswordRecovery from '@/components/auth/PasswordRecovery';
+import { safeAuthDestination } from '@/lib/auth-navigation';
 import { motion } from 'framer-motion';
 import { AlertCircle,ArrowRight,CheckCircle2,Download,GraduationCap,Loader2,Lock,Mail,Phone,ShieldCheck,ShoppingBag,Sparkles,UserCheck,UserPlus } from 'lucide-react';
 import Link from 'next/link';
@@ -29,10 +31,7 @@ function StudentLoginForm() {
 
   // Helper para redirecionar com segurança após login/cadastro (Evita Open Redirect - Item 13)
   const getSafeReturnUrl = () => {
-    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-      return returnTo;
-    }
-    return '/cliente/dashboard';
+    return safeAuthDestination(returnTo, '/cliente/dashboard');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -283,6 +282,8 @@ function StudentLoginForm() {
             </button>
           </form>
         )}
+
+        {tab === 'login' && <PasswordRecovery />}
 
         <div className="pt-3 border-t border-slate-100 text-center">
           <Link href="/login" className="text-[11px] text-slate-400 font-bold hover:text-slate-700 transition-colors">
