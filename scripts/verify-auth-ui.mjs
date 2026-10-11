@@ -21,6 +21,7 @@ try {
   page.on('pageerror', error => console.error('Erro da interface:', error.message));
   page.on('console', message => { if (message.type() === 'error') console.error('Navegador:', message.text().slice(0, 400)); });
   let attempted = 0;
+  let emailToken = '';
   await page.route('**/auth/v1/**', async route => {
     const url = new URL(route.request().url());
     const headers = { 'access-control-allow-origin': origin, 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS' };
@@ -28,10 +29,12 @@ try {
     const send = (body, status = 200) => route.fulfill({ status, headers, contentType: 'application/json', body: JSON.stringify(body) });
     if (url.pathname.endsWith('/settings')) return send({ external: { google: false, phone: false } });
     if (url.pathname.endsWith('/user')) return send(user);
+    if (url.pathname.endsWith('/otp')) return send({});
     if (url.pathname.endsWith('/challenge')) return send({ id: 'challenge-local', expires_at: Math.floor(Date.now() / 1000) + 300 });
     if (url.pathname.endsWith('/verify')) {
-      attempted++;
       const data = route.request().postDataJSON();
+      if (data.token) { emailToken = data.token; return send({ msg: 'Código de teste inválido' }, 400); }
+      attempted++;
       return data.code === '123456' ? send(session('aal2')) : send({ code: 'mfa_verification_failed', msg: 'Código inválido' }, 400);
     }
     return send({ msg: 'Operação inesperada no teste local' }, 400);
@@ -62,6 +65,15 @@ try {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   await page.goto(`${origin}/login`);
   await page.getByText('Outras formas de acessar', { exact: true }).waitFor();
+  await page.getByText('Outras formas de acessar', { exact: true }).click();
+  await page.getByLabel('E-mail da conta', { exact: true }).fill('teste@example.com');
+  await page.getByRole('button', { name: 'Receber meu acesso', exact: true }).click();
+  await page.getByLabel('Código recebido', { exact: true }).fill('12345678');
+  assert.equal(await page.getByLabel('Código recebido', { exact: true }).inputValue(), '12345678');
+  await page.getByRole('button', { name: 'Confirmar código', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Código inválido ou vencido' }).waitFor();
+  assert.equal(emailToken, '12345678');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   await page.screenshot({ path: '.cloudflare/login-mobile.png', fullPage: true });
   await context.close();
   console.log('Interface validada: MFA bloqueia alterações, rejeita código errado, libera após confirmar e oculta Google/SMS não configurados. Nenhum e-mail/SMS enviado.');
