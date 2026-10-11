@@ -23,9 +23,11 @@ if (worker.name !== 'educalizando-app' || !manifest?.mainModule) {
 const config = convertToWranglerConfig(InputConfigSchema.parse({ worker }));
 // vinext's Worker loader requests index.js while the Vite RSC build emits index.mjs.
 // Keep a forwarding module at the loader's exact path rather than modifying bundles.
-const ssrDir = path.join(workerDir, 'bundle/ssr');
-if (!fs.existsSync(path.join(ssrDir, 'index.js')) && fs.existsSync(path.join(ssrDir, 'index.mjs'))) {
-  fs.writeFileSync(path.join(ssrDir, 'index.js'), 'export * from "./index.mjs";\n');
+for (const entryDir of [path.join(workerDir, 'bundle'), path.join(workerDir, 'bundle/ssr')]) {
+  if (fs.existsSync(path.join(entryDir, 'index.mjs'))) {
+    fs.writeFileSync(path.join(entryDir, 'index.js'),
+      'export * from "./index.mjs";\nexport { default } from "./index.mjs";\n');
+  }
 }
 Object.assign(config, {
   main: `bundle/${manifest.mainModule}`,
