@@ -27,7 +27,7 @@ Object.assign(config, {
   find_additional_modules: true,
   keep_vars: true,
   rules: [
-    { type: 'ESModule', globs: ['**/*.mjs'], fallthrough: true },
+    { type: 'ESModule', globs: ['**/*.mjs', '**/*.js'], fallthrough: true },
     { type: 'CompiledWasm', globs: ['**/*.wasm'], fallthrough: true },
   ],
   assets: { ...config.assets, directory: 'assets' },
