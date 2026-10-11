@@ -6,6 +6,7 @@ import { AlertCircle,Image as ImageIcon,Info,MoveLeft,MoveRight,Sparkles,UploadC
 import { useRef,useState } from 'react';
 
 interface FileUploadMultipleProps {
+  materialName?: string;
   label: string;
   helperText?: string;
   recommendationText?: string;
@@ -29,6 +30,7 @@ function isVideoFile(file: File): boolean {
 
 export default function FileUploadMultiple({
   label,
+  materialName,
   helperText,
   recommendationText,
   bucket,
@@ -101,7 +103,7 @@ export default function FileUploadMultiple({
           }
         }
 
-        newUrls.push(await uploadToObjectStorage(bucket, finalFile));
+        newUrls.push(await uploadToObjectStorage(bucket, finalFile, { materialName }));
         setProgress(Math.round(((i + 1) / filesArray.length) * 100));
       }
 

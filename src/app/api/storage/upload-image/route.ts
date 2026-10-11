@@ -1,6 +1,8 @@
 import { getRequestUser } from '@/lib/api-auth';
 import { platformPublicImageUrl,resolveBucket,uploadObject,type LegacyUploadBucket } from '@/lib/object-storage';
 import { randomUUID } from 'crypto';
+import { materialObjectKey } from '@/lib/storage-object-name';
+import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { optimizeProductImage } from '@/lib/product-image-optimizer';
 import { consumeRequestRateLimit,rateLimitResponse } from '@/lib/request-rate-limit';
@@ -41,7 +43,10 @@ export async function POST(request: Request) {
       : source;
     const contentType = shouldOptimize ? 'image/webp' : fileValue.type;
     const fileExtension = shouldOptimize ? 'webp' : extension(fileValue.name);
-    const key = `uploads/${user.id}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${fileExtension}`;
+    const { data: store, error: storeError } = await supabaseAdmin.from('stores').select('nome_loja').eq('creator_id', user.id).maybeSingle();
+    if (storeError) throw storeError;
+    const key = materialObjectKey({ userId: user.id, creator: store?.nome_loja || user.user_metadata?.full_name || user.user_metadata?.name,
+      material: form.get('materialName'), fileName: fileValue.name, id: randomUUID(), extension: fileExtension });
     await uploadObject({
       bucket,
       key,

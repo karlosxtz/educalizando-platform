@@ -115,6 +115,7 @@ export default function ProductWizardView({ state }: { state: any }) {
               </div>
 
               <FileUploadMultiple
+                materialName={titulo}
                 bucket="product-covers"
                 accept="image/*"
                 maxSizeMB={15}

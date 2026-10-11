@@ -2,6 +2,8 @@ import { getRequestUser } from '@/lib/api-auth';
 import { createUploadUrl,publicObjectUrl,resolveBucket,type LegacyUploadBucket } from '@/lib/object-storage';
 import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { materialObjectKey } from '@/lib/storage-object-name';
 
 export const runtime = 'nodejs';
 
@@ -18,7 +20,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Autenticação obrigatória para enviar arquivos.' }, { status: 401 });
 
   try {
-    const body = await request.json() as { bucket?: LegacyUploadBucket; fileName?: string; contentType?: string; size?: number };
+    const body = await request.json() as { bucket?: LegacyUploadBucket; fileName?: string; contentType?: string; size?: number; materialName?: string };
     if (!body.bucket || !uploadBuckets.has(body.bucket) || !body.fileName || !body.contentType || !Number.isFinite(body.size)) {
       return NextResponse.json({ error: 'Dados do arquivo inválidos.' }, { status: 400 });
     }
@@ -34,7 +36,10 @@ export async function POST(request: Request) {
     }
 
     const bucket = resolveBucket(body.bucket);
-    const key = `uploads/${user.id}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${extension(body.fileName)}`;
+    const { data: store, error: storeError } = await supabaseAdmin.from('stores').select('nome_loja').eq('creator_id', user.id).maybeSingle();
+    if (storeError) throw storeError;
+    const key = materialObjectKey({ userId: user.id, creator: store?.nome_loja || user.user_metadata?.full_name || user.user_metadata?.name,
+      material: body.materialName, fileName: body.fileName, id: randomUUID(), extension: extension(body.fileName) });
     const uploadUrl = await createUploadUrl({ bucket, key, contentType: body.contentType });
     const isPrivate = body.bucket === 'product-files' || body.bucket === 'plr-files';
 

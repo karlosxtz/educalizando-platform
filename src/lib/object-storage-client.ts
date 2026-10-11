@@ -4,7 +4,7 @@ export type UploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 's
 
 type ImageUploadResult = { value: string };
 
-export async function uploadToObjectStorage(bucket: UploadBucket, file: File): Promise<string> {
+export async function uploadToObjectStorage(bucket: UploadBucket, file: File, options: { materialName?: string } = {}): Promise<string> {
   // O app mantém a sessão do Supabase no armazenamento do navegador. A rota de
   // presign precisa receber explicitamente o token para identificar quem está
   // enviando o arquivo; cookies SSR não estão disponíveis neste fluxo legado.
@@ -19,6 +19,7 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
     const form = new FormData();
     form.append('bucket', bucket);
     form.append('file', file);
+    form.append('materialName', options.materialName || '');
     const response = await fetch('/api/storage/upload-image', {
       method: 'POST',
       headers: { Authorization: `Bearer ${session.access_token}` },
@@ -47,7 +48,7 @@ export async function uploadToObjectStorage(bucket: UploadBucket, file: File): P
     if (!response.ok) throw new Error(result.error || `Falha no envio do material (HTTP ${response.status}).`);
     return result;
   };
-  const ticket = await send({ action: 'init', name: file.name, size: String(file.size), contentType: file.type || 'application/octet-stream' });
+  const ticket = await send({ action: 'init', name: file.name, materialName: options.materialName || '', size: String(file.size), contentType: file.type || 'application/octet-stream' });
   if (!ticket.id || !ticket.chunkSize) throw new Error('Não foi possível iniciar o envio.');
   try {
     for (let offset = 0, index = 0; offset < file.size; offset += ticket.chunkSize, index++) {

@@ -2,6 +2,8 @@ import { getRequestUser } from '@/lib/api-auth';
 import { deleteObject,getObject,resolveBucket,uploadObject } from '@/lib/object-storage';
 import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { materialObjectKey } from '@/lib/storage-object-name';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -28,7 +30,11 @@ export async function POST(request: Request) {
       }
       const id = randomUUID();
       const ext = name.toLowerCase().match(/\.([a-z0-9]{1,10})$/)?.[1] || 'bin';
-      const manifest: Manifest = { size, contentType, key: `uploads/${user.id}/${new Date().toISOString().slice(0, 10)}/${id}.${ext}`, expires: Date.now() + 3600000 };
+      const { data: store, error: storeError } = await supabaseAdmin.from('stores').select('nome_loja').eq('creator_id', user.id).maybeSingle();
+      if (storeError) throw storeError;
+      const key = materialObjectKey({ userId: user.id, creator: store?.nome_loja || user.user_metadata?.full_name || user.user_metadata?.name,
+        material: form.get('materialName'), fileName: name, id, extension: ext });
+      const manifest: Manifest = { size, contentType, key, expires: Date.now() + 3600000 };
       await uploadObject({ bucket, key: `_pending/${user.id}/${id}/manifest.json`, body: Buffer.from(JSON.stringify(manifest)), contentType: 'application/json' });
       return NextResponse.json({ id, chunkSize });
     }

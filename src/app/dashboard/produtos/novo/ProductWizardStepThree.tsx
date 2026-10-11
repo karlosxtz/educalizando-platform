@@ -154,6 +154,7 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
 
                   {deliveryMethod === 'upload' ? (
                     <DeliveryFilesUpload
+                      materialName={state.titulo}
                       bucket="product-files"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar"
                       value={deliveryFiles}
@@ -281,6 +282,7 @@ export default function ProductWizardStepThree({ state }: { state: any }) {
 
                       {plrDeliveryMethod === 'upload' ? (
                         <DeliveryFilesUpload
+                          materialName={state.titulo}
                           bucket="plr-files"
                           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,.rar,.png,.jpg,.jpeg,.webp"
                           value={plrDeliveryFiles}

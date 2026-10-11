@@ -14,11 +14,12 @@ function readableSize(bytes?: number | null) {
   return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 }
 
-export default function DeliveryFilesUpload({ bucket, value, onChange, accept }: {
+export default function DeliveryFilesUpload({ bucket, value, onChange, accept, materialName }: {
   bucket: Extract<UploadBucket, 'product-files' | 'plr-files'>;
   value: ProductDeliveryFile[];
   onChange: (files: ProductDeliveryFile[]) => void;
   accept?: string;
+  materialName?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -40,7 +41,7 @@ export default function DeliveryFilesUpload({ bucket, value, onChange, accept }:
       for (let index = 0; index < selected.length; index += 1) {
         const file = selected[index];
         setProgress({ current: index + 1, total: selected.length });
-        const url = await uploadToObjectStorage(bucket, file);
+        const url = await uploadToObjectStorage(bucket, file, { materialName });
         uploaded.push({ url, name: file.name, size: file.size, mimeType: file.type || 'application/octet-stream' });
       }
       onChange([...value, ...uploaded]);
