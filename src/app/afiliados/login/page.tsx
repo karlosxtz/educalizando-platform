@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import PasswordlessAccess from '@/components/auth/PasswordlessAccess';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -120,6 +121,7 @@ export default function AffiliateLoginPage() {
           {activeTab === 'login' ? (
             /* Login Form Tab */
             <div className="space-y-6">
+              <PasswordlessAccess destination="/afiliados/dashboard" />
               <div className="text-center space-y-3">
                 <img
                   src="/branding/logo-educalizando.png?v=3"

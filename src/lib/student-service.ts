@@ -165,6 +165,7 @@ export async function registerStudentInSupabase({
       email,
       password,
       options: {
+        emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/confirmar` : undefined,
         data: {
           full_name: fullName,
           cpf: cpf ? cpf.replace(/\D/g, '') : undefined,

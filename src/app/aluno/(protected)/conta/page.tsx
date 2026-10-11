@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import {
 AlertCircle,
 Camera,
@@ -112,6 +113,7 @@ export default function StudentAccountSettingsPage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <Link href="/seguranca" className="block rounded-2xl border bg-blue-50 p-5 font-bold text-blue-700">Segurança e acesso: senha, e-mail e duas etapas →</Link>
         
         {/* Header */}
         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">

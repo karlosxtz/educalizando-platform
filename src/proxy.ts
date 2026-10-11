@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { requiresSecondFactor } from '@/lib/auth-assurance'
 import { NextResponse,type NextRequest } from 'next/server'
 
 const AUTH_CHECK_TIMEOUT_MS = 8_000
@@ -79,6 +80,19 @@ export async function proxy(request: NextRequest) {
   const userEmail = typeof claims?.email === 'string' ? claims.email : null
   const { pathname } = request.nextUrl
 
+  if (userId) {
+    const identity = await withAuthTimeout(supabase.auth.getUser()).catch(() => null)
+    if (!identity || identity.error) return authenticationUnavailable(request)
+    if (requiresSecondFactor(identity.data.user?.factors, claims?.aal)) {
+      if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Confirme o código do aplicativo autenticador.', code: 'MFA_REQUIRED' }, { status: 403 })
+      const url = request.nextUrl.clone(); url.pathname = '/seguranca'; url.search = ''
+      url.searchParams.set('next', pathname + request.nextUrl.search)
+      const response = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
+      return response
+    }
+  }
+
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
     if (!userId) {
       if (pathname.startsWith('/api/')) {
@@ -95,11 +109,11 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/painel')) && !userId) {
+  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/painel') || pathname.startsWith('/afiliados/dashboard')) && !userId) {
     const url = request.nextUrl.clone(); url.pathname = '/login'; return NextResponse.redirect(url)
   }
 
-  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais', '/cliente/clubes', '/cliente/favoritos']
+  const privateClientRoutes = ['/cliente/dashboard', '/cliente/conta', '/cliente/materiais', '/cliente/clubes', '/cliente/favoritos', '/aluno/dashboard', '/aluno/conta', '/aluno/materiais', '/aluno/clubes', '/aluno/favoritos']
   if (privateClientRoutes.some((route) => pathname.startsWith(route)) && !userId) {
     const url = request.nextUrl.clone(); url.pathname = '/cliente/login'; return NextResponse.redirect(url)
   }
@@ -116,7 +130,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*', '/api/admin/:path*', '/dashboard/:path*', '/painel/:path*',
+    '/afiliados/dashboard/:path*',
     '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*', '/cliente/favoritos/:path*',
+    '/aluno/dashboard/:path*', '/aluno/conta/:path*', '/aluno/materiais/:path*', '/aluno/clubes/:path*', '/aluno/favoritos/:path*',
     '/api/produtos/:path*', '/api/financeiro/:path*', '/api/aluno/materiais/:path*',
   ],
 }

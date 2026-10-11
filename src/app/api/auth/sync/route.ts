@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    const origin = request.headers.get('origin');
+    if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: 'Origem não permitida.' }, { status: 403 });
     const body = await request.json();
     const { access_token, refresh_token, event } = body;
 
@@ -44,10 +46,13 @@ export async function POST(request: Request) {
     }
 
     if (access_token && refresh_token) {
-      await supabase.auth.setSession({
+      const { error } = await supabase.auth.setSession({
         access_token,
         refresh_token
       });
+      if (error) return NextResponse.json({ error: 'Sessão inválida. Entre novamente.' }, { status: 401 });
+    } else {
+      return NextResponse.json({ error: 'Sessão ausente.' }, { status: 400 });
     }
 
     return response;

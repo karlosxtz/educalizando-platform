@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import PasswordlessAccess from '@/components/auth/PasswordlessAccess';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter,useSearchParams } from 'next/navigation';
@@ -136,6 +137,8 @@ function LoginPageContent() {
           {activeTab === 'login' ? (
             /* Login Form Tab */
             <div className="space-y-6">
+              <PasswordlessAccess destination={safeCreatorReturnTo || '/dashboard'} />
+              {searchParams.get('confirmation') === 'pending' && <p role="status" className="rounded-xl bg-blue-50 p-4 text-sm">Confira seu e-mail para confirmar o cadastro. Sua loja será criada após a confirmação.</p>}
               <div className="text-center space-y-3">
                 <img
                   src="/branding/logo-educalizando.png?v=3"

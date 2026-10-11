@@ -1,6 +1,7 @@
 'use client';
 
 import { registerStudentInSupabase,signInStudent } from '@/lib/student-service';
+import PasswordlessAccess from '@/components/auth/PasswordlessAccess';
 import { motion } from 'framer-motion';
 import { AlertCircle,ArrowRight,CheckCircle2,Download,GraduationCap,Loader2,Lock,Mail,Phone,ShieldCheck,ShoppingBag,Sparkles,UserCheck,UserPlus } from 'lucide-react';
 import Link from 'next/link';
@@ -91,6 +92,7 @@ function StudentLoginForm() {
         className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-2xl shadow-blue-950/15 space-y-6 border border-white"
       >
         {/* Banner Contextual da Compra (Item 5 da Especificação) */}
+        <PasswordlessAccess destination={returnTo || '/cliente/dashboard'} />
         {isBuyAction && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl text-xs font-bold space-y-1">
             <div className="flex items-center gap-1.5 text-emerald-800 uppercase tracking-wider text-[10px] font-black">

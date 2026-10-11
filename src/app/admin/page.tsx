@@ -2,6 +2,7 @@
 
 import { Activity,CreditCard,DollarSign,Package,Store } from 'lucide-react';
 import { useEffect,useState } from 'react';
+import Link from 'next/link';
 import { Area,AreaChart,Bar,BarChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis } from 'recharts';
 
 interface Stats {
@@ -58,6 +59,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap gap-4"><Link href="/admin/convites" className="rounded-xl bg-blue-700 px-4 py-3 text-white">Convidar usuário</Link><Link href="/seguranca" className="rounded-xl border px-4 py-3 text-blue-700">Segurança da minha conta</Link></div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard Mestre</h1>

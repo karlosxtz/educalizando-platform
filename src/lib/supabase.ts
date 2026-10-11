@@ -113,6 +113,7 @@ export async function registerCreatorInSupabase({
       email,
       password,
       options: {
+        emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/confirmar` : undefined,
         data: {
           full_name: fullName,
           cpf: cleanCpf,
@@ -134,6 +135,8 @@ export async function registerCreatorInSupabase({
     }
 
     // B. Inserção estrita na tabela stores (com tratamento de erro se falhar)
+    if (!authData.session) return { user: authData.user, storeSlug, requiresConfirmation: true };
+
     const { data: storeData, error: storeError } = await supabase
       .from('stores')
       .insert([

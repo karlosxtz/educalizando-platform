@@ -80,6 +80,10 @@ export default function SignupForm() {
         referralCode
       });
 
+      if ('requiresConfirmation' in _result && _result.requiresConfirmation) {
+        router.push('/login?confirmation=pending');
+        return;
+      }
       if (referralCode) {
         const { data: sessionData } = await (await import('@/lib/supabase')).supabase.auth.getSession();
         await fetch('/api/creator-referrals', {
