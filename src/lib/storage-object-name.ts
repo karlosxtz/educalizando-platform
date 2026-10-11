@@ -9,5 +9,5 @@ export function materialObjectKey(input: { userId: string; creator: unknown; mat
   const material = storageName(input.material, storageName(input.fileName.replace(/\.[^.]+$/, ''), 'material'));
   const file = storageName(input.fileName.replace(/\.[^.]+$/, ''), 'arquivo');
   const ext = /^[a-z0-9]{1,10}$/.test(input.extension) ? input.extension : 'bin';
-  return `uploads/${input.userId}/${creator}/${material}/${material}-${file}-${input.id}.${ext}`;
+  return `uploads/${creator}/${input.userId}/${material}/${material}-${file}-${input.id}.${ext}`;
 }
