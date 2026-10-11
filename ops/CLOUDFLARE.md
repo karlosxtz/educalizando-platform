@@ -59,3 +59,11 @@ Para testes locais usar `.dev.vars`, ignorado pelo Git.
 
 Não publicar esta preparação como migração concluída. Manter a Vercel até
 aprovar esses testes. Nenhum serviço pago de imagens/cache foi contratado.
+# Correção do conflito com variáveis do painel
+
+O script `deploy:vinext` publica a saída do Vite pelo Wrangler oficial,
+com `keep_vars: true`, preservando variáveis cadastradas no painel e segredos.
+Não inclua valores privados na configuração versionada. A configuração de
+bindings ASSETS, IMAGES e VINEXT_KV_CACHE continua vindo de cloudflare.config.ts.
+Validação sem publicar: `npm run deploy:vinext -- --skip-build --dry-run`.
+

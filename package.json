@@ -35,7 +35,7 @@
     "dev:vinext": "vite dev --port 3001",
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
-    "deploy:vinext": "vinext-cloudflare deploy"
+    "deploy:vinext": "node scripts/deploy-cloudflare.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
@@ -44,6 +44,7 @@
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.2",
     "@types/qrcode": "^1.5.6",
+    "@vinext/cloudflare": "1.1.0",
     "browser-image-compression": "^2.0.2",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
@@ -60,23 +61,27 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "^7.85.0",
+    "react-server-dom-webpack": "19.2.8",
     "recharts": "^3.10.1",
     "resend": "^6.22.1",
     "sharp": "^0.35.5",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
-    "zod": "^3.25.76",
     "vinext": "1.1.0",
-    "react-server-dom-webpack": "19.2.8",
-    "@vinext/cloudflare": "1.1.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@cloudflare/config": "0.24.1",
+    "@cloudflare/vite-plugin": "2.0.0-beta.sha-91c870c02",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitejs/plugin-rsc": "0.5.36",
+    "cf": "1.0.0-beta.14",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
@@ -84,9 +89,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "vite": "8.3.0",
-    "@vitejs/plugin-react": "6.1.2",
-    "@vitejs/plugin-rsc": "0.5.36",
-    "@cloudflare/vite-plugin": "2.0.0-beta.sha-91c870c02",
-    "cf": "1.0.0-beta.14"
+    "wrangler": "4.149.0"
   }
 }
