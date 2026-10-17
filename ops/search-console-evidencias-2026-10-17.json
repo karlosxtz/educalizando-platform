@@ -367,9 +367,12 @@
     }
   ],
   "cloudflare": {
-    "status": "Login solicitado; agente parou",
-    "crawlerHintsActivated": false,
-    "dnsChanged": false
+    "status": "Login manual do usuário; Crawler Hints ativado e confirmado na interface",
+    "crawlerHintsActivated": true,
+    "termsAcceptedByUser": true,
+    "dnsChanged": false,
+    "billingChanged": false,
+    "otherSettingsChanged": false
   },
   "validation": {
     "lint": "pass; 0 errors, 17 existing warnings",

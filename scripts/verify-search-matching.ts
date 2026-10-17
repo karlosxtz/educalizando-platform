@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { getSearchTerms, normalizeSearchText, searchMatchScore } from '../src/lib/search-matching';
+import { createSearchScorer, getSearchTerms, normalizeSearchText, searchMatchScore } from '../src/lib/search-matching';
 
 const material = {
   titulo: 'Kit pedagógico para alfabetização',
@@ -19,5 +19,15 @@ assert.ok(searchMatchScore(material, 'consciencia fonologica') > 0, 'encontra ta
 assert.equal(searchMatchScore(material, 'quimica quantica'), 0, 'não inventa associação inexistente');
 assert.ok(searchMatchScore(material, 'alfabetizacoa') === 0, 'não aceita duas alterações como correção segura');
 assert.ok(searchMatchScore(material, 'alfabetizaca') > 0, 'tolera um caractere ausente');
+let reads = 0;
+const observed = { ...material };
+Object.defineProperty(observed, 'descricao', { get() { reads++; return material.descricao; } });
+for (const query of ['alfabetizacao', 'arvore', 'powerpoint', 'quimica quantica', 'alfabetizaca']) {
+  const score = createSearchScorer(query);
+  reads = 0;
+  assert.equal(score(observed), searchMatchScore(material, query));
+  for (let i = 0; i < 50; i++) score(observed);
+  assert.equal(reads, 1, 'Descrição longa deve ser normalizada apenas uma vez por consulta, incluindo resultados sem correspondência.');
+}
 
 console.log('Search matching verification passed.');

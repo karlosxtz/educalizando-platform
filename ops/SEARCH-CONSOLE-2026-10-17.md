@@ -79,8 +79,9 @@ Recebimento na fila não garante indexação nem posição no Google. Não reenv
 
 ## Cloudflare e o que depende do usuário
 
-- O painel Cloudflare abriu em **Sign in to Cloudflare**. O agente parou sem preencher login, senha, SSO ou verificação. Não houve alteração DNS, cobrança ou Crawler Hints.
-- Crawler Hints ficou pendente: caso deseje concluir, o usuário precisa fazer login no navegador integrado. Depois, acessar a zona educalizando.com.br → Caching → Configuration → Crawler Hints, se disponível.
+- Após a primeira interrupção na tela de login, o usuário entrou manualmente na Cloudflare pelo navegador integrado. Nenhuma credencial foi preenchida pelo agente.
+- **Crawler Hints ativado** em educalizando.com.br → Caching → Configuration. O usuário confirmou especificamente o aceite dos Termos Adicionais e do compartilhamento necessário ao recurso. A interface concluiu o salvamento e confirmou o controle ligado. Comprovante local: `.cloudflare/crawler-hints-ativado.png`.
+- Nenhuma alteração em DNS, cobrança, plano, pagamentos ou outras configurações da Cloudflare. Always Online e Modo de Desenvolvedor permaneceram desligados.
 - Aguardar o Google rastrear as URLs e atualizar os relatórios históricos. Nenhuma publicação nova é necessária para as ações do Search Console desta sessão.
 - As seis URLs antigas de produtos que hoje são 404 não constam do sitemap. Só cadastrar redirecionamento adicional se houver associação inequívoca com o mesmo material atual; não adivinhar destinos nem modificar cadastros.
 - Definir políticas reais de devolução/entrega, caso queira complementar os avisos opcionais de merchant listings; não houve alteração comercial nesta auditoria.

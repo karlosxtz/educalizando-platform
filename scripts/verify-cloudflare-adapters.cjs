@@ -17,20 +17,9 @@ function load(file, imports, name) {
   await assert.rejects(resolver(missing, missing)('example.com'), /Nenhum endereço/);
   await assert.rejects(resolver(async () => ['203.0.113.1'], async () => { throw Object.assign(new Error('Timeout'), { code: 'ETIMEOUT' }); })('example.com'), /segurança/);
   const source = new Uint8Array([1, 2, 3]);
-  const noImages = load('cloudflare/product-image-optimizer.js', { env: {} }, 'optimizeProductImage');
-  await assert.rejects(noImages(source), /não está configurado/);
-  let consumed;
-  const optimize = load('cloudflare/product-image-optimizer.js', { env: { IMAGES: { input(stream) {
-    consumed = new Response(stream).arrayBuffer();
-    return { transform(options) {
-      assert.deepEqual(options, { width: 1920, height: 1920, fit: 'scale-down' });
-      return { async output(options) {
-        assert.deepEqual(options, { format: 'image/webp', quality: 84 });
-        return { response: () => new Response(new Uint8Array([4, 5])) };
-      } };
-    } };
-  } } } }, 'optimizeProductImage');
-  assert.deepEqual(await optimize(source), new Uint8Array([4, 5]));
-  assert.deepEqual(new Uint8Array(await consumed), source);
-  console.log('Cloudflare: 7 cenários de resolução DNS e processamento de imagens aprovados (bindings simulados).');
+  for (const env of [{}, { IMAGES: { input() { throw new Error('Paid binding must never run'); } } }]) {
+    const optimize = load('cloudflare/product-image-optimizer.js', { env }, 'optimizeProductImage');
+    await assert.rejects(optimize(source), /Transformação paga desativada/);
+  }
+  console.log('Cloudflare: DNS seguro preservado; transformação paga desativada com ou sem binding.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

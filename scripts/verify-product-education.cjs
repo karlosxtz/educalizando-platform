@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const ts=require('typescript');
+const React=require('react');
+const {renderToStaticMarkup}=require('react-dom/server');
+function load(file,mocks={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:n=>mocks[n]||require(n),Map,Set});return exports;}
+const helper=load('src/lib/product-education-levels.ts');
+const levels=Array.from({length:5},(_,i)=>({id:String(i),nome:['Ensino Fundamental I','Ensino Fundamental II','Educação Infantil','Ensino Médio','ENEM'][i],ordem:i}));
+const product={education_level_id:'0',education_level_ids:['0','1','2','3','4']};
+assert.equal(helper.productEducationLevels(product,levels).length,5);
+assert.equal(helper.productEducationLevels({education_level_id:'1'},levels)[0].nome,'Ensino Fundamental II');
+assert.equal(helper.productEducationLevels({...product,education_level_ids:['1','1','missing']},levels).length,1);
+assert.equal(helper.productEducationLevels({},levels).length,0);
+const Badge=load('src/components/store/ProductEducationBadges.tsx',{'@/lib/product-education-levels':helper}).default;
+const html=renderToStaticMarkup(React.createElement(Badge,{product,levels}));
+for(const level of levels)assert.ok(html.includes(level.nome));
+assert.equal((html.match(/whitespace-normal/g)||[]).length,5,'All five levels must remain visible and wrap');
+for(const theme of ['Default','Minimalist','Netflix','Pinterest','LinkTree'])assert.match(fs.readFileSync('src/app/loja/[slug]/themes/Theme'+theme+'.tsx','utf8'),/ProductEducationBadges product=\{prod\} levels=\{educationLevels\}/);
+console.log('PASS: all five selected education levels rendered, legacy single level, deduplication, unknown IDs, wrapping and all five store themes.');

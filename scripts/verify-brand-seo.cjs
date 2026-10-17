@@ -11,7 +11,7 @@ function load(file, mocks = {}) {
   } }).outputText, { exports, require: name => name === 'server-only' ? {} : mocks[name] || require(name), URL, Request, Response, console });
   return exports;
 }
-const seo = load('src/lib/seo.ts');
+const seo = load('src/lib/seo.ts', { './public-image-url': load('src/lib/public-image-url.ts') });
 const pages = load('src/lib/page-seo.ts', { './seo': seo });
 const catalog = load('src/lib/catalog-seo.ts', { './seo': seo, './page-seo': pages });
 const canonical = load('src/lib/canonical-host.ts', { './seo': seo });

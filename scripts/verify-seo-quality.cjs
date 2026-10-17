@@ -57,7 +57,7 @@ for (const [slug, intro] of Object.entries(CATEGORY_INTRODUCTIONS)) {
   assert(words >= 150, slug + ': ' + words + ' words');
   for (const text of intro) { assert(!paragraphs.has(text), 'No repeated editorial mold'); paragraphs.add(text); }
 }
-const seo = load('src/lib/seo.ts');
+const seo = load('src/lib/seo.ts', { './public-image-url': load('src/lib/public-image-url.ts') });
 const pages = load('src/lib/page-seo.ts', { './seo': seo });
 const catalog = load('src/lib/catalog-seo.ts', { './seo': seo, './page-seo': pages });
 const longName = 'Um material didático com um nome completo e muito detalhado que não pode ser mutilado durante a otimização';

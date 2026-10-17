@@ -1,0 +1,33 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {PGlite}=require('../.cloudflare/sql-test/node_modules/@electric-sql/pglite');
+async function main(){const db=new PGlite();try{
+ await db.exec(`create role anon;create role authenticated;create role service_role;
+ create table stores(id uuid primary key);create table woocommerce_integrations(id uuid primary key,store_id uuid,status text,sync_products_from_woo boolean);
+ create table products(id uuid primary key,store_id uuid,import_incomplete boolean,capa_url text,has_original_delivery boolean);
+ create table product_images(id uuid primary key,product_id uuid,url text,ordem int);
+ create table product_delivery_files(id uuid primary key,product_id uuid,delivery_type text,file_url text,file_name text,file_size_bytes bigint,mime_type text,order_index int);
+ create table product_deliveries(product_id uuid primary key,arquivo_url text,arquivo_nome text);`);
+ const sql=fs.readFileSync('supabase/migrations/20261016230000_create_woocommerce_import_jobs.sql','utf8');await db.exec(sql);await db.exec(sql);
+ const s='00000000-0000-0000-0000-000000000001',other='00000000-0000-0000-0000-000000000002',integration='10000000-0000-0000-0000-000000000001',p='20000000-0000-0000-0000-000000000001',a='30000000-0000-0000-0000-000000000001';
+ await db.query('insert into stores values($1),($2)',[s,other]);await db.query("insert into woocommerce_integrations values($1,$2,'active',true)",[integration,s]);
+ await db.query("insert into woocommerce_import_jobs(store_id,integration_id,mode) values($1,$2,'all')",[s,integration]);
+ const claim=async(store=s)=>(await db.query('select * from claim_woo_import($1,null)',[store])).rows;
+ assert.equal((await claim(other)).length,0);const job=(await claim())[0];assert.equal(job.step_attempts,1);assert.equal((await claim()).length,0,'Lease prevents a browser and cron from processing concurrently');
+ await assert.rejects(db.query("insert into woocommerce_import_jobs(store_id,integration_id,mode) values($1,$2,'all')",[s,integration]),/duplicate key/);
+ await db.exec("update woocommerce_import_jobs set lease_until=now()-interval '1 second',processed=10000001");assert.equal((await claim())[0].step_attempts,2);assert.equal(Number((await db.query('select processed from woocommerce_import_jobs')).rows[0].processed),10000001);
+ await db.exec("update woocommerce_import_jobs set status='paused',lease_until=null");assert.equal((await claim()).length,0);
+ await db.exec("update woocommerce_import_jobs set status='queued';update woocommerce_integrations set sync_products_from_woo=false");assert.equal((await claim()).length,0);
+ await db.query('insert into products values($1,$2,true,null,false)',[p,s]);
+ await db.query("update woocommerce_import_jobs set product_id=$1,status='running',lease_until=now()+interval '4 minutes'",[p]);
+ const lease=(await db.query('select lease_token from woocommerce_import_jobs')).rows[0].lease_token;
+ const asset=async(store,kind,index,data)=>db.query('select apply_woo_import_asset($1,$2,$3,$4,$5,$6,$7,$8) as applied',[store,p,a,kind,index,JSON.stringify(data),job.id,lease]);
+ assert.equal((await asset(other,'image',0,{url:'https://images.test/a.jpg'})).rows[0].applied,false);
+ await asset(s,'image',0,{url:'https://images.test/a.jpg'});await asset(s,'image',0,{url:'https://images.test/a.jpg'});assert.equal((await db.query('select count(*) as n from product_images')).rows[0].n,1);
+ await db.exec('update products set import_incomplete=false');assert.equal((await asset(s,'image',0,{url:'https://images.test/overwritten.jpg'})).rows[0].applied,false);assert.equal((await db.query('select capa_url from products')).rows[0].capa_url,'https://images.test/a.jpg');
+ await db.exec('update products set import_incomplete=true');await asset(s,'delivery',1,{url:'minio://private/file.pdf',name:'Arquivo',size:123,mimeType:'application/pdf'});
+ assert.equal((await db.query('select arquivo_url from product_deliveries')).rows[0].arquivo_url,'minio://private/file.pdf','First successful file becomes legacy primary even if the original first file failed');
+ await db.exec("update woocommerce_import_jobs set status='cancelled'");assert.equal((await asset(s,'image',0,{url:'https://images.test/stale.jpg'})).rows[0].applied,false);
+ const grants=(await db.query("select has_function_privilege('anon','claim_woo_import(uuid,uuid)','execute') as anon,has_table_privilege('authenticated','woocommerce_import_jobs','select') as auth")).rows[0];assert.deepEqual(grants,{anon:false,auth:false});
+ console.log('PASS SQL: migration twice, owner scope, exclusive durable lease, pause/integration controls, counters beyond ten million, atomic asset application, safe replays, reviewed-product protection and private grants.');
+}finally{await db.close();}}
+main().catch(e=>{console.error(e);process.exitCode=1;});

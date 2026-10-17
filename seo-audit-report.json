@@ -1,0 +1,2188 @@
+{
+  "checked": 263,
+  "failures": [
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos",
+      "status": 200,
+      "title": "Kit Outubro Rosa para Bambolê – Decoração e… | Educalizando",
+      "description": "Transforme o bambolê em um painel decorativo e interativo para fotos com este Kit Outubro Rosa, criado para complementar campanhas de consci",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos",
+      "productSchemaValid": false
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/pedagogogiali",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/bau-do-professor",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/digitaledujoycelemos",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/recursos-pedagogicos-da-prof",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/doce-aprender-pedagogico-plr",
+      "status": 200,
+      "title": "",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/educarose",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/layla-martins-atividades-pedagogicas",
+      "status": 200,
+      "title": "",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    }
+  ],
+  "duplicateTitles": [
+    {
+      "value": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "pages": [
+        "https://www.educalizando.com.br/loja/pedagogogiali",
+        "https://www.educalizando.com.br/loja/bau-do-professor",
+        "https://www.educalizando.com.br/loja/digitaledujoycelemos",
+        "https://www.educalizando.com.br/loja/recursos-pedagogicos-da-prof",
+        "https://www.educalizando.com.br/loja/educarose"
+      ]
+    }
+  ],
+  "duplicateDescriptions": [],
+  "results": [
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=matematica",
+      "status": 200,
+      "title": "Atividades de matemática para imprimir | Educalizando",
+      "description": "Descubra atividades de matemática para imprimir com números, operações e desafios. Facilite o planejamento das aulas e encontre materiais para sua turma!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=matematica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/",
+      "status": 200,
+      "title": "Materiais didáticos digitais para professores | Educalizando",
+      "description": "Encontre materiais didáticos digitais para professores: atividades, apostilas e planos de aula para poupar tempo no planejamento. Explore o catálogo!",
+      "canonical": "https://www.educalizando.com.br",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=alfabetizacao",
+      "status": 200,
+      "title": "Atividades de alfabetização para imprimir | Educalizando",
+      "description": "Explore atividades de alfabetização para imprimir com letras, sílabas, leitura e escrita. Apoie o aprendizado da sua turma e escolha seus materiais!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar",
+      "status": 200,
+      "title": "Atividades pedagógicas para baixar | Educalizando",
+      "description": "Busque atividades pedagógicas para baixar, apostilas e planos de aula por tema ou ano escolar. Encontre recursos para sua turma e explore o catálogo!",
+      "canonical": "https://www.educalizando.com.br/buscar",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=ensino-religioso",
+      "status": 200,
+      "title": "Atividades de ensino religioso para imprimir | Educalizando",
+      "description": "Explore atividades de ensino religioso para imprimir por tema e etapa escolar. Encontre propostas para apoiar suas aulas e escolha os materiais!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=ensino-religioso",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=bercario",
+      "status": 200,
+      "title": "Atividades para berçário e maternal | Educalizando",
+      "description": "Encontre atividades para berçário e maternal com ideias de brincadeiras, descobertas e rotina. Planeje propostas para os pequenos e explore o acervo!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=bercario",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=historia",
+      "status": 200,
+      "title": "Atividades de história no ensino fundamental | Educalizando",
+      "description": "Busque atividades de história para ensino fundamental por tema. Trabalhe fontes, culturas e períodos históricos nas suas aulas. Explore os materiais!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=historia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/buscar?categoria=artes",
+      "status": 200,
+      "title": "Atividades de artes para sala de aula | Educalizando",
+      "description": "Encontre atividades de artes para sala de aula com propostas de criação, cores e expressão. Inspire o trabalho com sua turma e explore os materiais!",
+      "canonical": "https://www.educalizando.com.br/buscar?categoria=artes",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-por-ano/ensino-fundamental-1",
+      "status": 200,
+      "title": "Atividades do 1º ao 5º ano para imprimir | Educalizando",
+      "description": "Explore atividades do 1º ao 5º ano do ensino fundamental para leitura, escrita e matemática. Apoie o planejamento com a BNCC e encontre recursos!",
+      "canonical": "https://www.educalizando.com.br/atividades-por-ano/ensino-fundamental-1",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-ensino-fundamental",
+      "status": 200,
+      "title": "Atividades ensino fundamental para imprimir | Educalizando",
+      "description": "Encontre atividades ensino fundamental para imprimir por ano e disciplina. Apoie seu planejamento com recursos pedagógicos e explore as opções!",
+      "canonical": "https://www.educalizando.com.br/atividades-ensino-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-por-ano/ensino-fundamental-2",
+      "status": 200,
+      "title": "Atividades do 6º ao 9º ano para imprimir | Educalizando",
+      "description": "Encontre atividades do 6º ao 9º ano do ensino fundamental por disciplina. Planeje aulas considerando a BNCC e explore materiais para sua turma!",
+      "canonical": "https://www.educalizando.com.br/atividades-por-ano/ensino-fundamental-2",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-por-ano/ensino-medio",
+      "status": 200,
+      "title": "Atividades ensino médio, ENEM e BNCC | Educalizando",
+      "description": "Busque atividades para ensino médio, ENEM e BNCC por área de conhecimento. Apoie aulas, revisões e avaliações com recursos digitais. Veja as opções!",
+      "canonical": "https://www.educalizando.com.br/atividades-por-ano/ensino-medio",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-para-imprimir",
+      "status": 200,
+      "title": "Atividades pedagógicas para imprimir grátis | Educalizando",
+      "description": "Busque atividades pedagógicas para imprimir grátis e opções pagas por tema. Confira formatos e licenças, organize suas aulas e explore o catálogo!",
+      "canonical": "https://www.educalizando.com.br/atividades-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-por-ano/pre-vestibular-enem",
+      "status": 200,
+      "title": "Materiais de estudo pré-vestibular e ENEM | Educalizando",
+      "description": "Encontre materiais de estudo pré-vestibular e ENEM para organizar revisões e praticar conteúdos. Explore apostilas e recursos para sua preparação!",
+      "canonical": "https://www.educalizando.com.br/atividades-por-ano/pre-vestibular-enem",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/afiliados/cadastro",
+      "status": 200,
+      "title": "Indique materiais educacionais como afiliado | Educalizando",
+      "description": "Quer ganhar dinheiro indicando materiais educacionais? Conheça o programa de afiliados, confira as regras de comissão e cadastre-se na Educalizando!",
+      "canonical": "https://www.educalizando.com.br/afiliados/cadastro",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/cadastro/produtor",
+      "status": 200,
+      "title": "Vender materiais didáticos online | Educalizando",
+      "description": "Quer vender materiais didáticos online? Crie sua loja na Educalizando, publique recursos digitais e alcance professores de todo o Brasil. Cadastre-se!",
+      "canonical": "https://www.educalizando.com.br/cadastro/produtor",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/ajuda",
+      "status": 200,
+      "title": "Central de ajuda para compradores e criadores | Educalizando",
+      "description": "Na central de ajuda Educalizando, tire dúvidas sobre compras, acesso aos materiais e vendas. Encontre orientações para usar a plataforma. Acesse!",
+      "canonical": "https://www.educalizando.com.br/ajuda",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caixa-piramide-dia-das-criancas",
+      "status": 200,
+      "title": "🎉 CAIXA PIRÂMIDE — DIA DAS CRIANÇAS 🎉 | Educalizando",
+      "description": "🎉 CAIXA PIRÂMIDE — DIA DAS CRIANÇAS 🎉 Deixe as lembrancinhas do Dia das Crianças ainda mais alegres, coloridas e especiais com esta linda ",
+      "canonical": "https://www.educalizando.com.br/produto/caixa-piramide-dia-das-criancas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-adaptada-colonizacao-espanhola-e-portuguesa-na-america",
+      "status": 200,
+      "title": "APOSTILA ADAPTADA COLONIZAÇÃO ESPANHOLA E PO… | Educalizando",
+      "description": "39 PÁGINAS COM EXPLICAÇÕES E ATIVIDADES ADAPTADAS E GABARITO. BASTANTE VISUAL. 02 ASSUNTOS SOBRE COLONIZAÇÃO EUROPEIA NA AMÉRICA - COLONIZAÇ",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-adaptada-colonizacao-espanhola-e-portuguesa-na-america",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-ludico-era-vargas",
+      "status": 200,
+      "title": "COMBO LÚDICO ERA VARGAS | Educalizando",
+      "description": "Combo lúdico Era Vargas Você receberá • 02 mini textos ilustrados no estilo lapbook • 01 jornal da história para alunos preencherem • 02 map",
+      "canonical": "https://www.educalizando.com.br/produto/combo-ludico-era-vargas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/livro-3d-as-quatro-estacoes-do-ano-recurso-ludico-para-educacao-infantil",
+      "status": 200,
+      "title": "Livro 3D As Quatro Estações do Ano – Recurso… | Educalizando",
+      "description": "Livro tridimensional sobre as quatro estações do ano, com páginas visuais e personagens em 3D para apresentar primavera, verão, outono e inv",
+      "canonical": "https://www.educalizando.com.br/produto/livro-3d-as-quatro-estacoes-do-ano-recurso-ludico-para-educacao-infantil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/decoracao-para-bambole-ultimo-dia-de-aula",
+      "status": 200,
+      "title": "Decoração para Bambolê Último Dia de Aula | Educalizando",
+      "description": "Decoração para Bambolê tema “Último Dia de Aula”. Proposta linda para fotos de final de ano, pode ser utilizado em turmas de Educação Infant",
+      "canonical": "https://www.educalizando.com.br/produto/decoracao-para-bambole-ultimo-dia-de-aula",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/jogo-das-silabas-simples-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Jogo das Sílabas Simples – Atividade Pedagóg… | Educalizando",
+      "description": "Jogo das Sílabas Simples: Desvende as Palavras!** 🗣️🧩 Aprenda a formar palavras de maneira divertida! 🃏 O jogo inclui: * *Cards para Comp",
+      "canonical": "https://www.educalizando.com.br/produto/jogo-das-silabas-simples-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/alimentacao-saudavel-e-nao-saudavel",
+      "status": 200,
+      "title": "ALIMENTAÇÃO SAUDÁVEL E NÃO SAUDÁVEL | Educalizando",
+      "description": "ALIMENTAÇÃO SAUDÁVEL E NÃO SAUDÁVEL 📚✨ Painel em PDF (4 páginas) 🍎🥦 Montagem divertida sobre *Alimentação Saudável e Não Saudável* para a",
+      "canonical": "https://www.educalizando.com.br/produto/alimentacao-saudavel-e-nao-saudavel",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-de-multiplicacao-matematica-muito-mais-pratica",
+      "status": 200,
+      "title": "KIT DE MULTIPLICAÇÃO — MATEMÁTICA MUITO MAIS… | Educalizando",
+      "description": "Torne o ensino da multiplicação mais organizado e dinâmico com este kit de recursos pedagógicos de Matemática! O material foi desenvolvido p",
+      "canonical": "https://www.educalizando.com.br/produto/kit-de-multiplicacao-matematica-muito-mais-pratica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/historia-na-luva-a-volta-as-aulas-dos-sete-amigos",
+      "status": 200,
+      "title": "HISTÓRIA “NA LUVA – A VOLTA ÀS AULAS DOS SET… | Educalizando",
+      "description": "“Na Luva – A Volta às Aulas dos Sete Amigos” é uma história encantadora criada especialmente para o momento de acolhida e volta às aulas. Po",
+      "canonical": "https://www.educalizando.com.br/produto/historia-na-luva-a-volta-as-aulas-dos-sete-amigos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lousa-magica",
+      "status": 200,
+      "title": "Lousa Mágica | Educalizando",
+      "description": "🧙‍♂️ Lousa Mágica do Bobbie Goods 👋 Professores, prontos para uma atividade super divertida e educativa? Surpreenda seus alunos com a Lous",
+      "canonical": "https://www.educalizando.com.br/produto/lousa-magica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bingo-dos-estados-do-brasil-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Bingo dos Estados do Brasil! – Atividade Ped… | Educalizando",
+      "description": "Bingo dos Estados do Brasil! 🎊 Vamos aprender sobre geografia de forma divertida! Este material incrível inclui: 📦 Uma caixa para guardar ",
+      "canonical": "https://www.educalizando.com.br/produto/bingo-dos-estados-do-brasil-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-semana-da-crianca-um-mundo-mais-doce",
+      "status": 200,
+      "title": "Painel Semana da Criança – Um Mundo Mais Doce | Educalizando",
+      "description": "🍬 TRANSFORME A ENTRADA DA ESCOLA EM UM MUNDO MAIS DOCE! 🌈 A Semana da Criança merece uma decoração especial — e esse painel foi pensado pa",
+      "canonical": "https://www.educalizando.com.br/produto/painel-semana-da-crianca-um-mundo-mais-doce",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/grafismo-indigena",
+      "status": 200,
+      "title": "Grafismo Indígena | Educalizando",
+      "description": "Um material pedagógico completo para trabalhar Arte, cultura e diversidade dos povos indígenas brasileiros de forma lúdica, criativa e conte",
+      "canonical": "https://www.educalizando.com.br/produto/grafismo-indigena",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/presepio-de-mesa-3d-colorido",
+      "status": 200,
+      "title": "Presépio de Mesa 3D Colorido | Educalizando",
+      "description": "Presépio de mesa 3D colorido para representar o nascimento de Jesus. O arquivo vai pronto para impressão e montagem, e acompanha vídeo tutor",
+      "canonical": "https://www.educalizando.com.br/produto/presepio-de-mesa-3d-colorido",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-quebra-cabeca-soma-misteriosa",
+      "status": 200,
+      "title": "Atividade Quebra-cabeça Soma Misteriosa | Educalizando",
+      "description": "Atividade Quebra-cabeça Soma Misteriosa, para trabalhar o conteúdo com crianças da Educação Infantil e séries iniciais do Ensino Fundamental",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-quebra-cabeca-soma-misteriosa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/novidade-atividade-das-emocoes-tema-coruja-e-borboleta",
+      "status": 200,
+      "title": "NOVIDADE! ATIVIDADE DAS EMOÇÕES – TEMA CORUJ… | Educalizando",
+      "description": "🦉💜 NOVIDADE! ATIVIDADE DAS EMOÇÕES – TEMA CORUJA E BORBOLETA 🦋 Transforme o desenvolvimento socioemocional em um momento leve, divertido ",
+      "canonical": "https://www.educalizando.com.br/produto/novidade-atividade-das-emocoes-tema-coruja-e-borboleta",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-educacao-infantil-e-ensino-fundamental-caixa-cartaz-e-lembrancinha",
+      "status": 200,
+      "title": "Kit Outubro Rosa para Educação Infantil e En… | Educalizando",
+      "description": "Kit Outubro Rosa para trabalhar o tema da conscientização e prevenção em atividades escolares com crianças da Educação Infantil e dos anos i",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-educacao-infantil-e-ensino-fundamental-caixa-cartaz-e-lembrancinha",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-mochila-maluca-ed-infantile-anos-inicais",
+      "status": 200,
+      "title": "COMBO MOCHILA MALUCA ed. infantile anos inic… | Educalizando",
+      "description": "COMBO MOCHILA MALUCA Doces 🍭 + Borboleta 🦋 + Espaço 🚀 Transforme o Dia das Crianças em uma experiência criativa, divertida e inesquecível",
+      "canonical": "https://www.educalizando.com.br/produto/combo-mochila-maluca-ed-infantile-anos-inicais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sacola-de-historia-dia-da-arvore",
+      "status": 200,
+      "title": "Sacola de história dia da árvore | Educalizando",
+      "description": "Sacola Dia da Árvore Transforme o Dia da Árvore em uma experiência mágica e educativa para as crianças! Com a história da sementinha e a árv",
+      "canonical": "https://www.educalizando.com.br/produto/sacola-de-historia-dia-da-arvore",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-setembro-amarelo-para-aria-externa-50-paginas-10-00-um-painel-lindo-acolhedor-e-cheio-de-mensagens-de-esperanca-cuidado-e-valorizacao-da-vida-perfeito-para-decorar-a-escola-e-criar-um-espaco-especial-para-falar-sobre-a-importancia-de-acolher-escutar-e-cuidar-contem-50-paginas-largura-1-90-m-altura-1-40-m-arquivo-em-pdf-pronto-para-imprimir-e-montar-sua-vida-importa-voce-nao-esta-sozinho-um-painel-que-transmite-uma-mensagem-necessaria-de-amor-esperanca-e-empatia-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-bonita-e-acolhedora-neste-setembro-amarelo",
+      "status": 200,
+      "title": "💛 *PAINEL SETEMBRO AMARELO PARA ÁRIA EXTERN… | Educalizando",
+      "description": "💛 *PAINEL SETEMBRO AMARELO PARA ÁRIA EXTERNA* – 50 PÁGINAS 💛 💰10,00 Um painel lindo, acolhedor e cheio de mensagens de esperança, cuidado",
+      "canonical": "https://www.educalizando.com.br/produto/painel-setembro-amarelo-para-aria-externa-50-paginas-10-00-um-painel-lindo-acolhedor-e-cheio-de-mensagens-de-esperanca-cuidado-e-valorizacao-da-vida-perfeito-para-decorar-a-escola-e-criar-um-espaco-especial-para-falar-sobre-a-importancia-de-acolher-escutar-e-cuidar-contem-50-paginas-largura-1-90-m-altura-1-40-m-arquivo-em-pdf-pronto-para-imprimir-e-montar-sua-vida-importa-voce-nao-esta-sozinho-um-painel-que-transmite-uma-mensagem-necessaria-de-amor-esperanca-e-empatia-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-bonita-e-acolhedora-neste-setembro-amarelo",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/oficina-de-squishy-paper-squishy",
+      "status": 200,
+      "title": "OFICINA DE SQUISHY / PAPER SQUISHY | Educalizando",
+      "description": "Transforme momentos de lazer e aprendizado em uma verdadeira fábrica de fofura com o material Oficina do Squishy! Perfeito para engajar cria",
+      "canonical": "https://www.educalizando.com.br/produto/oficina-de-squishy-paper-squishy",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-dia-das-criancas-completo-e-colorido-com-jogoslembrancinhas-e-painel",
+      "status": 200,
+      "title": "Kit Dia das Crianças completo e colorido, co… | Educalizando",
+      "description": "O Kit Dia das Crianças é um material lúdico e completo para proporcionar momentos de diversão, interação, criatividade e aprendizagem. O arq",
+      "canonical": "https://www.educalizando.com.br/produto/kit-dia-das-criancas-completo-e-colorido-com-jogoslembrancinhas-e-painel",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bolsinhos-do-alfabeto",
+      "status": 200,
+      "title": "BOLSINHOS DO ALFABETO | Educalizando",
+      "description": "Com os Bolsinhos do Alfabeto, as crianças exploram as letras de A a Z enquanto relacionam cada letra a palavras que começam com ela, tornand",
+      "canonical": "https://www.educalizando.com.br/produto/bolsinhos-do-alfabeto",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-da-proclamacao-da-republica-pdf-para-impressao",
+      "status": 200,
+      "title": "Painel Dia da Proclamação da República – PDF… | Educalizando",
+      "description": "Celebre a Proclamação da República com um painel educativo que vai além da decoração e pode contribuir para momentos de reflexão e aprendiza",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-da-proclamacao-da-republica-pdf-para-impressao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/flipbook-de-fracoes-para-ensino-fundamental-numerador-denominador-tipos-e-comparacao-de-fracoes",
+      "status": 200,
+      "title": "Flipbook de Frações para Ensino Fundamental… | Educalizando",
+      "description": "Flipbook de Frações para tornar o ensino da matemática mais visual, interativo e significativo. Trabalhe conceitos como numerador, denominad",
+      "canonical": "https://www.educalizando.com.br/produto/flipbook-de-fracoes-para-ensino-fundamental-numerador-denominador-tipos-e-comparacao-de-fracoes",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-dia-das-criancas-7-atividades-ludicas-certificado",
+      "status": 200,
+      "title": "Kit Dia das Crianças – 7 Atividades Lúdicas… | Educalizando",
+      "description": "Kit Dia das Crianças – 7 Atividades Lúdicas + Certificado Torne a comemoração do Dia das Crianças ainda mais especial com um material pedagó",
+      "canonical": "https://www.educalizando.com.br/produto/kit-dia-das-criancas-7-atividades-ludicas-certificado",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-de-biologia-celular-28-aulas-e-atividades-de-citologia",
+      "status": 200,
+      "title": "Apostila de Biologia Celular – 28 Aulas e At… | Educalizando",
+      "description": "Apostila de Biologia Celular – 28 Aulas e Atividades de Citologia Material didático completo de Biologia Celular e Citologia, desenvolvido p",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-de-biologia-celular-28-aulas-e-atividades-de-citologia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/urna-da-leitura",
+      "status": 200,
+      "title": "URNA DA LEITURA | Educalizando",
+      "description": "A Urna da Leitura é o jogo pedagógico perfeito para transformar o treino de fluência leitora em um momento divertido e interativo na sua sal",
+      "canonical": "https://www.educalizando.com.br/produto/urna-da-leitura",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/quantas-silabas-48-fichas-para-consciencia-fonologica-e-alfabetizacao",
+      "status": 200,
+      "title": "Quantas Sílabas? – 48 Fichas para Consciênci… | Educalizando",
+      "description": "Quantas Sílabas? é um recurso lúdico para desenvolver a consciência fonológica por meio da contagem e segmentação silábica. São 48 fichas co",
+      "canonical": "https://www.educalizando.com.br/produto/quantas-silabas-48-fichas-para-consciencia-fonologica-e-alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sucolandia-vamos-preparar-um-suco-educacao-infantil-e-anos-inicias",
+      "status": 200,
+      "title": "SUCOLÂNDIA — VAMOS PREPARAR UM SUCO? educaçã… | Educalizando",
+      "description": "SUCOLÂNDIA — VAMOS PREPARAR UM SUCO? E se a alfabetização pudesse ficar muito mais divertida? 🍓🍍🥑 Na Sucolândia, as crianças entram em um",
+      "canonical": "https://www.educalizando.com.br/produto/sucolandia-vamos-preparar-um-suco-educacao-infantil-e-anos-inicias",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/supermercado-da-matematica-2-ao-4-ano-do-fundamental",
+      "status": 200,
+      "title": "Supermercado da Matemática - 2° ao 4° ano do… | Educalizando",
+      "description": "🛒🍎 SUPERMERCADO DA MATEMÁTICA 🍎🛒 Uma proposta lúdica e envolvente para transformar a Matemática em uma experiência divertida e significa",
+      "canonical": "https://www.educalizando.com.br/produto/supermercado-da-matematica-2-ao-4-ano-do-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/uno-da-leitura-bobbie-goods",
+      "status": 200,
+      "title": "UNO DA LEITURA BOBBIE GOODS | Educalizando",
+      "description": "Este é um recurso educativo para incentivar a leitura das crianças em processos de alfabetização no tema de BOBBIE GOODS. Contém 15 páginas.",
+      "canonical": "https://www.educalizando.com.br/produto/uno-da-leitura-bobbie-goods",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/oficina-poetica-as-borboletas",
+      "status": 200,
+      "title": "OFICINA POÉTICA — AS BORBOLETAS | Educalizando",
+      "description": "POEMA NÃO PRECISA TERMINAR NA LEITURA. 🦋 Transforme “As Borboletas” em uma experiência de criatividade e escrita! Com esta oficina, a crian",
+      "canonical": "https://www.educalizando.com.br/produto/oficina-poetica-as-borboletas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/o-cristianismo-no-imperio-romano-kit-de-atividades-ludicas",
+      "status": 200,
+      "title": "O Cristianismo no Império Romano - Kit de at… | Educalizando",
+      "description": "O que está incluído no pacote? 1. Textos Didáticos Ilustrados (Estilo Infográfico / Quadrinhos): 4 Páginas 2. Folhas de Atividades de Fixaçã",
+      "canonical": "https://www.educalizando.com.br/produto/o-cristianismo-no-imperio-romano-kit-de-atividades-ludicas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/jogos-matematicos-educativos-com-material-dourado",
+      "status": 200,
+      "title": "Jogos Matemáticos Educativos com Material Do… | Educalizando",
+      "description": "Kit de Material Dourado para Alfabetização Matemática Kit de material dourado para trabalhar unidade, dezena, centena, milhar e valor posici",
+      "canonical": "https://www.educalizando.com.br/produto/jogos-matematicos-educativos-com-material-dourado",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lembrancinhas-dia-dos-professores-6-50-surpreenda-seus-mestres-com-um-kit-de-lembrancinhas-cheio-de-carinho-3-opcoes-de-lembrancinhas-pdf-pronto-para-impressao-uma-maneira-especial-de-agradecer-por-todo-o-conhecimento",
+      "status": 200,
+      "title": "🌈Lembrancinhas Dia dos Professores* 💰6,50… | Educalizando",
+      "description": "🌈Lembrancinhas Dia dos Professores* 💰6,50 😍Surpreenda seus mestres com um kit de lembrancinhas cheio de carinho! 3 opções de lembrancinha",
+      "canonical": "https://www.educalizando.com.br/produto/lembrancinhas-dia-dos-professores-6-50-surpreenda-seus-mestres-com-um-kit-de-lembrancinhas-cheio-de-carinho-3-opcoes-de-lembrancinhas-pdf-pronto-para-impressao-uma-maneira-especial-de-agradecer-por-todo-o-conhecimento",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caixa-musical-para-educacao-infantil-com-fichas-ilustradas",
+      "status": 200,
+      "title": "Caixa Musical para Educação Infantil com Fic… | Educalizando",
+      "description": "Caixa Musical A Caixa Musical é um recurso lúdico desenvolvido para tornar os momentos de música mais divertidos, participativos e envolvent",
+      "canonical": "https://www.educalizando.com.br/produto/caixa-musical-para-educacao-infantil-com-fichas-ilustradas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sacola-versiculo-do-dia",
+      "status": 200,
+      "title": "Sacola Versículo do Dia | Educalizando",
+      "description": "📖✨ SACOLA VERSÍCULO DO DIA – ALIMENTE SUA FÉ DIARIAMENTE! ✨📖 Já imaginou começar cada dia com uma mensagem poderosa da Palavra de Deus? Co",
+      "canonical": "https://www.educalizando.com.br/produto/sacola-versiculo-do-dia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-dia-da-bandeira-luva-pedagogica-e-lembrancinhas",
+      "status": 200,
+      "title": "Kit Dia da Bandeira – Luva Pedagógica e Lemb… | Educalizando",
+      "description": "Um kit pedagógico desenvolvido para trabalhar o tema Dia da Bandeira com crianças da Educação Infantil de forma didática, lúdica e de fácil ",
+      "canonical": "https://www.educalizando.com.br/produto/kit-dia-da-bandeira-luva-pedagogica-e-lembrancinhas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-tema-dia-da-consciencia-negra",
+      "status": 200,
+      "title": "Kit tema “Dia da Consciência Negra” | Educalizando",
+      "description": "Kit tema “Dia da Consciência Negra” para trabalhar o tema com crianças da Educação Infantil e das séries iniciais do Ensino Fundamental. O k",
+      "canonical": "https://www.educalizando.com.br/produto/kit-tema-dia-da-consciencia-negra",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-sala-dos-professores-recarregar-e-preciso",
+      "status": 200,
+      "title": "Painel Sala dos Professores – Recarregar é P… | Educalizando",
+      "description": "Painel decorativo para sala dos professores com a mensagem Recarregar é Preciso. Ideal para criar um ambiente acolhedor na sala de convivênc",
+      "canonical": "https://www.educalizando.com.br/produto/painel-sala-dos-professores-recarregar-e-preciso",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-escreva-as-palavras",
+      "status": 200,
+      "title": "✏️ ATIVIDADE – ESCREVA AS PALAVRAS | Educalizando",
+      "description": "Uma atividade simples e divertida para estimular a alfabetização e a escrita! 📝✨",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-escreva-as-palavras",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/luva-pedagogica-assim-nasceu-jesus-historia-de-natal-em-pdf",
+      "status": 200,
+      "title": "Luva Pedagógica Assim Nasceu Jesus – Históri… | Educalizando",
+      "description": "A Luva de História “Assim Nasceu Jesus”, de Berenice Gehlen Adams, apresenta uma proposta lúdica para acompanhar a narrativa sobre o nascime",
+      "canonical": "https://www.educalizando.com.br/produto/luva-pedagogica-assim-nasceu-jesus-historia-de-natal-em-pdf",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-ferias-escolares-decoracao-para-escola",
+      "status": 200,
+      "title": "Painel Férias Escolares – Decoração para Esc… | Educalizando",
+      "description": "O Painel de Férias Escolares foi criado para celebrar o encerramento de mais um ciclo de aprendizagem e dar as boas-vindas ao tão esperado p",
+      "canonical": "https://www.educalizando.com.br/produto/painel-ferias-escolares-decoracao-para-escola",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-20-apostilas-para-alfabetizacao",
+      "status": 200,
+      "title": "Combo 20 Apostilas para Alfabetização | Educalizando",
+      "description": "Transforme o aprendizado das crianças em uma jornada divertida e interativa com o nosso Combo com 20 Apostilas Educativas em PDF! Desenvolvi",
+      "canonical": "https://www.educalizando.com.br/produto/combo-20-apostilas-para-alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-dos-professores-ensinar-e-um-ato-de-amor",
+      "status": 200,
+      "title": "PAINEL DIA DOS PROFESSORES – ENSINAR É UM AT… | Educalizando",
+      "description": "🌈 PAINEL DIA DOS PROFESSORES – ENSINAR É UM ATO DE AMOR 🍎📚💖 Deixe a homenagem aos professores ainda mais especial com este painel lindo,",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-dos-professores-ensinar-e-um-ato-de-amor",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-desfile-maluco-pdf-educacao-infantil-e-fundamental",
+      "status": 200,
+      "title": "Painel Desfile Maluco pdf Educação Infantil… | Educalizando",
+      "description": "Prepare uma festa inesquecível com o Painel Desfile Maluco – Anos 80, uma decoração alegre, colorida e cheia de nostalgia, perfeita para com",
+      "canonical": "https://www.educalizando.com.br/produto/painel-desfile-maluco-pdf-educacao-infantil-e-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/triorama-do-egito-antigo",
+      "status": 200,
+      "title": "TRIORAMA DO EGITO ANTIGO | Educalizando",
+      "description": "Atividade lúdica em forma de triorama sobre Egito Antigo, para recortar, colorir e colar.",
+      "canonical": "https://www.educalizando.com.br/produto/triorama-do-egito-antigo",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/mini-kit-halloween",
+      "status": 200,
+      "title": "Mini Kit Halloween | Educalizando",
+      "description": "Um material especial e divertido para trabalhar o tema Halloween de forma lúdica e interativa em sala de aula! 📚 O Mini Kit contém: 🎃 Pain",
+      "canonical": "https://www.educalizando.com.br/produto/mini-kit-halloween",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caca-multiplicacao",
+      "status": 200,
+      "title": "Caça Multiplicação. | Educalizando",
+      "description": "A TABUADA NÃO PRECISA SER DECORADA NO PAPEL! Que tal transformar a multiplicação em uma verdadeira CAÇA AO RESULTADO? 🔎✖️ Com o CAÇA-MULTIP",
+      "canonical": "https://www.educalizando.com.br/produto/caca-multiplicacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/a-lagarta-comilona",
+      "status": 200,
+      "title": "A Lagarta Comilona | Educalizando",
+      "description": "Queremos apresentar este recurso incrível para tornar a história clássica de Eric Carle ainda mais envolvente para os pequenos. 🐛✨ Nesta lu",
+      "canonical": "https://www.educalizando.com.br/produto/a-lagarta-comilona",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/qual-e-o-plural-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Qual é o Plural?* – Atividade Pedagógica par… | Educalizando",
+      "description": "📚✨ Qual é o Plural?* 🔤🔍 Desperte o aprendizado de forma divertida com este material incrível! ️ Contém um painel em 2 folhas A4 para faci",
+      "canonical": "https://www.educalizando.com.br/produto/qual-e-o-plural-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-coletivo-setembro-amarelo-para-colorir-com-a-turma-que-tal-transformar-o-setembro-amarelo-em-um-momento-de-uniao-criatividade-e-reflexao-preparei-um-lindo-painel-coletivo-para-colorir-perfeito-para-envolver-as-criancas-em-uma-atividade-colaborativa-cada-aluno-pode-pintar-uma-parte-e-juntos-construir-um-painel-cheio-de-cor-esperanca-e-significado-30-paginas-prontinhas-para-imprimir-ideal-para-trabalho-coletivo-em-sala-de-aula-tema-setembro-amarelo-arquivo-em-pdf-apenas-r-10-00-uma-atividade-que-une-arte-participacao-e-uma-mensagem-de-cuidado-e-valorizacao-da-vida-quer-o-seu-me-chama-e-garanta-ja-o-seu-painel-professora-ale-turminha-kids",
+      "status": 200,
+      "title": "PAINEL COLETIVO SETEMBRO AMARELO 💛 🎨 PARA… | Educalizando",
+      "description": "PAINEL COLETIVO SETEMBRO AMARELO 💛 🎨 PARA COLORIR COM A TURMA! Que tal transformar o Setembro Amarelo em um momento de união, criatividade",
+      "canonical": "https://www.educalizando.com.br/produto/painel-coletivo-setembro-amarelo-para-colorir-com-a-turma-que-tal-transformar-o-setembro-amarelo-em-um-momento-de-uniao-criatividade-e-reflexao-preparei-um-lindo-painel-coletivo-para-colorir-perfeito-para-envolver-as-criancas-em-uma-atividade-colaborativa-cada-aluno-pode-pintar-uma-parte-e-juntos-construir-um-painel-cheio-de-cor-esperanca-e-significado-30-paginas-prontinhas-para-imprimir-ideal-para-trabalho-coletivo-em-sala-de-aula-tema-setembro-amarelo-arquivo-em-pdf-apenas-r-10-00-uma-atividade-que-une-arte-participacao-e-uma-mensagem-de-cuidado-e-valorizacao-da-vida-quer-o-seu-me-chama-e-garanta-ja-o-seu-painel-professora-ale-turminha-kids",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bolsinhos-dos-pronomes",
+      "status": 200,
+      "title": "📚 BOLSINHOS DOS PRONOMES | Educalizando",
+      "description": "📚 BOLSINHOS DOS PRONOMES Aprender Gramática de forma prática, visual e divertida! Transforme o estudo dos pronomes em uma atividade interat",
+      "canonical": "https://www.educalizando.com.br/produto/bolsinhos-dos-pronomes",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-o-poderoso-paizao-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "KIT O PODEROSO PAIZÃO – Atividade Pedagógica… | Educalizando",
+      "description": "🚨 LANÇAMENTO ESPECIAL – KIT O PODEROSO PAIZÃO 💙👑 O presente perfeito para deixar o Dia dos Pais ainda mais emocionante! 💙 ✨ O kit contém",
+      "canonical": "https://www.educalizando.com.br/produto/kit-o-poderoso-paizao-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bingo-dos-substantivos-coletivos",
+      "status": 200,
+      "title": "Bingo dos Substantivos Coletivos! | Educalizando",
+      "description": "🎉✨ Bingo dos Substantivos Coletivos! 🐦🌳 Prepare-se para aprender de maneira divertida com este incrível material em PDF! 📦 Inclui uma ca",
+      "canonical": "https://www.educalizando.com.br/produto/bingo-dos-substantivos-coletivos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-das-criancas-anos-80",
+      "status": 200,
+      "title": "Painel Dia das Crianças - Anos 80 | Educalizando",
+      "description": "🎉 Painel Dia das Crianças – Anos 80 Um painel alegre e colorido para deixar a escola ainda mais especial na comemoração do Dia das Crianças",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-das-criancas-anos-80",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/domino-do-alfabeto-jogo-de-letras-para-educacao-infantil",
+      "status": 200,
+      "title": "Dominó do Alfabeto – Jogo de Letras para Edu… | Educalizando",
+      "description": "O Dominó do Alfabeto é um recurso pedagógico lúdico desenvolvido para tornar o aprendizado das letras mais divertido, interativo e significa",
+      "canonical": "https://www.educalizando.com.br/produto/domino-do-alfabeto-jogo-de-letras-para-educacao-infantil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-lembrancinhas-dia-das-criancas-com-doces-4-modelos-para-imprimir-em-pdf",
+      "status": 200,
+      "title": "Kit Lembrancinhas Dia das Crianças com Doces… | Educalizando",
+      "description": "Kit de lembrancinhas para o Dia das Crianças com 4 modelos exclusivos, prontos para imprimir e montar. Ideal para professores, escolas e pai",
+      "canonical": "https://www.educalizando.com.br/produto/kit-lembrancinhas-dia-das-criancas-com-doces-4-modelos-para-imprimir-em-pdf",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-desvendando-a-leitura-e-a-interpretacao-por-apenas-12-90-um-material-com-100-paginas-organizado-de-forma-progressiva-trazendo-propostas-de-leitura-compreensao-e-interpretacao-para-estudantes-do-1-ao-5-ano-pode-ser-utilizado-como-reforco-para-o-6-ano-as-atividades-exploram-textos-imagens-tirinhas-historias-quadrinhas-fabulas-e-diferentes-situacoes-de-leitura-trabalhando-habilidades-como-localizacao-de-informacoes-inferencia-sequencia-de-acontecimentos-tema-finalidade-relacao-entre-texto-e-imagem-e-compreensao-textual-fichas-de-acompanhamento-pedagogico-sao-20-paginas-para-ajudar-o-professor-a-registrar-avaliar-acompanhar-e-planejar-intervencoes-o-material-inclui-recursos-como-autoavaliacao-do-estudante-mapa-de-aprendizagem-da-turma-registro-de-reuniao-com-a-familia-relatorio-bimestral-individual-calendario-de-sondagens-e-avaliacoes-checklist-do-portfolio-ficha-de-recomposicao-intervencao-pedagogica-e-diferentes-fichas-de-acompanhamento-um-kit-para-ensin",
+      "status": 200,
+      "title": "🌈*APOSTILA DESVENDANDO A LEITURA E A INTERP… | Educalizando",
+      "description": "🌈*APOSTILA DESVENDANDO A LEITURA E A INTERPRETAÇÃO* ✅POR APENAS :💰12,90 Um material com 100 páginas, organizado de forma progressiva, traz",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-desvendando-a-leitura-e-a-interpretacao-por-apenas-12-90-um-material-com-100-paginas-organizado-de-forma-progressiva-trazendo-propostas-de-leitura-compreensao-e-interpretacao-para-estudantes-do-1-ao-5-ano-pode-ser-utilizado-como-reforco-para-o-6-ano-as-atividades-exploram-textos-imagens-tirinhas-historias-quadrinhas-fabulas-e-diferentes-situacoes-de-leitura-trabalhando-habilidades-como-localizacao-de-informacoes-inferencia-sequencia-de-acontecimentos-tema-finalidade-relacao-entre-texto-e-imagem-e-compreensao-textual-fichas-de-acompanhamento-pedagogico-sao-20-paginas-para-ajudar-o-professor-a-registrar-avaliar-acompanhar-e-planejar-intervencoes-o-material-inclui-recursos-como-autoavaliacao-do-estudante-mapa-de-aprendizagem-da-turma-registro-de-reuniao-com-a-familia-relatorio-bimestral-individual-calendario-de-sondagens-e-avaliacoes-checklist-do-portfolio-ficha-de-recomposicao-intervencao-pedagogica-e-diferentes-fichas-de-acompanhamento-um-kit-para-ensin",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividades-ludicas-sobre-revolucao-farroupilha",
+      "status": 200,
+      "title": "Atividades lúdicas sobre Revolução Farroupil… | Educalizando",
+      "description": "O que você encontra neste material Linha do tempo interativa com cards sobre os acontecimentos da Guerra dos Farrapos (Período Regencial) Jo",
+      "canonical": "https://www.educalizando.com.br/produto/atividades-ludicas-sobre-revolucao-farroupilha",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/os-tres-porquinhos-atividade-de-interpretacao-de-texto-para-educacao-infantil",
+      "status": 200,
+      "title": "Os Três Porquinhos – Atividade de Interpreta… | Educalizando",
+      "description": "Atividade Os Três Porquinhos para trabalhar leitura, interpretação e compreensão de texto de forma lúdica e significativa. O material aprese",
+      "canonical": "https://www.educalizando.com.br/produto/os-tres-porquinhos-atividade-de-interpretacao-de-texto-para-educacao-infantil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/independencia-material-adaptado-atividadeavaliacao",
+      "status": 200,
+      "title": "INDEPENDÊNCIA - MATERIAL ADAPTADO - ATIVIDAD… | Educalizando",
+      "description": "Questões sobre Independência do Brasil Material adaptado para ser usado como atividade ou avaliação. Texto de apoio, letra bastão, comandos ",
+      "canonical": "https://www.educalizando.com.br/produto/independencia-material-adaptado-atividadeavaliacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-apostila-das-4-operacoes",
+      "status": 200,
+      "title": "COMBO APOSTILA DAS 4 OPERAÇÕES | Educalizando",
+      "description": "Sabemos que a matemática às vezes assusta as crianças, mas o segredo está na forma como ela é apresentada. O nosso Combo das 4 Operações foi",
+      "canonical": "https://www.educalizando.com.br/produto/combo-apostila-das-4-operacoes",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/oficina-das-cores",
+      "status": 200,
+      "title": "Oficina das Cores | Educalizando",
+      "description": "Florzinha colorida com palito; ️ Lembrancinha em formato de pincel com BIS; ️ Recursos prontos para imprimir e montar.",
+      "canonical": "https://www.educalizando.com.br/produto/oficina-das-cores",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caixa-de-mensagem-caixa-motivacional-outubro-rosa",
+      "status": 200,
+      "title": "CAIXA DE MENSAGEM / CAIXA MOTIVACIONAL: OUTU… | Educalizando",
+      "description": "Monte um painel com mensagens inspiradoras sobre a prevenção. O arquivo contém: ✅ Painel reflexivo ✅ 24 cards ✅ PDF pronto para impressão Va",
+      "canonical": "https://www.educalizando.com.br/produto/caixa-de-mensagem-caixa-motivacional-outubro-rosa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/desafios-da-memoria-atividades-para-o-aee",
+      "status": 200,
+      "title": "DESAFIOS DA MEMÓRIA – ATIVIDADES PARA O AEE | Educalizando",
+      "description": "🧠🌈 DESAFIOS DA MEMÓRIA – ATIVIDADES PARA O AEE Uma apostila preparada para estimular memória, atenção, concentração, percepção visual, rac",
+      "canonical": "https://www.educalizando.com.br/produto/desafios-da-memoria-atividades-para-o-aee",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cards-educativos-brasil-colonia",
+      "status": 200,
+      "title": "Cards Educativos Brasil Colônia | Educalizando",
+      "description": "Os cards educativos sobre Brasil colônia podem ser utilizados para aprendizagem e revisão do conteúdo e também como um jogo de memória. Cont",
+      "canonical": "https://www.educalizando.com.br/produto/cards-educativos-brasil-colonia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/moldura-bambole-outubro-rosa",
+      "status": 200,
+      "title": "Moldura Bambolê Outubro Rosa | Educalizando",
+      "description": "MOLDURA BAMBOLÊ OUTUBRO ROSA Decoração para usar no bambolê para fazer lindas fotos e incentivar a prevenção ao câncer de mama! 🎁BRINDES: C",
+      "canonical": "https://www.educalizando.com.br/produto/moldura-bambole-outubro-rosa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/meu-primeiro-livro-de-colorir-154-ilustracoes-grandes-e-pontilhadas",
+      "status": 200,
+      "title": "MEU PRIMEIRO LIVRO DE COLORIR - 154 ILUSTRAÇ… | Educalizando",
+      "description": "🎨 O Meu Primeiro Livro de Colorir, reúne 154 ilustrações grandes e pontilhadas, prontas para contornar e colorir, proporcionando uma ativid",
+      "canonical": "https://www.educalizando.com.br/produto/meu-primeiro-livro-de-colorir-154-ilustracoes-grandes-e-pontilhadas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-outubro-rosa-a-beleza-do-cuidado-e-da-prevencao",
+      "status": 200,
+      "title": "Painel Outubro Rosa: A Beleza do Cuidado e d… | Educalizando",
+      "description": "🎀 Painel Outubro Rosa: A Beleza do Cuidado e da Prevenção 🎀 Nosso painel de Outubro Rosa traz um lembrete poderoso de amor-próprio e preve",
+      "canonical": "https://www.educalizando.com.br/produto/painel-outubro-rosa-a-beleza-do-cuidado-e-da-prevencao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-interativa-sobre-guerras-medicas-assunto-grecia-antiga",
+      "status": 200,
+      "title": "Atividade interativa sobre Guerras Médicas -… | Educalizando",
+      "description": "ATIVIDADE INTERATIVA GUERRAS MÉDICAS. Dois bolsos ilustrados (gregos vs. persas) prontos para recortar, colorir, colar e revisar o conteúdo.",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-interativa-sobre-guerras-medicas-assunto-grecia-antiga",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/interpretando-tirinhas-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "INTERPRETANDO TIRINHAS – Atividade Pedagógic… | Educalizando",
+      "description": "📚✨ NOVIDADE PARA SUA SALA DE AULA! ✨📚 Transforme a leitura em um momento divertido e cheio de aprendizado com o Interpretando Tirinhas! 🧒",
+      "canonical": "https://www.educalizando.com.br/produto/interpretando-tirinhas-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/fichas-das-palavras-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Fichas das Palavras! – Atividade Pedagógica… | Educalizando",
+      "description": "📝✨ Fichas das Palavras! 📚 Desenvolva habilidades linguísticas de forma divertida com este material incrível! 📄 Contém 26 cards para avali",
+      "canonical": "https://www.educalizando.com.br/produto/fichas-das-palavras-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/recorte-e-combine-dinossauros-o-que-vem-antes-e-depois-sequencia-numerica",
+      "status": 200,
+      "title": "Recorte e Combine Dinossauros – O Que Vem An… | Educalizando",
+      "description": "Atividade lúdica de matemática com dinossauros para trabalhar sequência numérica, ordem e posição dos números. As crianças recortam e combin",
+      "canonical": "https://www.educalizando.com.br/produto/recorte-e-combine-dinossauros-o-que-vem-antes-e-depois-sequencia-numerica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/folclore-boi-bumba",
+      "status": 200,
+      "title": "Folclore - Boi-Bumbá | Educalizando",
+      "description": "Um recurso lúdico e criativo para trabalhar o Folclore Brasileiro de forma significativa e divertida, explorando a cultura e a tradição do B",
+      "canonical": "https://www.educalizando.com.br/produto/folclore-boi-bumba",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bate-silabas-jogo-de-alfabetizacao-para-formar-palavras-e-desenvolver-a-consciencia-fonologica",
+      "status": 200,
+      "title": "Bate Sílabas – Jogo de Alfabetização para Fo… | Educalizando",
+      "description": "Frase solta Aprender sílabas brincando torna a alfabetização mais leve, divertida e significativa para as crianças. Bate Sílabas é um recurs",
+      "canonical": "https://www.educalizando.com.br/produto/bate-silabas-jogo-de-alfabetizacao-para-formar-palavras-e-desenvolver-a-consciencia-fonologica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-o-direito-de-ser-crianca-1-ao-3-ano-do-fundamental",
+      "status": 200,
+      "title": "KIT O DIREITO DE SER CRIANÇA / 1° ao 3° ano… | Educalizando",
+      "description": "KIT O DIREITO DE SER CRIANÇA Leitura • Interpretação • Reflexão • Direitos das Crianças Uma proposta especial para trabalhar o Dia das Crian",
+      "canonical": "https://www.educalizando.com.br/produto/kit-o-direito-de-ser-crianca-1-ao-3-ano-do-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caixa-das-frases-40-frases-em-letra-cursiva-e-letra-bastao",
+      "status": 200,
+      "title": "CAIXA DAS FRASES ( 40 frases em letra cursiv… | Educalizando",
+      "description": "A Caixa das Frases é um recurso pedagógico produzido para contribuir com o processo de alfabetização e letramento, promovendo o desenvolvime",
+      "canonical": "https://www.educalizando.com.br/produto/caixa-das-frases-40-frases-em-letra-cursiva-e-letra-bastao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/historinha-e-lembrancinhas-12-de-outubro-dia-das-criancas-e-de-nossa-senhora-aparecida-pdf",
+      "status": 200,
+      "title": "Historinha e Lembrancinhas 12 de Outubro dia… | Educalizando",
+      "description": "# 📖 HISTORINHA INFANTIL: NOSSA SENHORA APARECIDA — A PADROEIRA DO BRASIL E O DIA DAS CRIANÇAS 💙🙏 Encante as crianças com esta linda histo",
+      "canonical": "https://www.educalizando.com.br/produto/historinha-e-lembrancinhas-12-de-outubro-dia-das-criancas-e-de-nossa-senhora-aparecida-pdf",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-adaptada-sobre-grecia-antiga",
+      "status": 200,
+      "title": "APOSTILA ADAPTADA SOBRE GRÉCIA ANTIGA | Educalizando",
+      "description": "APOSTILA ADAPTADA - GRÉCIA ANTIGA (IDEAL PARA ALUNOS QUE NÃO ESCREVEM OU COM GRANDES DIFICULDADES) O material completo possuiu um arquivo co",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-adaptada-sobre-grecia-antiga",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-de-porta-feliz-dia-das-criancas",
+      "status": 200,
+      "title": "Painel de Porta - Feliz Dia das Crianças | Educalizando",
+      "description": "🎉 PAINEL DE PORTA – FELIZ DIA DAS CRIANÇAS 🎈 Deixe a porta da sua sala ainda mais alegre, colorida e encantadora! 💕✨ Este lindo Painel de",
+      "canonical": "https://www.educalizando.com.br/produto/painel-de-porta-feliz-dia-das-criancas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-completo-cafe-literario-para-imprimir-painel-marca-pagina",
+      "status": 200,
+      "title": "Kit Completo Café Literário para Imprimir: P… | Educalizando",
+      "description": "Transforme o momento da leitura em uma experiência inesquecível com este kit completo para Café Literário. O material contém painel decorati",
+      "canonical": "https://www.educalizando.com.br/produto/kit-completo-cafe-literario-para-imprimir-painel-marca-pagina",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-google-dia-das-criancas-decoracao-para-sala-de-aula",
+      "status": 200,
+      "title": "Painel Google Dia das Crianças – Decoração p… | Educalizando",
+      "description": "Painel Google Dia das Crianças com visual colorido e moderno, espaço para fotos dos alunos e moldes prontos para impressão e montagem. Ideal",
+      "canonical": "https://www.educalizando.com.br/produto/painel-google-dia-das-criancas-decoracao-para-sala-de-aula",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-de-alfabetizacao-letras-a-a-z-com-atividades-ludicas",
+      "status": 200,
+      "title": "Apostila de Alfabetização – Letras A a Z com… | Educalizando",
+      "description": "A Apostila de Alfabetização – Letras A a Z é um material pedagógico completo para auxiliar o processo de alfabetização na Educação Infantil ",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-de-alfabetizacao-letras-a-a-z-com-atividades-ludicas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/dia-das-criancas-o-mestre-mandou-atividade-para-colorir",
+      "status": 200,
+      "title": "Dia das crianças / O mestre mandou! Atividad… | Educalizando",
+      "description": "Uma atividade divertida e educativa para celebrar o Dia das Crianças com muita criatividade! 📄 Formato: PDF 🖨️ Pronto para imprimir 🎨 Ati",
+      "canonical": "https://www.educalizando.com.br/produto/dia-das-criancas-o-mestre-mandou-atividade-para-colorir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividades-3d-menina-bonita-do-laco-de-fita",
+      "status": 200,
+      "title": "Atividades 3D Menina Bonita do Laço de Fita | Educalizando",
+      "description": "Atividade 3D - Menina Bonita do Laço de Fita 🎀🖤✨ Um recurso encantador para trabalhar o tema Consciência Negra com as crianças da Educação",
+      "canonical": "https://www.educalizando.com.br/produto/atividades-3d-menina-bonita-do-laco-de-fita",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/reforma-protestante-kit-de-materiais-ludicos",
+      "status": 200,
+      "title": "REFORMA PROTESTANTE - KIT DE MATERIAIS LÚDIC… | Educalizando",
+      "description": "O QUE VOCÊ ENCONTRA NESTE MATERIAL: arquivos em PDF prontos para imprimir com: • Jogo de Dominó Personagens da Reforma dos. 24 Peças de Domi",
+      "canonical": "https://www.educalizando.com.br/produto/reforma-protestante-kit-de-materiais-ludicos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sequencia-de-10-aulas-de-ciencias-ciencia-tecnologia-saude-e-meio-ambiente",
+      "status": 200,
+      "title": "Sequência de 10 Aulas de Ciências – Ciência,… | Educalizando",
+      "description": "A Sequência de 10 Aulas de Ciências é um material pedagógico desenvolvido para os Anos Finais do Ensino Fundamental, com propostas de aulas ",
+      "canonical": "https://www.educalizando.com.br/produto/sequencia-de-10-aulas-de-ciencias-ciencia-tecnologia-saude-e-meio-ambiente",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/seguranca-domestica-situacoes-de-perigo-e-seguranca",
+      "status": 200,
+      "title": "Segurança Doméstica - Situações de Perigo e… | Educalizando",
+      "description": "Segurança Doméstica - Situações de Perigo e Segurança Material lúdico, visual e interativo, pensado para trabalhar com crianças da Educação ",
+      "canonical": "https://www.educalizando.com.br/produto/seguranca-domestica-situacoes-de-perigo-e-seguranca",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/ta-na-biblia-ou-ta-amarrado-o-jogo-divertido-para-ensinar-a-palavra-de-deus",
+      "status": 200,
+      "title": "Tá na Bíblia ou Tá Amarrado?&quot; – O Jogo Diver… | Educalizando",
+      "description": "📖✨ &quot;Tá na Bíblia ou Tá Amarrado?&quot; – O Jogo Divertido para Ensinar a Palavra de Deus! ✨📖 Você já ouviu frases que parecem bíblicas, mas não",
+      "canonical": "https://www.educalizando.com.br/produto/ta-na-biblia-ou-ta-amarrado-o-jogo-divertido-para-ensinar-a-palavra-de-deus",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/projeto-higiene-corporal-e-bucal",
+      "status": 200,
+      "title": "PROJETO: HIGIENE CORPORAL E BUCAL | Educalizando",
+      "description": "Ensine hábitos de higiene de forma prática, visual e muito divertida! O Projeto de Saúde Corporal e Bucal chegou para transformar a rotina d",
+      "canonical": "https://www.educalizando.com.br/produto/projeto-higiene-corporal-e-bucal",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-portugues-e-matematica-2-e-3-ano",
+      "status": 200,
+      "title": "Apostila Português e Matemática - 2º e 3º Ano | Educalizando",
+      "description": "📚 APOSTILA DE MATEMÁTICA E LÍNGUA PORTUGUESA 📌 2º E 3º ANO DO ENSINO FUNDAMENTAL ✨ 32 páginas de atividades prontas para imprimir! Um mate",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-portugues-e-matematica-2-e-3-ano",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/historias-que-incluem-ed-infantil-fundamental-e-ed-especial",
+      "status": 200,
+      "title": "HISTÓRIAS QUE INCLUEM - ed. infantil, fundam… | Educalizando",
+      "description": "HISTÓRIAS QUE INCLUEM® Ensine empatia, amizade e inclusão por meio de histórias que tocam o coração! Como ensinar às crianças que cada pesso",
+      "canonical": "https://www.educalizando.com.br/produto/historias-que-incluem-ed-infantil-fundamental-e-ed-especial",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-ludicas-era-napoleonica",
+      "status": 200,
+      "title": "COMBO LÚDICAS ERA NAPOLEÔNICA | Educalizando",
+      "description": "O que vai para você: 01 arquivo com história em quadrinhos Sobre a Era Napoleônica. 01 arquivo com 08 cards sobre personagens e lugares rela",
+      "canonical": "https://www.educalizando.com.br/produto/combo-ludicas-era-napoleonica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/semana-da-crianca-no-ritmo-dos-anos-80-ed-inf-anos-iniciais",
+      "status": 200,
+      "title": "SEMANA DA CRIANÇA NO RITMO DOS ANOS 80! ed i… | Educalizando",
+      "description": "SEMANA DA CRIANÇA NO RITMO DOS ANOS 80! 🎶 Prepare-se para transformar a entrada da escola em uma verdadeira pista de dança retrô! ✨ O Paine",
+      "canonical": "https://www.educalizando.com.br/produto/semana-da-crianca-no-ritmo-dos-anos-80-ed-inf-anos-iniciais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-proclamacao-da-republica",
+      "status": 200,
+      "title": "PAINEL PROCLAMAÇÃO DA REPÚBLICA | Educalizando",
+      "description": "Sua sala de aula merece uma decoração que encanta e também ensina! Transforme o ambiente escolar em um espaço de aprendizagem e patriotismo ",
+      "canonical": "https://www.educalizando.com.br/produto/painel-proclamacao-da-republica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-completa-letra-cursiva-1-e-2-ano-reforco-escolar",
+      "status": 200,
+      "title": "Apostila Completa – Letra Cursiva - 1º e 2º… | Educalizando",
+      "description": "Apostila Completa – Letra Cursiva ✍️ Para Alunos do 1º e 2º Ano | Reforço Escolar 🎯 Apresentação Olá! 😊 Sabemos que a escrita cursiva é um",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-completa-letra-cursiva-1-e-2-ano-reforco-escolar",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-de-leitura-e-interpretacao-de-textos-1-ao-3-ano-reforco-escolar",
+      "status": 200,
+      "title": "KIT DE LEITURA E INTERPRETAÇÃO DE TEXTOS 1º… | Educalizando",
+      "description": "KIT COMPLETO DE LEITURA E INTERPRETAÇÃO DE TEXTOS ✍️ Para 1º ao 3º Ano | Reforço Escolar 💜 Apresentação Desenvolver o gosto pela leitura e ",
+      "canonical": "https://www.educalizando.com.br/produto/kit-de-leitura-e-interpretacao-de-textos-1-ao-3-ano-reforco-escolar",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/montagem-de-engenho-de-acucar",
+      "status": 200,
+      "title": "Montagem de Engenho de Açúcar | Educalizando",
+      "description": "Montagem de engenho - Arquivo colorido e preto e brando. Com este material interativo, cada estudante constrói o próprio engenho colonial re",
+      "canonical": "https://www.educalizando.com.br/produto/montagem-de-engenho-de-acucar",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/guerra-fria-material-adaptado-atividadeavaliacao",
+      "status": 200,
+      "title": "GUERRA FRIA - MATERIAL ADAPTADO - ATIVIDADE/… | Educalizando",
+      "description": "Material adaptado sobre Guerra Fria Questões sobre o assunto da Guerra Fria, pode ser utilizado como atividade ou avaliação Texto de apoio, ",
+      "canonical": "https://www.educalizando.com.br/produto/guerra-fria-material-adaptado-atividadeavaliacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-transporte-pela-membrana-biologia-ensino-medio",
+      "status": 200,
+      "title": "Apostila Transporte pela Membrana – Biologia… | Educalizando",
+      "description": "Apostila de atividades de Biologia para o Ensino Médio sobre transporte pela membrana plasmática, desenvolvida para facilitar o ensino e a a",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-transporte-pela-membrana-biologia-ensino-medio",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cobra-sussu-amazonia",
+      "status": 200,
+      "title": "Cobra Sussu - Amazônia | Educalizando",
+      "description": "Transforme o Dia da Amazônia, 5 de setembro, em uma experiência artística, educativa e cheia de significado! O material Cobra-Canoa da Amazô",
+      "canonical": "https://www.educalizando.com.br/produto/cobra-sussu-amazonia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/fichas-de-leitura-com-letras-maiusculas-minusculas-e-cursivas",
+      "status": 200,
+      "title": "Fichas de Leitura com Letras Maiúsculas, Min… | Educalizando",
+      "description": "Fichas de Leitura Ilustradas do Alfabeto para Alfabetização Material pedagógico lúdico e educativo com todas as letras do alfabeto apresenta",
+      "canonical": "https://www.educalizando.com.br/produto/fichas-de-leitura-com-letras-maiusculas-minusculas-e-cursivas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/recadinho-movimento-de-pinca",
+      "status": 200,
+      "title": "🤏✏️ RECADINHO – MOVIMENTO DE PINÇA | Educalizando",
+      "description": "Um recurso simples, lúdico e cheio de significado para acompanhar as atividades de coordenação motora fina das crianças! 💕 O recadinho dest",
+      "canonical": "https://www.educalizando.com.br/produto/recadinho-movimento-de-pinca",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-9-partes-educacao-infantil-fundamental",
+      "status": 200,
+      "title": "Painel Consciência Negra pdf 9 partes Educaç… | Educalizando",
+      "description": "Painel Consciência Negra pdf Educação infantil e Fundamental Painel Consciência Negra – 30 Páginas para Imprimir O Painel Consciência Negra ",
+      "canonical": "https://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-9-partes-educacao-infantil-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/emocoes-em-acao-atividades-de-educacao-emocional-para-fundamental-1",
+      "status": 200,
+      "title": "Emoções em Ação – Atividades de Educação Emo… | Educalizando",
+      "description": "Emoções em Ação é um material pedagógico desenvolvido para o Ensino Fundamental 1 (1º ao 5º ano), com atividades lúdicas e visuais que ajuda",
+      "canonical": "https://www.educalizando.com.br/produto/emocoes-em-acao-atividades-de-educacao-emocional-para-fundamental-1",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/maozinhas-das-silabas-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "MÃOZINHAS DAS SÍLABAS – Atividade Pedagógica… | Educalizando",
+      "description": "🌟 MÃOZINHAS DAS SÍLABAS 🌟 Aprender a ler ficou muito mais divertido! 💜📚 Esse kit pedagógico foi desenvolvido para auxiliar as crianças n",
+      "canonical": "https://www.educalizando.com.br/produto/maozinhas-das-silabas-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-sobre-o-reino-de-cuxe-kush",
+      "status": 200,
+      "title": "Atividade sobre o reino de Cuxe (kush) | Educalizando",
+      "description": "O arquivo possuiu um pequeno texto com atividades e ilustrações para colorir.",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-sobre-o-reino-de-cuxe-kush",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-algarismos-romanos",
+      "status": 200,
+      "title": "Kit Algarismos Romanos | Educalizando",
+      "description": "Um material pedagógico completo e lúdico para trabalhar Algarismos Romanos de forma divertida, visual e interativa! ️✨ O kit foi elaborado p",
+      "canonical": "https://www.educalizando.com.br/produto/kit-algarismos-romanos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lap-book-interativo-renascimento-7-ano",
+      "status": 200,
+      "title": "Lap Book interativo Renascimento- 7º ano | Educalizando",
+      "description": "O que este material oferece: Capa ilustrada e layout pronto: basta imprimir, e o aluno monta o lap book passo a passo Seções temáticas dobrá",
+      "canonical": "https://www.educalizando.com.br/produto/lap-book-interativo-renascimento-7-ano",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-cordel-encantado",
+      "status": 200,
+      "title": "Painel “Cordel Encantado” | Educalizando",
+      "description": "🎭✨ Transforme sua sala em um mundo mágico com o Painel “Cordel Encantado”! ✨📜 Encante seus alunos com um painel criativo, colorido e cheio",
+      "canonical": "https://www.educalizando.com.br/produto/painel-cordel-encantado",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sacola-dia-das-criancas",
+      "status": 200,
+      "title": "SACOLA DIA DAS CRIANÇAS | Educalizando",
+      "description": "SACOLINHAS DIA DAS CRIANÇAS – 4 MODELOS LINDOS! Deixe o Dia das Crianças ainda mais alegre e especial com estas lindas sacolinhas temáticas!",
+      "canonical": "https://www.educalizando.com.br/produto/sacola-dia-das-criancas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/contando-e-escrevendo-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "CONTANDO E ESCREVENDO – Atividade Pedagógica… | Educalizando",
+      "description": "✨ CONTANDO E ESCREVENDO✨ Aprender ficou muito mais divertido! Transforme o reconhecimento dos números em uma experiência prática e envolvent",
+      "canonical": "https://www.educalizando.com.br/produto/contando-e-escrevendo-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/alfabeto-magico-boquinhas-da-alfabetizacao",
+      "status": 200,
+      "title": "ALFABETO MÁGICO – BOQUINHAS DA ALFABETIZAÇÃO | Educalizando",
+      "description": "✨ ALFABETO MÁGICO – BOQUINHAS DA ALFABETIZAÇÃO 👄🔤 Um recurso lúdico para ensinar as letras de forma divertida! Contém painel do alfabeto, ",
+      "canonical": "https://www.educalizando.com.br/produto/alfabeto-magico-boquinhas-da-alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/contacao-de-historia-menina-bonita-do-laco-de-fita",
+      "status": 200,
+      "title": "Contação de História - Menina Bonita do Laço… | Educalizando",
+      "description": "Livro “Menina Bonita do Laço de Fita” com a história resumida e ilustrada. Trabalhar a obra &quot;Menina Bonita do Laço de Fita&quot; (de Ana Maria Ma",
+      "canonical": "https://www.educalizando.com.br/produto/contacao-de-historia-menina-bonita-do-laco-de-fita",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sacola-pedagogica-sitio-do-seu-lobato-com-animais-e-sons",
+      "status": 200,
+      "title": "Sacola Pedagógica Sítio do Seu Lobato com An… | Educalizando",
+      "description": "Um recurso pedagógico lúdico e divertido para trabalhar a música “Sítio do Seu Lobato” com as crianças, tornando o momento da cantiga mais v",
+      "canonical": "https://www.educalizando.com.br/produto/sacola-pedagogica-sitio-do-seu-lobato-com-animais-e-sons",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-pedagogico-agosto-lilas-atividade-pedagogica-para-imprimi",
+      "status": 200,
+      "title": "KIT PEDAGÓGICO – AGOSTO LILÁS – Atividade Pe… | Educalizando",
+      "description": "💜 KIT PEDAGÓGICO – AGOSTO LILÁS 💜 Um material completo para trabalhar o Agosto Lilás de forma lúdica, acolhedora e significativa com as cr",
+      "canonical": "https://www.educalizando.com.br/produto/kit-pedagogico-agosto-lilas-atividade-pedagogica-para-imprimi",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/dia-do-professor-atividade-infantil-de-agradecimento",
+      "status": 200,
+      "title": "Dia do Professor – Atividade Infantil de Agr… | Educalizando",
+      "description": "Uma proposta delicada e afetiva para celebrar o Dia do Professor e proporcionar às crianças um momento de carinho e reconhecimento. Nesta at",
+      "canonical": "https://www.educalizando.com.br/produto/dia-do-professor-atividade-infantil-de-agradecimento",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-de-consciencia-negra-para-educacao-infantil-colorir-e-carimbar",
+      "status": 200,
+      "title": "Atividade de Consciência Negra para Educação… | Educalizando",
+      "description": "Atividade de Consciência Negra para Educação Infantil com carimbo das mãos e pintura, promovendo identidade, representatividade e cultura ne",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-de-consciencia-negra-para-educacao-infantil-colorir-e-carimbar",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/periodo-regencial-material-visual-e-atividades",
+      "status": 200,
+      "title": "PERÍODO REGENCIAL - MATERIAL VISUAL E ATIVID… | Educalizando",
+      "description": "O arquivo contém: • Quadrinhos ilustrados com explicação de cada regência • Quadrinhos ilustrados com cada uma das revoltas do período regen",
+      "canonical": "https://www.educalizando.com.br/produto/periodo-regencial-material-visual-e-atividades",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bolsinhos-das-vogais",
+      "status": 200,
+      "title": "BOLSINHOS DAS VOGAIS | Educalizando",
+      "description": "Com os Bolsinhos das Vogais, as crianças exploram as letras A, E, I, O e U e relacionam cada uma delas a palavras do cotidiano. Tornando o t",
+      "canonical": "https://www.educalizando.com.br/produto/bolsinhos-das-vogais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/10-folhinhas-de-atividades-para-educacao-infantil-nome-letras-vogais-rimas-e-historias",
+      "status": 200,
+      "title": "✨10 Folhinhas de Atividades para Educação In… | Educalizando",
+      "description": "10 Folhinhas de Atividades para Educação Infantil | Nome, Letras, Vogais, Rimas e Histórias Transforme o processo de alfabetização em uma ex",
+      "canonical": "https://www.educalizando.com.br/produto/10-folhinhas-de-atividades-para-educacao-infantil-nome-letras-vogais-rimas-e-historias",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/roleta-dia-da-consciencia-negra-diversidade-cultural",
+      "status": 200,
+      "title": "Roleta Dia da Consciência Negra - Diversidad… | Educalizando",
+      "description": "Roleta giratória para trabalhar o tema “Diversidade Cultural” com crianças da Educação Infantil e séries iniciais do Ensino Fundamental. Mat",
+      "canonical": "https://www.educalizando.com.br/produto/roleta-dia-da-consciencia-negra-diversidade-cultural",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/estoure-o-balao-e-descubra-a-lenda",
+      "status": 200,
+      "title": "ESTOURE O BALÃO E DESCUBRA A LENDA! | Educalizando",
+      "description": "🌿 ESTOURE O BALÃO E DESCUBRA A LENDA! 🌿 Um recurso lúdico, divertido e super criativo para trabalhar o Folclore Brasileiro de forma envolv",
+      "canonical": "https://www.educalizando.com.br/produto/estoure-o-balao-e-descubra-a-lenda",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/asas-de-anjo-painel-dia-dos-professores",
+      "status": 200,
+      "title": "Asas de Anjo Painel dia dos Professores | Educalizando",
+      "description": "PAINEL DIA DOS PROFESSORES - ASAS DE ANJO PARA FOTOS Transforme a homenagem aos professores em um momento especial, emocionante e cheio de l",
+      "canonical": "https://www.educalizando.com.br/produto/asas-de-anjo-painel-dia-dos-professores",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/consciencia-negra-5-atividades-de-pintura-e-colagem-fundamental-i",
+      "status": 200,
+      "title": "Consciência Negra: 5 Atividades de Pintura e… | Educalizando",
+      "description": "Trabalhe a Consciência Negra com criatividade, pintura e colagem! O kit “Meu cabelo, minha identidade” reúne 5 atividades ilustradas para o ",
+      "canonical": "https://www.educalizando.com.br/produto/consciencia-negra-5-atividades-de-pintura-e-colagem-fundamental-i",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-do-professor-obrigado-por-iluminar-nosso-caminho",
+      "status": 200,
+      "title": "PAINEL DIA DO PROFESSOR – OBRIGADO POR ILUMI… | Educalizando",
+      "description": "🎓✨ PAINEL DIA DO PROFESSOR – OBRIGADO POR ILUMINAR NOSSO CAMINHO 💛 Uma homenagem linda e especial para deixar a escola ainda mais encantad",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-do-professor-obrigado-por-iluminar-nosso-caminho",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-feliz-natal-com-foto",
+      "status": 200,
+      "title": "PAINEL FELIZ NATAL COM FOTO | Educalizando",
+      "description": "🎄 PAINEL FELIZ NATAL 🎄 (Educação Infantil e Ensino Fundamental) Deixe o Natal da sua turma ainda mais mágico e inesquecível! Um painel lin",
+      "canonical": "https://www.educalizando.com.br/produto/painel-feliz-natal-com-foto",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-das-caixinhas-da-alfabetizacao",
+      "status": 200,
+      "title": "KIT DAS CAIXINHAS DA ALFABETIZAÇÃO | Educalizando",
+      "description": "O Kit das Caixinhas da Alfabetização é um recurso lúdico, interativo e super prático para transformar a alfabetização e a matemática em mome",
+      "canonical": "https://www.educalizando.com.br/produto/kit-das-caixinhas-da-alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-interativa-independencia-do-brasil",
+      "status": 200,
+      "title": "ATIVIDADE INTERATIVA INDEPENDÊNCIA DO BRASIL | Educalizando",
+      "description": "O material é composto por: • Ilustração principal do Grito do Ipiranga — gravura de D. Pedro I a cavalo, em estilo artístico, pronta para co",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-interativa-independencia-do-brasil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/dia-do-diretor-painel-decorativo-com-cartao-para-lembrancinha",
+      "status": 200,
+      "title": "Dia do Diretor – Painel Decorativo com Cartã… | Educalizando",
+      "description": "Celebre o Dia do Diretor com uma homenagem especial para valorizar quem faz a diferença todos os dias na escola. Este material temático foi ",
+      "canonical": "https://www.educalizando.com.br/produto/dia-do-diretor-painel-decorativo-com-cartao-para-lembrancinha",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-atividades-egito-antigo-e-reino-de-kush-atividades-adaptadas-e-para-ensino-regular",
+      "status": 200,
+      "title": "COMBO ATIVIDADES EGITO ANTIGO E REINO DE KUS… | Educalizando",
+      "description": "Texto sobre o reino de Kush + atividades + gabarito ( ADAPADA) Texto sobre o reino de Kush +atividades+ gabarito ( ENSINO REGULAR) Texto sob",
+      "canonical": "https://www.educalizando.com.br/produto/combo-atividades-egito-antigo-e-reino-de-kush-atividades-adaptadas-e-para-ensino-regular",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir",
+      "status": 200,
+      "title": "Folder Outubro Rosa Infantil – Informativo e… | Educalizando",
+      "description": "Folder educativo sobre o Outubro Rosa, com informações acessíveis, ilustrações para colorir e propostas que incentivam o cuidado, a empatia ",
+      "canonical": "https://www.educalizando.com.br/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/a-galinha-ruiva-uma-licao-de-trabalho-em-equipe",
+      "status": 200,
+      "title": "A Galinha Ruiva: Uma Lição de Trabalho em Eq… | Educalizando",
+      "description": "📖 Resumo da História: &quot;A Galinha Ruiva&quot; conta a história de uma galinha trabalhadora que encontra alguns grãos de trigo e decide plantar, c",
+      "canonical": "https://www.educalizando.com.br/produto/a-galinha-ruiva-uma-licao-de-trabalho-em-equipe",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/roda-biblica-das-emocoes",
+      "status": 200,
+      "title": "Roda bíblica das emoções | Educalizando",
+      "description": "O que é a Roda Bíblica das Emoções? A Roda Bíblica das Emoções é um recurso pedagógico e interativo desenvolvido para ajudar crianças e jove",
+      "canonical": "https://www.educalizando.com.br/produto/roda-biblica-das-emocoes",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-outubro-rosa-inspire-e-conscientize",
+      "status": 200,
+      "title": "Painel Outubro Rosa: Inspire e Conscientize | Educalizando",
+      "description": "Arquivo Digital Outubro Rosa: Inspire e Conscientize Descrição: A prevenção e o cuidado com a saúde da mulher devem ser lembrados todos os d",
+      "canonical": "https://www.educalizando.com.br/produto/painel-outubro-rosa-inspire-e-conscientize",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-lembrancinha-dia-dos-professores-caixa-coracao-de-acrilico",
+      "status": 200,
+      "title": "Kit Lembrancinha Dia dos Professores Caixa C… | Educalizando",
+      "description": "Surpreenda os professores com uma lembrança única e cheia de significado. O Kit Lembrancinha Dia dos Professores formato Coração vem com 2 m",
+      "canonical": "https://www.educalizando.com.br/produto/kit-lembrancinha-dia-dos-professores-caixa-coracao-de-acrilico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-outubro-rosa-cartaozinho",
+      "status": 200,
+      "title": "💗 Painel Outubro Rosa + Cartãozinho 💗 | Educalizando",
+      "description": "O Painel Outubro Rosa vem acompanhado de um cartãozinho especial, perfeito para reforçar a importância do autocuidado e da prevenção. Fofo, ",
+      "canonical": "https://www.educalizando.com.br/produto/painel-outubro-rosa-cartaozinho",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-avaliacao-adaptada-grecia-antiga",
+      "status": 200,
+      "title": "ATIVIDADE/ AVALIAÇÃO ADAPTADA GRÉCIA ANTIGA | Educalizando",
+      "description": "Atividade adaptada de história sobre Grécia Antiga, pode ser utilizada como avaliação. a 05 páginas ( questões +gabarito) Ideal para alunos ",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-avaliacao-adaptada-grecia-antiga",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/adaptada-colonizacao-espanhola-e-portuguesa-atividade-avaliacao",
+      "status": 200,
+      "title": "ADAPTADA COLONIZAÇÃO ESPANHOLA E PORTUGUESA… | Educalizando",
+      "description": "ARQUIVO CONTENDO 05 PÁGINAS COM VARIADAS QUESTÕES SOBRE COLONIZAÇÃO NA AMÉRICA ESPANHOLA E NO BRASIL. PODE SER UTILIZADA COMO ATIVIDADE OU P",
+      "canonical": "https://www.educalizando.com.br/produto/adaptada-colonizacao-espanhola-e-portuguesa-atividade-avaliacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-identidade-educacao-infantil-eu-sou-assim",
+      "status": 200,
+      "title": "Atividade Identidade Educação Infantil – Eu… | Educalizando",
+      "description": "A atividade “Eu Sou Assim!” foi elaborada para estimular o autoconhecimento, a autoestima e a construção de uma autoimagem positiva. De form",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-identidade-educacao-infantil-eu-sou-assim",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/150-probleminhas-de-matematica-para-o-2-ano",
+      "status": 200,
+      "title": "150 PROBLEMINHAS DE MATEMÁTICA PARA O 2º ANO! | Educalizando",
+      "description": "150 probleminhas de matemática com situações do cotidiano infantil; 50 páginas em PDF, prontas para imprimir; Espaço para realizar os cálcul",
+      "canonical": "https://www.educalizando.com.br/produto/150-probleminhas-de-matematica-para-o-2-ano",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/material-gratuito-cartao-dia-das-criancas-caracol",
+      "status": 200,
+      "title": "Material Gratuito Cartão Dia das Crianças Ca… | Educalizando",
+      "description": "Cartão Dia das Crianças Caracol – Material Gratuito! O Dia das Crianças está chegando, e eu preparei um mimo super fofo e lúdico para você p",
+      "canonical": "https://www.educalizando.com.br/produto/material-gratuito-cartao-dia-das-criancas-caracol",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cabelo-maluco-unicornio-menina-pdf-educacao-infantil-e-ensino-fundamental",
+      "status": 200,
+      "title": "Cabelo Maluco Unicórnio Menina pdf Educação… | Educalizando",
+      "description": "O Cabelo Maluco Menina Unicórnio é uma proposta criativa e encantadora para deixar a Semana da Criança, o Dia das Crianças, festas escolares",
+      "canonical": "https://www.educalizando.com.br/produto/cabelo-maluco-unicornio-menina-pdf-educacao-infantil-e-ensino-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividades-para-o-dia-da-consciencia-negra-pintura-com-cotonete",
+      "status": 200,
+      "title": "Atividades para o Dia da Consciência Negra —… | Educalizando",
+      "description": "✨ Atividades para o Dia da Consciência Negra — Pintura com Cotonete ✨ Trabalhar a Diversidade Cultural e o Respeito às Diferenças desde cedo",
+      "canonical": "https://www.educalizando.com.br/produto/atividades-para-o-dia-da-consciencia-negra-pintura-com-cotonete",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caixa-musical-32-musicas-infantis",
+      "status": 200,
+      "title": "CAIXA MUSICAL - 32 Músicas Infantis | Educalizando",
+      "description": "Transforme o momento da música em uma experiência pedagógica! O recurso perfeito para professores e educadores que desejam estimular a lingu",
+      "canonical": "https://www.educalizando.com.br/produto/caixa-musical-32-musicas-infantis",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/fichas-silabicas-recurso-ludico",
+      "status": 200,
+      "title": "Fichas Silábicas - Recurso Lúdico | Educalizando",
+      "description": "🌟 FICHAS DE SÍLABAS ALFABÉTICA 🌟 Um recurso lúdico, colorido e super atrativo para deixar o processo de alfabetização ainda mais divertido",
+      "canonical": "https://www.educalizando.com.br/produto/fichas-silabicas-recurso-ludico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/jogo-das-onomatopeias",
+      "status": 200,
+      "title": "💥 JOGO DAS ONOMATOPEIAS | Educalizando",
+      "description": "As crianças conhecem esses sons, mas será que conseguem descobrir qual imagem representa cada onomatopeia? Com o Jogo das Onomatopeias, a ap",
+      "canonical": "https://www.educalizando.com.br/produto/jogo-das-onomatopeias",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/oficina-de-historia-em-quadrinhos",
+      "status": 200,
+      "title": "OFICINA DE HISTÓRIA EM QUADRINHOS | Educalizando",
+      "description": "E se a criança pudesse aprender a linguagem dos quadrinhos... criando os próprios quadrinhos? Apresente o universo das Histórias em Quadrinh",
+      "canonical": "https://www.educalizando.com.br/produto/oficina-de-historia-em-quadrinhos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-dos-professores-15-de-outubro",
+      "status": 200,
+      "title": "Painel Dia dos Professores – 15 de Outubro | Educalizando",
+      "description": "Painel Dia dos Professores – 15 de Outubro Painel ampliado em 10 folhas A4, ideal para montar um painel grande e deixar a decoração da sala ",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-dos-professores-15-de-outubro",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-ludica-sobre-a-africa",
+      "status": 200,
+      "title": "Atividade lúdica sobre a África | Educalizando",
+      "description": "Atividades lúdicas sobre a África 01 arquivo com mapa da Africa e 42 imagens de bandeiras de nações africanas 01 arquivo para atividade prát",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-ludica-sobre-a-africa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-meu-nome-e-roleta-do-alfabeto-para-educacao-infantil",
+      "status": 200,
+      "title": "Atividade Meu Nome é – Roleta do Alfabeto pa… | Educalizando",
+      "description": "A Roleta Esse É Meu Nome é um recurso pedagógico lúdico e interativo para trabalhar o reconhecimento das letras, a identificação e a escrita",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-meu-nome-e-roleta-do-alfabeto-para-educacao-infantil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cantinho-motivacional-outubro-rosa-fichas-e-decoracao",
+      "status": 200,
+      "title": "Cantinho Motivacional Outubro Rosa – Fichas… | Educalizando",
+      "description": "Material pedagógico criado para apoiar ações de conscientização sobre o Outubro Rosa de forma acolhedora, inspiradora e significativa. O kit",
+      "canonical": "https://www.educalizando.com.br/produto/cantinho-motivacional-outubro-rosa-fichas-e-decoracao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/quiz-do-meio-ambiente-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Quiz do Meio Ambiente! – Atividade Pedagógic… | Educalizando",
+      "description": "🌍✨ Quiz do Meio Ambiente! 🌱 Teste seus conhecimentos com este material incrível! 🃏 20 cards com perguntas sobre o meio ambiente, cada um ",
+      "canonical": "https://www.educalizando.com.br/produto/quiz-do-meio-ambiente-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sistema-solar-30-atividade-de-ciencias-para-9-ano",
+      "status": 200,
+      "title": "Sistema Solar –30 Atividade de Ciências para… | Educalizando",
+      "description": "Apostila Completa – Sistema Solar e Ciclo do Sol – Ciências 9º Ano é um material didático completo, visual e estruturado para trabalhar cont",
+      "canonical": "https://www.educalizando.com.br/produto/sistema-solar-30-atividade-de-ciencias-para-9-ano",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/encontre-as-silabas-recurso-interativo-de-alfabetizacao",
+      "status": 200,
+      "title": "ENCONTRE AS SÍLABAS – RECURSO INTERATIVO DE… | Educalizando",
+      "description": "ENCONTRE AS SÍLABAS – RECURSO INTERATIVO DE ALFABETIZAÇÃO Um recurso visual, lúdico e interativo para trabalhar a formação de palavras e a c",
+      "canonical": "https://www.educalizando.com.br/produto/encontre-as-silabas-recurso-interativo-de-alfabetizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-plaquinhas-para-fotos-e-conscientizacao",
+      "status": 200,
+      "title": "Kit Outubro Rosa – Plaquinhas para Fotos e C… | Educalizando",
+      "description": "Kit de plaquinhas para fotos do Outubro Rosa, desenvolvido para ações de conscientização, apoio e incentivo à prevenção. O material reúne fr",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa-plaquinhas-para-fotos-e-conscientizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/60-fichas-de-leitura",
+      "status": 200,
+      "title": "📚✨ 60 FICHAS DE LEITURA ✨📚 | Educalizando",
+      "description": "📚✨ 60 FICHAS DE LEITURA ✨📚 Quer deixar o momento da leitura mais leve, divertido e significativo? 💛 O Kit 60 Fichas de Leitura traz texto",
+      "canonical": "https://www.educalizando.com.br/produto/60-fichas-de-leitura",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-gratuita-em-pdf-para-educacao-infantil-e-anos-iniciais",
+      "status": 200,
+      "title": "Atividade Gratuita em PDF para Educação Infa… | Educalizando",
+      "description": "Encontre atividades pedagógicas gratuitas em PDF, prontas para imprimir e utilizar em sala de aula, em casa ou no reforço escolar.",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-gratuita-em-pdf-para-educacao-infantil-e-anos-iniciais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-infantil-painel-lembrancinhas-e-atividades-para-educacao-infantil",
+      "status": 200,
+      "title": "Kit Outubro Rosa Infantil – Painel, Lembranc… | Educalizando",
+      "description": "Kit Outubro Rosa com painel decorativo, coroas, sacolinhas, marcadores de página, cartão com doces e mini livreto para colorir. Um recurso l",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa-infantil-painel-lembrancinhas-e-atividades-para-educacao-infantil",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/novidade-para-treinar-a-letra-cursiva-chegou-a-apostila-treino-de-letra-cursiva-volume-1-um-material-colorido-atrativo-e-prontinho-para-imprimir-a-apostila-traz-10-textos-diferentes-cada-um-com-modelo-em-letra-cursiva-frases-em-formato-pontilhado-para-a-crianca-cobrir-e-linhas-para-continuar-praticando-a-escrita-os-textos-trabalham-temas-proximos-do-universo-infantil-como-jardim-cachorro-escola-dia-de-chuva-familia-piquenique-borboleta-biblioteca-passarinho-e-amizade-deixando-o-treino-muito-mais-leve-e-interessante-ideal-para-treinar-a-letra-cursiva-desenvolver-coordenacao-motora-fina-melhorar-tracado-organizacao-e-legibilidade-da-escrita-incentivar-leitura-e-copia-de-pequenas-frases-usar-em-sala-de-aula-reforco-escolar-ou-atividades-para-casa-material-com-11-paginas-incluindo-capa-10-fichas-de-treino-garanta-agora-a-sua-apostila-e-transforme-o-treino-da-letra-cursiva-em-uma-atividade-bonita-pratica-e-prazerosa-para-as-criancas-valor-7-0",
+      "status": 200,
+      "title": "NOVIDADE PARA TREINAR A LETRA CURSIVA! ✏📚 C… | Educalizando",
+      "description": "NOVIDADE PARA TREINAR A LETRA CURSIVA! ✏📚 Chegou a apostila Treino de Letra Cursiva – Volume 1, um material colorido, atrativo e prontinho ",
+      "canonical": "https://www.educalizando.com.br/produto/novidade-para-treinar-a-letra-cursiva-chegou-a-apostila-treino-de-letra-cursiva-volume-1-um-material-colorido-atrativo-e-prontinho-para-imprimir-a-apostila-traz-10-textos-diferentes-cada-um-com-modelo-em-letra-cursiva-frases-em-formato-pontilhado-para-a-crianca-cobrir-e-linhas-para-continuar-praticando-a-escrita-os-textos-trabalham-temas-proximos-do-universo-infantil-como-jardim-cachorro-escola-dia-de-chuva-familia-piquenique-borboleta-biblioteca-passarinho-e-amizade-deixando-o-treino-muito-mais-leve-e-interessante-ideal-para-treinar-a-letra-cursiva-desenvolver-coordenacao-motora-fina-melhorar-tracado-organizacao-e-legibilidade-da-escrita-incentivar-leitura-e-copia-de-pequenas-frases-usar-em-sala-de-aula-reforco-escolar-ou-atividades-para-casa-material-com-11-paginas-incluindo-capa-10-fichas-de-treino-garanta-agora-a-sua-apostila-e-transforme-o-treino-da-letra-cursiva-em-uma-atividade-bonita-pratica-e-prazerosa-para-as-criancas-valor-7-0",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/primeiro-reinado-material-adaptado-atividadeprova",
+      "status": 200,
+      "title": "PRIMEIRO REINADO - MATERIAL ADAPTADO: ATIVID… | Educalizando",
+      "description": "O arquivo contém 04 páginas com questões sobre o período do Primeiro Reinado e 01 página com gabarito. Pode ser utilizado como atividade ou ",
+      "canonical": "https://www.educalizando.com.br/produto/primeiro-reinado-material-adaptado-atividadeprova",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/livro-primeiros-estimulos",
+      "status": 200,
+      "title": "Livro Primeiros Estímulos | Educalizando",
+      "description": "Livro Primeiros Estímulos – Caderno de Atividades para Alfabetização Infantil Ajude seu pequeno a aprender de forma divertida! Ele livro foi",
+      "canonical": "https://www.educalizando.com.br/produto/livro-primeiros-estimulos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/sacola-dos-textinhos-42-textos-curtos-e-ilustrados",
+      "status": 200,
+      "title": "Sacola dos Textinhos ( 42 Textos Curtos e Il… | Educalizando",
+      "description": "🎯 Recurso lúdico e prático para o dia a dia, que estimula a leitura e a compreensão. 🎯O recurso pedagógico que faltava para deixar suas au",
+      "canonical": "https://www.educalizando.com.br/produto/sacola-dos-textinhos-42-textos-curtos-e-ilustrados",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/trabalhando-emocoes-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "Trabalhando Emoções! – Atividade Pedagógica… | Educalizando",
+      "description": "😊💖 Trabalhando Emoções! 🎨 Prepare-se para explorar o mundo das emoções com este material incrível! 🧩 11 tabuleiros com rostos para as cr",
+      "canonical": "https://www.educalizando.com.br/produto/trabalhando-emocoes-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lembrancinha-dia-dos-professores-kit-com-porta-bis-porta-chocolate-e-porta-caneta",
+      "status": 200,
+      "title": "Lembrancinha Dia dos Professores – Kit com P… | Educalizando",
+      "description": "O Kit Lembrancinhas Dia dos Professores foi desenvolvido para tornar a homenagem aos professores ainda mais especial. Com modelos delicados,",
+      "canonical": "https://www.educalizando.com.br/produto/lembrancinha-dia-dos-professores-kit-com-porta-bis-porta-chocolate-e-porta-caneta",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/avental-poetico-as-borboletas",
+      "status": 200,
+      "title": "🦋 AVENTAL POÉTICO — AS BORBOLETAS | Educalizando",
+      "description": "Conte o poema. Monte a história. Envolva as crianças. Imagine começar a contação com o avental vazio... E, conforme o poema avança, cada bor",
+      "canonical": "https://www.educalizando.com.br/produto/avental-poetico-as-borboletas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/independencia-do-brasil-debate-historico-metodologia-ativa",
+      "status": 200,
+      "title": "INDEPENDÊNCIA DO BRASIL - DEBATE HISTÓRICO -… | Educalizando",
+      "description": "O MATERIAL É COMPOSTO POR: • Guia do professor (objetivos de aprendizagem, habilidades da BNCC, metodologia, passo a passo para aplicar a at",
+      "canonical": "https://www.educalizando.com.br/produto/independencia-do-brasil-debate-historico-metodologia-ativa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lapbook-dia-das-criancas-atividade-para-colorir",
+      "status": 200,
+      "title": "Lapbook Dia das Crianças – Atividade para Co… | Educalizando",
+      "description": "Lapbook educativo e divertido para trabalhar o Dia das Crianças de forma lúdica, promovendo a expressão pessoal, a criatividade e a reflexão",
+      "canonical": "https://www.educalizando.com.br/produto/lapbook-dia-das-criancas-atividade-para-colorir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/marca-silabas-inclui-52-fichas",
+      "status": 200,
+      "title": "Marca Sílabas - Inclui 52 fichas | Educalizando",
+      "description": "O Recurso Marca Sílabas inclui 52 fichas com palavras diferentes,para a criança identificar e marcar as sílabas correspondentespara a formaç",
+      "canonical": "https://www.educalizando.com.br/produto/marca-silabas-inclui-52-fichas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/a-casa-e-o-seu-dono-de-elias-jose",
+      "status": 200,
+      "title": "A Casa e o Seu Dono, de Elias José | Educalizando",
+      "description": "Acompanha também uma luva de história com 7 casinhas para ser usada junto com a luva 🌸 Esse material promove o desenvolvimento infantil de ",
+      "canonical": "https://www.educalizando.com.br/produto/a-casa-e-o-seu-dono-de-elias-jose",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/pintando-os-numeros-recurso-ludico",
+      "status": 200,
+      "title": "PINTANDO OS NÚMEROS - Recurso Lúdico | Educalizando",
+      "description": "Baixe PINTANDO OS NÚMEROS -  Recurso Lúdico na Educalizando. Material didático digital para professores e educadores.",
+      "canonical": "https://www.educalizando.com.br/produto/pintando-os-numeros-recurso-ludico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-lembrancinhas-dia-da-merendeira-merendeiro",
+      "status": 200,
+      "title": "Kit Lembrancinhas Dia da Merendeira / Merend… | Educalizando",
+      "description": "Trouxemos o Kit Lembrancinhas Dia da Merendeira / Merendeiro, perfeito para emocionar e demonstrar todo o reconhecimento que essa profissão ",
+      "canonical": "https://www.educalizando.com.br/produto/kit-lembrancinhas-dia-da-merendeira-merendeiro",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-setembro-amarelo-um-painel-lindo-e-acolhedor-para-trabalhar-o-setembro-amarelo-na-escola-levando-para-as-criancas-uma-mensagem-de-amor-cuidado-valorizacao-da-vida-amizade-e-acolhimento-largura1-1m-a4-210-x-297-mm-altura1-1m-sao-24-paginas-prontinhas-para-imprimir-e-montar-ideal-para-decorar-a-escola-sala-de-aula-e-espacos-de-conscientizacao-material-colorido-encantador-e-preparado-com-muito-carinho-valor-apenas-r-8-00-porque-toda-vida-importa-e-toda-crianca-merece-se-sentir-acolhida-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-especial-neste-setembro-amarelo",
+      "status": 200,
+      "title": "💛🌻 PAINEL SETEMBRO AMARELO 🌻💛 Um painel… | Educalizando",
+      "description": "💛🌻 PAINEL SETEMBRO AMARELO 🌻💛 Um painel lindo e acolhedor para trabalhar o Setembro Amarelo na escola, levando para as crianças uma mens",
+      "canonical": "https://www.educalizando.com.br/produto/painel-setembro-amarelo-um-painel-lindo-e-acolhedor-para-trabalhar-o-setembro-amarelo-na-escola-levando-para-as-criancas-uma-mensagem-de-amor-cuidado-valorizacao-da-vida-amizade-e-acolhimento-largura1-1m-a4-210-x-297-mm-altura1-1m-sao-24-paginas-prontinhas-para-imprimir-e-montar-ideal-para-decorar-a-escola-sala-de-aula-e-espacos-de-conscientizacao-material-colorido-encantador-e-preparado-com-muito-carinho-valor-apenas-r-8-00-porque-toda-vida-importa-e-toda-crianca-merece-se-sentir-acolhida-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-especial-neste-setembro-amarelo",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cartao-para-balao-dia-das-criancas-educacao-infantil-e-anos-iniciais",
+      "status": 200,
+      "title": "Cartão para Balão — Dia das Crianças | Educa… | Educalizando",
+      "description": "Uma lembrancinha colorida para celebrar o Dia das Crianças com sua turma! O cartão combina ilustrações infantis e mensagens que valorizam o ",
+      "canonical": "https://www.educalizando.com.br/produto/cartao-para-balao-dia-das-criancas-educacao-infantil-e-anos-iniciais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-interativo-consciencia-negra",
+      "status": 200,
+      "title": "Painel Interativo – Consciência Negra 🖤 | Educalizando",
+      "description": "🖤 Painel Interativo – Consciência Negra Um lindo Painel Interativo com o tema Consciência Negra, pensado para desenvolver atividades coleti",
+      "canonical": "https://www.educalizando.com.br/produto/painel-interativo-consciencia-negra",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-era-vargas",
+      "status": 200,
+      "title": "COMBO ERA VARGAS | Educalizando",
+      "description": "Você receberá: 01 Apostila sobre a Era Vargas com explicações e atividades (atividades com questões objetivas e dissertativas) + gabarito - ",
+      "canonical": "https://www.educalizando.com.br/produto/combo-era-vargas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividade-pratica-sistema-solar-recorte-monte-e-aprenda",
+      "status": 200,
+      "title": "Atividade Prática Sistema Solar: Recorte, Mo… | Educalizando",
+      "description": "Atividade Prática – Sistema Solar: Recorte, Monte e Aprenda é um material pedagógico desenvolvido para trabalhar o conteúdo de Sistema Solar",
+      "canonical": "https://www.educalizando.com.br/produto/atividade-pratica-sistema-solar-recorte-monte-e-aprenda",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bambole-outubro-rosa-para-fotos-decoracao-e-conscientizacao",
+      "status": 200,
+      "title": "Bambolê Outubro Rosa para Fotos – Decoração… | Educalizando",
+      "description": "Um recurso decorativo especial para celebrar a campanha do Outubro Rosa e promover uma mensagem de cuidado, prevenção e valorização da vida.",
+      "canonical": "https://www.educalizando.com.br/produto/bambole-outubro-rosa-para-fotos-decoracao-e-conscientizacao",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caca-letras-e-numeros",
+      "status": 200,
+      "title": "Caça Letras e Números | Educalizando",
+      "description": "🔎 CAÇA ÀS LETRAS E NÚMEROS 🔤🔢 Uma proposta divertida e interativa para a Educação Infantil! As crianças deverão procurar as fichinhas esp",
+      "canonical": "https://www.educalizando.com.br/produto/caca-letras-e-numeros",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/contando-1-2-3-kit-numerais-de-0-a-10",
+      "status": 200,
+      "title": "CONTANDO 1, 2, 3 - KIT NUMERAIS DE 0 A 10 | Educalizando",
+      "description": "Aprender os números de forma prática, lúdica e visual ficou ainda mais fácil! Um recurso completo para enriquecer suas aulas e estimular o r",
+      "canonical": "https://www.educalizando.com.br/produto/contando-1-2-3-kit-numerais-de-0-a-10",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-consciencia-negra",
+      "status": 200,
+      "title": "Painel Consciência Negra | Educalizando",
+      "description": "Painel Tema Consciência Negra para trabalhar com crianças da Educação Infantil e séries iniciais do Ensino Fundamental. O Painel vai ampliad",
+      "canonical": "https://www.educalizando.com.br/produto/painel-consciencia-negra",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/romero-britto-exercicios-e-atividades-para-colorir",
+      "status": 200,
+      "title": "ROMERO BRITTO: EXERCÍCIOS E ATIVIDADES PARA… | Educalizando",
+      "description": "Um material pedagógico desenvolvido para trabalhar Arte de forma lúdica, criativa e acessível na Educação Infantil e no Ensino Fundamental 1",
+      "canonical": "https://www.educalizando.com.br/produto/romero-britto-exercicios-e-atividades-para-colorir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/oficina-poetica-leilao-de-jardim",
+      "status": 200,
+      "title": "OFICINA POÉTICA — LEILÃO DE JARDIM | Educalizando",
+      "description": "E se um poema pudesse virar um jardim inteiro dentro da sala? A partir de “Leilão de Jardim”, as crianças são convidadas a observar, imagina",
+      "canonical": "https://www.educalizando.com.br/produto/oficina-poetica-leilao-de-jardim",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/colonizacao-da-america-espanhola-atividade-prova-adaptada",
+      "status": 200,
+      "title": "COLONIZAÇÃO DA AMÉRICA ESPANHOLA - ATIVIDADE… | Educalizando",
+      "description": "01 arquivo com 04 páginas (questões +gabarito) O material pode ser utilizado como atividade ou avaliação Texto em caixa alta e Leitura facil",
+      "canonical": "https://www.educalizando.com.br/produto/colonizacao-da-america-espanhola-atividade-prova-adaptada",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/pack-dia-das-bruxas-lembrancinhas-coroas-e-atividades",
+      "status": 200,
+      "title": "Pack Dia das Bruxas – Lembrancinhas, Coroas… | Educalizando",
+      "description": "Prepare atividades e lembrancinhas para o Halloween com um pack repleto de recursos temáticos, prontos para imprimir e utilizar. O material ",
+      "canonical": "https://www.educalizando.com.br/produto/pack-dia-das-bruxas-lembrancinhas-coroas-e-atividades",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/jogo-dos-movimentos-atividade-pedagogica-para-imprimir",
+      "status": 200,
+      "title": "JOGO DOS MOVIMENTOS – Atividade Pedagógica p… | Educalizando",
+      "description": "🎉 JOGO DOS MOVIMENTOS Um recurso pedagógico lúdico e divertido para estimular o desenvolvimento motor, a coordenação, a atenção e a interaç",
+      "canonical": "https://www.educalizando.com.br/produto/jogo-dos-movimentos-atividade-pedagogica-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/simulacao-eleitoral-2026-anos-iniciais",
+      "status": 200,
+      "title": "SIMULAÇÃO ELEITORAL 2026 -anos iniciais | Educalizando",
+      "description": "SIMULAÇÃO ELEITORAL 2026 Uma eleição de verdade... dentro da sala de aula! E se seus alunos pudessem aprender sobre democracia não apenas le",
+      "canonical": "https://www.educalizando.com.br/produto/simulacao-eleitoral-2026-anos-iniciais",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/presepio-3d-para-colorir-material-digital",
+      "status": 200,
+      "title": "Presépio 3D Para Colorir - Material Digital | Educalizando",
+      "description": "Presépio de mesa 3D para colorir para representar o nascimento de Jesus. Como usar em sala de aula Momento de Pintura e Arte: Imprima as fol",
+      "canonical": "https://www.educalizando.com.br/produto/presepio-3d-para-colorir-material-digital",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-dia-nacional-da-familia",
+      "status": 200,
+      "title": "Painel Dia Nacional da Família | Educalizando",
+      "description": "👨‍‍👩‍👧‍👦✨ Painel Dia Nacional da Família ✨👨‍‍👩‍👧‍👦 Uma proposta encantadora e interativa para celebrar e fortalecer os laços familia",
+      "canonical": "https://www.educalizando.com.br/produto/painel-dia-nacional-da-familia",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-adaptada-grecia-antiga-guerras-medicas-guerra-de-peloponeso-e-periodo-helenistico",
+      "status": 200,
+      "title": "APOSTILA ADAPTADA GRÉCIA ANTIGA: GUERRAS MÉD… | Educalizando",
+      "description": "Apostila Adaptada com 13 páginas (capa+ explicações +atividades+ gabarito) abordando os seguintes assuntos: *Guerras Médicas • Batalha de Ma",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-adaptada-grecia-antiga-guerras-medicas-guerra-de-peloponeso-e-periodo-helenistico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/clube-das-continhas",
+      "status": 200,
+      "title": "CLUBE DAS CONTINHAS | Educalizando",
+      "description": "A matemática fica mais fácil quando a criança aprende brincando. Um material pensado para ajudar a criança a praticar adição, subtração, mul",
+      "canonical": "https://www.educalizando.com.br/produto/clube-das-continhas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/novembro-azul-na-escola-painel-para-imprimir",
+      "status": 200,
+      "title": "Novembro Azul na Escola – Painel para Imprim… | Educalizando",
+      "description": "Painel Novembro Azul – Material em PDF para Imprimir Nosso Painel Novembro Azul foi criado para contribuir com a decoração da escola e trans",
+      "canonical": "https://www.educalizando.com.br/produto/novembro-azul-na-escola-painel-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/avental-poetico-leilao-de-jardim",
+      "status": 200,
+      "title": "AVENTAL POÉTICO — LEILÃO DE JARDIM | Educalizando",
+      "description": "E se, durante a leitura do poema, o jardim pudesse aparecer diante dos olhos das crianças? 🌸🦋🐸 Com o Avental Poético — Leilão de Jardim, ",
+      "canonical": "https://www.educalizando.com.br/produto/avental-poetico-leilao-de-jardim",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-lembrancinhas-de-natal",
+      "status": 200,
+      "title": "Kit Lembrancinhas de Natal | Educalizando",
+      "description": "🎄✨ Kit Lembrancinhas de Natal ✨🎄 O fim do ano está chegando e preparei um kit completo e super prático para você presentear as crianças, c",
+      "canonical": "https://www.educalizando.com.br/produto/kit-lembrancinhas-de-natal",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/caligrafia-palavras-para-alfabetizacao-atividades-de-escrita-para-imprimir",
+      "status": 200,
+      "title": "Caligrafia Palavras para Alfabetização – Ati… | Educalizando",
+      "description": "Atividade de Caligrafia – Palavras para auxiliar crianças no desenvolvimento da escrita, coordenação motora, reconhecimento das letras e for",
+      "canonical": "https://www.educalizando.com.br/produto/caligrafia-palavras-para-alfabetizacao-atividades-de-escrita-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/as-partes-das-plantas-luva-interativa-atividades",
+      "status": 200,
+      "title": "AS PARTES DAS PLANTAS - Luva Interativa + At… | Educalizando",
+      "description": "Com o material “Partes da Planta”, os alunos aprendem de forma prática e significativa a identificar as principais partes de uma planta, e c",
+      "canonical": "https://www.educalizando.com.br/produto/as-partes-das-plantas-luva-interativa-atividades",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/casinhas-das-silabas-atividade-de-alfabetizacao-para-imprimir",
+      "status": 200,
+      "title": "Casinhas das Sílabas – Atividade de Alfabeti… | Educalizando",
+      "description": "O recurso pedagógico Casinhas das Sílabas foi criado para tornar o processo de alfabetização mais visual, interativo e significativo. Cada l",
+      "canonical": "https://www.educalizando.com.br/produto/casinhas-das-silabas-atividade-de-alfabetizacao-para-imprimir",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/biscoito-da-leitura",
+      "status": 200,
+      "title": "Biscoito da Leitura 📚 | Educalizando",
+      "description": "🍪 Biscoito da Leitura 📚 Transforme a alfabetização em um momento divertido e cheio de descobertas! A criança retira um biscoito da caixinh",
+      "canonical": "https://www.educalizando.com.br/produto/biscoito-da-leitura",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/pratica-experimental-de-ciencias-10-experimentos-para-o-ensino-fundamental",
+      "status": 200,
+      "title": "Prática Experimental de Ciências – 10 Experi… | Educalizando",
+      "description": "Prática Experimental de Ciências – 10 Experimentos para o Ensino Fundamental é um material didático elaborado para tornar as aulas de Ciênci",
+      "canonical": "https://www.educalizando.com.br/produto/pratica-experimental-de-ciencias-10-experimentos-para-o-ensino-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/historinha-da-primavera-o-jardim-encantado-um-recurso-encantador-para-trabalhar-o-tema-primavera-de-forma-ludica-colorida-e-divertida-com-as-criancas-o-que-acompanha-historinha-da-primavera-em-plaquinhas-1-viseira-tematica-2-atividades-para-complementar-a-aprendizagem-plr-total-r-16-90-preco-para-venda-apenas-r-7-00-perfeito-para-momentos-de-contacao-de-historias-atividades-em-sala-e-para-deixar-a-chegada-da-primavera-ainda-mais-especi",
+      "status": 200,
+      "title": "HISTORINHA DA PRIMAVERA – O JARDIM ENCANTADO… | Educalizando",
+      "description": "HISTORINHA DA PRIMAVERA – O JARDIM ENCANTADO 🌸 Um recurso encantador para trabalhar o tema Primavera de forma lúdica, colorida e divertida ",
+      "canonical": "https://www.educalizando.com.br/produto/historinha-da-primavera-o-jardim-encantado-um-recurso-encantador-para-trabalhar-o-tema-primavera-de-forma-ludica-colorida-e-divertida-com-as-criancas-o-que-acompanha-historinha-da-primavera-em-plaquinhas-1-viseira-tematica-2-atividades-para-complementar-a-aprendizagem-plr-total-r-16-90-preco-para-venda-apenas-r-7-00-perfeito-para-momentos-de-contacao-de-historias-atividades-em-sala-e-para-deixar-a-chegada-da-primavera-ainda-mais-especi",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/desafio-das-4-operacoes-13-fichas-de-matematica-colorida",
+      "status": 200,
+      "title": "DESAFIO DAS 4 OPERAÇÕES – 13 FICHAS DE MATEM… | Educalizando",
+      "description": "DESAFIO DAS 4 OPERAÇÕES – 13 FICHAS DE MATEMÁTICA COLORIDA Transforme a prática das quatro operações em um momento muito mais divertido! ✏️❤",
+      "canonical": "https://www.educalizando.com.br/produto/desafio-das-4-operacoes-13-fichas-de-matematica-colorida",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa",
+      "status": 200,
+      "title": "Kit Outubro Rosa | Educalizando",
+      "description": "🌸 KIT OUTUBRO ROSA – EDUCAR TAMBÉM É CUIDAR! 🌸 Transforme sua campanha de Outubro Rosa em um momento especial de informação, acolhimento e",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/arte-primavera",
+      "status": 200,
+      "title": "ARTE PRIMAVERA | Educalizando",
+      "description": "Transforme a chegada da primavera em uma experiência criativa, colorida e cheia de significado para seus alunos! O material Primavera foi pe",
+      "canonical": "https://www.educalizando.com.br/produto/arte-primavera",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-personalidades-negras-que-inspiram",
+      "status": 200,
+      "title": "Kit Personalidades Negras que inspiram | Educalizando",
+      "description": "O Material é composto por: • 12 Cards personalidades negras que inspiram (coloridos e em preto e branco) • Roteiro com questões e gabarito p",
+      "canonical": "https://www.educalizando.com.br/produto/kit-personalidades-negras-que-inspiram",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental",
+      "status": 200,
+      "title": "CABELO MALUCO – CARRINHO DE CORRIDA! PDF _ E… | Educalizando",
+      "description": "🏁 Prepare-se para uma corrida cheia de criatividade, diversão e muita imaginação! 🚗💨 O Cabelo Maluco – Carrinho de Corrida é um kit lúdic",
+      "canonical": "https://www.educalizando.com.br/produto/cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/zuzu-da-divisao-aprendendo-divisao-de-forma-divertida",
+      "status": 200,
+      "title": "ZUZU DA DIVISÃO: Aprendendo Divisão de Forma… | Educalizando",
+      "description": "Transforme a prática da divisão em uma atividade divertida com o &quot;Zuzu da Divisão&quot;! Um pacote completo para ajudar os alunos do 3º ano a dom",
+      "canonical": "https://www.educalizando.com.br/produto/zuzu-da-divisao-aprendendo-divisao-de-forma-divertida",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/situacoes-problemas-3-ao-5-ano",
+      "status": 200,
+      "title": "SITUAÇÕES-PROBLEMAS – 3º ao 5º Ano | Educalizando",
+      "description": "Desenvolva o raciocínio matemático dos seus alunos de forma divertida e significativa! Nem sempre a dificuldade da criança está na conta... ",
+      "canonical": "https://www.educalizando.com.br/produto/situacoes-problemas-3-ao-5-ano",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-treino-letra-cursiva",
+      "status": 200,
+      "title": "Apostila Treino Letra Cursiva | Educalizando",
+      "description": "Chegou a apostila Treino de Letra Cursiva – Volume 1, um material colorido, atrativo e prontinho para imprimir! A apostila traz 10 textos di",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-treino-letra-cursiva",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividadeavaliacao-adaptada-8-ano-sobre-periodo-joanino",
+      "status": 200,
+      "title": "Atividade/Avaliação Adaptada 8ª ano sobre Pe… | Educalizando",
+      "description": "Atividade /Avaliação adaptada sobre Período joanino. O que torna este material especial: TEXTO EM CAIXA ALTA — leitura facilitada. Comandos ",
+      "canonical": "https://www.educalizando.com.br/produto/atividadeavaliacao-adaptada-8-ano-sobre-periodo-joanino",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cartoes-dia-dos-professores",
+      "status": 200,
+      "title": "Cartões Dia dos Professores | Educalizando",
+      "description": "💝 Surpreenda os professores com cartões encantadores e cheios de carinho! 📘✨ Cartões Dia do Professor ✨📘 ✅ 8 cartões (1 por folha A4). ✅ ",
+      "canonical": "https://www.educalizando.com.br/produto/cartoes-dia-dos-professores",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/atividades-ludicas-sobre-os-persas",
+      "status": 200,
+      "title": "Atividades lúdicas sobre Os Persas | Educalizando",
+      "description": "Combo Persas • Lapbook com ilustração, pequeno texto e atividades – colorido e em preto e branco. • Flash Cards com explicação sobre os pers",
+      "canonical": "https://www.educalizando.com.br/produto/atividades-ludicas-sobre-os-persas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/apostila-de-treino-da-letra-cursiva",
+      "status": 200,
+      "title": "APOSTILA DE TREINO DA LETRA CURSIVA | Educalizando",
+      "description": "Ajude as crianças a praticar e aprimorar a escrita cursiva com atividades educativas, diversificadas e pensadas para tornar a aprendizagem m",
+      "canonical": "https://www.educalizando.com.br/produto/apostila-de-treino-da-letra-cursiva",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/a-cesta-da-dona-maricota-uma-deliciosa-aventura-nutritiva",
+      "status": 200,
+      "title": "A Cesta da Dona Maricota: Uma Deliciosa Aven… | Educalizando",
+      "description": "🥕 A Cesta da Dona Maricota: Uma Deliciosa Aventura Nutritiva por Tatiana Belinky! 🥕 📖 Resumo da História: “A Cesta da Dona Maricota” é um",
+      "canonical": "https://www.educalizando.com.br/produto/a-cesta-da-dona-maricota-uma-deliciosa-aventura-nutritiva",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/tv-das-parlendas-recurso-ludico",
+      "status": 200,
+      "title": "TV das Parlendas - Recurso Lúdico | Educalizando",
+      "description": "Recurso para trabalhar Parlendas com crianças da Educação Infantil edas séries iniciaisdoEnsino Fundamental. No total são 25 parlendas e o m",
+      "canonical": "https://www.educalizando.com.br/produto/tv-das-parlendas-recurso-ludico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/lembrancinhas-de-halloween",
+      "status": 200,
+      "title": "🎃 LEMBRANCINHAS DE HALLOWEEN 👻 | Educalizando",
+      "description": "Prepare uma comemoração cheia de encanto, diversão e magia! 🧡🖤 ✨ Este arquivo reúne 4 modelos encantadores de lembrancinhas de Halloween, ",
+      "canonical": "https://www.educalizando.com.br/produto/lembrancinhas-de-halloween",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos",
+      "status": 200,
+      "title": "Kit Outubro Rosa para Bambolê – Decoração e… | Educalizando",
+      "description": "Transforme o bambolê em um painel decorativo e interativo para fotos com este Kit Outubro Rosa, criado para complementar campanhas de consci",
+      "canonical": "https://www.educalizando.com.br/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos",
+      "productSchemaValid": false
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/pedagogogiali",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa",
+      "status": 200,
+      "title": "Lojinha Ped…Prô Vanessa | Materiais Didáticos | Educalizando",
+      "description": "Lojinha Pedagógica da Prô Vanessa: 21 materiais didáticos em Alfabetização. Escolha recursos digitais para apoiar as aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/bau-pedagogico",
+      "status": 200,
+      "title": "Baú Pedagógico | Materiais Didáticos | Educalizando",
+      "description": "Baú Pedagógico: 0 materiais didáticos em educação. Encontre recursos para professores planejarem aulas e apoiarem a aprendizagem da turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/bau-pedagogico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/buscandosaber",
+      "status": 200,
+      "title": "Buscando Saber | Materiais Didáticos | Educalizando",
+      "description": "Buscando Saber: 26 materiais didáticos em Atividades Lúdicas. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/buscandosaber",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/profkei-atividades-pedagogicas",
+      "status": 200,
+      "title": "Profkei ati…pedagógicas | Materiais Didáticos | Educalizando",
+      "description": "Profkei atividades pedagógicas: 4 materiais didáticos em Datas Comemorativas. Escolha recursos digitais para apoiar as aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/profkei-atividades-pedagogicas",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/encantamente-recursos-pedagogicos",
+      "status": 200,
+      "title": "Encantament…Pedagógicos | Materiais Didáticos | Educalizando",
+      "description": "Encantamente Recursos Pedagógicos: 1 materiais didáticos em Educação Infantil. Escolha recursos digitais para apoiar as aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/encantamente-recursos-pedagogicos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/bau-do-professor",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/digitaledujoycelemos",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/professorgamificado",
+      "status": 200,
+      "title": "PROFESSOR GAMIFICADO | Materiais Didáticos | Educalizando",
+      "description": "PROFESSOR GAMIFICADO: 5 materiais didáticos em Alfabetização. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/professorgamificado",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/recursos-criativos7",
+      "status": 200,
+      "title": "Recursos criativos7 | Materiais Didáticos | Educalizando",
+      "description": "Recursos criativos7: 0 materiais didáticos em educação. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/recursos-criativos7",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/loja-da-pro",
+      "status": 200,
+      "title": "Loja da Prô | Materiais Didáticos | Educalizando",
+      "description": "Loja da Prô: 35 materiais didáticos em Alfabetização. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/loja-da-pro",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/turminha-do-saber",
+      "status": 200,
+      "title": "Turminha do Saber | Materiais Didáticos | Educalizando",
+      "description": "Turminha do Saber: 2 materiais didáticos em Alfabetização. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/turminha-do-saber",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/portal-mae-profe",
+      "status": 200,
+      "title": "PORTAL-MÃE&amp;PROFE | Materiais Didáticos | Educalizando",
+      "description": "PORTAL-MÃE&amp;PROFE: 5 materiais didáticos em Ensino Fundamental. Encontre recursos digitais para apoiar suas aulas e o planejamento. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/portal-mae-profe",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/recursos-pedagogicos-da-prof",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/turminhakids",
+      "status": 200,
+      "title": "Turminhakids | Materiais Didáticos | Educalizando",
+      "description": "Turminhakids: 7 materiais didáticos em Datas Comemorativas. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/turminhakids",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/doce-aprender-pedagogico-plr",
+      "status": 200,
+      "title": "",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/hyper-light",
+      "status": 200,
+      "title": "Hyper Light | Materiais Didáticos | Educalizando",
+      "description": "Hyper Light: 0 materiais didáticos em educação. Encontre recursos para professores planejarem aulas e apoiarem a aprendizagem da turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/hyper-light",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/educarose",
+      "status": 503,
+      "title": "Worker exceeded resource limits | www.educalizando.com.br | Cloudflare",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/prof-lia-recursos-pedagogicos",
+      "status": 200,
+      "title": "Recursos Pe…a Profª Lia | Materiais Didáticos | Educalizando",
+      "description": "Recursos Pedagógicos da Profª Lia: 8 materiais didáticos em Artes. Encontre recursos digitais para apoiar suas aulas e o planejamento. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/prof-lia-recursos-pedagogicos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/saber-mais-recursos-pedagogicos",
+      "status": 200,
+      "title": "Saber Mais…Pedagógicos | Materiais Didáticos | Educalizando",
+      "description": "Saber Mais Recursos Pedagógicos: 0 materiais didáticos em educação. Encontre recursos digitais para apoiar suas aulas e o planejamento. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/saber-mais-recursos-pedagogicos",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/coisas-de-prof",
+      "status": 200,
+      "title": "Coisas de Prof | Materiais Didáticos | Educalizando",
+      "description": "Coisas de Prof: 5 materiais didáticos em Artes. Encontre recursos para professores planejarem aulas e apoiarem a aprendizagem da turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/coisas-de-prof",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/colore-pedagogica",
+      "status": 200,
+      "title": "Colorê Pedagógica. | Materiais Didáticos | Educalizando",
+      "description": "Colorê Pedagógica.: 2 materiais didáticos em educação. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/colore-pedagogica",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/professor-gamificado",
+      "status": 200,
+      "title": "Professor Gamificado | Materiais Didáticos | Educalizando",
+      "description": "Professor Gamificado: 0 materiais didáticos em educação. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/professor-gamificado",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/arquivos-da-pro",
+      "status": 200,
+      "title": "Arquivos da Prô | Materiais Didáticos | Educalizando",
+      "description": "Arquivos da Prô: 1 materiais didáticos em Datas Comemorativas. Encontre recursos digitais para apoiar suas aulas e o planejamento. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/arquivos-da-pro",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/layla-martins-atividades-pedagogicas",
+      "status": 200,
+      "title": "",
+      "description": "",
+      "canonical": "",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/lumie-pedagogico",
+      "status": 200,
+      "title": "Lumiê Pedagógico | Materiais Didáticos | Educalizando",
+      "description": "Lumiê Pedagógico: 4 materiais didáticos em Artes. Encontre recursos para professores planejarem aulas e apoiarem a aprendizagem da turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/lumie-pedagogico",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/bau-das-atividades",
+      "status": 200,
+      "title": "Baú das Atividades | Materiais Didáticos | Educalizando",
+      "description": "Baú das Atividades: 1 materiais didáticos em Alfabetização. Encontre recursos digitais para apoiar o planejamento das aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/bau-das-atividades",
+      "productSchemaValid": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu",
+      "status": 200,
+      "title": "universo-pe…-da-prof.lu | Materiais Didáticos | Educalizando",
+      "description": "universo-pedagogico-da-prof.lu: 23 materiais didáticos em Ensino Fundamental. Escolha recursos digitais para apoiar as aulas da sua turma. Explore a loja!",
+      "canonical": "https://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu",
+      "productSchemaValid": true
+    }
+  ]
+}

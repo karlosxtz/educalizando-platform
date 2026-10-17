@@ -27,6 +27,8 @@ const { POST } = load('src/app/api/storage/upload-file/route.ts', {
   'next/server': { NextResponse: Response },
   '@/lib/api-auth': { getRequestUser: async () => user },
   '@/lib/object-storage': storage,
+  '@/lib/supabase': { supabaseAdmin: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { nome_loja: 'Loja Teste' } }) }) }) }) } },
+  '@/lib/storage-object-name': load('src/lib/storage-object-name.ts', {}),
 });
 async function call(fields) {
   const form = new FormData();

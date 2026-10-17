@@ -29,7 +29,7 @@ assert.match(download, /\.eq\('creator_clubs.club_type', requestedType === 'plr'
 assert.match(download, /clubAccess && requestedType === 'plr'\) isPlrPurchase = true/, 'Uma assinatura PLR ativa deve autorizar a entrega PLR.');
 
 const manager = readFileSync('src/app/api/creator-clubs/route.ts', 'utf8');
-assert.match(manager, /\.from\('creator_clubs'\)\.insert\(payload\)/, 'O criador deve conseguir cadastrar novos clubes sem substituir os anteriores.');
+assert.match(manager, /\.from\('creator_clubs'\)\.insert\(\{ \.\.\.payload,[^\n]+status: 'draft'/, 'Novos clubes devem ser criados separadamente e permanecer rascunhos até salvar o acervo.');
 assert.match(manager, /export async function DELETE[\s\S]+status: 'archived'/, 'Clubes com vendas devem ser arquivados para preservar o histórico.');
 assert.match(manager, /paid_sales_count/, 'A gestão deve informar vendas antes da exclusão ou do arquivamento.');
 

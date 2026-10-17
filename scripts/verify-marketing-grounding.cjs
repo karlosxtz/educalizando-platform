@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const ts=require('typescript');
+function load(file,mocks={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:n=>mocks[n]||require(n),Response,Request,URL,Set,Map,console:{error(){}}});return exports;}
+const grounding=load('src/lib/ai-marketing-grounding.ts');
+const aiJson=load('src/lib/ai-json.ts');
+const product={id:'product',titulo:'Jogo das emoções',descricao:'11 tabuleiros para reconhecer emoções. Inclui carinhas para recortar.',plr_descricao:'Licença para revenda conforme os termos cadastrados.',page_count:14,tipo:'pdf',age_range:'6 a 10 anos',format_details:'PDF para imprimir',color_mode:'colorido',category_id:'cat',education_level_id:'level',education_level_ids:['level','second'],arquivo_url:'private-secret',plr_license_url:'private-license',preco:5.99,preco_plr:30};
+const levels=[{id:'level',nome:'Fundamental I'},{id:'second',nome:'Fundamental II'}];
+const context=grounding.marketingProductContext(product,[{id:'cat',nome:'Educação Especial'}],levels);
+assert.equal(context.description,product.descricao);assert.equal(context.pageCount,14);assert.equal(context.educationLevels.length,2);assert.ok(!JSON.stringify(context).includes('private-'));
+assert.equal(grounding.marketingProductContext({...product,plr_descricao:null},[],[],true).description,null,'A missing license description must not be silently replaced by final-use claims');
+grounding.assertMarketingQuantities('14 páginas com 11 tabuleiros',product);
+assert.throws(()=>grounding.assertMarketingQuantities('50 atividades e 20 páginas',product),/quantidade/);
+let output='',prompt='';
+const db={from(table){const q={select(){return this;},eq(){return this;},order(){return this;},single(){return this.maybeSingle();},or(){return this;},is(){return this;},maybeSingle:async()=>({data:table==='stores'?{id:'store'}:table==='products'?product:{ai_provider:'test'}}),then(resolve){return Promise.resolve({data:table==='categories'?[{id:'cat',nome:'Educação Especial'}]:levels}).then(resolve);}};return q;}};
+const mocks={'@/lib/ai-workspace':load('src/lib/ai-workspace.ts'),'@/lib/ai-editor-options':load('src/lib/ai-editor-options.ts'),'@/lib/ai-json':aiJson,'@/lib/ai-marketing-grounding':grounding,'@/lib/api-auth':{getRequestUser:async()=>({id:'user'})},'@/lib/supabase':{supabaseAdmin:db},'@/lib/ai-provider':{getAiKey:()=>({key:'test'}),generateAiContent:async(_secret,input)=>{prompt=input;return output;}},'next/server':{NextResponse:Response}};
+mocks['@/lib/ai-seo-response']=load('src/lib/ai-seo-response.ts',{'./ai-json':aiJson});
+const route=load('src/app/api/ai/product-tools/route.ts',mocks);
+const request=()=>new Request('https://site.test/api/ai/product-tools',{method:'POST',body:JSON.stringify({storeId:'store',productId:'product',tool:'description'})});
+(async()=>{
+output=JSON.stringify({titles:['Jogo das emoções'],description:'Reconheça emoções com os 11 tabuleiros. O material inclui carinhas para recortar.',descriptionOptions:['O que está incluído\n\n11 tabuleiros e carinhas para recortar.','Conheça o jogo das emoções com 11 tabuleiros e carinhas.'],categoryId:'invented',educationLevelId:'second',ageRange:'3 a 5 anos',formatDetails:'Word editável'});
+const response=await route.POST(request());assert.equal(response.status,200);const payload=await response.json();const proposal=payload.proposal;
+assert.equal(payload.sourceEditorial.description,product.descricao);assert.ok(!JSON.stringify(payload.sourceEditorial).includes('private-'));
+assert.equal(proposal.descriptionOptions.length,3);assert.equal(new Set(proposal.descriptionOptions).size,3);assert.ok(prompt.includes('DUAS versões adicionais'));
+assert.equal(proposal.ageRange,product.age_range);assert.equal(proposal.formatDetails,product.format_details);assert.equal(proposal.educationLevelId,'level');assert.equal(proposal.categoryId,'cat');
+assert.ok(prompt.includes(product.descricao));assert.ok(prompt.includes('"pageCount":14'));assert.ok(prompt.includes('Fundamental II'));assert.ok(!prompt.includes('private-secret'));
+output='invalid-json';const invalid=await route.POST(request());assert.equal(invalid.status,502);assert.ok(!(await invalid.json()).proposal,'Invalid generation must never open an editor with unchanged original copy');
+output=JSON.stringify({description:'20 páginas e 50 atividades.'});assert.equal((await route.POST(request())).status,502,'Invented quantities must be rejected before the creator can apply them');
+const optimize=load('src/app/api/ai/optimize/route.ts',mocks);output=JSON.stringify({titulo:product.titulo,descricao:'Inclui 11 tabuleiros para reconhecer emoções.'});
+const result=await optimize.POST(new Request('https://site.test/api/ai/optimize',{method:'POST',body:JSON.stringify({titulo:product.titulo,descricao:product.descricao,storeId:'store',responseFormat:'json'})}));
+assert.equal(result.status,200);assert.equal((await result.json()).titulo,product.titulo);assert.ok(prompt.includes(product.descricao),'Optimization must actually use the submitted description');
+const campaign=load('src/app/api/ai/campaign/route.ts',{...mocks,'@/lib/ai-service':{GEMINI_MARKETING_SYSTEM_PROMPT:'Marketing'}});output=JSON.stringify({whatsapp:'Material com 14 páginas.',instagram:'Material com 14 páginas.'});
+assert.equal((await campaign.POST(new Request('https://site.test/api/ai/campaign',{method:'POST',body:JSON.stringify({productId:'product',storeId:'store'})}))).status,200);assert.ok(prompt.includes('11 tabuleiros'));
+console.log('PASS: complete grounded facts, multiple education levels, private URLs excluded, final/PLR separation, preserved classification/age/format, no generic fallback, unsupported quantities rejected, submitted description used and campaign fetched from owned product.');
+})().catch(error=>{console.error(error);process.exitCode=1;});
