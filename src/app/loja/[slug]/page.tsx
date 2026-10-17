@@ -1,19 +1,17 @@
+import { publicStoreProduct } from '@/lib/public-store-presentation';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { getPublicCreatorClubsByStoreId } from '@/lib/creator-club-service';
 import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
-import { getCategories } from '@/lib/category-service';
+import { readPublicStoreCategories as getCategories } from '@/lib/public-page-data';
 import { shortSeoTitle, storeSeoDescription } from '@/lib/page-seo';
-import {
-getPublicProductsByStoreId,
-getStoreBySlug
-} from '@/lib/store-service';
+import { readSeoStoreHandle } from '@/lib/seo-identity';
+import { readPublicStoreProducts as getPublicProductsByStoreId, readPublicStore as getStoreBySlug } from '@/lib/public-page-data';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import PublicStoreClientView from './PublicStoreClientView';
 
-// Forçar renderização dinâmica em tempo real no Next.js App Router
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Public catalogue only. Short revalidation avoids rendering the entire store on every crawl.
+export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -35,8 +33,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   for (const product of products) if (product.category_id) counts.set(product.category_id, (counts.get(product.category_id) || 0) + 1);
   const categoryId = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0];
   const category = categories.find(item => item.id === categoryId)?.nome || 'educação';
-  const title = shortSeoTitle(store.nome_loja, ' | Materiais Didáticos | Educalizando', true);
-  const description = storeSeoDescription(store.nome_loja, products.length, category);
+  const handle = await readSeoStoreHandle(store);
+  const title = shortSeoTitle(store.nome_loja, handle ? ' | @' + handle.slice(-25) : ' | Materiais Didáticos | Educalizando', true);
+  const description = storeSeoDescription(handle ? '@' + handle + ' — ' + store.nome_loja : store.nome_loja, products.length, category);
   return {
     metadataBase: new URL(SITE_URL),
     title,
@@ -116,7 +115,7 @@ export default async function PublicStorePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <PublicStoreClientView store={store} initialProducts={products} initialClubs={clubs} />
+      <PublicStoreClientView store={store} initialProducts={products.map(publicStoreProduct)} initialClubs={clubs} />
       <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id} />
     </>
   );

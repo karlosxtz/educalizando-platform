@@ -1,5 +1,6 @@
 import { readPublicRelatedProducts } from '@/lib/public-page-data';
 import { readPublicReviewSummary } from '@/lib/product-review-summary';
+import { readSeoProductReference } from '@/lib/seo-identity';
 import { isIndexableProduct, productMetadata, productStructuredData } from '@/lib/catalog-seo';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
@@ -42,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: GlobalProductDe
   const { licenca } = await searchParams;
   const store = await getStoreById(product.store_id);
   if (!store) notFound();
-  return productMetadata(product, licenca === 'plr');
+  return productMetadata(product, licenca === 'plr', undefined, await readSeoProductReference(product));
 }
 
 export default async function GlobalProductDetailPage({ params, searchParams }: GlobalProductDetailPageProps) {

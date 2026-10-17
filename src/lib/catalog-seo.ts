@@ -18,15 +18,16 @@ export function catalogMetadata(name: string, description: string | null, path: 
   };
 }
 
-export function productMetadata(product: Product, plr = false, storefront?: Pick<Store, 'nome_loja' | 'slug'>): Metadata {
+export function productMetadata(product: Product, plr = false, storefront?: Pick<Store, 'nome_loja' | 'slug'>, reference?: string): Metadata {
   const isPlr = plr && product.is_plr;
   const path = (storefront ? '/loja/' + encodeURIComponent(storefront.slug) : '') + '/produto/' + encodeURIComponent(product.slug || product.id);
-  const context = storefront ? `${product.titulo} na loja ${storefront.nome_loja}. ` : `${product.titulo}. `;
+  const context = (storefront ? `${storefront.nome_loja}: ` : 'Educalizando: ') + (reference ? `Ref. ${reference}. ` : '') + productSeoText(product.titulo).slice(0, 85) + '. ';
   const metadata = catalogMetadata(product.titulo, context + (isPlr && product.plr_descricao ? product.plr_descricao : product.descricao || ''),
     path,
     product.capa_url ? productCoverImageUrl(product.slug || product.id) : DEFAULT_SOCIAL_IMAGE);
-  if (storefront) {
-    const title = shortSeoTitle(product.titulo, ' | Loja ' + storefront.nome_loja.slice(0, 15));
+  if (storefront || reference) {
+    const suffix = storefront ? ' | Loja ' + storefront.nome_loja.slice(0, 15) : ' | Educalizando';
+    const title = shortSeoTitle(product.titulo, (reference ? ' · ' + reference : '') + suffix);
     metadata.title = title;
     metadata.openGraph = { ...metadata.openGraph, title };
     metadata.twitter = { ...metadata.twitter, title };

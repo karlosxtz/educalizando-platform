@@ -1,5 +1,6 @@
 import { readPublicRelatedProducts } from '@/lib/public-page-data';
 import { readPublicReviewSummary } from '@/lib/product-review-summary';
+import { readSeoProductReference } from '@/lib/seo-identity';
 import { isIndexableProduct, productMetadata, productStructuredData } from '@/lib/catalog-seo';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
@@ -42,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
   }
 
   if (product.store_id !== store.id && !(await getPublicProductsByStoreId(store.id)).some(item => item.id === product.id)) notFound();
-  return productMetadata(product, query.licenca === 'plr', store);
+  return productMetadata(product, query.licenca === 'plr', store, await readSeoProductReference(product, store));
 }
 
 export default async function ProductDetailPage({ params, searchParams }: ProductDetailPageProps) {
