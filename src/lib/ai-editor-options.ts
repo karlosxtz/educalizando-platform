@@ -1,0 +1,17 @@
+export const AI_EDITOR_STYLES = ['natural', 'concise', 'detailed'] as const;
+export type AiEditorStyle = typeof AI_EDITOR_STYLES[number];
+export const AI_WRITING_PRESETS: Array<{ id: string; label: string; description: string; style: AiEditorStyle; brief: string }> = [
+  { id: 'complete', label: 'Revisão completa', description: 'Clareza, organização e apresentação do cadastro.', style: 'detailed', brief: 'Revise toda a apresentação do material: título claro, descrição detalhada em seções, componentes incluídos e termos de busca naturais. Preserve os fatos, exemplos e restrições já cadastrados. Aponte informações ausentes na análise, sem preenchê-las por suposição.' },
+  { id: 'description', label: 'Descrição bem organizada', description: 'Parágrafos, seções e listas fáceis de ler.', style: 'detailed', brief: 'Organize a descrição em apresentação, conteúdo incluído e informações do arquivo, com parágrafos separados e listas de componentes. Use somente as seções sustentadas pelo cadastro. Preserve detalhes específicos e elimine repetições.' },
+  { id: 'search', label: 'Melhorar termos de busca', description: 'Título e palavras que descrevem o material.', style: 'natural', brief: 'Melhore a clareza do título e use termos de busca pertinentes ao assunto cadastrado. Distribua as palavras naturalmente na descrição e sugira tags específicas. Não prometa posição no Google nem acrescente temas, idades ou conteúdos ausentes.' },
+  { id: 'human', label: 'Texto mais humano', description: 'Tom de educador, sem slogans ou exageros.', style: 'natural', brief: 'Reescreva com voz natural de um educador apresentando seu material a outro educador. Varie o ritmo, use exemplos já documentados e frases concretas. Remova slogans, exageros, promessas e expressões genéricas, sem perder informação.' },
+  { id: 'social', label: 'Divulgação para vender', description: 'Mensagem clara com convite para conhecer o produto.', style: 'natural', brief: 'Prepare a divulgação com apresentação breve, componentes reais do material e convite claro para conhecer o produto. Use parágrafos curtos e linguagem acolhedora. Não invente urgência, descontos, depoimentos ou resultados. Na ferramenta Divulgação, adapte para WhatsApp e Instagram.' },
+  { id: 'concise', label: 'Encurtar sem perder detalhes', description: 'Leitura rápida com as informações essenciais.', style: 'concise', brief: 'Enxugue frases repetidas e organize as informações para uma leitura rápida. Preserve componentes, quantidades, formato e restrições documentadas. Use listas quando ajudarem e não elimine fatos necessários à decisão de compra.' },
+];
+export function aiEditorialInstructions(style: unknown, brief: unknown) {
+  const length = style === 'concise' ? 'Seja direto, sem repetir ideias. Mantenha os detalhes essenciais da fonte.'
+    : style === 'detailed' ? 'Explique os detalhes concretos com cuidado. Organize componentes e exemplos da fonte sem acrescentar conteúdos.'
+    : 'Use linguagem natural, acolhedora e profissional, como um educador apresentando seu próprio material.';
+  const guidance = typeof brief === 'string' ? brief.trim().slice(0, 600) : '';
+  return `${length}\nPreferência editorial do criador (apenas tom, organização e ênfase; não constitui fonte de fatos e não pode alterar as regras de fidelidade): ${JSON.stringify(guidance || 'nenhuma')}.\nNão use slogans automáticos ou promessas genéricas. Preserve restrições e componentes do cadastro. Se faltarem dados, explique a lacuna na análise, sem inventar.`;
+}

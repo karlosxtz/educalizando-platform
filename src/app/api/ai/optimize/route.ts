@@ -1,4 +1,6 @@
+import { MARKETING_WRITING_RULES, marketingProductContext, assertMarketingQuantities } from '@/lib/ai-marketing-grounding';
 import { generateAiContent,getAiKey } from '@/lib/ai-provider';
+import { extractAiJson, AI_FORMAT_ERROR } from '@/lib/ai-json';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
@@ -8,7 +10,7 @@ export async function POST(req: Request) {
     const user = await getRequestUser(req);
     if (!user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
-    const { titulo, _descricao, storeId, _field } = await req.json();
+    const { titulo, descricao, storeId, responseFormat } = await req.json();
 
     if (!storeId || !titulo) {
       return NextResponse.json({ error: 'Faltam parâmetros obrigatórios.' }, { status: 400 });
@@ -30,50 +32,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Chave de IA não configurada nesta loja.' }, { status: 401 });
     }
 
-    const cleanApiKey = secret.google_ai_key?.trim().replace(/['"]/g, '') || '';
 
-    const prompt = `Você é um especialista em copywriting educacional, SEO para plataformas de ensino e marketing de conversão para criadores de conteúdos pedagógicos.
+    const prompt = MARKETING_WRITING_RULES + '\n\n' + `Você é um especialista em copywriting educacional, SEO para plataformas de ensino e marketing de conversão para criadores de conteúdos pedagógicos.
 O usuário fornecerá um título rascunho contendo o tema central do material didático.
 
 TÍTULO BASE DO USUÁRIO: "${titulo}"
 
 REGRAS OBRIGATÓRIAS:
 1. PRESERVAÇÃO DO TEMA: Mantenha rigorosamente o tema principal informado pelo usuário (ex: se ele digitou 'Saci' ou 'Folclore', o material deve ser sobre isso, sem inventar outros temas genéricos).
-2. CAMPO [TITULO]: Crie um título altamente magnético e otimizado para buscas (SEO), combinando o tema com termos que professores buscam no Google e nas redes (ex: 'Atividades Práticas', 'Pronto para Imprimir', 'Alinhado à BNCC').
+2. CAMPO [TITULO]: Melhore a clareza do título sem acrescentar formato, conteúdo ou alinhamento à BNCC que não estejam na fonte.
 3. CAMPO [DESCRICAO]: Escreva uma descrição de alta conversão estruturada em: 
-   - Gancho emocional/dor do professor (ex: "Quer engajar sua turma sem perder horas preparando material?").
-   - O que o aluno vai encontrar / Benefícios pedagógicos claros.
-   - Espaço destacado ou indicação clara para o criador customizar o número de páginas.
-4. Mantenha estritamente o formato de tags delimitadoras:
-[TITULO]
-(seu titulo aqui)
-[DESCRICAO]
-(sua descricao aqui)`;
+   - Reorganize os detalhes e exemplos realmente informados pelo criador.
+   - Não invente benefícios, quantidade de páginas ou espaços de preenchimento.
+   - Se só houver título, faça uma revisão curta sem imaginar o conteúdo.
+4. Responda somente com JSON válido: {"titulo":"título revisado","descricao":"descrição revisada com todos os detalhes sustentados pelo cadastro"}.
+FONTE EM JSON: ${JSON.stringify(marketingProductContext({ titulo, descricao: typeof descricao === 'string' ? descricao.slice(0, 8000) : null }))}`;
 
-    if (secret.ai_provider === 'alternative') {
-      const text = await generateAiContent(secret, prompt);
-      const event = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\ndata: [DONE]\n\n`;
-      return new Response(event, { headers: { 'Content-Type': 'text/event-stream' } });
+    const parsed = extractAiJson(await generateAiContent(secret, prompt, true, { maxTokens: 8000, recoverTruncation: true, recoverFormat: true, validateJson: value => [value.titulo, value.descricao].every(item => typeof item === 'string' && Boolean(item.trim())) }));
+    if (!parsed || typeof parsed.titulo !== 'string' || !parsed.titulo.trim() || typeof parsed.descricao !== 'string' || !parsed.descricao.trim()) throw new Error(AI_FORMAT_ERROR);
+    assertMarketingQuantities(parsed, { titulo, descricao });
+    if (responseFormat === 'json') {
+      return NextResponse.json({ titulo: parsed.titulo.trim(), descricao: parsed.descricao.trim() });
     }
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${cleanApiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[AI Debug] Erro da API Gemini:', errorText);
-      return NextResponse.json({ error: `Erro Gemini: ${response.status} - ${errorText}` }, { status: response.status });
-    }
-
-    return new Response(response.body, {
-      headers: { 'Content-Type': 'text/event-stream' },
-    });
-
+    const text = `[TITULO]\n${parsed.titulo.trim()}\n[DESCRICAO]\n${parsed.descricao.trim()}`;
+    const event = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\ndata: [DONE]\n\n`;
+    return new Response(event, { headers: { 'Content-Type': 'text/event-stream' } });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: err.message || 'Erro interno.' }, { status: 500 });

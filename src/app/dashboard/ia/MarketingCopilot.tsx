@@ -1,9 +1,13 @@
 'use client';
 
+import { readApiJson } from '@/lib/api-response';
+import { reconcileSeoScores } from '@/lib/seo-snapshot';
+import { onSeoSaved } from '@/lib/seo-sync';
+import { aiFetch } from '@/lib/ai-client';
 import type { Product,Store } from '@/lib/types';
 import { BrainCircuit,CalendarDays,CheckCircle2,Clipboard,FlaskConical,Lightbulb,Loader2,MessageSquareMore,RefreshCw,Rocket,Save,Search,ShoppingBag,Sparkles,Target,Trash2,TrendingUp,Wand2 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback,useEffect,useRef,useState } from 'react';
+import { useCallback,useEffect,useMemo,useRef,useState } from 'react';
 import { toast } from 'sonner';
 
 type Opportunity = { term: string; demand: number; source: 'search' | 'calendar'; daysUntil?: number; priority: number; competition: number; ownProductId: string | null; titleSuggestion: string };
@@ -50,15 +54,13 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   const [question, setQuestion] = useState('Qual produto devo divulgar hoje e por quê?');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [asking, setAsking] = useState(false);
-  const [typing, setTyping] = useState(false);
-  const typingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/ai/marketing-copilot?storeId=${encodeURIComponent(store.id)}`, { cache: 'no-store' });
-      const payload = await response.json();
+      const response = await aiFetch(`/api/ai/marketing-copilot?storeId=${encodeURIComponent(store.id)}`, { cache: 'no-store' });
+      const payload = await readApiJson(response);
       if (!response.ok) throw new Error(payload.error || 'Não foi possível carregar o Agente Eduardo.');
       setData(payload);
       const localPreferences = (() => { try { return JSON.parse(localStorage.getItem(preferenceStorageKey(store.id)) || 'null'); } catch { return null; } })();
@@ -72,6 +74,8 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   }, [store.id]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => onSeoSaved(store.id, () => { void load(); }), [store.id, load]);
+  const productScores = useMemo(() => reconcileSeoScores(data?.productScores || [], products), [data?.productScores, products]);
   useEffect(() => { if (selectedProductId) setCampaignProductId(selectedProductId); }, [selectedProductId]);
   useEffect(() => { if (!campaignProductId && products[0]?.id) setCampaignProductId(products[0].id); }, [campaignProductId, products]);
   useEffect(() => {
@@ -81,15 +85,13 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
     } catch { /* conversa nova */ }
   }, [store.id]);
   useEffect(() => {
-    if (typing) return;
     try { localStorage.setItem(chatStorageKey(store.id), JSON.stringify(messages.filter(message => message.content.trim()).slice(-20))); } catch { /* armazenamento indisponível */ }
-  }, [messages, store.id, typing]);
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [messages, asking, typing]);
-  useEffect(() => () => { if (typingTimer.current) clearInterval(typingTimer.current); }, []);
+  }, [messages, store.id]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [messages, asking]);
 
   const post = async (body: Record<string, unknown>) => {
-    const response = await fetch('/api/ai/marketing-copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, ...body }) });
-    const payload = await response.json().catch(() => ({}));
+    const response = await aiFetch('/api/ai/marketing-copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, ...body }) });
+    const payload = await readApiJson(response);
     if (!response.ok) throw new Error(payload.error || 'Não foi possível concluir esta ação.');
     return payload;
   };
@@ -107,7 +109,8 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   const generatePack = async () => {
     if (!campaignProductId) return toast.error('Escolha o produto da campanha.');
     if (!aiConfigured) return toast.error('Configure sua chave de IA para gerar a campanha.');
-    setGeneratingPack(true); setPack(null);
+    if (generatingPack || asking) return;
+    setGeneratingPack(true);
     try {
       const payload = await post({ action: 'campaign-pack', productId: campaignProductId, brandVoice, primaryAudience });
       setPack(payload.pack);
@@ -121,28 +124,16 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
     const nextQuestion = suggestedQuestion || question;
     if (!nextQuestion.trim()) return;
     if (!aiConfigured) return toast.error('Configure sua chave de IA para conversar com o Agente Eduardo.');
-    if (asking || typing) return;
+    if (asking || generatingPack) return;
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: nextQuestion.trim() };
     const previousMessages = messages;
     setMessages(current => [...current, userMessage]); setQuestion(''); setAsking(true);
     try {
-      const payload = await post({ action: 'assistant', question: nextQuestion, history: previousMessages.map(({ role, content }) => ({ role, content })), brandVoice, primaryAudience });
+      const payload = await post({ action: 'assistant', productId: selectedProductId || undefined, question: nextQuestion, history: previousMessages.map(({ role, content }) => ({ role, content })), brandVoice, primaryAudience });
       const answer = String(payload.answer || '').replace(/\*{1,3}|`{1,3}/g, '').trim();
       if (answer.length < 20) throw new Error('A resposta chegou incompleta. Tente novamente.');
-      const responseId = crypto.randomUUID();
-      let cursor = 0;
-      setMessages(current => [...current, { id: responseId, role: 'assistant', content: '' }]);
-      setTyping(true);
-      typingTimer.current = setInterval(() => {
-        cursor = Math.min(answer.length, cursor + 8);
-        const visible = answer.slice(0, cursor);
-        setMessages(current => current.map(message => message.id === responseId ? { ...message, content: visible } : message));
-        if (cursor >= answer.length) {
-          if (typingTimer.current) clearInterval(typingTimer.current);
-          typingTimer.current = null;
-          setTyping(false);
-        }
-      }, 18);
+      setMessages(current => [...current, { id: crypto.randomUUID(), role: 'assistant', content: answer }]);
+      if (payload.usedFallback) toast.message(payload.notice || 'Resposta baseada na análise local do cadastro; o provedor de IA não concluiu a geração.');
     }
     catch (error) {
       const message = error instanceof Error ? error.message : 'O Agente Eduardo não conseguiu responder.';
@@ -153,9 +144,6 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
   };
 
   const clearChat = () => {
-    if (typingTimer.current) clearInterval(typingTimer.current);
-    typingTimer.current = null;
-    setTyping(false);
     setMessages([]);
     setQuestion('Como está o estado da minha loja hoje?');
     localStorage.removeItem(chatStorageKey(store.id));
@@ -188,7 +176,7 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
       {data && activeTab === 'conversion' && <div>
         <SectionTitle icon={Target} eyebrow="Melhore antes de divulgar" title="Nota SEO dos produtos" description="Esta é a mesma regra da auditoria em Meus Produtos: título, descrição, capa, categoria, nível, tags e endereço público." />
         <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs font-semibold leading-5 text-blue-900">A IA prepara título, descrição, tags, temas, categoria, nível e faixa indicada. Antes de qualquer alteração, você revisa a proposta e confirma o salvamento.</p>
-        <div className="mt-5 space-y-3">{data.productScores.map(product => <article key={product.id} className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[minmax(0,1fr)_130px_210px] md:items-center"><div className="min-w-0"><div className="flex items-center gap-3">{product.coverUrl ? <img src={product.coverUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50"><ShoppingBag className="h-5 w-5 text-blue-600" /></div>}<div className="min-w-0"><h3 className="truncate font-black text-slate-950">{product.title}</h3><p className="mt-1 text-xs text-slate-500">Desempenho separado: {product.views} visitas · {product.sales} vendas · conversão {product.conversionRate}%</p></div></div>{product.suggestions.length ? <ul className="mt-3 space-y-1 text-xs leading-5 text-slate-600">{product.suggestions.map(item => <li key={item}>• {item}</li>)}</ul> : <p className="mt-3 text-xs font-bold text-emerald-700">Cadastro SEO completo. Continue acompanhando visitas e vendas.</p>}</div><div className="text-center md:text-left"><strong className={`text-3xl font-black ${product.score >= 80 ? 'text-emerald-600' : product.score >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>{product.score}</strong><span className="text-sm font-bold text-slate-400">/100 SEO</span><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${product.score >= 80 ? 'bg-emerald-500' : product.score >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${product.score}%` }} /></div></div><button type="button" onClick={() => onOptimizeProduct(product.id)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-black text-white"><Wand2 className="h-4 w-4" />Sugerir ajustes e revisar</button></article>)}</div>
+        <div className="mt-5 space-y-3">{productScores.map(product => <article key={product.id} className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[minmax(0,1fr)_130px_210px] md:items-center"><div className="min-w-0"><div className="flex items-center gap-3">{product.coverUrl ? <img src={product.coverUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50"><ShoppingBag className="h-5 w-5 text-blue-600" /></div>}<div className="min-w-0"><h3 className="truncate font-black text-slate-950">{product.title}</h3><p className="mt-1 text-xs text-slate-500">Desempenho separado: {product.views} visitas · {product.sales} vendas · conversão {product.conversionRate}%</p></div></div>{product.suggestions.length ? <ul className="mt-3 space-y-1 text-xs leading-5 text-slate-600">{product.suggestions.map(item => <li key={item}>• {item}</li>)}</ul> : <p className="mt-3 text-xs font-bold text-emerald-700">Cadastro SEO completo. Continue acompanhando visitas e vendas.</p>}</div><div className="text-center md:text-left"><strong className={`text-3xl font-black ${product.score >= 80 ? 'text-emerald-600' : product.score >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>{product.score}</strong><span className="text-sm font-bold text-slate-400">/100 SEO</span><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${product.score >= 80 ? 'bg-emerald-500' : product.score >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${product.score}%` }} /></div></div><button type="button" onClick={() => onOptimizeProduct(product.id)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-black text-white"><Wand2 className="h-4 w-4" />Sugerir ajustes e revisar</button></article>)}</div>
       </div>}
 
       {data && activeTab === 'campaigns' && <div className="space-y-7">
@@ -203,9 +191,9 @@ export default function MarketingCopilot({ store, products, selectedProductId, a
 
       {data && activeTab === 'assistant' && <div>
         <div className="flex items-start justify-between gap-3"><SectionTitle icon={BrainCircuit} eyebrow="Converse com a sua loja" title="Chat analítico" description="A conversa mantém o contexto, compara os dados reais da loja e considera somente oportunidades futuras quando sugerir novos produtos." />{messages.length ? <button type="button" onClick={clearChat} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-black text-slate-600"><Trash2 className="h-4 w-4" />Limpar</button> : null}</div>
-        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" disabled={asking || typing} onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 disabled:opacity-50">{item}</button>)}</div>
+        <div className="mt-5 flex flex-wrap gap-2">{['Qual produto devo divulgar hoje e por quê?','Que material devo criar para o próximo mês?','Quais produtos precisam de melhoria primeiro?','Por que posso estar recebendo visitas sem vender?'].map(item => <button key={item} type="button" disabled={asking} onClick={() => void ask(item)} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 disabled:opacity-50">{item}</button>)}</div>
         <div className="mt-5 max-h-[34rem] space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">{messages.length ? messages.map(message => <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[92%] rounded-2xl p-4 text-sm leading-7 shadow-sm sm:max-w-[82%] ${message.role === 'user' ? 'bg-blue-700 text-white' : 'border border-violet-100 bg-white text-slate-700'}`}><div className="mb-2 flex items-center justify-between gap-5"><strong className={`text-xs uppercase tracking-wider ${message.role === 'user' ? 'text-blue-100' : 'text-violet-800'}`}>{message.role === 'user' ? 'Você' : 'Agente Eduardo'}</strong>{message.role === 'assistant' && message.content ? <button type="button" onClick={() => copy(message.content)} className="inline-flex items-center gap-1 text-[11px] font-black text-violet-700"><Clipboard className="h-3 w-3" />Copiar</button> : null}</div>{message.content ? <p className="whitespace-pre-line">{message.content}</p> : <p className="flex items-center gap-1 font-bold text-violet-700"><span className="animate-pulse">●</span><span className="animate-pulse [animation-delay:150ms]">●</span><span className="animate-pulse [animation-delay:300ms]">●</span></p>}</div></div>) : <div className="py-10 text-center"><BrainCircuit className="mx-auto h-9 w-9 text-violet-400" /><p className="mt-3 text-sm font-bold text-slate-700">Comece uma conversa sobre sua loja</p><p className="mt-1 text-xs text-slate-500">O histórico ficará disponível neste navegador para continuar a análise.</p></div>}{asking ? <div className="flex items-center gap-2 text-xs font-bold text-violet-700"><Loader2 className="h-4 w-4 animate-spin" />Buscando e analisando todos os produtos publicados...</div> : null}<div ref={chatEndRef} /></div>
-        <div className="mt-3 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(); } }} className="min-h-24 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Continue a conversa sobre sua loja..." /><div className="mt-3 flex items-center justify-between gap-3"><p className="hidden text-[11px] text-slate-500 sm:block">Enter envia · Shift + Enter quebra a linha</p><button type="button" onClick={() => void ask()} disabled={asking || typing || !question.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking || typing ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando...' : typing ? 'Digitando...' : 'Enviar mensagem'}</button></div></div>
+        <div className="mt-3 rounded-2xl border border-slate-200 p-4"><textarea value={question} onChange={event => setQuestion(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void ask(); } }} className="min-h-24 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-blue-500" placeholder="Continue a conversa sobre sua loja..." /><div className="mt-3 flex items-center justify-between gap-3"><p className="hidden text-[11px] text-slate-500 sm:block">Enter envia · Shift + Enter quebra a linha</p><button type="button" onClick={() => void ask()} disabled={asking || !question.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white disabled:opacity-60">{asking ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquareMore className="h-4 w-4" />}{asking ? 'Analisando...' : 'Enviar mensagem'}</button></div></div>
       </div>}
     </div>
   </section>;

@@ -1,15 +1,26 @@
 'use client';
+import { notifySeoSaved, onSeoSaved } from '@/lib/seo-sync';
 
+import { readApiJson } from '@/lib/api-response';
+import { aiFetch, requestAiJson } from '@/lib/ai-client';
 import { getCategories,getEducationLevels } from '@/lib/category-service';
-import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
 import { getCurrentCreatorStore,getProductsByStoreId } from '@/lib/store-service';
 import { Category,EducationLevel,Product,Store } from '@/lib/types';
-import { BookOpen,Bot,Camera,CheckCircle2,Copy,FileText,Loader2,MessageCircle,MessageSquare,Save,Search,Settings,Sparkles,Wand2,X } from 'lucide-react';
+import { BookOpen,Bot,Camera,Copy,Loader2,MessageCircle,MessageSquare,Save,Settings,Sparkles,Wand2,X } from 'lucide-react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 import { toast } from 'sonner';
 
 import MarketingCopilot from './MarketingCopilot';
+import { AiProductEditor } from './AiProductEditor';
+import { AiWorkspacePanel } from './AiWorkspacePanel';
+import { useAiWorkspace } from './useAiWorkspace';
+import { editorialFromProduct, type AiEditorialValues, type AiWork, type AiWorkInput } from '@/lib/ai-workspace';
+import { AiConnectionStatus } from './AiConnectionStatus';
+import { copyAiContent as copyToClipboard, requestAiTest } from './ai-actions';
+import { AiWritingOptions, AiGenerationStatus } from './AiWritingOptions';
+import type { AiEditorStyle } from '@/lib/ai-editor-options';
+import { AIToolButton, CopyCard, LessonBlock } from './AiResultCards';
 
 export default function IAConfigPage() {
   const router = useRouter();
@@ -38,6 +49,17 @@ export default function IAConfigPage() {
   const [editingTarget, setEditingTarget] = useState<'product' | 'plr'>('product');
   const [activeTool, setActiveTool] = useState('');
   const [proposal, setProposal] = useState<any>(null);
+  const [editingProductId, setEditingProductId] = useState('');
+  const [sourceUpdatedAt, setSourceUpdatedAt] = useState<string | null | undefined>(undefined);
+  const [writingStyle, setWritingStyle] = useState<AiEditorStyle>('natural');
+  const [writingBrief, setWritingBrief] = useState('');
+  const generationController = useRef<AbortController | null>(null);
+  const cancelGeneration = () => { generationController.current?.abort(); generationController.current = null; setActiveTool(''); setGenerating(false); };
+  useEffect(() => () => { generationController.current?.abort(); }, []);
+  useEffect(() => {
+    if (!store?.id) return;
+    return onSeoSaved(store.id, () => { void getProductsByStoreId(store.id).then(rows => setProducts(rows.filter(product => product.status === 'publicado'))).catch(() => toast.message('Não foi possível atualizar a lista. O produto salvo permanece confirmado.')); });
+  }, [store?.id]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
@@ -51,15 +73,36 @@ export default function IAConfigPage() {
   const [educationLevels, setEducationLevels] = useState<EducationLevel[]>([]);
   const [tagDraft, setTagDraft] = useState('');
   const [applying, setApplying] = useState(false);
+  const [editingBaseline, setEditingBaseline] = useState<AiEditorialValues | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const editorValues: AiEditorialValues = { title: editedTitle, description: editedDescription, tags: editedTags, themes: editedThemes, categoryId: editedCategoryId, educationLevelId: editedEducationLevelId, ageRange: editedAgeRange, formatDetails: editedFormatDetails };
+  const draftInput: AiWorkInput | null = editorOpen && editingBaseline && editingProductId ? { productId: editingProductId, target: editingTarget, productTitle: editingBaseline.title, sourceUpdatedAt, values: editorValues, baseline: editingBaseline } : null;
+  const workspace = useAiWorkspace(store?.id, draftInput);
+  const closeEditor = () => { if (applying) return; if (draftInput) { workspace.save(draftInput, 'draft'); workspace.save(draftInput, 'edited'); } setEditorOpen(false); };
+  async function restoreWork(work: AiWork) {
+    if (!store?.id || activeTool || generating || applying || restoring) return;
+    setRestoring(true);
+    try {
+      const result = await requestAiJson(`/api/ai/editor-source?storeId=${encodeURIComponent(store.id)}&productId=${encodeURIComponent(work.productId)}`);
+      const cached = products.find(item => item.id === work.productId);
+      const product = result.product ? { ...cached, ...result.product } as Product : null;
+      if (!product || (work.target === 'plr' && !product.is_plr)) throw new Error('Este material ou licença não está mais disponível nesta loja.');
+      setProducts(current => current.map(item => item.id === product.id ? product : item)); setSelectedProductId(product.id);
+      setEditingProductId(product.id); setEditingTarget(work.target); setSourceUpdatedAt(product.updated_at ?? null); setEditingBaseline(editorialFromProduct(product, work.target));
+      setEditedTitle(work.values.title); setEditedDescription(work.values.description); setEditedTags(work.values.tags); setEditedThemes(work.values.themes); setEditedCategoryId(work.values.categoryId); setEditedEducationLevelId(work.values.educationLevelId); setEditedAgeRange(work.values.ageRange); setEditedFormatDetails(work.values.formatDetails);
+      setProposal({ titles: [work.values.title], descriptionOptions: [work.values.description], analysis: ['Versão restaurada para revisão com o cadastro atual. Confira as diferenças antes de salvar.'] }); setEditorOpen(true);
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível restaurar a versão.'); }
+    finally { setRestoring(false); }
+  }
 
   useEffect(() => {
     async function loadData() {
       try {
         const creatorStore = await getCurrentCreatorStore();
         setStore(creatorStore);
-        const settingsResponse = await fetch(`/api/ai/settings?storeId=${encodeURIComponent(creatorStore.id)}`);
+        const settingsResponse = await aiFetch(`/api/ai/settings?storeId=${encodeURIComponent(creatorStore.id)}`);
         if (settingsResponse.ok) {
-          const settings = await settingsResponse.json();
+          const settings = await readApiJson(settingsResponse);
           setHasApiKey(Boolean(settings.configured));
           if (settings.configured) setShowConfig(false);
         }
@@ -94,13 +137,13 @@ export default function IAConfigPage() {
     
     setSaving(true);
     try {
-      const response = await fetch('/api/ai/settings', {
+      const response = await aiFetch('/api/ai/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ storeId: store.id, apiKey })
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+        const data = await readApiJson(response);
         throw new Error(data.error || 'Erro ao salvar a chave.');
       }
       toast.success('Chave de IA atualizada com sucesso!');
@@ -109,13 +152,14 @@ export default function IAConfigPage() {
       setShowConfig(false);
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao salvar a chave.');
+      toast.error(error instanceof Error ? error.message : 'Erro ao salvar a chave.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleGenerateCampaign = async () => {
+    if (generating || activeTool || applying || restoring) return;
     if (!selectedProductId || !store?.id) {
       toast.error('Selecione um produto para gerar a campanha.');
       return;
@@ -125,21 +169,23 @@ export default function IAConfigPage() {
     if (!selectedProduct) return;
 
     setGenerating(true);
-    setWhatsappCopy('');
-    setInstagramCopy('');
+    const controller = new AbortController(); generationController.current = controller;
     const loadingToast = toast.loading('A Inteligência Artificial está escrevendo sua campanha...');
 
     try {
-      const res = await fetch('/api/ai/campaign', {
+      const res = await aiFetch('/api/ai/campaign', {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           titulo: selectedProduct.titulo,
+          productId: selectedProduct.id, style: writingStyle, brief: writingBrief,
           storeId: store.id
         })
       });
 
-      const data = await res.json();
+      const data = await readApiJson(res);
+      if (controller.signal.aborted) return;
 
       if (!res.ok) {
         throw new Error(data.error || 'Falha ao comunicar com a inteligência artificial.');
@@ -156,51 +202,49 @@ export default function IAConfigPage() {
       wpp = wpp.replace(/--- WHATSAPP ---/gi, '').trim();
       insta = insta.trim();
 
-      setWhatsappCopy(wpp);
-      setInstagramCopy(insta);
+      setWhatsappCopy(data.whatsapp || wpp);
+      setInstagramCopy(data.instagram || insta);
       
-      toast.success('Campanha magnética gerada com sucesso!', { id: loadingToast });
+      toast.success('Campanha pronta para revisão.', { id: loadingToast });
     } catch (err: any) {
-      toast.error(err.message, { id: loadingToast });
+      if (controller.signal.aborted) toast.dismiss(loadingToast); else toast.error(err.message, { id: loadingToast });
     } finally {
-      setGenerating(false);
+      if (generationController.current === controller) { generationController.current = null; setGenerating(false); }
     }
   };
 
-  const copyToClipboard = (text: string, type: 'whatsapp' | 'instagram') => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    toast.success(`Cópia para ${type === 'whatsapp' ? 'WhatsApp' : 'Instagram'} copiada para área de transferência!`);
-  };
-
   const generateProductTool = async (tool: 'seo' | 'description' | 'campaign' | 'lesson', targetMode: 'product' | 'plr' = 'product', productIdOverride?: string) => {
+    if (activeTool || generating || applying || restoring) return;
     const productId = productIdOverride || selectedProductId;
     if (!productId || !store?.id) return toast.error('Selecione um material para continuar.');
     const selectedProduct = products.find(product => product.id === productId);
-    setActiveTool(tool); setToolResult(''); setProposal(null); setContentProposal(null);
+    const previousDraft = workspace.items.drafts.find(item => item.productId === productId && item.target === targetMode);
+    if (previousDraft) workspace.save(previousDraft, 'edited');
+    const controller = new AbortController(); generationController.current = controller;
+    setActiveTool(tool);
     try {
-      const response = await fetch('/api/ai/product-tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId, tool, targetMode }) });
-      const payload = await response.json();
+      const response = await aiFetch('/api/ai/product-tools', { signal: controller.signal, method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, productId, tool, targetMode, style: writingStyle, brief: writingBrief }) });
+      const payload = await readApiJson(response);
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload.error || 'Não foi possível gerar este conteúdo.');
+      if (payload.productId && payload.productId !== productId) throw new Error('A resposta não corresponde ao material escolhido.');
       if ((tool === 'seo' || tool === 'description') && payload.proposal) {
+        const baseline = payload.sourceEditorial || editorialFromProduct(selectedProduct || {}, targetMode);
+        const generatedValues: AiEditorialValues = { title: payload.proposal.titles?.[0] || baseline.title, description: payload.proposal.description, tags: payload.proposal.tags || baseline.tags, themes: baseline.themes, categoryId: payload.proposal.categoryId || baseline.categoryId, educationLevelId: payload.proposal.educationLevelId || baseline.educationLevelId, ageRange: payload.proposal.ageRange || baseline.ageRange, formatDetails: payload.proposal.formatDetails || baseline.formatDetails };
+        workspace.save({ productId, target: targetMode, productTitle: baseline.title, sourceUpdatedAt: payload.sourceUpdatedAt, values: generatedValues, baseline }, 'generated');
+        setEditingBaseline(baseline);
+        setEditingProductId(productId); setSourceUpdatedAt(payload.sourceUpdatedAt);
         setEditingTarget(targetMode);
         setToolResult('');
         setProposal({ ...payload.proposal, tool });
-        setEditedTitle(payload.proposal.titles?.[0] || selectedProduct?.titulo || '');
-        setEditedDescription(payload.proposal.description || selectedProduct?.descricao || '');
-        setEditedTags(payload.proposal.tags?.length ? payload.proposal.tags : selectedProduct?.tags || []);
-        setEditedThemes(selectedProduct?.seasonal_tags || []);
-        setEditedCategoryId(payload.proposal.categoryId || selectedProduct?.category_id || '');
-        setEditedEducationLevelId(payload.proposal.educationLevelId || selectedProduct?.education_level_id || '');
-        setEditedAgeRange(payload.proposal.ageRange || selectedProduct?.age_range || '');
-        setEditedFormatDetails(payload.proposal.formatDetails || selectedProduct?.format_details || '');
+        setEditedTitle(baseline.title); setEditedDescription(baseline.description); setEditedTags(baseline.tags); setEditedThemes(baseline.themes); setEditedCategoryId(baseline.categoryId); setEditedEducationLevelId(baseline.educationLevelId); setEditedAgeRange(baseline.ageRange); setEditedFormatDetails(baseline.formatDetails);
         setTagDraft('');
         setEditorOpen(true);
       } else {
         if (payload.content) setContentProposal({ ...payload.content, type: tool });
         else setToolResult(payload.result || '');
       }
-    } catch (error: any) { toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { setActiveTool(''); }
+    } catch (error: any) { if (!controller.signal.aborted) toast.error(error.message || 'Não foi possível gerar este conteúdo.'); } finally { if (generationController.current === controller) { generationController.current = null; setActiveTool(''); } }
   };
 
   useEffect(() => {
@@ -222,7 +266,8 @@ export default function IAConfigPage() {
   }, [products, requestedProductId, requestedTool, requestedTarget]);
 
   const applyProposal = async () => {
-    if (!selectedProductId) return;
+    if (!editingProductId || applying) return;
+    if (!editedDescription.trim() || (editingTarget === 'product' && editedTitle.trim().length < 4)) { toast.error('Preencha o título e a descrição antes de salvar.'); return; }
     setApplying(true);
     try {
       const updates: Partial<Product> = {};
@@ -238,38 +283,32 @@ export default function IAConfigPage() {
         updates.age_range = editedAgeRange.trim() || null;
         updates.format_details = editedFormatDetails.trim() || null;
       }
-      const response = await fetch('/api/ai/seo-apply', {
+      const response = await aiFetch('/api/ai/seo-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store?.id, changes: [{ id: selectedProductId, ...updates }] }),
+        body: JSON.stringify({ storeId: store?.id, changes: [{ id: editingProductId, ...updates, ...(sourceUpdatedAt !== undefined ? { expectedUpdatedAt: sourceUpdatedAt } : {}) }] }),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.success || !result.updatedIds?.includes(selectedProductId)) {
+      const result = await readApiJson(response);
+      if (!response.ok || !result.success || !result.updatedIds?.includes(editingProductId)) {
         throw new Error(result.error || 'O servidor não confirmou o salvamento das alterações.');
       }
-      localStorage.removeItem(`educalizando_seo_audit_${store?.id}`);
-      const refreshedProducts = store?.id ? await getProductsByStoreId(store.id) : products;
-      setProducts(refreshedProducts.filter(product => product.status === 'publicado'));
+      if (draftInput) { workspace.save({ ...draftInput, values: draftInput.baseline }, 'before-save'); workspace.save(draftInput, 'saved'); workspace.clear(editingProductId, editingTarget); }
+      setEditorOpen(false); setProposal(null);
+      try { localStorage.removeItem(`educalizando_seo_audit_${store?.id}`); } catch { /* Optional browser cache. */ }
+      setProducts(current => current.map(product => ({ ...product, ...(result.savedProducts?.find((saved: Partial<Product>) => saved.id === product.id) || {}) })));
+      if (store?.id) notifySeoSaved(store.id);
       setEditorOpen(false);
-      toast.success('Alterações salvas. A próxima auditoria usará os dados atualizados.');
+      const confirmedSeo = result.seoResults?.find((item: { id: string }) => item.id === editingProductId);
+      if (editingTarget === 'product' && confirmedSeo) toast.success(`Produto salvo. Nota confirmada do cadastro: ${confirmedSeo.score}/100.`);
+      else toast.success('Alterações salvas no produto.');
+      if (editingTarget === 'product' && confirmedSeo?.issues?.length) toast.message(`Ainda falta: ${confirmedSeo.issues.join(' ')}`);
       if (requestedTool === 'seo') router.push('/dashboard/produtos?auditoria=atualizada');
     } catch (error: any) { toast.error(error.message || 'Não foi possível salvar o produto.'); } finally { setApplying(false); }
   };
 
-  const activeProduct = products.find(product => product.id === selectedProductId) || null;
+  const activeProduct = products.find(product => product.id === (editorOpen ? editingProductId : selectedProductId)) || null;
 
-  const requestAITest = () => {
-    const storeName = store?.nome_loja?.trim() || 'Loja não identificada';
-    const message = [
-      'Olá, equipe Educalizando! 👋',
-      '',
-      `A loja *${storeName}* deseja realizar um teste da função Marketing IA.`,
-      '',
-      'Podem me orientar sobre a liberação do teste? 🤖✨',
-    ].join('\n');
-
-    window.open(`https://wa.me/5521965008441?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-  };
+  const requestAITest = () => requestAiTest(store?.nome_loja);
 
   if (loading) {
     return (
@@ -312,6 +351,7 @@ export default function IAConfigPage() {
         </div>
       </div>
 
+      {store && <AiConnectionStatus key={showConfig ? 'config' : 'tools'} storeId={store.id} configured={hasApiKey} disabled={Boolean(activeTool) || generating || saving} />}
       {showConfig ? (
         // VIEW: CONFIGURAÇÃO DE CHAVE
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in zoom-in-95">
@@ -371,7 +411,8 @@ export default function IAConfigPage() {
             <div className="flex flex-col gap-4">
               <select
                 value={selectedProductId}
-                onChange={(e) => setSelectedProductId(e.target.value)}
+                disabled={Boolean(activeTool) || generating || applying || restoring}
+                onChange={(e) => { setSelectedProductId(e.target.value); setContentProposal(null); setToolResult(''); setWhatsappCopy(''); setInstagramCopy(''); }}
                 className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all text-sm font-medium text-slate-700"
               >
                 {products.length === 0 ? (
@@ -396,10 +437,12 @@ export default function IAConfigPage() {
 
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-5">
             <div className="flex items-start gap-3"><div className="rounded-xl bg-violet-600 p-2 text-white"><Sparkles className="w-5 h-5" /></div><div><h3 className="font-black text-slate-900">Ferramentas para este material</h3><p className="mt-1 text-sm text-slate-600">Use a IA para preparar sua página, divulgação e uso pedagógico.</p></div></div>
+            <AiWritingOptions style={writingStyle} brief={writingBrief} disabled={Boolean(activeTool) || generating || applying || restoring} onStyle={setWritingStyle} onBrief={setWritingBrief} />
+            {(activeTool || generating) && <AiGenerationStatus label="Gerando conteúdo" onCancel={cancelGeneration} />}
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <AIToolButton icon={Sparkles} label="Otimizar produto com IA" description="título, descrição, tags, temas, categoria, nível e anos indicados" loading={activeTool === 'seo'} onClick={() => activeProduct?.is_plr ? setOptimizationChoiceOpen(true) : void generateProductTool('seo')} />
-              <AIToolButton icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => activeProduct?.is_plr ? setCampaignChoiceOpen(true) : void generateProductTool('campaign')} />
-              <AIToolButton icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
+              <AIToolButton disabled={Boolean(activeTool) || generating || applying || restoring} icon={Sparkles} label="Otimizar produto com IA" description="clareza, título, descrição e tags a partir do cadastro" loading={activeTool === 'seo'} onClick={() => activeProduct?.is_plr ? setOptimizationChoiceOpen(true) : void generateProductTool('seo')} />
+              <AIToolButton disabled={Boolean(activeTool) || generating || applying || restoring} icon={MessageSquare} label="Divulgação" description="WhatsApp e Instagram" loading={activeTool === 'campaign'} onClick={() => activeProduct?.is_plr ? setCampaignChoiceOpen(true) : void generateProductTool('campaign')} />
+              <AIToolButton disabled={Boolean(activeTool) || generating || applying || restoring} icon={BookOpen} label="Roteiro pedagógico" description="uso em sala de aula" loading={activeTool === 'lesson'} onClick={() => void generateProductTool('lesson')} />
             </div>
             {contentProposal?.type === 'campaign' && <div className="mt-4 grid gap-4 lg:grid-cols-2"><CopyCard title="Mensagem para WhatsApp" description="Pronta para copiar e enviar aos seus contatos." text={contentProposal.whatsapp} /><CopyCard title="Legenda para Instagram" description="Pronta para publicar, incluindo hashtags." text={contentProposal.instagram} /><div className="rounded-2xl border border-violet-100 bg-white p-5 lg:col-span-2"><div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-violet-600" /><h3 className="font-black text-slate-900">Chamadas para Stories</h3></div><p className="mt-1 text-sm text-slate-500">Use uma chamada por tela para criar curiosidade antes do link.</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{(contentProposal.stories || []).map((story: string, index: number) => <div key={`${index}-${story}`} className="rounded-xl bg-violet-50 p-4"><p className="text-xs font-black text-violet-700">STORY {index + 1}</p><p className="mt-2 text-sm font-semibold leading-6 text-slate-800">{story}</p><button type="button" onClick={() => navigator.clipboard.writeText(story).then(() => toast.success('Story copiado.'))} className="mt-3 text-xs font-black text-violet-700">Copiar</button></div>)}</div></div></div>}
             {contentProposal?.type === 'lesson' && <div className="mt-4 rounded-2xl border border-violet-100 bg-white p-5"><div className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-violet-600" /><div><h3 className="font-black text-slate-900">Roteiro pedagógico pronto para usar</h3><p className="text-sm text-slate-500">Organizado para orientar a aplicação do material em sala.</p></div></div><div className="mt-5 grid gap-4 md:grid-cols-2"><LessonBlock title="Objetivo de aprendizagem" items={[contentProposal.objective]} /><LessonBlock title="Preparação" items={contentProposal.preparation} /><LessonBlock title="Passo a passo" items={contentProposal.steps} /><LessonBlock title="Adaptações" items={contentProposal.adaptations} /><LessonBlock title="Atividade complementar" items={[contentProposal.extension]} /></div><button type="button" onClick={() => navigator.clipboard.writeText([contentProposal.objective, ...(contentProposal.preparation || []), ...(contentProposal.steps || []), ...(contentProposal.adaptations || []), contentProposal.extension].filter(Boolean).join('\n\n')).then(() => toast.success('Roteiro copiado.'))} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black text-white"><Copy className="h-4 w-4" /> Copiar roteiro completo</button></div>}
@@ -462,13 +505,16 @@ export default function IAConfigPage() {
           )}
         </div>
       )}
-      {store && <MarketingCopilot store={store} products={products} selectedProductId={selectedProductId} aiConfigured={hasApiKey} onOptimizeProduct={(productId) => { setSelectedProductId(productId); void generateProductTool('seo', 'product', productId); }} />}
+      {!editorOpen && proposal && editingProductId && <button type="button" disabled={Boolean(activeTool) || generating || applying || restoring} onClick={() => { setSelectedProductId(editingProductId); setEditorOpen(true); }} className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-bold text-violet-800 disabled:opacity-50">Retomar a revisão em aberto</button>}
+      {store && <AiWorkspacePanel drafts={workspace.items.drafts} history={workspace.items.history} productId={selectedProductId} status={workspace.status} disabled={Boolean(activeTool) || generating || applying || restoring} onRestore={work => void restoreWork(work)} />}
+      {store && <MarketingCopilot store={store} products={products} selectedProductId={selectedProductId} aiConfigured={hasApiKey} onOptimizeProduct={(productId) => { if (activeTool || generating || applying || restoring) return; setSelectedProductId(productId); void generateProductTool('seo', 'product', productId); }} />}
       {activeTool === 'seo' && !editorOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-violet-700"><Loader2 className="h-8 w-8 animate-spin" /></div>
             <h2 className="mt-5 text-xl font-black text-slate-900">Aguarde enquanto preparamos tudo</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">A IA está analisando título, descrição, tags, temas, categoria, nível e anos indicados. Você poderá revisar tudo antes de salvar.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A IA está revisando a apresentação com base no cadastro. Você poderá conferir cada texto antes de salvar.</p>
+            <AiGenerationStatus label="Revisando material" onCancel={cancelGeneration} />
             <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">Preço, link público e conteúdo do arquivo permanecem protegidos.</p>
           </div>
         </div>
@@ -489,110 +535,7 @@ export default function IAConfigPage() {
           </div>
         </div>
       )}
-      {editorOpen && proposal && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/60 p-3 sm:p-6 lg:pl-16">
-          <div className="mx-auto my-4 w-full max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
-            <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-5 text-white sm:px-7">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-100">Editor do material com IA</p>
-                <h2 className="mt-1 text-xl font-black sm:text-2xl">Revise e salve as melhorias no seu produto</h2>
-                <p className="mt-1 text-sm text-violet-100">Você controla cada informação antes de publicar a alteração.</p>
-              </div>
-              <button type="button" aria-label="Fechar editor" onClick={() => setEditorOpen(false)} className="rounded-xl bg-white/15 p-2 text-white transition hover:bg-white/25"><X className="h-5 w-5" /></button>
-            </header>
-
-            <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[240px_minmax(0,1fr)]">
-              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wider text-slate-500">Material selecionado</p>
-                {activeProduct?.capa_url ? (
-                  <img src={activeProduct.capa_url} alt={`Capa de ${activeProduct.titulo}`} className="mt-3 aspect-[4/3] w-full rounded-xl object-cover shadow-sm" />
-                ) : (
-                  <div className="mt-3 flex aspect-[4/3] items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-600"><BookOpen className="h-10 w-10" /></div>
-                )}
-                <h3 className="mt-4 line-clamp-3 text-base font-black text-slate-900">{activeProduct?.titulo || 'Material selecionado'}</h3>
-                <p className="mt-1 text-sm text-slate-500">{activeProduct?.tipo || 'Material digital'}</p>
-                <div className="mt-4 rounded-xl bg-white p-3 text-xs leading-5 text-slate-600">
-                  A capa e o contexto ficam visíveis aqui para você editar o produto certo.
-                </div>
-              </aside>
-
-              <section className="min-w-0 space-y-6">
-                {proposal.analysis?.length ? (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-wider text-amber-800">Diagnóstico da IA</p>
-                    <ul className="mt-2 space-y-1 text-sm leading-6 text-amber-950">{proposal.analysis.map((item: string) => <li key={item}>• {item}</li>)}</ul>
-                  </div>
-                ) : null}
-
-                {editingTarget === 'plr' ? <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><p className="font-black">Você está editando a licença PLR</p><p className="mt-1">Esta alteração será salva somente na descrição para revendedores. O título, as tags e os temas do produto final permanecem como estão.</p></div> : null}
-
-                {editingTarget !== 'plr' ? <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><Search className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">1. Título do produto</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Escolha uma sugestão ou escreva um título que descreva seu material com clareza.</p>
-                  {proposal.titles?.length ? <div className="mt-3 grid gap-2">{proposal.titles.map((title: string) => <button key={title} type="button" onClick={() => setEditedTitle(title)} className={`rounded-xl border p-3 text-left text-sm font-bold transition ${editedTitle === title ? 'border-violet-600 bg-violet-50 text-violet-900' : 'border-slate-200 text-slate-700 hover:border-violet-300'}`}>{title}</button>)}</div> : null}
-                  <input value={editedTitle} onChange={event => setEditedTitle(event.target.value)} placeholder="Título do seu material" className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-sm font-semibold outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
-                </div> : null}
-
-                <div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">{editingTarget === 'plr' ? 'Descrição da licença PLR' : '2. Descrição de venda'}</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">{editingTarget === 'plr' ? 'Escolha ou ajuste o texto que será mostrado apenas para quem compra a licença para revenda.' : 'Escolha um modelo pronto da IA ou ajuste o texto antes de salvar.'}</p>
-                  {proposal.descriptionOptions?.length ? <div className="mt-3 grid gap-2">{proposal.descriptionOptions.map((description: string, index: number) => <button key={`${index}-${description.slice(0, 24)}`} type="button" onClick={() => setEditedDescription(description)} className={`rounded-xl border p-3 text-left text-sm leading-6 transition ${editedDescription === description ? 'border-violet-600 bg-violet-50 text-violet-950' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300'}`}><span className="mb-1 block text-xs font-black uppercase tracking-wider text-violet-700">Modelo {index + 1}</span><span className="line-clamp-3 whitespace-pre-line">{description}</span></button>)}</div> : null}
-                  <textarea value={editedDescription} onChange={event => setEditedDescription(event.target.value)} placeholder="Descreva o seu material" className="mt-3 min-h-40 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
-                </div>
-
-                {editingTarget !== 'plr' ? <><div className="rounded-2xl border border-slate-200 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-violet-600" /><h3 className="font-black text-slate-900">3. Tags de busca</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Palavras curtas que descrevem o material. Tags não são datas nem temas do calendário.</p>
-                  <div className="mt-3 flex flex-wrap gap-2">{editedTags.length ? editedTags.map(tag => <button key={tag} type="button" onClick={() => setEditedTags(tags => tags.filter(item => item !== tag))} className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-800">{tag} ×</button>) : <span className="text-sm text-slate-500">Nenhuma tag selecionada ainda.</span>}</div>
-                  <div className="mt-3 flex gap-2"><input value={tagDraft} onChange={event => setTagDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); const tag = tagDraft.trim().toLowerCase(); if (tag && !editedTags.includes(tag)) setEditedTags(tags => [...tags, tag]); setTagDraft(''); } }} placeholder="Ex.: alfabetização, jogo educativo" className="min-h-11 flex-1 rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-violet-500" /><button type="button" onClick={() => { const tag = tagDraft.trim().toLowerCase(); if (tag && !editedTags.includes(tag)) setEditedTags(tags => [...tags, tag]); setTagDraft(''); }} className="rounded-xl bg-violet-100 px-4 text-sm font-black text-violet-800">Adicionar</button></div>
-                </div>
-
-                <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-blue-600" /><h3 className="font-black text-slate-900">4. Temas e datas pedagógicas</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Esta área é exclusiva para o calendário e os projetos escolares do material.</p>
-                  <div className="mt-3 flex flex-wrap gap-2">{editedThemes.length ? editedThemes.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.filter(item => item !== theme))} className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-800">{theme} ×</button>) : <span className="text-sm text-slate-500">Nenhum tema ou data selecionado.</span>}</div>
-                  <details className="mt-4 rounded-xl bg-white/80 p-3"><summary className="cursor-pointer text-sm font-black text-blue-700">Selecionar temas e datas</summary><div className="mt-3 flex flex-wrap gap-2">{SCHOOL_CALENDAR_TAGS.map(theme => <button key={theme} type="button" onClick={() => setEditedThemes(themes => themes.includes(theme) ? themes.filter(item => item !== theme) : [...themes, theme])} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${editedThemes.includes(theme) ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}>{theme}</button>)}</div></details>
-                </div>
-
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5">
-                  <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /><h3 className="font-black text-slate-900">5. Classificação do material</h3></div>
-                  <p className="mt-1 text-sm text-slate-500">Revise a categoria e o nível sugeridos pela IA. Estes campos entram diretamente na auditoria.</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Categoria<select value={editedCategoryId} onChange={event => setEditedCategoryId(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500"><option value="">Selecione uma categoria</option>{categories.map(category => <option key={category.id} value={category.id}>{category.nome}</option>)}</select></label>
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Nível de ensino<select value={editedEducationLevelId} onChange={event => setEditedEducationLevelId(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500"><option value="">Selecione o nível</option>{educationLevels.map(level => <option key={level.id} value={level.id}>{level.nome}</option>)}</select></label>
-                  </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Ano ou faixa indicada<input value={editedAgeRange} onChange={event => setEditedAgeRange(event.target.value)} placeholder="Ex.: 1º ao 3º ano" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500" /></label>
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600">Formato e modo de uso<input value={editedFormatDetails} onChange={event => setEditedFormatDetails(event.target.value)} placeholder="Ex.: PDF para imprimir e usar em sala" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold normal-case outline-none focus:border-emerald-500" /></label>
-                  </div>
-                </div></> : null}
-
-                {(proposal.metaDescription || proposal.keywords?.length) ? <div className="rounded-2xl bg-slate-900 p-4 text-white sm:p-5"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Prévia para aparecer melhor nas buscas</p><p className="mt-1 text-sm text-slate-300">Estas sugestões ajudam você a divulgar o material. Copie quando for usar em redes, anúncios ou páginas de busca.</p>{proposal.metaDescription ? <div className="mt-4 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Resumo sugerido</p><p className="mt-1 text-sm leading-6 text-white">{proposal.metaDescription}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.metaDescription); toast.success('Resumo copiado.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar resumo</button></div> : null}{proposal.keywords?.length ? <div className="mt-3 rounded-xl bg-white/10 p-3"><p className="text-xs font-black uppercase tracking-wider text-violet-200">Palavras que ajudam a encontrar este material</p><p className="mt-1 text-sm leading-6 text-slate-100">{proposal.keywords.join(', ')}</p><button type="button" onClick={() => { navigator.clipboard.writeText(proposal.keywords.join(', ')); toast.success('Palavras-chave copiadas.'); }} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900">Copiar palavras-chave</button></div> : null}</div> : null}
-              </section>
-            </div>
-
-            <footer className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><p className="text-xs leading-5 text-slate-500">{editingTarget === 'plr' ? 'Ao salvar, apenas a descrição exclusiva da licença PLR será atualizada.' : 'Ao salvar, título, descrição, tags, temas, categoria, nível, anos indicados e formato serão atualizados. Preço, link e conteúdo não serão alterados.'}</p><div className="flex gap-2"><button type="button" onClick={() => setEditorOpen(false)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-slate-600 hover:bg-slate-200">Cancelar</button><button type="button" onClick={() => void applyProposal()} disabled={applying} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60">{applying && <Loader2 className="h-4 w-4 animate-spin" />} Salvar alterações</button></div></footer>
-          </div>
-        </div>
-      )}
+      {editorOpen && proposal && <AiProductEditor proposal={proposal} activeProduct={activeProduct} categories={categories} educationLevels={educationLevels} editingTarget={editingTarget} editedTitle={editedTitle} setEditedTitle={setEditedTitle} editedDescription={editedDescription} setEditedDescription={setEditedDescription} editedTags={editedTags} setEditedTags={setEditedTags} editedThemes={editedThemes} setEditedThemes={setEditedThemes} editedCategoryId={editedCategoryId} setEditedCategoryId={setEditedCategoryId} editedEducationLevelId={editedEducationLevelId} setEditedEducationLevelId={setEditedEducationLevelId} editedAgeRange={editedAgeRange} setEditedAgeRange={setEditedAgeRange} editedFormatDetails={editedFormatDetails} setEditedFormatDetails={setEditedFormatDetails} tagDraft={tagDraft} setTagDraft={setTagDraft} applying={applying} applyProposal={applyProposal} baseline={editingBaseline!} values={editorValues} draftStatus={workspace.status} onClose={closeEditor} />}
     </div>
   );
-}
-
-function AIToolButton({ icon: Icon, label, description, loading, onClick }: { icon: any; label: string; description: string; loading: boolean; onClick: () => void }) {
-  return <button type="button" onClick={onClick} disabled={loading} className="group min-h-24 rounded-xl border border-violet-100 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md disabled:opacity-60"><div className="flex items-center gap-2"><span className="rounded-lg bg-violet-100 p-1.5 text-violet-700">{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}</span><span className="text-sm font-black text-slate-900">{label}</span></div><p className="mt-2 text-xs leading-5 text-slate-500">{loading ? 'A IA está preparando...' : description}</p></button>;
-}
-
-function CopyCard({ title, description, text }: { title: string; description: string; text?: string }) {
-  const isWhatsapp = title.includes('WhatsApp');
-  const Icon = isWhatsapp ? MessageSquare : Camera;
-  const theme = isWhatsapp
-    ? { header: 'border-emerald-100 bg-emerald-50', icon: 'bg-emerald-500 text-white', title: 'text-emerald-950', button: 'bg-emerald-600 hover:bg-emerald-700' }
-    : { header: 'border-pink-100 bg-gradient-to-r from-pink-50 via-fuchsia-50 to-violet-50', icon: 'bg-gradient-to-br from-amber-400 via-pink-500 to-violet-600 text-white', title: 'text-fuchsia-950', button: 'bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700' };
-  return <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white"><div className={`border-b px-5 py-4 ${theme.header}`}><div className="flex items-center gap-3"><span className={`rounded-xl p-2 ${theme.icon}`}><Icon className="h-5 w-5" /></span><div><h3 className={`font-black ${theme.title}`}>{title}</h3><p className="mt-1 text-sm text-slate-500">{description}</p></div></div></div><p className="min-h-48 whitespace-pre-line p-5 text-sm leading-7 text-slate-700">{text || 'A IA não retornou este conteúdo. Gere novamente.'}</p><div className="border-t border-slate-100 px-5 py-3"><button type="button" onClick={() => text && navigator.clipboard.writeText(text).then(() => toast.success(`${title} copiada.`))} disabled={!text} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black text-white disabled:opacity-50 ${theme.button}`}><Copy className="h-3.5 w-3.5" /> Copiar</button></div></div>;
-}
-
-function LessonBlock({ title, items }: { title: string; items?: string[] }) {
-  const validItems = (items || []).filter(Boolean);
-  return <section className="rounded-xl bg-slate-50 p-4"><h4 className="text-sm font-black text-violet-800">{title}</h4>{validItems.length ? <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-700">{validItems.map((item, index) => <li key={`${index}-${item}`}>• {item}</li>)}</ul> : <p className="mt-2 text-sm text-slate-500">Não informado.</p>}</section>;
 }
