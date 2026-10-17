@@ -36,6 +36,17 @@ O painel oferece o botão “Criar Story ou Feed” nos produtos publicados e o 
 preparar/baixar artes; conectar e publicar ficam desabilitados. Não há sucesso
 simulado nem substituição silenciosa por compartilhamento manual.
 
+Correção de navegação em 17/10/2026: o item estava em NAV_ITEMS, mas não na lista
+de rotas de NAV_GROUPS e por isso não era renderizado. A rota foi incluída no
+grupo Marketing e crescimento, compartilhado por todos os criadores. Acesso
+direto: https://www.educalizando.com.br/dashboard/instagram. Disponibilidade do
+menu e geração de artes não significam aprovação da Meta para contas externas.
+
+Com autorização explícita do proprietário, o aplicativo foi identificado como
+Provedor de Tecnologia em 17/10/2026. A página Verificação passou a exigir a
+associação de portfólio empresarial. CS Gestão Comercial está disponível, mas
+não verificado; nenhuma associação foi feita nessa etapa sem nova confirmação.
+
 ## 1. Executar a migration
 
 Copie e execute no SQL Editor do projeto Supabase:

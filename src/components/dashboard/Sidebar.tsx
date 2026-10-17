@@ -233,7 +233,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
-    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
+    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/instagram', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
   ].map((group) => ({ ...group, items: NAV_ITEMS.filter((item) => group.hrefs.includes(item.href)) }));
 
