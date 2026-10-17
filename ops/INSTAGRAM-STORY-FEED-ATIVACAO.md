@@ -16,13 +16,20 @@ ambos na troca do código e na consulta ao perfil, exige uma única entrada vál
 normaliza a capitalização do tipo da conta e usa multipart conforme o exemplo oficial.
 Os testes cobrem os dois formatos e rejeitam respostas vazias ou ambíguas.
 O callback registra somente etapas fixas e códigos numéricos/SQL para diagnóstico,
-sem URLs, respostas, códigos de autorização, tokens ou chaves. O retorno real
-precisa ser validado novamente após publicar essa correção.
+sem URLs, respostas, códigos de autorização, tokens ou chaves.
 
 O diagnóstico real também identificou que o runtime Workers rejeita
 `redirect: 'error'`. Um Worker temporário de diagnóstico reproduziu a exceção com
 dados fictícios. O adaptador usa `manual` e rejeita respostas 3xx, sem encaminhar
 credenciais ao destino indicado. A regressão garante uma única chamada nesse caso.
+
+Após publicar as correções, a autorização real foi concluída em 17/10/2026 para
+o vínculo autorizado entre Buscando Saber e educalizando_brasil. O painel exibiu
+a conta conectada e a validade até 16/12/2026; recarregar confirmou a persistência.
+O callback respondeu 303 sem diagnóstico de falha. A criação local de Story com
+capa real foi validada em 1080×1920. Nenhuma postagem foi enviada neste teste.
+Publicação real e acesso avançado para contas externas ainda precisam de validação
+e aprovação correspondentes; não anunciar a liberação geral com base nesse teste.
 
 O painel oferece o botão “Criar Story ou Feed” nos produtos publicados e o menu
 “Instagram · Story e Feed”. Sem ativação, mostra claramente a pendência e permite
