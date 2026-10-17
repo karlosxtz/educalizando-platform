@@ -14,7 +14,7 @@ export default function ProductSelectionGuide({ product, store, plr = false }: {
     <div className="grid gap-6 rounded-2xl border border-blue-100 bg-white p-5 sm:p-8 md:grid-cols-2">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Confira antes de escolher</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Informações cadastradas para {product.titulo}. Compare com os objetivos e as necessidades da sua turma.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Compare os detalhes informados por {store.nome_loja} com os objetivos e as necessidades da sua turma.</p>
         <dl className="mt-4 space-y-3">{facts.map(fact => <div key={fact.label}>
           <dt className="text-sm font-bold text-slate-800">{fact.label}</dt>
           <dd className="mt-1 text-sm text-slate-600">{fact.value}</dd>

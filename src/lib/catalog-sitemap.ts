@@ -1,6 +1,6 @@
 import type { ISitemapField } from 'next-sitemap';
 import { supabase as db } from '@/lib/supabase';
-import { SITE_URL, productCoverImageUrl } from '@/lib/seo';
+import { SITE_URL, productPublicImageUrls } from '@/lib/seo';
 import { collectSitemapRows } from '@/lib/sitemap-pagination';
 import { readSeoPublicCatalog } from '@/lib/seo-public-catalog';
 
@@ -19,7 +19,7 @@ export async function readCatalogSitemapFields(): Promise<ISitemapField[]> {
       ...publicProducts.map(product => ({
         loc: SITE_URL + '/produto/' + encodeURIComponent(product.slug || product.id),
         ...lastmod(product.updated_at || product.created_at),
-        ...(product.capa_url ? { images: [{ loc: new URL(productCoverImageUrl(product.slug || product.id, product.capa_url)) }] } : {}),
+        images: productPublicImageUrls(product).map(url => ({ loc: new URL(url) })),
       })),
       ...stores.filter(store => store.slug && storeRules.get(store.id)?.indexable).map(store => ({ loc: SITE_URL + '/loja/' + encodeURIComponent(store.slug), ...lastmod(store.updated_at || store.created_at) })),
       ...kits.map(kit => ({ loc: SITE_URL + '/kit/' + encodeURIComponent(kit.id), ...lastmod(kit.updated_at || kit.created_at) })),

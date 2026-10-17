@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Product, Store } from '@/lib/types';
 import { readableProductDescription } from '@/lib/product-description';
-import { productCoverImageUrl } from '@/lib/seo';
+import { productCoverImageUrl, productPublicImageUrls } from '@/lib/seo';
 import CampaignAttribution from '@/components/CampaignAttribution';
 import { Suspense } from 'react';
 
@@ -10,11 +10,21 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
   const license = plr && product.is_plr;
   const price = license ? product.preco_plr : product.is_free ? 0 : product.preco;
   const description = license && product.plr_descricao ? product.plr_descricao : product.descricao;
+  const images = license ? [] : productPublicImageUrls(product, 4);
+  const cover = product.capa_url ? productCoverImageUrl(product.slug || product.id, product.capa_url) : null;
+  const gallery = images.filter(url => url !== cover).slice(0, 3);
   const checkout = `/loja/${encodeURIComponent(store.slug)}/checkout?produtoId=${encodeURIComponent(product.id)}${license ? '&licenca=plr' : ''}`;
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 md:grid-cols-2">
       <Suspense fallback={null}><CampaignAttribution storeId={store.id} /></Suspense>
-      {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
+      <div className="space-y-4">
+        {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
+        {gallery.length > 0 && <section aria-label="Imagens cadastradas do material" className="grid grid-cols-3 gap-2">
+          {gallery.map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Ampliar imagem da galeria ${index + 1} de ${product.titulo}`}>
+            <Image unoptimized src={url} alt={`Imagem da galeria ${index + 1} de ${product.titulo}`} width={240} height={240} loading="lazy" className="aspect-square w-full rounded-xl border border-slate-200 bg-white object-contain" />
+          </a>)}
+        </section>}
+      </div>
       <article className="space-y-5">
         <Link href={`/loja/${encodeURIComponent(store.slug)}`} className="font-bold text-blue-800">{store.nome_loja}</Link>
         <h1 className="text-3xl font-black text-slate-900">{product.titulo}</h1>
