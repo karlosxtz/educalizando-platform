@@ -156,8 +156,8 @@ async function main() {
   await assert.rejects(redirectedProvider.exchangeInstagramCode('private-code'), error => error.httpStatus === 302 && !JSON.stringify(error).includes('private-token'));
   assert.equal(redirectCalls, 1, 'Never forward OAuth credentials to redirected destinations');
 
-  const drawings = [], canvases = [], qrLinks = [], loadedImages = [];
-  const context = { measureText: text => ({ width: text.length * 20 }), fillText: text => drawings.push(text), fillRect() {}, drawImage() {}, createLinearGradient: () => ({ addColorStop() {} }) };
+  const drawings = [], canvases = [], qrLinks = [], loadedImages = [], imageDraws = [], colorFills = [], roundedFrames = [];
+  const context = { measureText: text => ({ width: text.length * 20 }), fillText: text => drawings.push(text), fillRect() { colorFills.push(this.fillStyle); }, drawImage: (...args) => imageDraws.push(args), createLinearGradient: () => ({ addColorStop() {} }), save() {}, restore() {}, beginPath() {}, roundRect: (...args) => roundedFrames.push(args), clip() {} };
   class TestImage {
     naturalWidth = 800; naturalHeight = 1200;
     set src(value) { if (value) { loadedImages.push(value); queueMicrotask(() => this.onload()); } }
@@ -172,25 +172,42 @@ async function main() {
   const feedImage = await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed');
   assert.equal(storyImage.type, 'image/jpeg'); assert.equal(feedImage.type, 'image/jpeg');
   assert.deepEqual(canvases.map(canvas => [canvas.width, canvas.height]), [[1080, 1920], [1080, 1350]]);
-  assert(drawings.includes('Jogo de letras') && !drawings.some(text => /R\$\s+12,50/.test(text)), 'Price is hidden by default');
-  assert(drawings.includes('@educalizando_brasil'));
-  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.defaultInstagramDesign(), showPrice: true, title: 'Título da divulgação', cta: 'Veja o material', background: 'solid' });
+  assert.equal(drawings.length, 0, 'Image-only must not draw title, logo, price, CTA or visual brand');
+  assert.deepEqual(imageDraws.at(-1).slice(1), [90, 0, 900, 1350], 'Contain mode uses the entire original image, without crop or a tiny white frame');
+  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.defaultInstagramDesign(), radius: 40 });
+  assert.deepEqual(roundedFrames.at(-1), [90, 0, 900, 1350, 40], 'Round the actual photo, rather than an invisible outer frame');
+  assert(!colorFills.includes(displayStore.cor_primaria), 'Never use the store color as mandatory bands');
+  assert.equal(design.defaultInstagramDesign().background, 'blur');
+  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.instagramDesignPreset('minimal', design.defaultInstagramDesign()), showPrice: true, title: 'Título da divulgação', cta: 'Veja o material', background: 'solid' });
   assert(drawings.includes('Título da divulgação') && drawings.includes('Veja o material') && drawings.some(text => /R\$\s+12,50/.test(text)));
-  const qrOptions = { ...design.defaultInstagramDesign(), layout: 'editorial', background: 'photo', backgroundUrl: 'blob:local-background', logoUrl: 'blob:local-logo', showQr: true, fit: 'cover' };
+  const qrOptions = { ...design.instagramDesignPreset('editorial', design.defaultInstagramDesign()), background: 'photo', backgroundUrl: 'blob:local-background', logoUrl: 'blob:local-logo', showLogo: true, showQr: true, fit: 'cover' };
   await artwork.createInstagramArtwork({ ...displayProduct, id: productId, slug: 'jogo-real' }, displayStore, 'story', qrOptions);
   assert.equal(qrLinks[0], 'https://www.educalizando.com.br/loja/minha-loja/produto/jogo-real');
   assert(loadedImages.includes('blob:local-background') && loadedImages.includes('blob:local-logo'));
   assert.equal(loadedImages.filter(url => url === displayProduct.capa_url).length, 1, 'Style changes must reuse the decoded cover, not download again');
   await assert.rejects(artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...qrOptions, backgroundUrl: '' }), /imagem de fundo/);
   const stripped = design.savedInstagramDesign({ ...design.defaultInstagramDesign(), title: 'Outro produto', subtitle: 'Não reutilizar', primary: 'javascript:bad', titleSize: 10000, backgroundUrl: 'https://private.invalid' });
-  assert.equal(stripped.title, ''); assert.equal(stripped.subtitle, ''); assert.equal(stripped.titleSize, 76); assert.equal(stripped.primary, '#173b79'); assert(!('backgroundUrl' in stripped));
+  assert.equal(stripped.title, ''); assert.equal(stripped.subtitle, ''); assert.equal(stripped.titleSize, 76); assert.equal(stripped.primary, '#172033'); assert(!('backgroundUrl' in stripped));
+  assert.equal(design.savedInstagramDesign({ layout: 'classic', primary: '#16a34a' }).layout, 'image', 'Old layouts do not restore the old colored bands');
+  assert.equal(design.savedInstagramDesign({ ...design.defaultInstagramDesign(), imageZoom: 999, brightness: -1, imageX: NaN }).imageZoom, 180);
+  assert.equal(design.savedInstagramDesign({ ...design.defaultInstagramDesign(), brightness: -1 }).brightness, 60);
+  for (const layout of ['minimal', 'classic', 'cover', 'editorial', 'spotlight']) {
+    await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.instagramDesignPreset(layout, design.defaultInstagramDesign()), square: true });
+    assert.equal(canvases.at(-1).height, 1080, 'Every model must support the square feed');
+  }
+  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.defaultInstagramDesign(), fit: 'cover', imageZoom: 180, imageX: 100, imageY: 100 });
+  const crop = imageDraws.at(-1);
+  assert.equal(crop.length, 9); assert(crop[1] >= 0 && crop[2] >= 0 && crop[1] + crop[3] <= 801 && crop[2] + crop[4] <= 1201, 'Crop controls stay inside the source image');
+  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.defaultInstagramDesign(), imageUrl: 'blob:custom-post-photo' });
+  assert(loadedImages.includes('blob:custom-post-photo'), 'A local photo can replace the cover for this artwork');
+  assert.equal(displayProduct.capa_url, 'https://minio.test/capa.jpg', 'Replacing a publication photo never changes the registered cover');
   assert(!drawings.some(text => /PRIVATE|desconto|mais vendido/i.test(text)));
   assert(!contract.instagramProductCaption({ ...displayProduct, id: productId }, displayStore).includes('PRIVATE'));
   const longCaption = contract.instagramProductCaption({ ...displayProduct, id: productId, slug: 'produto-real', descricao: 'Descrição factual do arquivo. '.repeat(200) }, displayStore);
   assert(longCaption.length <= 2200 && longCaption.includes('https://www.educalizando.com.br/loja/minha-loja/produto/produto-real') && longCaption.endsWith('@educalizando_brasil'));
   assert(!longCaption.includes('R$'), 'Default caption also omits price');
   assert(contract.instagramProductCaption({ ...displayProduct, id: productId }, displayStore, { showPrice: true }).includes('12,50'));
-  await assert.rejects(artwork.createInstagramArtwork({ ...displayProduct, preco: NaN }, displayStore, 'feed', { ...design.defaultInstagramDesign(), showPrice: true }), /preço/);
+  await assert.rejects(artwork.createInstagramArtwork({ ...displayProduct, preco: NaN }, displayStore, 'feed', { ...design.instagramDesignPreset('minimal', design.defaultInstagramDesign()), showPrice: true }), /preço/);
   const button = load('src/components/creator/InstagramProductButton.tsx', {
     'next/link': { __esModule: true, default: ({ href, children }) => React.createElement('a', { href }, children) },
   }).default;
