@@ -5,6 +5,7 @@ import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { readPublicStoreCategories as getCategories } from '@/lib/public-page-data';
 import { shortSeoTitle, storeSeoDescription } from '@/lib/page-seo';
 import { readSeoStoreHandle } from '@/lib/seo-identity';
+import { readSeoPublicCatalog } from '@/lib/seo-public-catalog';
 import { readPublicStoreProducts as getPublicProductsByStoreId, readPublicStore as getStoreBySlug } from '@/lib/public-page-data';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -33,15 +34,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   for (const product of products) if (product.category_id) counts.set(product.category_id, (counts.get(product.category_id) || 0) + 1);
   const categoryId = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0];
   const category = categories.find(item => item.id === categoryId)?.nome || 'educação';
-  const handle = await readSeoStoreHandle(store);
-  const title = shortSeoTitle(store.nome_loja, handle ? ' | @' + handle.slice(-25) : ' | Materiais Didáticos | Educalizando', true);
-  const description = storeSeoDescription(handle ? '@' + handle + ' — ' + store.nome_loja : store.nome_loja, products.length, category);
+  const [handle, catalog] = await Promise.all([readSeoStoreHandle(store), readSeoPublicCatalog()]);
+  const indexRule = catalog.storeRules.get(store.id);
+  const title = shortSeoTitle(store.nome_loja, handle ? ' | @' + handle : ' | Materiais Didáticos | Educalizando', true);
+  const description = storeSeoDescription(handle ? '@' + handle + ' — ' + store.nome_loja : store.nome_loja, indexRule?.count || 0, category);
   return {
     metadataBase: new URL(SITE_URL),
     title,
     description,
     keywords: [store.nome_loja, category, 'materiais didáticos', 'recursos para professores'],
-    robots: { index: true, follow: true },
+    robots: { index: indexRule?.indexable === true, follow: true, googleBot: { index: indexRule?.indexable === true, follow: true } },
     alternates: {
       canonical: `https://www.educalizando.com.br/loja/${store.slug}`,
     },

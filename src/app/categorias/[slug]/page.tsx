@@ -1,9 +1,10 @@
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
-import { getCategories } from '@/lib/category-service';
-import { searchProducts } from '@/lib/search-service';
+import { readSeoPublicCatalog, readSeoCategoryProducts } from '@/lib/seo-public-catalog';
+import { categoryIntroduction } from '@/lib/category-editorial';
 import { serializeJsonLd,socialMetadata } from '@/lib/seo';
+import { shortSeoTitle } from '@/lib/page-seo';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -16,24 +17,26 @@ interface CategoryPageProps {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const categories = await getCategories();
+  const { categories, categoryRules } = await readSeoPublicCatalog();
   const category = categories.find(c => c.slug === slug);
 
   if (!category) {
-    return { title: 'Categoria não encontrada | Educalizando' };
+    notFound();
   }
 
-  const title = `Atividades e Materiais de ${category.nome} para Imprimir | Educalizando`;
-  const description = `Encontre os melhores materiais didáticos e atividades prontas de ${category.nome}. Acesse e baixe recursos pedagógicos desenvolvidos por especialistas para potencializar o aprendizado.`;
+  const rule = categoryRules.get(slug)!;
+  const title = shortSeoTitle(`Materiais de ${category.nome}`);
+  const description = `${category.nome}: ${rule.combinedCount === 1 ? '1 material didático' : rule.combinedCount + ' materiais didáticos'}. Compare o conteúdo e o público indicado nos cadastros para planejar suas aulas.`;
+  const canonicalPath = `/categorias/${rule.canonicalSlug}`;
 
   return {
     title,
     description,
-    robots: { index: true, follow: true },
+    robots: { index: rule.indexable, follow: true, googleBot: { index: rule.indexable, follow: true } },
     alternates: {
-      canonical: `https://www.educalizando.com.br/categorias/${slug}`,
+      canonical: `https://www.educalizando.com.br${canonicalPath}`,
     },
-    ...socialMetadata({ title, description, url: `/categorias/${slug}` }),
+    ...socialMetadata({ title, description, url: canonicalPath }),
   };
 }
 
@@ -41,28 +44,23 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
   const { slug } = await params;
 
   // Validate category existence
-  const categories = await getCategories();
+  const { categories, categoryRules } = await readSeoPublicCatalog();
   const category = categories.find(c => c.slug === slug);
 
   if (!category) {
     notFound();
   }
 
-  // Fetch products for this category
-  const result = await searchProducts({
-    categoria: slug,
-    page: 1,
-    sort: 'recentes'
-  });
-
-  const products = result.data;
-  const pageUrl = `https://www.educalizando.com.br/categorias/${slug}`;
+  const rule = categoryRules.get(slug)!;
+  const products = await readSeoCategoryProducts(slug);
+  const intro = categoryIntroduction(rule.canonicalSlug, category.nome);
+  const pageUrl = 'https://www.educalizando.com.br/categorias/' + rule.canonicalSlug;
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: `Materiais de ${category.nome}`,
-      description: `Atividades e materiais didáticos de ${category.nome} para imprimir.`,
+      description: `Materiais classificados em ${category.nome} pelos criadores. Confira o conteúdo e o formato de cada cadastro.`,
       url: pageUrl,
       isPartOf: { '@type': 'WebSite', name: 'Educalizando', url: 'https://www.educalizando.com.br' },
     },
@@ -94,7 +92,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
         <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
       ))}
       <MarketplaceHeader />
-      
+
       <main className="flex-1">
         {/* SEO Optimized Header */}
         <section className="bg-white border-b py-12">
@@ -102,8 +100,12 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
             <h1 className="text-3xl md:text-4xl font-bold text-[#093b6c] mb-4">
               Materiais de {category.nome}
             </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Explore nossa seleção cuidadosamente curada de atividades, e-books e recursos pedagógicos de {category.nome}. Perfeito para professores, pais e educadores.
+            <div className="text-gray-600 text-base leading-relaxed max-w-3xl mx-auto text-left space-y-4">
+              {intro.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+            <p className="mt-5 text-sm text-gray-600">
+              {rule.combinedCount === 1 ? '1 material didático publicado' : rule.combinedCount + ' materiais didáticos publicados'} nesta seleção.
+              {rule.combinedCount > products.length && <> Exibindo os {products.length} mais recentes. <Link href="/buscar" className="underline">Buscar no catálogo</Link>.</>}
             </p>
           </div>
         </section>
@@ -128,7 +130,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
                 <p className="text-gray-600 mb-6">
                   Ainda não temos materiais disponíveis para a categoria <strong>{category.nome}</strong>. Que tal explorar outros recursos?
                 </p>
-                <Link 
+                <Link
                   href="/buscar"
                   className="inline-flex items-center justify-center px-6 py-3 bg-[#093b6c] text-white font-medium rounded-lg hover:bg-[#06284a] transition-colors"
                 >
