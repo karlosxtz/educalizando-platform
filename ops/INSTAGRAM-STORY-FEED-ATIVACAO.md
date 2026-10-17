@@ -19,6 +19,11 @@ O callback registra somente etapas fixas e códigos numéricos/SQL para diagnós
 sem URLs, respostas, códigos de autorização, tokens ou chaves. O retorno real
 precisa ser validado novamente após publicar essa correção.
 
+O diagnóstico real também identificou que o runtime Workers rejeita
+`redirect: 'error'`. Um Worker temporário de diagnóstico reproduziu a exceção com
+dados fictícios. O adaptador usa `manual` e rejeita respostas 3xx, sem encaminhar
+credenciais ao destino indicado. A regressão garante uma única chamada nesse caso.
+
 O painel oferece o botão “Criar Story ou Feed” nos produtos publicados e o menu
 “Instagram · Story e Feed”. Sem ativação, mostra claramente a pendência e permite
 preparar/baixar artes; conectar e publicar ficam desabilitados. Não há sucesso

@@ -11,7 +11,8 @@ export class InstagramProviderError extends Error {
 }
 async function request(url: URL | string, init: RequestInit = {}): Promise<Record<string, unknown>> {
   let response: Response;
-  try { response = await fetch(url, { ...init, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(12000) }); }
+  // workerd rejects redirect:error. Manual keeps credentials from following redirects.
+  try { response = await fetch(url, { ...init, cache: 'no-store', redirect: 'manual', signal: AbortSignal.timeout(12000) }); }
   catch { throw new InstagramProviderError(null, true); }
   const body = await response.json().catch(() => null);
   if (!response.ok || !body || body.error) {

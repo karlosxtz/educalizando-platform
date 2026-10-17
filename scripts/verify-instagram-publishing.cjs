@@ -138,10 +138,17 @@ async function main() {
   await provider.createInstagramContainer('123456', account.token, 'https://minio.test/arte.jpg', 'feed', 'Legenda aprovada');
   assert.equal(calls.at(-1).options.body.get('caption'), 'Legenda aprovada');
   assert.equal(calls.at(-1).options.headers.Authorization, 'Bearer long-token');
-  assert(calls.every(call => call.options.redirect === 'error' && call.options.cache === 'no-store'));
+  assert(calls.every(call => call.options.redirect === 'manual' && call.options.cache === 'no-store'));
   const failedProvider = load('src/lib/instagram-provider.ts', { './instagram-security': security }, { fetch: async () => Response.json({ error: { code: 190, message: 'private-token-must-never-escape' } }, { status: 400 }) });
   await assert.rejects(failedProvider.instagramContainerStatus('123', 'private-token-must-never-escape'), error => !error.message.includes('private-token-must-never-escape') && error.message.includes('expirou'));
   await assert.rejects(failedProvider.exchangeInstagramCode('private-code'), error => error.stage === 'short_token' && error.httpStatus === 400 && !JSON.stringify(error).includes('private-token-must-never-escape'));
+  let redirectCalls = 0;
+  const redirectedProvider = load('src/lib/instagram-provider.ts', { './instagram-security': security }, { fetch: async (_url, options) => {
+    redirectCalls++; assert.equal(options.redirect, 'manual');
+    return new Response(null, { status: 302, headers: { Location: 'https://unexpected.invalid/private-token' } });
+  } });
+  await assert.rejects(redirectedProvider.exchangeInstagramCode('private-code'), error => error.httpStatus === 302 && !JSON.stringify(error).includes('private-token'));
+  assert.equal(redirectCalls, 1, 'Never forward OAuth credentials to redirected destinations');
 
   const drawings = [], canvases = [];
   const context = { measureText: text => ({ width: text.length * 20 }), fillText: text => drawings.push(text), fillRect() {}, drawImage() {}, createLinearGradient: () => ({ addColorStop() {} }) };
