@@ -18,7 +18,7 @@ assert.equal(standard.offers?.seller.name, store.nome_loja);
 assert.equal(standard.brand.name, store.nome_loja);
 assert.equal(productMetadata(product).alternates?.canonical, productMetadata(product, true).alternates?.canonical);
 assert.equal(productMetadata(product).robots && typeof productMetadata(product).robots === 'object' ? (productMetadata(product).robots as { index: boolean }).index : false, true);
-assert.equal(productMetadata({ ...product, plr_descricao: 'Termos reais da licença de revenda.' }, true).description, 'Educalizando: Jogo de leitura. Termos reais da licença de revenda.');
+assert.equal(productMetadata({ ...product, plr_descricao: 'Termos reais da licença de revenda.' }, true).description, 'Jogo de leitura. Termos reais da licença de revenda.');
 assert.equal(productSeoDescription('Título', '<script>nao incluir</script><p>Texto real &quot;curto&quot;.</p>'), 'Texto real "curto".');
 assert.equal(productStructuredData({ ...product, descricao: 'Conteúdo completo. '.repeat(30) }, store).description.length > 160, true);
 assert.notEqual(productStructuredData(product, store, true)['@id'], standard['@id']);
@@ -27,6 +27,8 @@ assert.match(productStructuredData(product, store, true).offers?.url || '', /\?l
 assert.equal(productStructuredData({ ...product, is_free: true }, store).offers?.price, '0.00');
 assert.equal(productStructuredData({ ...product, preco: NaN }, store).offers, undefined);
 assert.equal(standard.aggregateRating, undefined);
+assert.equal(productMetadata(product, false, store).alternates?.canonical, productMetadata(product).alternates?.canonical);
+assert.equal(productStructuredData(product, store, false, undefined, true).url, standard.url);
 assert.equal(productStructuredData({ ...product, review_count: 2, average_rating: 4.5 }, store).aggregateRating?.reviewCount, 2);
 assert.equal(productStructuredData({ ...product, review_count: 2, average_rating: 7 }, store).aggregateRating, undefined);
 assert.equal(catalogMetadata(product.titulo, product.descricao, '/produto/jogo-de-leitura').alternates?.canonical, 'https://www.educalizando.com.br/produto/jogo-de-leitura');

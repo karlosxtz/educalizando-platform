@@ -1,0 +1,3045 @@
+{
+  "checkedAt": "2026-10-17T02:49:08.815Z",
+  "catalogCheckedAt": "2026-10-17T02:26:59.495Z",
+  "counting": "Produtos próprios publicados/ativos, não excluídos, visíveis sob RLS pública. Cada produto conta uma vez por slug de categoria; afiliados não multiplicam o catálogo.",
+  "previousTotal": 672,
+  "currentTotal": 378,
+  "removedTotal": 294,
+  "added": [],
+  "removedByReason": {
+    "produto alternativo: canonical global único": 264,
+    "sem produtos publicados": 10,
+    "mudança no catálogo público desde a auditoria anterior": 2,
+    "menos de 3 produtos publicados": 14,
+    "canonical consolidado": 1,
+    "categoria genérica": 3
+  },
+  "removed": [
+    {
+      "path": "/loja/buscandosaber/produto/combo-ludico-era-vargas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-grande-para-reuniao-de-pais-e-familia-pdf-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/colore-pedagogica/produto/caixa-piramide-dia-das-criancas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/livro-3d-as-quatro-estacoes-do-ano-recurso-ludico-para-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/apostila-adaptada-colonizacao-espanhola-e-portuguesa-na-america",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/decoracao-para-bambole-ultimo-dia-de-aula",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/jogo-das-silabas-simples-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/os-5-sentidos-aprender-descobrindo-o-mundo",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/alimentacao-saudavel-e-nao-saudavel",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/lousa-magica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/kit-de-multiplicacao-matematica-muito-mais-pratica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/historia-na-luva-a-volta-as-aulas-dos-sete-amigos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/bingo-dos-estados-do-brasil-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/painel-semana-da-crianca-um-mundo-mais-doce",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/coisas-de-prof/produto/grafismo-indigena",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-outubro-rosa-para-educacao-infantil-e-ensino-fundamental-caixa-cartaz-e-lembrancinha",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/presepio-de-mesa-3d-colorido",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/atividade-quebra-cabeca-soma-misteriosa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/kit-educacao-especial-mais-possibilidades-para-aprender",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/novidade-atividade-das-emocoes-tema-coruja-e-borboleta",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/combo-mochila-maluca-ed-infantile-anos-inicais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/arquivos-da-pro/produto/sacola-de-historia-dia-da-arvore",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/painel-setembro-amarelo-para-aria-externa-50-paginas-10-00-um-painel-lindo-acolhedor-e-cheio-de-mensagens-de-esperanca-cuidado-e-valorizacao-da-vida-perfeito-para-decorar-a-escola-e-criar-um-espaco-especial-para-falar-sobre-a-importancia-de-acolher-escutar-e-cuidar-contem-50-paginas-largura-1-90-m-altura-1-40-m-arquivo-em-pdf-pronto-para-imprimir-e-montar-sua-vida-importa-voce-nao-esta-sozinho-um-painel-que-transmite-uma-mensagem-necessaria-de-amor-esperanca-e-empatia-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-bonita-e-acolhedora-neste-setembro-amarelo",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/kit-paineis-alimentacao-saudavel",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/revenda-painel-novembro-azul-com-caixa-e-24-fichas-de-conscientizacao-3",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/professorgamificado/produto/oficina-de-squishy-paper-squishy",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/flipbook-de-fracoes-para-ensino-fundamental-numerador-denominador-tipos-e-comparacao-de-fracoes",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/bolsinhos-do-alfabeto",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/kit-dia-das-criancas-completo-e-colorido-com-jogoslembrancinhas-e-painel",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-dia-da-proclamacao-da-republica-pdf-para-impressao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/kit-dia-das-criancas-7-atividades-ludicas-certificado",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/quantas-silabas-48-fichas-para-consciencia-fonologica-e-alfabetizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/professorgamificado/produto/urna-da-leitura",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/apostila-de-biologia-celular-28-aulas-e-atividades-de-citologia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/sucolandia-vamos-preparar-um-suco-educacao-infantil-e-anos-inicias",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/lata-dos-verbos-gramatica-com-mais-interacao-e-diversao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminha-do-saber/produto/uno-da-leitura-bobbie-goods",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/o-cristianismo-no-imperio-romano-kit-de-atividades-ludicas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/supermercado-da-matematica-2-ao-4-ano-do-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/jogos-matematicos-educativos-com-material-dourado",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/oficina-poetica-as-borboletas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/lembrancinhas-dia-dos-professores-6-50-surpreenda-seus-mestres-com-um-kit-de-lembrancinhas-cheio-de-carinho-3-opcoes-de-lembrancinhas-pdf-pronto-para-impressao-uma-maneira-especial-de-agradecer-por-todo-o-conhecimento",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/sacola-versiculo-do-dia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/combo-luva-musical",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-dia-da-bandeira-luva-pedagogica-e-lembrancinhas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/caixa-musical-para-educacao-infantil-com-fichas-ilustradas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/kit-tema-dia-da-consciencia-negra",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-sala-dos-professores-recarregar-e-preciso",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-ferias-escolares-decoracao-para-escola",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lumie-pedagogico/produto/atividade-escreva-as-palavras",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/luva-pedagogica-assim-nasceu-jesus-historia-de-natal-em-pdf",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/combo-20-apostilas-para-alfabetizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/plano-de-aula-gratuito-a-reforma-protestante-7-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/triorama-do-egito-antigo",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/painel-dia-dos-professores-ensinar-e-um-ato-de-amor",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/mini-kit-halloween",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/painel-desfile-maluco-pdf-educacao-infantil-e-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/caca-multiplicacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/a-lagarta-comilona",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/qual-e-o-plural-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/bolsinhos-dos-pronomes",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/painel-coletivo-setembro-amarelo-para-colorir-com-a-turma-que-tal-transformar-o-setembro-amarelo-em-um-momento-de-uniao-criatividade-e-reflexao-preparei-um-lindo-painel-coletivo-para-colorir-perfeito-para-envolver-as-criancas-em-uma-atividade-colaborativa-cada-aluno-pode-pintar-uma-parte-e-juntos-construir-um-painel-cheio-de-cor-esperanca-e-significado-30-paginas-prontinhas-para-imprimir-ideal-para-trabalho-coletivo-em-sala-de-aula-tema-setembro-amarelo-arquivo-em-pdf-apenas-r-10-00-uma-atividade-que-une-arte-participacao-e-uma-mensagem-de-cuidado-e-valorizacao-da-vida-quer-o-seu-me-chama-e-garanta-ja-o-seu-painel-professora-ale-turminha-kids",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/kit-o-poderoso-paizao-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/bingo-dos-substantivos-coletivos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/painel-dia-das-criancas-anos-80",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/jogo-quem-esta-faltando",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/domino-do-alfabeto-jogo-de-letras-para-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-contagem-regressiva-para-o-natal",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/apostila-desvendando-a-leitura-e-a-interpretacao-por-apenas-12-90-um-material-com-100-paginas-organizado-de-forma-progressiva-trazendo-propostas-de-leitura-compreensao-e-interpretacao-para-estudantes-do-1-ao-5-ano-pode-ser-utilizado-como-reforco-para-o-6-ano-as-atividades-exploram-textos-imagens-tirinhas-historias-quadrinhas-fabulas-e-diferentes-situacoes-de-leitura-trabalhando-habilidades-como-localizacao-de-informacoes-inferencia-sequencia-de-acontecimentos-tema-finalidade-relacao-entre-texto-e-imagem-e-compreensao-textual-fichas-de-acompanhamento-pedagogico-sao-20-paginas-para-ajudar-o-professor-a-registrar-avaliar-acompanhar-e-planejar-intervencoes-o-material-inclui-recursos-como-autoavaliacao-do-estudante-mapa-de-aprendizagem-da-turma-registro-de-reuniao-com-a-familia-relatorio-bimestral-individual-calendario-de-sondagens-e-avaliacoes-checklist-do-portfolio-ficha-de-recomposicao-intervencao-pedagogica-e-diferentes-fichas-de-acompanhamento-um-kit-para-ensin",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-lembrancinhas-dia-das-criancas-com-doces-4-modelos-para-imprimir-em-pdf",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/lembrancinha-para-professora-cone-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividades-ludicas-sobre-revolucao-farroupilha",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/os-tres-porquinhos-atividade-de-interpretacao-de-texto-para-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/adjetivos-sem-complicacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/independencia-material-adaptado-atividadeavaliacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/combo-apostila-das-4-operacoes",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/oficina-das-cores",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/moldura-bambole-outubro-rosa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/desafios-da-memoria-atividades-para-o-aee",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/cards-educativos-brasil-colonia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/professorgamificado/produto/caixa-de-mensagem-caixa-motivacional-outubro-rosa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/meu-primeiro-livro-de-colorir-154-ilustracoes-grandes-e-pontilhadas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/painel-outubro-rosa-a-beleza-do-cuidado-e-da-prevencao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/atividade-de-grafomotricidade-com-lousinha-magica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividade-interativa-sobre-guerras-medicas-assunto-grecia-antiga",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/recorte-e-combine-dinossauros-o-que-vem-antes-e-depois-sequencia-numerica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/interpretando-tirinhas-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/fichas-das-palavras-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/coisas-de-prof/produto/folclore-boi-bumba",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/bate-silabas-jogo-de-alfabetizacao-para-formar-palavras-e-desenvolver-a-consciencia-fonologica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/kit-o-direito-de-ser-crianca-1-ao-3-ano-do-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/historinha-e-lembrancinhas-12-de-outubro-dia-das-criancas-e-de-nossa-senhora-aparecida-pdf",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/mural-interativo-arvore-de-natal-de-recordacoes",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/caixa-das-frases-40-frases-em-letra-cursiva-e-letra-bastao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/apostila-adaptada-sobre-grecia-antiga",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/painel-de-porta-feliz-dia-das-criancas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-google-dia-das-criancas-decoracao-para-sala-de-aula",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/kit-completo-cafe-literario-para-imprimir-painel-marca-pagina",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-das-atividades/produto/dia-das-criancas-o-mestre-mandou-atividade-para-colorir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/apostila-de-alfabetizacao-letras-a-a-z-com-atividades-ludicas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/reforma-protestante-kit-de-materiais-ludicos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/sequencia-de-10-aulas-de-ciencias-ciencia-tecnologia-saude-e-meio-ambiente",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/professorgamificado/produto/projeto-higiene-corporal-e-bucal",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/atividades-3d-menina-bonita-do-laco-de-fita",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/ta-na-biblia-ou-ta-amarrado-o-jogo-divertido-para-ensinar-a-palavra-de-deus",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/seguranca-domestica-situacoes-de-perigo-e-seguranca",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/semana-da-crianca-no-ritmo-dos-anos-80-ed-inf-anos-iniciais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/historias-que-incluem-ed-infantil-fundamental-e-ed-especial",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/apostila-portugues-e-matematica-2-e-3-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/painel-proclamacao-da-republica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/combo-ludicas-era-napoleonica",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/portal-formatura",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/atividade-interativa-coleta-seletiva",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/apostila-completa-letra-cursiva-1-e-2-ano-reforco-escolar",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/montagem-de-engenho-de-acucar",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/guerra-fria-material-adaptado-atividadeavaliacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/kit-de-leitura-e-interpretacao-de-textos-1-ao-3-ano-reforco-escolar",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/projeto-incentivo-a-leitura-infantil-maleta-ludica-com-fichas-e-arte-de-painel",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/multiplicacao-e-divisao-sem-complicacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/cenario-3d-e-balance-dia-da-bandeira",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/fichas-de-leitura-com-letras-maiusculas-minusculas-e-cursivas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/kit-mascaras-africanas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/revenda-painel-novembro-azul-com-caixa-e-24-fichas-de-conscientizacao-2",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/apostila-transporte-pela-membrana-biologia-ensino-medio",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/coisas-de-prof/produto/cobra-sussu-amazonia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-projeto-abelhas-educacao-infantil-painel-decorativo-e-book-e-atividades",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lumie-pedagogico/produto/recadinho-movimento-de-pinca",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/painel-consciencia-negra-pdf-9-partes-educacao-infantil-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/maozinhas-das-silabas-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/emocoes-em-acao-atividades-de-educacao-emocional-para-fundamental-1",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-cordel-encantado",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/kit-algarismos-romanos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividade-sobre-o-reino-de-cuxe-kush",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/lap-book-interativo-renascimento-7-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/sacola-dia-das-criancas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/contando-e-escrevendo-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/sacola-pedagogica-sitio-do-seu-lobato-com-animais-e-sons",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/contacao-de-historia-menina-bonita-do-laco-de-fita",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/alfabeto-magico-boquinhas-da-alfabetizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/kit-pedagogico-agosto-lilas-atividade-pedagogica-para-imprimi",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/bambole-novembro-azul-conscientizar-tambem-e-um-ato-de-amor",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/dia-do-professor-atividade-infantil-de-agradecimento",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/periodo-regencial-material-visual-e-atividades",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/crachas-da-inclusao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/atividade-de-consciencia-negra-para-educacao-infantil-colorir-e-carimbar",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/bolsinhos-das-vogais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/colore-pedagogica/produto/10-folhinhas-de-atividades-para-educacao-infantil-nome-letras-vogais-rimas-e-historias",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/roleta-dia-da-consciencia-negra-diversidade-cultural",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/consciencia-negra-5-atividades-de-pintura-e-colagem-fundamental-i",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/painel-nossa-formatura-2026-2",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/asas-de-anjo-painel-dia-dos-professores",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/estoure-o-balao-e-descubra-a-lenda",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/roleta-das-familias-silabicas-simples",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/painel-dia-do-professor-obrigado-por-iluminar-nosso-caminho",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/kit-das-caixinhas-da-alfabetizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividade-interativa-independencia-do-brasil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-feliz-natal-com-foto",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/dia-do-diretor-painel-decorativo-com-cartao-para-lembrancinha",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/combo-atividades-egito-antigo-e-reino-de-kush-atividades-adaptadas-e-para-ensino-regular",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/os-estados-fisicos-da-agua",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/revenda-painel-novembro-azul-com-caixa-e-24-fichas-de-conscientizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/a-galinha-ruiva-uma-licao-de-trabalho-em-equipe",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/roda-biblica-das-emocoes",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-outubro-rosa-inspire-e-conscientize",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-lembrancinha-dia-dos-professores-caixa-coracao-de-acrilico",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/alfabeto-ilustrado-interativo-aprendendo-as-letras",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividade-avaliacao-adaptada-grecia-antiga",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/painel-dia-dos-professores-3-modelos-mais-lembrancinhas-asas-de-anjo-para-fotos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lumie-pedagogico/produto/painel-outubro-rosa-cartaozinho",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/adaptada-colonizacao-espanhola-e-portuguesa-atividade-avaliacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/a-escravidao-africana-e-a-producao-acucareira-no-brasil-colonia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-de-volta-as-aulas-2026-com-atividade-eu-sou-assim",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/lembrancinhas-dia-do-professor-para-imprimir-cartao-e-caixinhas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/atividade-identidade-educacao-infantil-eu-sou-assim",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/material-gratuito-cartao-dia-das-criancas-caracol",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/150-probleminhas-de-matematica-para-o-2-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/cabelo-maluco-unicornio-menina-pdf-educacao-infantil-e-ensino-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/atividades-para-o-dia-da-consciencia-negra-pintura-com-cotonete",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/caixa-musical-32-musicas-infantis",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/fichas-silabicas-recurso-ludico",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/jogo-das-onomatopeias",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/oficina-de-historia-em-quadrinhos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/painel-dia-dos-professores-15-de-outubro",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividade-ludica-sobre-a-africa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/atividade-meu-nome-e-roleta-do-alfabeto-para-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/quiz-do-meio-ambiente-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/cantinho-motivacional-outubro-rosa-fichas-e-decoracao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/sistema-solar-30-atividade-de-ciencias-para-9-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/encontre-as-silabas-recurso-interativo-de-alfabetizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/kit-outubro-rosa-plaquinhas-para-fotos-e-conscientizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/60-fichas-de-leitura",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-outubro-rosa-infantil-painel-lembrancinhas-e-atividades-para-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/atividade-gratuita-em-pdf-para-educacao-infantil-e-anos-iniciais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/novidade-para-treinar-a-letra-cursiva-chegou-a-apostila-treino-de-letra-cursiva-volume-1-um-material-colorido-atrativo-e-prontinho-para-imprimir-a-apostila-traz-10-textos-diferentes-cada-um-com-modelo-em-letra-cursiva-frases-em-formato-pontilhado-para-a-crianca-cobrir-e-linhas-para-continuar-praticando-a-escrita-os-textos-trabalham-temas-proximos-do-universo-infantil-como-jardim-cachorro-escola-dia-de-chuva-familia-piquenique-borboleta-biblioteca-passarinho-e-amizade-deixando-o-treino-muito-mais-leve-e-interessante-ideal-para-treinar-a-letra-cursiva-desenvolver-coordenacao-motora-fina-melhorar-tracado-organizacao-e-legibilidade-da-escrita-incentivar-leitura-e-copia-de-pequenas-frases-usar-em-sala-de-aula-reforco-escolar-ou-atividades-para-casa-material-com-11-paginas-incluindo-capa-10-fichas-de-treino-garanta-agora-a-sua-apostila-e-transforme-o-treino-da-letra-cursiva-em-uma-atividade-bonita-pratica-e-prazerosa-para-as-criancas-valor-7-0",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/bingo",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/primeiro-reinado-material-adaptado-atividadeprova",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/profkei-atividades-pedagogicas/produto/kit-paineis-alimentacao-saudavel-2",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/sacola-dos-textinhos-42-textos-curtos-e-ilustrados",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-vitamina-de-frutas-com-receita-ilustrada",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminha-do-saber/produto/livro-primeiros-estimulos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/picole-do-alfabeto",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/trabalhando-emocoes-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/avental-poetico-as-borboletas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/lembrancinha-dia-dos-professores-kit-com-porta-bis-porta-chocolate-e-porta-caneta",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/independencia-do-brasil-debate-historico-metodologia-ativa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/lapbook-dia-das-criancas-atividade-para-colorir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/decoracao-de-porta-tema-natal",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/marca-silabas-inclui-52-fichas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/a-casa-e-o-seu-dono-de-elias-jose",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/pintando-os-numeros-recurso-ludico",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/dia-dos-professores-kit-lembrancinhas-pdf-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/kit-lembrancinhas-dia-da-merendeira-merendeiro",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/painel-setembro-amarelo-um-painel-lindo-e-acolhedor-para-trabalhar-o-setembro-amarelo-na-escola-levando-para-as-criancas-uma-mensagem-de-amor-cuidado-valorizacao-da-vida-amizade-e-acolhimento-largura1-1m-a4-210-x-297-mm-altura1-1m-sao-24-paginas-prontinhas-para-imprimir-e-montar-ideal-para-decorar-a-escola-sala-de-aula-e-espacos-de-conscientizacao-material-colorido-encantador-e-preparado-com-muito-carinho-valor-apenas-r-8-00-porque-toda-vida-importa-e-toda-crianca-merece-se-sentir-acolhida-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-especial-neste-setembro-amarelo",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/encantamente-recursos-pedagogicos/produto/cartao-para-balao-dia-das-criancas-educacao-infantil-e-anos-iniciais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/painel-interativo-consciencia-negra",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/combo-era-vargas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/painel-consciencia-negra-educacao-infantil-kit-ampliado-para-imprimir-pdf",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/caca-letras-e-numeros",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/atividade-pratica-sistema-solar-recorte-monte-e-aprenda",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/bambole-outubro-rosa-para-fotos-decoracao-e-conscientizacao",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/contando-1-2-3-kit-numerais-de-0-a-10",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/cine-pipoca-kit-tematico-para-um-cineminha-especial",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-consciencia-negra",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/mercadinho-das-compras-aprender-brincando-fica-muito-mais-divertido",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/coisas-de-prof/produto/romero-britto-exercicios-e-atividades-para-colorir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/oficina-poetica-leilao-de-jardim",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/kit-de-lembrancinhas-para-o-dia-dos-professores-em-pdf",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/colonizacao-da-america-espanhola-atividade-prova-adaptada",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/pack-dia-das-bruxas-lembrancinhas-coroas-e-atividades",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/educarose/produto/jogo-dos-movimentos-atividade-pedagogica-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/presepio-3d-para-colorir-material-digital",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/painel-dia-nacional-da-familia",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/simulacao-eleitoral-2026-anos-iniciais",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/clube-das-continhas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/apostila-adaptada-grecia-antiga-guerras-medicas-guerra-de-peloponeso-e-periodo-helenistico",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/novembro-azul-na-escola-painel-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/kit-lembrancinhas-de-natal",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/caligrafia-palavras-para-alfabetizacao-atividades-de-escrita-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/avental-poetico-leilao-de-jardim",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/casinhas-das-silabas-atividade-de-alfabetizacao-para-imprimir",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/biscoito-da-leitura",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/as-partes-das-plantas-luva-interativa-atividades",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/pratica-experimental-de-ciencias-10-experimentos-para-o-ensino-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/turminhakids/produto/historinha-da-primavera-o-jardim-encantado-um-recurso-encantador-para-trabalhar-o-tema-primavera-de-forma-ludica-colorida-e-divertida-com-as-criancas-o-que-acompanha-historinha-da-primavera-em-plaquinhas-1-viseira-tematica-2-atividades-para-complementar-a-aprendizagem-plr-total-r-16-90-preco-para-venda-apenas-r-7-00-perfeito-para-momentos-de-contacao-de-historias-atividades-em-sala-e-para-deixar-a-chegada-da-primavera-ainda-mais-especi",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/desafio-das-4-operacoes-13-fichas-de-matematica-colorida",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/kit-personalidades-negras-que-inspiram",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/coisas-de-prof/produto/arte-primavera",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/kit-outubro-rosa",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/professorgamificado/produto/apostila-treino-letra-cursiva",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/universo-pedagogico-da-prof-lu/produto/situacoes-problemas-3-ao-5-ano",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/prof-lia-recursos-pedagogicos/produto/painel-consciencia-negra-pdf-32-paginas-educacao-infantil",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/digitaledujoycelemos/produto/zuzu-da-divisao-aprendendo-divisao-de-forma-divertida",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/ditado-molhado-atividade-ludica-de-leitura-e-escrita",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/loja-da-pro/produto/aniversariante-do-mes-e-do-dia-recursos-pedagogicos-com-moldura-e-plaquinhas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/cartoes-dia-dos-professores",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividadeavaliacao-adaptada-8-ano-sobre-periodo-joanino",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/buscandosaber/produto/atividades-ludicas-sobre-os-persas",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/portal-mae-profe/produto/apostila-de-treino-da-letra-cursiva",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/recursos-pedagogicos-da-prof/produto/a-cesta-da-dona-maricota-uma-deliciosa-aventura-nutritiva",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lumie-pedagogico/produto/lembrancinhas-de-halloween",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/lojinha-pedagogica-da-pro-vanessa/produto/tv-das-parlendas-recurso-ludico",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/bau-do-professor/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos",
+      "reason": "produto alternativo: canonical global único"
+    },
+    {
+      "path": "/loja/oficina-ludica-ciencias",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/pedagogogiali",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/bau-pedagogico",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/recursos-criativos7",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/doce-aprender-pedagogico-plr",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/hyper-light",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/saber-mais-recursos-pedagogicos",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/professor-gamificado",
+      "reason": "mudança no catálogo público desde a auditoria anterior"
+    },
+    {
+      "path": "/loja/atividade-criativa",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/educacao-ludica-nzur",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/loja/educacao-ludica",
+      "reason": "mudança no catálogo público desde a auditoria anterior"
+    },
+    {
+      "path": "/loja/layla-martins-atividades-pedagogicas",
+      "reason": "sem produtos publicados"
+    },
+    {
+      "path": "/categorias/biblia-historias-biblicas",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/educacao-financeira",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/planners-e-organizacao",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/religioso",
+      "reason": "canonical consolidado"
+    },
+    {
+      "path": "/categorias/portugues-literatura",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/historia-geografia",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/catequese",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/psicopedagogia",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/vestibular-enem",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/outros-conteudos",
+      "reason": "categoria genérica"
+    },
+    {
+      "path": "/categorias/ciencia-e-biologia",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/musica",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/caligrafia",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/material-adaptado",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/outros",
+      "reason": "categoria genérica"
+    },
+    {
+      "path": "/categorias/combo",
+      "reason": "categoria genérica"
+    },
+    {
+      "path": "/categorias/inclusao-acessibilidade",
+      "reason": "menos de 3 produtos publicados"
+    },
+    {
+      "path": "/categorias/geografia",
+      "reason": "menos de 3 produtos publicados"
+    }
+  ],
+  "emptyStores": [
+    {
+      "id": "0dec3453-1b0e-4be5-9224-891b63fa667c",
+      "nome_loja": "Baú Pedagógico",
+      "slug": "bau-pedagogico",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "1f7d2d28-e096-4f4f-b46e-2e0137269298",
+      "nome_loja": "Oficina Lúdica Ciências",
+      "slug": "oficina-ludica-ciencias",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "2c59bbb1-02b1-4f4b-b35d-0225a0bdb5ea",
+      "nome_loja": "pedagogiali",
+      "slug": "pedagogogiali",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "65e0a93b-c978-4337-8e35-fa7b48d87db8",
+      "nome_loja": "Recursos criativos7",
+      "slug": "recursos-criativos7",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "a31870bd-3d01-4d3c-ac4b-f9588b05dbc3",
+      "nome_loja": "DOCE APRENDER PEDAGOGICO PLR",
+      "slug": "doce-aprender-pedagogico-plr",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "ab33a52e-b015-4627-9154-1d9bff6df247",
+      "nome_loja": "Hyper Light",
+      "slug": "hyper-light",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "b00d2db8-c80c-4506-823c-d1b3272f5f0c",
+      "nome_loja": "Saber Mais Recursos Pedagógicos",
+      "slug": "saber-mais-recursos-pedagogicos",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "c34d6100-8423-4fe1-9b46-a95fe72bc2ee",
+      "nome_loja": "ATIVIDADE CRIATIVA",
+      "slug": "atividade-criativa",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "cc339567-acba-4656-86a0-503623d7ce62",
+      "nome_loja": "Educação Lúdica",
+      "slug": "educacao-ludica-nzur",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "fdf78e9c-7822-479c-9ce7-762b94123f91",
+      "nome_loja": "Layla Martins Atividades Pedagógicas",
+      "slug": "layla-martins-atividades-pedagogicas",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    }
+  ],
+  "duplicateStores": [],
+  "stores": [
+    {
+      "id": "04211704-018b-4971-8387-c3d24a9f0f7d",
+      "nome_loja": "Lojinha Pedagógica da Prô Vanessa",
+      "slug": "lojinha-pedagogica-da-pro-vanessa",
+      "count": 28,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "0dec3453-1b0e-4be5-9224-891b63fa667c",
+      "nome_loja": "Baú Pedagógico",
+      "slug": "bau-pedagogico",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "1233e74a-3b16-46c1-872a-a7b41a928893",
+      "nome_loja": "Buscando Saber",
+      "slug": "buscandosaber",
+      "count": 30,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "1f7d2d28-e096-4f4f-b46e-2e0137269298",
+      "nome_loja": "Oficina Lúdica Ciências",
+      "slug": "oficina-ludica-ciencias",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "2c59bbb1-02b1-4f4b-b35d-0225a0bdb5ea",
+      "nome_loja": "pedagogiali",
+      "slug": "pedagogogiali",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "2e2b2f35-3567-48f8-b23f-c1471658bd57",
+      "nome_loja": "Profkei atividades pedagógicas",
+      "slug": "profkei-atividades-pedagogicas",
+      "count": 7,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "30b9f350-5bcb-4aed-90ae-6f7d3f4bdeb5",
+      "nome_loja": "Encantamente Recursos Pedagógicos",
+      "slug": "encantamente-recursos-pedagogicos",
+      "count": 1,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "4e373dd9-8968-4805-9ac7-3ca99fe00e73",
+      "nome_loja": "Baú do professor",
+      "slug": "bau-do-professor",
+      "count": 12,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "4f058404-23bd-4f82-841e-6be95468d50a",
+      "nome_loja": "digitaledujoycelemos",
+      "slug": "digitaledujoycelemos",
+      "count": 10,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "55ed2392-c4e2-49fd-a469-439e39dd843b",
+      "nome_loja": "Loja da Prô",
+      "slug": "loja-da-pro",
+      "count": 51,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "5aa4855b-794b-45d1-a0c9-4798d48e92f2",
+      "nome_loja": "PROFESSOR GAMIFICADO",
+      "slug": "professorgamificado",
+      "count": 5,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "65e0a93b-c978-4337-8e35-fa7b48d87db8",
+      "nome_loja": "Recursos criativos7",
+      "slug": "recursos-criativos7",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "6cea29cb-8ba4-4ffe-957f-07b45b8e7c8e",
+      "nome_loja": "Turminha do Saber",
+      "slug": "turminha-do-saber",
+      "count": 2,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "892a0f6e-99b6-4cd4-b456-c1b08fbfa1ea",
+      "nome_loja": "PORTAL-MÃE&PROFE",
+      "slug": "portal-mae-profe",
+      "count": 15,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "89e2cc98-1cc1-4547-9f6d-a51a261fc995",
+      "nome_loja": "Recursos Pedagógicos da Prof",
+      "slug": "recursos-pedagogicos-da-prof",
+      "count": 29,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "a2e92c0f-c5ce-46e9-a72b-284c8d000183",
+      "nome_loja": "Turminhakids",
+      "slug": "turminhakids",
+      "count": 8,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "a31870bd-3d01-4d3c-ac4b-f9588b05dbc3",
+      "nome_loja": "DOCE APRENDER PEDAGOGICO PLR",
+      "slug": "doce-aprender-pedagogico-plr",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "ab33a52e-b015-4627-9154-1d9bff6df247",
+      "nome_loja": "Hyper Light",
+      "slug": "hyper-light",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "ad5bd4c0-d9d3-4ed4-9d09-eeccb659ee7b",
+      "nome_loja": "Recursos Pedagógicos da Profª Lia",
+      "slug": "prof-lia-recursos-pedagogicos",
+      "count": 12,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "ae09b6e1-f2dc-4efe-9630-fe2ca70c748d",
+      "nome_loja": "EDUCAROSE",
+      "slug": "educarose",
+      "count": 18,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "b00d2db8-c80c-4506-823c-d1b3272f5f0c",
+      "nome_loja": "Saber Mais Recursos Pedagógicos",
+      "slug": "saber-mais-recursos-pedagogicos",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "b3d76885-bf31-480d-94f8-b72854e0dd1f",
+      "nome_loja": "Coisas de Prof",
+      "slug": "coisas-de-prof",
+      "count": 5,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "b40df066-bc8d-47e9-882d-415aff0ee1a0",
+      "nome_loja": "Colorê Pedagógica.",
+      "slug": "colore-pedagogica",
+      "count": 2,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "b6feba97-3000-4b89-8509-9ef8ad5ce958",
+      "nome_loja": "Arquivos da Prô",
+      "slug": "arquivos-da-pro",
+      "count": 1,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "bcf655a5-c200-4d4d-b513-f3a889d7b9f6",
+      "nome_loja": "Lumiê Pedagógico",
+      "slug": "lumie-pedagogico",
+      "count": 4,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "c34d6100-8423-4fe1-9b46-a95fe72bc2ee",
+      "nome_loja": "ATIVIDADE CRIATIVA",
+      "slug": "atividade-criativa",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "c61cbea4-fa80-46a4-b2cf-2d9bc6befb76",
+      "nome_loja": "universo-pedagogico-da-prof.lu",
+      "slug": "universo-pedagogico-da-prof-lu",
+      "count": 23,
+      "indexable": true,
+      "reason": null
+    },
+    {
+      "id": "cc339567-acba-4656-86a0-503623d7ce62",
+      "nome_loja": "Educação Lúdica",
+      "slug": "educacao-ludica-nzur",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "fdf78e9c-7822-479c-9ce7-762b94123f91",
+      "nome_loja": "Layla Martins Atividades Pedagógicas",
+      "slug": "layla-martins-atividades-pedagogicas",
+      "count": 0,
+      "indexable": false,
+      "reason": "sem produtos publicados"
+    },
+    {
+      "id": "ffe991c4-dd5a-4597-bfd2-747ee77890b8",
+      "nome_loja": "Baú das Atividades",
+      "slug": "bau-das-atividades",
+      "count": 1,
+      "indexable": true,
+      "reason": null
+    }
+  ],
+  "categories": [
+    {
+      "slug": "alfabetizacao",
+      "canonicalSlug": "alfabetizacao",
+      "count": 112,
+      "combinedCount": 112,
+      "categoryIds": [
+        "2fcce9e2-3031-4255-8236-a76608c3ef96"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Alfabetização"
+    },
+    {
+      "slug": "educacao-infantil",
+      "canonicalSlug": "educacao-infantil",
+      "count": 97,
+      "combinedCount": 97,
+      "categoryIds": [
+        "2dc0e745-23e2-44f5-98c6-fdc0365636ad",
+        "702e158d-6083-4101-a901-878776bb272d",
+        "de7b337b-4c21-4dce-bce1-7e52b80755a8",
+        "ea028975-6f5a-404b-8012-a3fb3b77dedf"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação Infantil"
+    },
+    {
+      "slug": "atividades-ludicas",
+      "canonicalSlug": "atividades-ludicas",
+      "count": 94,
+      "combinedCount": 94,
+      "categoryIds": [
+        "38d00159-5601-496b-8894-e64c17f7fa50"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Atividades Lúdicas"
+    },
+    {
+      "slug": "ensino-fundamental",
+      "canonicalSlug": "ensino-fundamental",
+      "count": 91,
+      "combinedCount": 91,
+      "categoryIds": [
+        "3cbb80d3-b304-422a-896d-fa204cfae81c"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Ensino Fundamental"
+    },
+    {
+      "slug": "educacao-especial",
+      "canonicalSlug": "educacao-especial",
+      "count": 64,
+      "combinedCount": 64,
+      "categoryIds": [
+        "7c2e27e6-880e-4035-9a36-db51bf33e29a"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação Especial"
+    },
+    {
+      "slug": "datas-comemorativas",
+      "canonicalSlug": "datas-comemorativas",
+      "count": 60,
+      "combinedCount": 60,
+      "categoryIds": [
+        "0f2cd643-9a28-44d5-b832-097e26cc929f"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Datas Comemorativas"
+    },
+    {
+      "slug": "artes",
+      "canonicalSlug": "artes",
+      "count": 49,
+      "combinedCount": 49,
+      "categoryIds": [
+        "db4ecbc7-c9ae-49ab-bd4b-e1f176e3e1d2"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Artes"
+    },
+    {
+      "slug": "historia",
+      "canonicalSlug": "historia",
+      "count": 30,
+      "combinedCount": 30,
+      "categoryIds": [
+        "d2bcc434-d63e-465e-b396-fed5d34cce93"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "História"
+    },
+    {
+      "slug": "bncc",
+      "canonicalSlug": "bncc",
+      "count": 15,
+      "combinedCount": 15,
+      "categoryIds": [
+        "a5e8283f-a366-42aa-89b1-c885a2dbe66d"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "BNCC"
+    },
+    {
+      "slug": "matematica",
+      "canonicalSlug": "matematica",
+      "count": 13,
+      "combinedCount": 13,
+      "categoryIds": [
+        "58867b23-0dbd-4550-8fec-2d672f9bce77",
+        "7127e259-7a96-4f01-bd10-409f88a2aa26",
+        "e456f9fa-6023-4a2f-b175-8f855be25218"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Matemática"
+    },
+    {
+      "slug": "bercario",
+      "canonicalSlug": "bercario",
+      "count": 11,
+      "combinedCount": 11,
+      "categoryIds": [
+        "2bd9c13d-72b4-41bb-8f7b-b5f40f88a3df"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Berçário"
+    },
+    {
+      "slug": "outros",
+      "canonicalSlug": "outros",
+      "count": 9,
+      "combinedCount": 11,
+      "categoryIds": [
+        "7ca5cd39-d406-4677-a5c0-1753a8566252",
+        "7ef221ad-1f5b-4bcb-9eb1-c18ba520f92a",
+        "c815a8e4-4d96-413f-8224-761cdd7eaa3d",
+        "e1b8c807-baac-42a8-9c43-36b67c37be1c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "categoria genérica",
+      "name": "Outros"
+    },
+    {
+      "slug": "combo",
+      "canonicalSlug": "combo",
+      "count": 7,
+      "combinedCount": 7,
+      "categoryIds": [
+        "f2b36314-e594-4db1-a284-354a6c3aa25a"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "categoria genérica",
+      "name": "Combo"
+    },
+    {
+      "slug": "avaliacoes-simulados",
+      "canonicalSlug": "avaliacoes-simulados",
+      "count": 6,
+      "combinedCount": 6,
+      "categoryIds": [
+        "b4281517-41ef-4416-96ff-7e8bb0797a91"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Avaliações e Simulados"
+    },
+    {
+      "slug": "ciencias-biologia",
+      "canonicalSlug": "ciencias-biologia",
+      "count": 6,
+      "combinedCount": 6,
+      "categoryIds": [
+        "1b7b35ca-9c8d-43d4-abde-b26d24118e38",
+        "285193d9-4056-4b46-a8e6-9d6a1012adca",
+        "857d0457-4993-4473-94a5-ccec0c1453b8",
+        "92404743-f652-4ad0-bf84-b4924049694d"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Ciências & Biologia"
+    },
+    {
+      "slug": "educacao-socioemocional",
+      "canonicalSlug": "educacao-socioemocional",
+      "count": 6,
+      "combinedCount": 6,
+      "categoryIds": [
+        "3483f6b7-c4ae-4516-9ee2-dd23d8428ec4"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação Socioemocional"
+    },
+    {
+      "slug": "ensino-religioso",
+      "canonicalSlug": "ensino-religioso",
+      "count": 5,
+      "combinedCount": 5,
+      "categoryIds": [
+        "292e5c57-4724-4296-932b-c2ddfe9c503b",
+        "569cadeb-36ad-4492-bbf6-e07e482d7fcd"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Ensino Religioso"
+    },
+    {
+      "slug": "coordenacao-motora",
+      "canonicalSlug": "coordenacao-motora",
+      "count": 4,
+      "combinedCount": 4,
+      "categoryIds": [
+        "a158f234-57a5-4ea3-a2db-011d8674007a"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Coordenação Motora"
+    },
+    {
+      "slug": "educacao-crista",
+      "canonicalSlug": "educacao-crista",
+      "count": 4,
+      "combinedCount": 4,
+      "categoryIds": [
+        "797bb813-9728-49ba-9c6d-7143905a4b78"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação Cristã"
+    },
+    {
+      "slug": "eja",
+      "canonicalSlug": "eja",
+      "count": 4,
+      "combinedCount": 4,
+      "categoryIds": [
+        "5a35ad2a-bead-4837-9e63-1cb2abe5aab2"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação de Jovens e Adultos (EJA)"
+    },
+    {
+      "slug": "aep-abordagem-educacional-por-principios",
+      "canonicalSlug": "aep-abordagem-educacional-por-principios",
+      "count": 3,
+      "combinedCount": 3,
+      "categoryIds": [
+        "10869a31-a48c-4aa1-93ec-5576b1036c8e"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "AEP (Abordagem Educacional por Princípios)"
+    },
+    {
+      "slug": "educacao-crista-classica",
+      "canonicalSlug": "educacao-crista-classica",
+      "count": 3,
+      "combinedCount": 3,
+      "categoryIds": [
+        "68c10995-5877-4354-b769-2f4afb95541a"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Educação Cristã Clássica"
+    },
+    {
+      "slug": "escola-biblica-dominical",
+      "canonicalSlug": "escola-biblica-dominical",
+      "count": 3,
+      "combinedCount": 3,
+      "categoryIds": [
+        "6b6f750b-3266-4eca-8f4d-3f94d1a3e4ff"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Escola Bíblica Dominical"
+    },
+    {
+      "slug": "jogos",
+      "canonicalSlug": "jogos",
+      "count": 3,
+      "combinedCount": 3,
+      "categoryIds": [
+        "5672d703-2dd2-4b37-a600-2e2c33b0375a"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Jogos"
+    },
+    {
+      "slug": "ministerio-infantil",
+      "canonicalSlug": "ministerio-infantil",
+      "count": 3,
+      "combinedCount": 3,
+      "categoryIds": [
+        "c323037e-0693-4d78-9f09-50622009f43e"
+      ],
+      "indexable": true,
+      "inSitemap": true,
+      "reason": null,
+      "name": "Ministério Infantil"
+    },
+    {
+      "slug": "outros-conteudos",
+      "canonicalSlug": "outros",
+      "count": 3,
+      "combinedCount": 11,
+      "categoryIds": [
+        "7ca5cd39-d406-4677-a5c0-1753a8566252",
+        "7ef221ad-1f5b-4bcb-9eb1-c18ba520f92a",
+        "c815a8e4-4d96-413f-8224-761cdd7eaa3d",
+        "e1b8c807-baac-42a8-9c43-36b67c37be1c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "categoria genérica",
+      "name": "Outros Conteúdos"
+    },
+    {
+      "slug": "religioso",
+      "canonicalSlug": "ensino-religioso",
+      "count": 3,
+      "combinedCount": 5,
+      "categoryIds": [
+        "292e5c57-4724-4296-932b-c2ddfe9c503b",
+        "569cadeb-36ad-4492-bbf6-e07e482d7fcd"
+      ],
+      "indexable": true,
+      "inSitemap": false,
+      "reason": "canonical consolidado",
+      "name": "Religioso"
+    },
+    {
+      "slug": "biblia-historias-biblicas",
+      "canonicalSlug": "biblia-historias-biblicas",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "0d1fd255-9aaa-4397-b872-ff79a0e2c2d7"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Bíblia e Histórias Bíblicas"
+    },
+    {
+      "slug": "catequese",
+      "canonicalSlug": "catequese",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "62f1fcc2-7ad8-437b-a2db-e9aabcfa5cf6"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Catequese"
+    },
+    {
+      "slug": "educacao-financeira",
+      "canonicalSlug": "educacao-financeira",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "1bb34f6a-a46b-422b-b097-c96a77dbd910"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Educação Financeira"
+    },
+    {
+      "slug": "psicopedagogia",
+      "canonicalSlug": "psicopedagogia",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "7b0d9339-d5b0-41b7-b9a9-bd8137d8a136"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Psicopedagogia"
+    },
+    {
+      "slug": "caligrafia",
+      "canonicalSlug": "caligrafia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "bfece574-8952-4910-8229-86c70f709ca5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Caligrafia"
+    },
+    {
+      "slug": "ciencia-e-biologia",
+      "canonicalSlug": "ciencias-biologia",
+      "count": 1,
+      "combinedCount": 6,
+      "categoryIds": [
+        "1b7b35ca-9c8d-43d4-abde-b26d24118e38",
+        "285193d9-4056-4b46-a8e6-9d6a1012adca",
+        "857d0457-4993-4473-94a5-ccec0c1453b8",
+        "92404743-f652-4ad0-bf84-b4924049694d"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Ciência e Biologia"
+    },
+    {
+      "slug": "geografia",
+      "canonicalSlug": "geografia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "fd37a454-a6e8-43c7-b516-dabc3ab2b7e2"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Geografia"
+    },
+    {
+      "slug": "historia-geografia",
+      "canonicalSlug": "historia-geografia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "62aa519a-c641-477d-8851-e78ef9ff1444",
+        "7fa04ceb-4b67-4ec5-9509-502f53a7c6d3",
+        "f9905957-b2d5-4270-8c90-b5ba1d88ea3c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "História & Geografia"
+    },
+    {
+      "slug": "inclusao-acessibilidade",
+      "canonicalSlug": "inclusao-acessibilidade",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "f927a952-9611-430d-9316-f0c468740b4b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Inclusão e Acessibilidade"
+    },
+    {
+      "slug": "material-adaptado",
+      "canonicalSlug": "material-adaptado",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "bff7b71f-ce2e-44e6-b5f8-3f16b3dbb9ec"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Material adaptado"
+    },
+    {
+      "slug": "musica",
+      "canonicalSlug": "musica",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "96e862e4-4240-400e-ab7e-334f9999186b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Música"
+    },
+    {
+      "slug": "planners-e-organizacao",
+      "canonicalSlug": "planners-e-organizacao",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "19f1fcaf-5e25-4947-94a2-9c8889494a0c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Planners e Organização"
+    },
+    {
+      "slug": "portugues-literatura",
+      "canonicalSlug": "portugues-literatura",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "468589d6-43d1-46fa-b458-f4d7f7b8abbe",
+        "54084d89-a2b3-404a-ab55-9257b2849488",
+        "e9b008f0-82b4-4d79-bd7e-276a31cde46b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Português & Literatura"
+    },
+    {
+      "slug": "vestibular-enem",
+      "canonicalSlug": "vestibular-enem",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "13e19de4-a90a-41c8-9069-596beba3effb",
+        "316c06be-da69-4918-a701-61d95f11779c",
+        "818e7d8f-61de-427b-b349-4afe3215c217"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Vestibular & ENEM"
+    },
+    {
+      "slug": "concursos-publicos",
+      "canonicalSlug": "concursos-publicos",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "4152060a-f85f-4525-8a79-17b55ff50b3f",
+        "75688edd-3e68-4c6d-99c2-49a7c6cde709",
+        "9bb71edd-a716-4e6e-be87-b0a22901effc"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Concursos Públicos"
+    },
+    {
+      "slug": "educacao-fisica",
+      "canonicalSlug": "educacao-fisica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "b338060a-c775-46dc-b85a-f1f57cfc921a"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Educação Física"
+    },
+    {
+      "slug": "fisica-quimica",
+      "canonicalSlug": "fisica-quimica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "401a0326-dc55-4d7f-b02d-f91351c99409",
+        "9adad2fe-5a7d-43b3-9678-6dd49c983052",
+        "d5d01f65-586e-4157-aad3-51aef0ddbea5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Física & Química"
+    },
+    {
+      "slug": "formacao-de-professores",
+      "canonicalSlug": "formacao-de-professores",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "9cdbfa59-8781-4679-804c-58ee3396aea2"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Formação de Professores"
+    },
+    {
+      "slug": "gestao-escolar",
+      "canonicalSlug": "gestao-escolar",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "f5f56743-3e45-4bf8-bf69-ac55bba7b1ce"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Gestão Escolar"
+    },
+    {
+      "slug": "idiomas-ingles",
+      "canonicalSlug": "idiomas-ingles",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0a437dae-7cba-4919-830c-c0dfe5d77ce1",
+        "d195e58b-9dfa-4d3a-a333-764913c37ad3",
+        "eb3a3581-e0c2-4014-8ddd-4b1c4f9242e0"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Idiomas & Inglês"
+    },
+    {
+      "slug": "ingles",
+      "canonicalSlug": "ingles",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "99ae0569-47a0-4573-a24a-172a1a53dd6d"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Inglês"
+    },
+    {
+      "slug": "libras",
+      "canonicalSlug": "libras",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "e8faa10a-63d3-4f4e-ba7a-7ec42c90a882"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Libras"
+    },
+    {
+      "slug": "meio-ambiente-sustentabilidade",
+      "canonicalSlug": "meio-ambiente-sustentabilidade",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "2526791a-1a97-43f9-b7a0-f45739155147"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Meio Ambiente e Sustentabilidade"
+    },
+    {
+      "slug": "planos-de-aula",
+      "canonicalSlug": "planos-de-aula",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "4e503f70-7948-43ee-8fa1-cd9efa4e1057"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Planos de Aula"
+    },
+    {
+      "slug": "projetos-sequencias-didaticas",
+      "canonicalSlug": "projetos-sequencias-didaticas",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "72becbdf-3ec0-46ea-b928-3310481927c5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Projetos e Sequências Didáticas"
+    },
+    {
+      "slug": "raciocinio-logico",
+      "canonicalSlug": "raciocinio-logico",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "d9c7bbb1-1974-4ec3-a256-3193366bbb27"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Raciocínio Lógico"
+    },
+    {
+      "slug": "redacao-1000",
+      "canonicalSlug": "redacao-1000",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "3a92e973-35b8-43c5-bd45-be872417ea22",
+        "40d8acb2-9a6c-4bfd-8936-cba17defdcc0",
+        "da46083f-3372-4aee-823a-97841864bf0e"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Redação 1000"
+    },
+    {
+      "slug": "redacao-producao-textual",
+      "canonicalSlug": "redacao-producao-textual",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0d878bd2-e3c3-4e20-bc68-a7724061ded4"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Redação e Produção Textual"
+    },
+    {
+      "slug": "robotica-programacao",
+      "canonicalSlug": "robotica-programacao",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0be9e252-a900-4244-9429-ebb620435036"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Robótica e Programação"
+    },
+    {
+      "slug": "tecnologia-informatica",
+      "canonicalSlug": "tecnologia-informatica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "aa29b9f9-763e-445d-bde5-04c294518236"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Tecnologia e Informática"
+    }
+  ],
+  "thinCategories": [
+    {
+      "slug": "biblia-historias-biblicas",
+      "canonicalSlug": "biblia-historias-biblicas",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "0d1fd255-9aaa-4397-b872-ff79a0e2c2d7"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Bíblia e Histórias Bíblicas"
+    },
+    {
+      "slug": "catequese",
+      "canonicalSlug": "catequese",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "62f1fcc2-7ad8-437b-a2db-e9aabcfa5cf6"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Catequese"
+    },
+    {
+      "slug": "educacao-financeira",
+      "canonicalSlug": "educacao-financeira",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "1bb34f6a-a46b-422b-b097-c96a77dbd910"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Educação Financeira"
+    },
+    {
+      "slug": "psicopedagogia",
+      "canonicalSlug": "psicopedagogia",
+      "count": 2,
+      "combinedCount": 2,
+      "categoryIds": [
+        "7b0d9339-d5b0-41b7-b9a9-bd8137d8a136"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Psicopedagogia"
+    },
+    {
+      "slug": "caligrafia",
+      "canonicalSlug": "caligrafia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "bfece574-8952-4910-8229-86c70f709ca5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Caligrafia"
+    },
+    {
+      "slug": "ciencia-e-biologia",
+      "canonicalSlug": "ciencias-biologia",
+      "count": 1,
+      "combinedCount": 6,
+      "categoryIds": [
+        "1b7b35ca-9c8d-43d4-abde-b26d24118e38",
+        "285193d9-4056-4b46-a8e6-9d6a1012adca",
+        "857d0457-4993-4473-94a5-ccec0c1453b8",
+        "92404743-f652-4ad0-bf84-b4924049694d"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Ciência e Biologia"
+    },
+    {
+      "slug": "geografia",
+      "canonicalSlug": "geografia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "fd37a454-a6e8-43c7-b516-dabc3ab2b7e2"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Geografia"
+    },
+    {
+      "slug": "historia-geografia",
+      "canonicalSlug": "historia-geografia",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "62aa519a-c641-477d-8851-e78ef9ff1444",
+        "7fa04ceb-4b67-4ec5-9509-502f53a7c6d3",
+        "f9905957-b2d5-4270-8c90-b5ba1d88ea3c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "História & Geografia"
+    },
+    {
+      "slug": "inclusao-acessibilidade",
+      "canonicalSlug": "inclusao-acessibilidade",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "f927a952-9611-430d-9316-f0c468740b4b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Inclusão e Acessibilidade"
+    },
+    {
+      "slug": "material-adaptado",
+      "canonicalSlug": "material-adaptado",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "bff7b71f-ce2e-44e6-b5f8-3f16b3dbb9ec"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Material adaptado"
+    },
+    {
+      "slug": "musica",
+      "canonicalSlug": "musica",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "96e862e4-4240-400e-ab7e-334f9999186b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Música"
+    },
+    {
+      "slug": "planners-e-organizacao",
+      "canonicalSlug": "planners-e-organizacao",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "19f1fcaf-5e25-4947-94a2-9c8889494a0c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Planners e Organização"
+    },
+    {
+      "slug": "portugues-literatura",
+      "canonicalSlug": "portugues-literatura",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "468589d6-43d1-46fa-b458-f4d7f7b8abbe",
+        "54084d89-a2b3-404a-ab55-9257b2849488",
+        "e9b008f0-82b4-4d79-bd7e-276a31cde46b"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Português & Literatura"
+    },
+    {
+      "slug": "vestibular-enem",
+      "canonicalSlug": "vestibular-enem",
+      "count": 1,
+      "combinedCount": 1,
+      "categoryIds": [
+        "13e19de4-a90a-41c8-9069-596beba3effb",
+        "316c06be-da69-4918-a701-61d95f11779c",
+        "818e7d8f-61de-427b-b349-4afe3215c217"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Vestibular & ENEM"
+    },
+    {
+      "slug": "concursos-publicos",
+      "canonicalSlug": "concursos-publicos",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "4152060a-f85f-4525-8a79-17b55ff50b3f",
+        "75688edd-3e68-4c6d-99c2-49a7c6cde709",
+        "9bb71edd-a716-4e6e-be87-b0a22901effc"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Concursos Públicos"
+    },
+    {
+      "slug": "educacao-fisica",
+      "canonicalSlug": "educacao-fisica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "b338060a-c775-46dc-b85a-f1f57cfc921a"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Educação Física"
+    },
+    {
+      "slug": "fisica-quimica",
+      "canonicalSlug": "fisica-quimica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "401a0326-dc55-4d7f-b02d-f91351c99409",
+        "9adad2fe-5a7d-43b3-9678-6dd49c983052",
+        "d5d01f65-586e-4157-aad3-51aef0ddbea5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Física & Química"
+    },
+    {
+      "slug": "formacao-de-professores",
+      "canonicalSlug": "formacao-de-professores",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "9cdbfa59-8781-4679-804c-58ee3396aea2"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Formação de Professores"
+    },
+    {
+      "slug": "gestao-escolar",
+      "canonicalSlug": "gestao-escolar",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "f5f56743-3e45-4bf8-bf69-ac55bba7b1ce"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Gestão Escolar"
+    },
+    {
+      "slug": "idiomas-ingles",
+      "canonicalSlug": "idiomas-ingles",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0a437dae-7cba-4919-830c-c0dfe5d77ce1",
+        "d195e58b-9dfa-4d3a-a333-764913c37ad3",
+        "eb3a3581-e0c2-4014-8ddd-4b1c4f9242e0"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Idiomas & Inglês"
+    },
+    {
+      "slug": "ingles",
+      "canonicalSlug": "ingles",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "99ae0569-47a0-4573-a24a-172a1a53dd6d"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Inglês"
+    },
+    {
+      "slug": "libras",
+      "canonicalSlug": "libras",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "e8faa10a-63d3-4f4e-ba7a-7ec42c90a882"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Libras"
+    },
+    {
+      "slug": "meio-ambiente-sustentabilidade",
+      "canonicalSlug": "meio-ambiente-sustentabilidade",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "2526791a-1a97-43f9-b7a0-f45739155147"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Meio Ambiente e Sustentabilidade"
+    },
+    {
+      "slug": "planos-de-aula",
+      "canonicalSlug": "planos-de-aula",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "4e503f70-7948-43ee-8fa1-cd9efa4e1057"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Planos de Aula"
+    },
+    {
+      "slug": "projetos-sequencias-didaticas",
+      "canonicalSlug": "projetos-sequencias-didaticas",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "72becbdf-3ec0-46ea-b928-3310481927c5"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Projetos e Sequências Didáticas"
+    },
+    {
+      "slug": "raciocinio-logico",
+      "canonicalSlug": "raciocinio-logico",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "d9c7bbb1-1974-4ec3-a256-3193366bbb27"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Raciocínio Lógico"
+    },
+    {
+      "slug": "redacao-1000",
+      "canonicalSlug": "redacao-1000",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "3a92e973-35b8-43c5-bd45-be872417ea22",
+        "40d8acb2-9a6c-4bfd-8936-cba17defdcc0",
+        "da46083f-3372-4aee-823a-97841864bf0e"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Redação 1000"
+    },
+    {
+      "slug": "redacao-producao-textual",
+      "canonicalSlug": "redacao-producao-textual",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0d878bd2-e3c3-4e20-bc68-a7724061ded4"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Redação e Produção Textual"
+    },
+    {
+      "slug": "robotica-programacao",
+      "canonicalSlug": "robotica-programacao",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "0be9e252-a900-4244-9429-ebb620435036"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Robótica e Programação"
+    },
+    {
+      "slug": "tecnologia-informatica",
+      "canonicalSlug": "tecnologia-informatica",
+      "count": 0,
+      "combinedCount": 0,
+      "categoryIds": [
+        "aa29b9f9-763e-445d-bde5-04c294518236"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Tecnologia e Informática"
+    }
+  ],
+  "consolidatedCategories": [
+    {
+      "slug": "outros-conteudos",
+      "canonicalSlug": "outros",
+      "count": 3,
+      "combinedCount": 11,
+      "categoryIds": [
+        "7ca5cd39-d406-4677-a5c0-1753a8566252",
+        "7ef221ad-1f5b-4bcb-9eb1-c18ba520f92a",
+        "c815a8e4-4d96-413f-8224-761cdd7eaa3d",
+        "e1b8c807-baac-42a8-9c43-36b67c37be1c"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "categoria genérica",
+      "name": "Outros Conteúdos"
+    },
+    {
+      "slug": "religioso",
+      "canonicalSlug": "ensino-religioso",
+      "count": 3,
+      "combinedCount": 5,
+      "categoryIds": [
+        "292e5c57-4724-4296-932b-c2ddfe9c503b",
+        "569cadeb-36ad-4492-bbf6-e07e482d7fcd"
+      ],
+      "indexable": true,
+      "inSitemap": false,
+      "reason": "canonical consolidado",
+      "name": "Religioso"
+    },
+    {
+      "slug": "ciencia-e-biologia",
+      "canonicalSlug": "ciencias-biologia",
+      "count": 1,
+      "combinedCount": 6,
+      "categoryIds": [
+        "1b7b35ca-9c8d-43d4-abde-b26d24118e38",
+        "285193d9-4056-4b46-a8e6-9d6a1012adca",
+        "857d0457-4993-4473-94a5-ccec0c1453b8",
+        "92404743-f652-4ad0-bf84-b4924049694d"
+      ],
+      "indexable": false,
+      "inSitemap": false,
+      "reason": "menos de 3 produtos publicados",
+      "name": "Ciência e Biologia"
+    }
+  ],
+  "repeatedCategorySlugs": [
+    {
+      "slug": "idiomas-ingles",
+      "records": [
+        {
+          "id": "0a437dae-7cba-4919-830c-c0dfe5d77ce1",
+          "name": "Idiomas & Inglês",
+          "count": 0
+        },
+        {
+          "id": "d195e58b-9dfa-4d3a-a333-764913c37ad3",
+          "name": "Idiomas & Inglês",
+          "count": 0
+        },
+        {
+          "id": "eb3a3581-e0c2-4014-8ddd-4b1c4f9242e0",
+          "name": "Idiomas & Inglês",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "vestibular-enem",
+      "records": [
+        {
+          "id": "13e19de4-a90a-41c8-9069-596beba3effb",
+          "name": "Vestibular & ENEM",
+          "count": 0
+        },
+        {
+          "id": "316c06be-da69-4918-a701-61d95f11779c",
+          "name": "Vestibular & ENEM",
+          "count": 0
+        },
+        {
+          "id": "818e7d8f-61de-427b-b349-4afe3215c217",
+          "name": "Vestibular & ENEM",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "slug": "ciencias-biologia",
+      "records": [
+        {
+          "id": "1b7b35ca-9c8d-43d4-abde-b26d24118e38",
+          "name": "Ciências & Biologia",
+          "count": 0
+        },
+        {
+          "id": "285193d9-4056-4b46-a8e6-9d6a1012adca",
+          "name": "Ciências & Biologia",
+          "count": 6
+        },
+        {
+          "id": "92404743-f652-4ad0-bf84-b4924049694d",
+          "name": "Ciências & Biologia",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "educacao-infantil",
+      "records": [
+        {
+          "id": "2dc0e745-23e2-44f5-98c6-fdc0365636ad",
+          "name": "Educação Infantil",
+          "count": 65
+        },
+        {
+          "id": "702e158d-6083-4101-a901-878776bb272d",
+          "name": "Educação Infantil",
+          "count": 2
+        },
+        {
+          "id": "de7b337b-4c21-4dce-bce1-7e52b80755a8",
+          "name": "Educação Infantil",
+          "count": 4
+        },
+        {
+          "id": "ea028975-6f5a-404b-8012-a3fb3b77dedf",
+          "name": "Educação Infantil",
+          "count": 31
+        }
+      ]
+    },
+    {
+      "slug": "redacao-1000",
+      "records": [
+        {
+          "id": "3a92e973-35b8-43c5-bd45-be872417ea22",
+          "name": "Redação 1000",
+          "count": 0
+        },
+        {
+          "id": "40d8acb2-9a6c-4bfd-8936-cba17defdcc0",
+          "name": "Redação 1000",
+          "count": 0
+        },
+        {
+          "id": "da46083f-3372-4aee-823a-97841864bf0e",
+          "name": "Redação 1000",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "fisica-quimica",
+      "records": [
+        {
+          "id": "401a0326-dc55-4d7f-b02d-f91351c99409",
+          "name": "Física & Química",
+          "count": 0
+        },
+        {
+          "id": "9adad2fe-5a7d-43b3-9678-6dd49c983052",
+          "name": "Física & Química",
+          "count": 0
+        },
+        {
+          "id": "d5d01f65-586e-4157-aad3-51aef0ddbea5",
+          "name": "Física & Química",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "concursos-publicos",
+      "records": [
+        {
+          "id": "4152060a-f85f-4525-8a79-17b55ff50b3f",
+          "name": "Concursos Públicos",
+          "count": 0
+        },
+        {
+          "id": "75688edd-3e68-4c6d-99c2-49a7c6cde709",
+          "name": "Concursos Públicos",
+          "count": 0
+        },
+        {
+          "id": "9bb71edd-a716-4e6e-be87-b0a22901effc",
+          "name": "Concursos Públicos",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "portugues-literatura",
+      "records": [
+        {
+          "id": "468589d6-43d1-46fa-b458-f4d7f7b8abbe",
+          "name": "Português & Literatura",
+          "count": 1
+        },
+        {
+          "id": "54084d89-a2b3-404a-ab55-9257b2849488",
+          "name": "Português & Literatura",
+          "count": 0
+        },
+        {
+          "id": "e9b008f0-82b4-4d79-bd7e-276a31cde46b",
+          "name": "Português & Literatura",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "matematica",
+      "records": [
+        {
+          "id": "58867b23-0dbd-4550-8fec-2d672f9bce77",
+          "name": "Matemática",
+          "count": 3
+        },
+        {
+          "id": "7127e259-7a96-4f01-bd10-409f88a2aa26",
+          "name": "Matemática",
+          "count": 2
+        },
+        {
+          "id": "e456f9fa-6023-4a2f-b175-8f855be25218",
+          "name": "Matemática",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "slug": "historia-geografia",
+      "records": [
+        {
+          "id": "62aa519a-c641-477d-8851-e78ef9ff1444",
+          "name": "História & Geografia",
+          "count": 1
+        },
+        {
+          "id": "7fa04ceb-4b67-4ec5-9509-502f53a7c6d3",
+          "name": "História & Geografia",
+          "count": 0
+        },
+        {
+          "id": "f9905957-b2d5-4270-8c90-b5ba1d88ea3c",
+          "name": "História & Geografia",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "slug": "outros-conteudos",
+      "records": [
+        {
+          "id": "7ca5cd39-d406-4677-a5c0-1753a8566252",
+          "name": "Outros Conteúdos",
+          "count": 0
+        },
+        {
+          "id": "7ef221ad-1f5b-4bcb-9eb1-c18ba520f92a",
+          "name": "Outros Conteúdos",
+          "count": 1
+        },
+        {
+          "id": "e1b8c807-baac-42a8-9c43-36b67c37be1c",
+          "name": "Outros Conteúdos",
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "topTen": [
+    {
+      "slug": "alfabetizacao",
+      "count": 112,
+      "words": 194
+    },
+    {
+      "slug": "educacao-infantil",
+      "count": 97,
+      "words": 196
+    },
+    {
+      "slug": "atividades-ludicas",
+      "count": 94,
+      "words": 195
+    },
+    {
+      "slug": "ensino-fundamental",
+      "count": 91,
+      "words": 199
+    },
+    {
+      "slug": "educacao-especial",
+      "count": 64,
+      "words": 196
+    },
+    {
+      "slug": "datas-comemorativas",
+      "count": 60,
+      "words": 196
+    },
+    {
+      "slug": "artes",
+      "count": 49,
+      "words": 202
+    },
+    {
+      "slug": "historia",
+      "count": 30,
+      "words": 197
+    },
+    {
+      "slug": "bncc",
+      "count": 15,
+      "words": 203
+    },
+    {
+      "slug": "matematica",
+      "count": 13,
+      "words": 200
+    }
+  ],
+  "verification": {
+    "checkedAt": "2026-10-17T02:49:08.323Z",
+    "publicPages": 378,
+    "recheckedPages": 18,
+    "policyChecks": 94,
+    "published": false,
+    "lintErrors": 0,
+    "lintWarnings": 17,
+    "productionBuild": "passed: Cloudflare dry-run",
+    "typecheck": "passed",
+    "generalRegressionSuite": "passed: npm run test:verify",
+    "seoTests": "passed"
+  }
+}

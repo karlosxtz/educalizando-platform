@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const base = process.env.SEO_LOCAL_URL || 'http://127.0.0.1:3004';
 const canonical = 'https://www.educalizando.com.br';
 const report = { base, checkedAt: new Date().toISOString(), pages: [], errors: [] };
+const previous = process.env.SEO_AUDIT_RECHECK ? JSON.parse(fs.readFileSync('.cloudflare/seo-local-report.json', 'utf8')) : null;
 const entity = value => (value || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'");
 async function read(path) {
   const response = await fetch(base + path, { headers: { 'User-Agent': 'Googlebot' }, signal: AbortSignal.timeout(90000), redirect: 'manual' });
@@ -28,8 +29,9 @@ try {
   assert(urls.every(url => new URL(url).origin === canonical));
   assert(!urls.some(url => /\/(?:dashboard|admin|aluno|api|checkout)(?:\/|$)/.test(new URL(url).pathname)));
   report.sitemapUrls = urls.length;
+  assert(!urls.some(url => /\/loja\/[^/]+\/produto\//.test(url)), 'Store-context products must not enter sitemap');
   const dynamic = ['^/loja/[^/]+$', '^/produto/', '^/loja/[^/]+/produto/', '^/blog/'].map(pattern => urls.find(url => new RegExp(pattern).test(new URL(url).pathname))).filter(Boolean);
-  const paths = [...new Set([
+  let paths = [...new Set([
     '/', '/sobre', '/lojas', '/blog', '/materiais-didaticos', '/recursos-pedagogicos',
     '/atividades-alfabetizacao', '/educacao-infantil', '/jogos-pedagogicos', '/planos-de-aula-bncc',
     '/calendario', '/glossario', '/materiais-gratis', '/ofertas', '/atividades-por-ano', '/ajuda', '/termos', '/privacidade',
@@ -37,6 +39,15 @@ try {
   ])];
   if (process.env.SEO_AUDIT_ALL === '1') {
     for (const url of urls) if (!paths.includes(new URL(url).pathname)) paths.push(new URL(url).pathname);
+  }
+  if (previous) {
+    assert.equal(previous.base, base, 'Recheck must use the same local server');
+    assert.equal(previous.sitemapUrls, urls.length, 'Catalogue changed: run a full audit');
+    assert(previous.errors.every(item => item.path || item.error.startsWith('All public metadata checks')), 'Non-page failure requires a full audit');
+    paths = [...new Set(previous.errors.map(item => item.path).filter(Boolean))];
+    report.pages = previous.pages.filter(page => !paths.includes(page.path));
+    report.initialAuditAt = previous.initialAuditAt || previous.checkedAt;
+    report.recheckedPaths = paths;
   }
   const pending = [...paths];
   async function checkNext() { while (pending.length) { const path = pending.shift(); await checkPage(path); } }
@@ -49,10 +60,13 @@ try {
       const url = attribute(response.body, /\brel="canonical"/, 'href');
       const page = { path, title, description, canonical: url };
       report.pages.push(page);
-      assert(title && title.length <= 60, path + ' title length ' + title.length);
-      assert(description && description.length <= 155, path + ' description length ' + description.length);
+      const namedPage = /^\/(?:produto\/|loja\/[^/]+$)/.test(path);
+      assert(title && (title.length <= 60 || namedPage), path + ' title length ' + title.length);
+      if (namedPage) assert(!title.includes('…'), path + ' registered name was cut');
+      assert(description && (description.length <= 155 || namedPage), path + ' description length ' + description.length);
       assert.equal(new URL(url).href, new URL(path, canonical).href, path + ' canonical');
       assert(attribute(response.body, /\bproperty="og:image"/), path + ' OG image');
+      assert(!/noindex/.test(attribute(response.body, /\bname="robots"/)), path + ' noindex URL in sitemap');
       assert.equal(attribute(response.body, /\bname="twitter:card"/), 'summary_large_image', path + ' Twitter');
       if (path === '/') {
         assert.match(title, /^Educalizando/);

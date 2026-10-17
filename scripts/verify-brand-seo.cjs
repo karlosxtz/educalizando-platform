@@ -47,7 +47,7 @@ async function main() {
   assert.match(html, /href="\/lojas"/);
   assert(!fs.readFileSync('src/components/StoreCard.tsx', 'utf8').includes('5.0'));
 
-  const stores = [{ id: 'store', slug: 'exemplo' }];
+  const stores = [{ id: 'store', nome_loja: 'Exemplo', slug: 'exemplo' }];
   const products = Array.from({ length: 1001 }, (_, i) => ({ id: String(i).padStart(5, '0'), store_id: 'store', slug: 'material-' + i, status: 'publicado', excluido_em: null }));
   products.push({ id: 'draft', store_id: 'store', slug: 'rascunho', status: 'rascunho', excluido_em: null });
   products.push({ id: 'deleted', store_id: 'store', slug: 'excluido', status: 'publicado', excluido_em: '2026-01-01' });
@@ -71,14 +71,16 @@ async function main() {
     }; return q;
   } };
   const pagination = load('src/lib/sitemap-pagination.ts');
-  const sitemapLib = load('src/lib/catalog-sitemap.ts', { '@/lib/seo': seo, '@/lib/supabase': { supabase: db }, '@/lib/sitemap-pagination': pagination });
+  const policy = load('src/lib/seo-index-policy.ts');
+  const publicCatalog = load('src/lib/seo-public-catalog.ts', { './supabase': { supabase: db }, './sitemap-pagination': pagination, './seo-index-policy': policy, react: { cache: fn => fn }, 'next/cache': { unstable_cache: fn => fn } });
+  const sitemapLib = load('src/lib/catalog-sitemap.ts', { '@/lib/seo': seo, '@/lib/supabase': { supabase: db }, '@/lib/sitemap-pagination': pagination, '@/lib/seo-public-catalog': publicCatalog });
   const sitemap = load('src/app/sitemap.ts', {
     '@/lib/catalog-sitemap': sitemapLib, '@/lib/seo': seo,
     '@/lib/glossary': { glossaryTerms: [] }, '@/lib/seo-landings': { seoLandings: {} }, '@/lib/school-calendar': { SCHOOL_CALENDAR_EVENTS: [] },
   });
   const entries = await sitemap.default();
   assert(entries.some(row => row.url.endsWith('/produto/material-1000')), 'Pagination must exceed the Supabase default 1000 rows');
-  assert(entries.some(row => row.url.endsWith('/loja/exemplo/produto/material-1000')));
+  assert(!entries.some(row => row.url.includes('/loja/exemplo/produto/')));
   assert.equal(entries.filter(row => /rascunho|excluido|loja-oculta/.test(row.url)).length, 0);
   assert.equal(new Set(entries.map(row => row.url)).size, entries.length);
   const reviews = load('src/lib/product-review-summary.ts', { './supabase': { supabase: db }, react: { cache: fn => fn } });
@@ -91,9 +93,9 @@ async function main() {
   const absent = await reviews.readPublicReviewSummary('real');
   assert.equal(catalog.productStructuredData({ ...product, ...absent }, { nome_loja: 'Exemplo', slug: 'exemplo' }).aggregateRating, undefined);
   const storeMeta = catalog.productMetadata(product, false, { nome_loja: 'Exemplo', slug: 'exemplo' });
-  assert.equal(storeMeta.alternates.canonical, seo.SITE_URL + '/loja/exemplo/produto/material');
-  assert.notEqual(storeMeta.title, catalog.productMetadata(product).title);
-  assert.notEqual(storeMeta.description, catalog.productMetadata(product).description);
+  assert.equal(storeMeta.alternates.canonical, seo.SITE_URL + '/produto/material');
+  assert.equal(storeMeta.title, catalog.productMetadata(product).title);
+  assert.equal(storeMeta.description, catalog.productMetadata(product).description);
   let candidates = [];
   const identityDb = { from() { const q = { select() { return this; }, in() { return this; }, is() { return this; }, eq() { return this; }, neq() { return this; }, ilike() { return this; }, limit: async () => ({ data: candidates, error: null }) }; return q; } };
   const identity = load('src/lib/seo-identity.ts', { './supabase': { supabase: identityDb }, './page-seo': pages });
@@ -106,7 +108,7 @@ async function main() {
   assert.notEqual(first.description, second.description);
   assert(first.title.length <= 60 && first.description.length <= 155);
   const long = { ...product, titulo: 'Texto cadastrado muito longo '.repeat(15) };
-  assert.notEqual(catalog.productMetadata(long).description, catalog.productMetadata(long, false, { nome_loja: 'Exemplo', slug: 'exemplo' }).description);
+  assert.equal(catalog.productMetadata(long).description, catalog.productMetadata(long, false, { nome_loja: 'Exemplo', slug: 'exemplo' }).description);
   assert.equal(await identity.readSeoStoreHandle({ id: 'store', nome_loja: 'Exemplo', slug: 'exemplo' }), 'exemplo');
   const status = load('src/lib/public-document-status.ts', { './supabase': { supabase: db }, './product-read-service': { getPublicProductsByStoreId: async () => [] } });
   assert.equal(await status.publicDocumentStatus('/produto/material-0'), 200);

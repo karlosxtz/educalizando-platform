@@ -15,7 +15,8 @@ for (const [path, entry] of Object.entries(PAGE_SEO)) {
   assert.equal(pageMetadata(path).alternates?.canonical, new URL(path, 'https://www.educalizando.com.br').href);
 }
 assert.equal(failures, 0, 'Metadados fora dos limites');
-assert(shortSeoTitle('Título '.repeat(40)).length <= 60);
+assert.equal(shortSeoTitle('Título '.repeat(40)), 'Título '.repeat(40).trim());
+assert.equal(shortSeoTitle('Nome completo da loja sem cortes', ' | Materiais Didáticos | Educalizando'), 'Nome completo da loja sem cortes | Educalizando');
 assert.equal(productSeoDescription('Produto', '<p>Curto</p>'), 'Curto');
 assert(productSeoDescription('Produto', 'a'.repeat(200)).length <= 155);
 const suffix = ' | Materiais Didáticos | Educalizando';
@@ -23,7 +24,12 @@ assert.notEqual(shortSeoTitle('Recursos Pedagógicos da Prof', suffix, true), sh
 for (const name of ['Loja', 'Recursos Pedagógicos da Prof', 'Recursos Pedagógicos da Profª Lia', 'Nome extenso '.repeat(10)]) {
   for (const category of ['Artes', 'Educação Cristã Clássica', 'Datas Comemorativas']) {
     const text = storeSeoDescription(name, 12, category);
-    assert(text.length >= 140 && text.length <= 155, `${name}: ${text.length}`);
+    assert(text.includes(name.trim()), 'Nome completo preservado');
+    assert(!text.includes('…'));
+    assert(text.length <= 155 || name.length > 100);
   }
 }
 console.log(`${titles.size} páginas com títulos e descrições únicos; canonical e regras dinâmicas validadas.`);
+
+assert.match(storeSeoDescription('Loja', 1, 'Artes'), /1 material didático\./);
+assert.match(storeSeoDescription('Loja', 2, 'Artes'), /2 materiais didáticos\./);
