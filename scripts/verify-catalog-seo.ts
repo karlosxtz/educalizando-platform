@@ -18,7 +18,7 @@ assert.equal(standard.offers?.seller.name, store.nome_loja);
 assert.equal(standard.brand.name, store.nome_loja);
 assert.equal(productMetadata(product).alternates?.canonical, productMetadata(product, true).alternates?.canonical);
 assert.equal(productMetadata(product).robots && typeof productMetadata(product).robots === 'object' ? (productMetadata(product).robots as { index: boolean }).index : false, true);
-assert.equal(productMetadata({ ...product, plr_descricao: 'Termos reais da licença de revenda.' }, true).description, 'Jogo de leitura. Termos reais da licença de revenda.');
+assert.equal(productMetadata({ ...product, plr_descricao: 'Termos reais da licença de revenda.' }, true).description, 'Termos reais da licença de revenda.');
 assert.equal(productSeoDescription('Título', '<script>nao incluir</script><p>Texto real &quot;curto&quot;.</p>'), 'Texto real "curto".');
 assert.equal(productStructuredData({ ...product, descricao: 'Conteúdo completo. '.repeat(30) }, store).description.length > 160, true);
 assert.notEqual(productStructuredData(product, store, true)['@id'], standard['@id']);

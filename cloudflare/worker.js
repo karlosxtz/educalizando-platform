@@ -6,6 +6,7 @@ import { fetchPublicPage, publicPageCacheKey } from './public-page-cache.js';
 import { readPublicCacheRevision } from './cache-revision.js';
 import { rejectScannerRequest } from './traffic-guard.js';
 import { catalogImageResponse } from './catalog-image-cache.js';
+import { legacyProductRedirect } from '../src/lib/legacy-product-urls.ts';
 export * from 'vinext/server/fetch-handler';
 
 export default {
@@ -19,6 +20,8 @@ export default {
   async fetch(request, env, ctx) {
     const canonical = canonicalHostRedirect(request);
     if (canonical) return canonical;
+    const legacy = legacyProductRedirect(request);
+    if (legacy) return legacy;
     const rejected = rejectScannerRequest(request);
     if (rejected) return rejected;
     if (new URL(request.url).pathname.startsWith('/_next/static/')) return env.ASSETS.fetch(request);

@@ -48,8 +48,8 @@ export const PAGE_SEO: Record<string, { title: string; description: string; keyw
     keywords: ['atividades para berçário e maternal', 'brincadeiras para bebês', 'educação infantil'],
   },
   '/atividades-para-imprimir': {
-    title: 'Atividades pedagógicas para imprimir grátis',
-    description: 'Busque atividades pedagógicas para imprimir grátis e opções pagas por tema. Confira formatos e licenças, organize suas aulas e explore o catálogo!',
+    title: 'Atividades escolares para imprimir',
+    description: 'Encontre atividades para imprimir por tema e etapa escolar. Compare prévias, formatos e preços dos materiais e escolha recursos para suas aulas.',
     keywords: ['atividades pedagógicas para imprimir grátis', 'atividades em PDF', 'recursos para sala de aula'],
   },
   '/atividades-por-ano/ensino-fundamental-1': {

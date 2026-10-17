@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Product, Store } from '@/lib/types';
-import { productSeoText } from '@/lib/page-seo';
+import { readableProductDescription } from '@/lib/product-description';
 import { productCoverImageUrl } from '@/lib/seo';
 import CampaignAttribution from '@/components/CampaignAttribution';
 import { Suspense } from 'react';
@@ -23,7 +23,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
         <p className="text-2xl font-bold text-blue-900">{price != null && Number.isFinite(Number(price)) ? Number(price) === 0 ? 'Gratuito' : Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Consulte as opções de compra'}</p>
         <Link href={checkout} className="inline-block rounded-xl bg-blue-900 px-6 py-3 font-bold text-white">Ver opções de compra</Link>
         <h2 className="text-xl font-bold">Sobre este material</h2>
-        <p className="whitespace-pre-line leading-relaxed text-slate-700">{productSeoText(description || '')}</p>
+        <p className="whitespace-pre-line leading-relaxed text-slate-700">{readableProductDescription(description || '')}</p>
         <dl className="space-y-2 text-slate-700">
           {product.page_count ? <div><dt className="inline font-bold">Páginas: </dt><dd className="inline">{product.page_count}</dd></div> : null}
           {product.age_range && <div><dt className="inline font-bold">Faixa indicada: </dt><dd className="inline">{product.age_range}</dd></div>}

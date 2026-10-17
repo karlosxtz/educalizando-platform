@@ -22,11 +22,7 @@ export function productMetadata(product: Product, plr = false, _storefront?: Pic
   const isPlr = plr && product.is_plr;
   const path = '/produto/' + encodeURIComponent(product.slug || product.id);
   const name = productSeoText(product.titulo);
-  const detail = productSeoText(isPlr && product.plr_descricao ? product.plr_descricao : product.descricao || '');
-  const prefix = name + (reference ? ' · Ref. ' + reference : '') + '.';
-  const room = 155 - prefix.length - 1;
-  const excerpt = room > 20 ? (detail.length <= room ? detail : detail.slice(0, room).replace(/\s+\S*$/, '').trimEnd()) : '';
-  const description = prefix + (excerpt ? ' ' + excerpt : '');
+  const description = productSearchDescription(product, isPlr, reference);
   const metadata = catalogMetadata(name, description, path,
     product.capa_url ? productCoverImageUrl(product.slug || product.id, product.capa_url) : DEFAULT_SOCIAL_IMAGE);
   // Both storefront and marketplace share one document identity. Store links,
@@ -35,6 +31,34 @@ export function productMetadata(product: Product, plr = false, _storefront?: Pic
   return { ...metadata, title, description,
     openGraph: { ...metadata.openGraph, title, description },
     twitter: { ...metadata.twitter, title, description } };
+}
+
+/** A useful snippet, rather than spending its entire space repeating the title.
+ * Only existing public fields are used; the creator's record is never changed. */
+export function productSearchDescription(product: Product, plr = false, reference?: string) {
+  const name = productSeoText(product.titulo);
+  const detail = productSeoText(plr && product.plr_descricao ? product.plr_descricao : product.descricao || '');
+  // A missing description is not permission to cut or invent a registered name.
+  if (!detail) return name + (reference ? ' · Ref. ' + reference : '') + '.';
+  const source = detail;
+  const facts: string[] = [];
+  if (!plr) {
+    if (product.tipo === 'pdf' && !/\bpdf\b/i.test(source)) facts.push('PDF');
+    if (Number.isInteger(product.page_count) && Number(product.page_count) > 0 && !/\bpáginas?\b/i.test(source)) {
+      facts.push(`${product.page_count} ${product.page_count === 1 ? 'página' : 'páginas'}`);
+    }
+  }
+  const ending = [...facts, ...(reference ? ['Ref. ' + reference] : [])].join(' · ');
+  const room = 155 - (ending ? ending.length + 2 : 0);
+  let excerpt = source;
+  if (excerpt.length > room) {
+    excerpt = excerpt.slice(0, Math.max(0, room - 1)).replace(/\s+\S*$/, '').trim();
+    const sentence = excerpt.match(/^([\s\S]*[.!?])\s/);
+    if (sentence && sentence[1].length >= Math.floor(room * 0.6)) excerpt = sentence[1];
+  }
+  excerpt = excerpt.replace(/[\s,;:–—-]+$/, '');
+  if (excerpt && !/[.!?]$/.test(excerpt)) excerpt += '.';
+  return excerpt + (ending ? ' ' + ending + '.' : '');
 }
 
 export function productStructuredData(product: Product, store: Pick<Store, 'nome_loja' | 'slug'>, plr = false, category?: string, _storefront = false) {

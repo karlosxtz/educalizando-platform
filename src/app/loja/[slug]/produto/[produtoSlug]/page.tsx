@@ -17,6 +17,7 @@ import { notFound,permanentRedirect } from 'next/navigation';
 import { ReactNode } from 'react';
 import ProductProgressiveView from '@/components/store/ProductProgressiveView';
 import ProductPublicSummary from '@/components/store/ProductPublicSummary';
+import ProductDiscoveryLinks from '@/components/store/ProductDiscoveryLinks';
 import { publicProductDetail, publicStoreProduct } from '@/lib/public-store-presentation';
 
 interface ProductDetailPageProps {
@@ -191,6 +192,7 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
       >
           <ProductPublicSummary product={reviewedProduct} store={store} plr={query.licenca === 'plr'} />
         </ProductProgressiveView>
+      <ProductDiscoveryLinks store={store} category={category} levels={selectedLevels} products={relatedProducts} storefront />
       <StoreAnalytics
         storeId={store.id}
         metaPixelId={store.meta_pixel_id}

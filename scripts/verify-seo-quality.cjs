@@ -63,7 +63,8 @@ const catalog = load('src/lib/catalog-seo.ts', { './seo': seo, './page-seo': pag
 const longName = 'Um material didático com um nome completo e muito detalhado que não pode ser mutilado durante a otimização';
 const metadata = catalog.productMetadata({ id: 'real', slug: 'real', titulo: longName, descricao: 'Informação real.', status: 'publicado' });
 assert.equal(metadata.title, longName);
-assert(metadata.description.startsWith(longName + '.'));
+assert.equal(metadata.description, 'Informação real.');
+assert.equal(catalog.productMetadata({ id: 'real', slug: 'real', titulo: longName }).description, longName + '.');
 assert(!metadata.title.includes('…') && !metadata.description.includes('…'));
 assert.equal(metadata.openGraph.title, longName);
 assert.equal(metadata.twitter.description, metadata.description);
