@@ -13,7 +13,16 @@ apresentação, sem autorização para inventar características ou editar cadas
 
 O sitemap respondeu HTTP 200 com 380 URLs de página e 265 referências de imagem.
 Ele listava somente a capa dos produtos. Quinze imagens dessa lista responderam
-HTTP 200 e não apresentaram cabeçalho X-Robots-Tag de bloqueio.
+HTTP 200: onze no MinIO sem cabeçalho de bloqueio e quatro capas antigas no
+Supabase com `X-Robots-Tag: none`. Esse cabeçalho impede a indexação dessas quatro
+imagens; HTTP 200 sozinho não significa permissão de indexação. Não é um bloqueio
+da página do produto. A amostra não determina quantas outras imagens antigas
+apresentam a mesma situação.
+
+O ajuste dessas capas exige acesso autorizado à origem do Storage. O ambiente
+local tem somente a chave pública de leitura, e o navegador não mantém uma sessão
+do painel disponível. Não foram extraídas credenciais, alteradas permissões ou
+migrados arquivos para contornar isso. A origem das imagens permanece intacta.
 
 A leitura anônima, respeitando as permissões públicas existentes, encontrou 58
 registros de galeria nos dez produtos. Seus endereços antigos foram resolvidos
@@ -68,6 +77,24 @@ Não houve alteração de RLS, checkout, Asaas, webhooks ou dados cadastrados.
   credenciais, perguntas e ausência de mutação dos registros originais.
 - A conferência após publicação deve validar os novos resumos, as imagens na
   extensão do sitemap e a igualdade do canonical entre os dois caminhos do produto.
+
+## Resultado em produção
+
+Versão do Worker `b1fab2c6-bf05-4785-a77d-5c5f86d82dde`, com 100% de distribuição,
+confirmada no histórico de implantações. Código publicado nos commits `0ca728e`
+e `0c00347`. Uma consulta inicial ainda encontrou a versão anterior; a conferência
+foi repetida após a ativação, sem considerar a tentativa inicial como sucesso.
+
+Os dez produtos responderam 200, com um H1 e canonical próprio. Todos exibiram a
+galeria no HTML inicial e entre duas e sete imagens públicas no JSON-LD. Oito dos
+dez resumos mudaram; os outros dois mantiveram o conteúdo anterior por não haver
+uma frase candidata mais adequada. O sitemap respondeu 200: continuam 380 URLs
+de página, agora com 1.178 referências de imagem, antes 265. São referências
+ligadas aos produtos, não 1.178 imagens únicas nem 1.178 páginas novas.
+
+As galerias dos dez produtos e as verificações de disponibilidade das 58 imagens
+no MinIO passaram. Isso não resolve o cabeçalho das quatro capas antigas no
+Supabase apontadas acima, nem comprova que o Google já rastreou as mudanças.
 
 O efeito sobre cliques e posições depende de novos rastreamentos e da competição
 em cada consulta. Não interpretar aumento de imagens no sitemap como aumento de
