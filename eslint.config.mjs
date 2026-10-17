@@ -49,6 +49,9 @@ const eslintConfig = defineConfig([
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    // Cloudflare build output, bundled dependencies and local diagnostic files.
+    ".cloudflare/**",
+    "dist/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

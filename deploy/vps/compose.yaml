@@ -1,0 +1,22 @@
+services:
+  educalizando:
+    build:
+      context: ../..
+      dockerfile: deploy/vps/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: $NEXT_PUBLIC_SUPABASE_URL
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: $NEXT_PUBLIC_SUPABASE_ANON_KEY
+    image: educalizando:seo-vps
+    restart: unless-stopped
+    env_file: .env.runtime
+    ports:
+      - "127.0.0.1:3100:3000"
+    mem_limit: 1g
+    cpus: 1.0
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

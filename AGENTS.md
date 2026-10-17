@@ -1,3 +1,18 @@
+# AGENTS.md
+
+## Projeto
+Educalizando (https://www.educalizando.com.br): SaaS multi-tenant de mini lojas de materiais didáticos. Next.js (App Router) + TypeScript + Tailwind + Supabase externo, hospedado na Cloudflare.
+
+## Regras que nunca podem ser quebradas
+- Não alterar regras de negócio, RLS, isolamento por tenant_id, checkout Asaas nem webhooks.
+- Nunca expor chaves secretas (SUPABASE_SERVICE_ROLE_KEY etc.) no código do cliente nem em commits.
+- Domínio canônico único: https://www.educalizando.com.br (nunca usar VERCEL_URL, window.location.origin ou *.workers.dev para gerar links públicos).
+- Dados reais apenas: sem avaliações, números ou depoimentos inventados.
+
+## Verificação obrigatória antes de concluir qualquer tarefa
+- Rodar o lint e o build de produção e corrigir todos os erros.
+- Listar os arquivos alterados e o motivo de cada um.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

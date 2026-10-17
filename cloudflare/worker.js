@@ -2,7 +2,9 @@ import app from 'vinext/server/fetch-handler';
 import { canonicalHostRedirect } from '../src/lib/canonical-host.ts';
 import { applyResponseCachePolicy } from './response-cache-policy.js';
 import { publicImageRedirect } from '../src/lib/public-image-url.ts';
-import { fetchPublicPage } from './public-page-cache.js';
+import { fetchPublicPage, publicPageCacheKey } from './public-page-cache.js';
+import { readPublicCacheRevision } from './cache-revision.js';
+import { rejectScannerRequest } from './traffic-guard.js';
 import { catalogImageResponse } from './catalog-image-cache.js';
 export * from 'vinext/server/fetch-handler';
 
@@ -17,9 +19,13 @@ export default {
   async fetch(request, env, ctx) {
     const canonical = canonicalHostRedirect(request);
     if (canonical) return canonical;
+    const rejected = rejectScannerRequest(request);
+    if (rejected) return rejected;
+    if (new URL(request.url).pathname.startsWith('/_next/static/')) return env.ASSETS.fetch(request);
     const catalogImage = await catalogImageResponse(request, ctx);
     if (catalogImage) return catalogImage;
     const image = publicImageRedirect(request);
-    return applyResponseCachePolicy(request, image || await fetchPublicPage(request, ctx, () => app.fetch(request, env, ctx)));
+    const revision = !image && publicPageCacheKey(request) ? await readPublicCacheRevision(env.VINEXT_KV_CACHE) : null;
+    return applyResponseCachePolicy(request, image || await fetchPublicPage(request, ctx, () => app.fetch(request, env, ctx), undefined, revision));
   },
 };

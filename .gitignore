@@ -17,6 +17,7 @@
 
 # next.js
 /.next/
+/.next-vps/
 /out/
 
 # production
@@ -48,3 +49,11 @@ next-env.d.ts
 .cloudflare/
 .dev.vars
 .dev.vars.*
+deploy/vps/.env.runtime
+
+# Local n8n exports contain live integration credentials; never publish backups.
+/ATENDENTE*.json
+/RECUPERADOR*.json
+/LIMPAR*.json
+# Search Console screenshots may include the signed-in account avatar.
+/ops/search-console-*.png

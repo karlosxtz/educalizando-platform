@@ -26,7 +26,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Keep the self-hosted build separate from the existing Cloudflare artefacts.
+  ...(process.env.EDUCALIZANDO_NODE_BUILD === '1' ? {
+    output: 'standalone' as const,
+    distDir: '.next-vps',
+    typescript: { tsconfigPath: 'tsconfig.vps.json' },
+  } : {}),
   trailingSlash: false,
+  images: { unoptimized: true },
   // Product metadata must be present in the initial <head>. This makes the
   // canonical URL, site name and cover image deterministic for search and
   // shopping crawlers instead of appending them after </head> as a stream.
@@ -76,6 +83,12 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      ...['/', '/lojas', '/ofertas', '/loja/:slug', '/produto/:slug', '/kit/:id', '/clube/:slug', '/loja/:slug/produto/:produtoSlug', '/loja/:slug/kit/:id', '/categorias/:slug', '/sitemap.xml', '/sitemap-catalogo.xml'].map(source => ({
+        source,
+        // These documents read only the public catalogue. The edge cache also
+        // rejects every session, query parameter and React navigation variant.
+        headers: [{ key: 'X-Educalizando-Public-Document', value: '1' }],
+      })),
       {
         source: '/(.*)',
         headers: securityHeaders,
@@ -91,6 +104,14 @@ const nextConfig: NextConfig = {
         '/afiliados/login',
         '/aluno/login',
         '/cliente/login',
+        '/seguranca',
+        '/redefinir-senha',
+        '/auth/:path*',
+        '/carrinho',
+        '/offline',
+        '/recuperar-carrinho/:path*',
+        '/aluno/:path*',
+        '/cliente/:path*',
       ].map((source) => ({
         source,
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
