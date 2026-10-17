@@ -8,7 +8,7 @@ function load(file, mocks = {}, globals = {}) {
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
-  } }).outputText, { exports, require: name => name === 'server-only' ? {} : mocks[name] || require(name), URL, URLSearchParams, Request, Response, Headers, AbortSignal, Buffer, Blob, console, setTimeout, clearTimeout, ...globals });
+  } }).outputText, { exports, require: name => name === 'server-only' ? {} : mocks[name] || require(name), URL, URLSearchParams, FormData, Request, Response, Headers, AbortSignal, Buffer, Blob, console, setTimeout, clearTimeout, ...globals });
   return exports;
 }
 async function main() {
@@ -109,16 +109,29 @@ async function main() {
   await assert.rejects(publishing.prepareInstagramPost('store-a', { ...payload, target: 'story' }), /tipo Empresa/);
 
   const calls = [];
+  let shortResponse = { access_token: 'short-token', user_id: 123456 };
+  let profileResponse = { user_id: '123456', username: 'loja.real', account_type: 'BUSINESS' };
   const provider = load('src/lib/instagram-provider.ts', { './instagram-security': security }, { fetch: async (url, options) => {
     const parsed = new URL(url); calls.push({ url: parsed, options });
-    if (parsed.hostname === 'api.instagram.com') return Response.json({ access_token: 'short-token', user_id: 123456 });
+    if (parsed.hostname === 'api.instagram.com') return Response.json(shortResponse);
     if (parsed.pathname === '/access_token') return Response.json({ access_token: 'long-token', expires_in: 5184000 });
-    if (parsed.pathname.endsWith('/me')) return Response.json({ user_id: '123456', username: 'loja.real', account_type: 'BUSINESS' });
+    if (parsed.pathname.endsWith('/me')) return Response.json(profileResponse);
     if (parsed.pathname.endsWith('/media')) return Response.json({ id: '987' });
     return Response.json({ id: '456' });
   } });
   const account = await provider.exchangeInstagramCode('one-time-code');
   assert.equal(account.username, 'loja.real');
+  assert(calls[0].options.body instanceof FormData, 'Meta documents multipart form-data');
+  assert.equal(calls[0].options.body.get('redirect_uri'), 'https://www.educalizando.com.br/api/creator/instagram/callback');
+  shortResponse = { data: [{ access_token: 'short-token', user_id: '123456' }] };
+  profileResponse = { data: [{ user_id: '123456', username: 'loja.real', account_type: 'Business' }] };
+  const currentAccount = await provider.exchangeInstagramCode('new-one-time-code');
+  assert.equal(currentAccount.username, 'loja.real', 'Current data envelope must connect');
+  assert.equal(currentAccount.accountType, 'BUSINESS', 'Provider case variants must preserve the account type');
+  for (const invalid of [{ data: [] }, { data: [null] }, { data: [{ access_token: 'first' }, { access_token: 'second' }] }]) {
+    shortResponse = invalid;
+    await assert.rejects(provider.exchangeInstagramCode('another-code'), error => error.stage === 'short_token');
+  }
   await provider.createInstagramContainer('123456', account.token, 'https://minio.test/arte.jpg', 'story', 'Não deve virar legenda de Story');
   assert.equal(calls.at(-1).options.body.get('media_type'), 'STORIES');
   assert.equal(calls.at(-1).options.body.has('caption'), false);
@@ -128,6 +141,7 @@ async function main() {
   assert(calls.every(call => call.options.redirect === 'error' && call.options.cache === 'no-store'));
   const failedProvider = load('src/lib/instagram-provider.ts', { './instagram-security': security }, { fetch: async () => Response.json({ error: { code: 190, message: 'private-token-must-never-escape' } }, { status: 400 }) });
   await assert.rejects(failedProvider.instagramContainerStatus('123', 'private-token-must-never-escape'), error => !error.message.includes('private-token-must-never-escape') && error.message.includes('expirou'));
+  await assert.rejects(failedProvider.exchangeInstagramCode('private-code'), error => error.stage === 'short_token' && error.httpStatus === 400 && !JSON.stringify(error).includes('private-token-must-never-escape'));
 
   const drawings = [], canvases = [];
   const context = { measureText: text => ({ width: text.length * 20 }), fillText: text => drawings.push(text), fillRect() {}, drawImage() {}, createLinearGradient: () => ({ addColorStop() {} }) };
