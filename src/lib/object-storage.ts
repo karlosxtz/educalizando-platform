@@ -2,7 +2,7 @@ import 'server-only';
 import { publicSiteOrigin } from './public-links';
 import { publicImageObjectUrl } from './public-image-url';
 
-import { DeleteObjectCommand,GetObjectCommand,HeadBucketCommand,PutObjectCommand,S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand,GetObjectCommand,HeadBucketCommand,HeadObjectCommand,PutObjectCommand,S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export type LegacyUploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars' | 'main-banners';
@@ -120,6 +120,10 @@ export async function uploadObject({ bucket, key, body, contentType }: {
 
 export async function getObject(bucket: string, key: string) {
   return client().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+}
+
+export async function headObject(bucket: string, key: string) {
+  return client().send(new HeadObjectCommand({ Bucket: bucket, Key: key }), { abortSignal: AbortSignal.timeout(10000) });
 }
 
 export async function deleteObject(bucket: string, key: string) {
