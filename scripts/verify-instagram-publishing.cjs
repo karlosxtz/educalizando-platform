@@ -15,7 +15,8 @@ async function main() {
   const publicImage = load('src/lib/public-image-url.ts');
   const seo = load('src/lib/seo.ts', { './public-image-url': publicImage });
   const description = load('src/lib/product-description.ts');
-  const contract = load('src/lib/instagram-contract.ts', { './seo': seo, './product-description': description });
+  const design = load('src/lib/instagram-design.ts');
+  const contract = load('src/lib/instagram-contract.ts', { './seo': seo, './product-description': description, './instagram-design': design });
   const env = { INSTAGRAM_PUBLISHING_ENABLED: 'true', INSTAGRAM_APP_ID: '1234', INSTAGRAM_APP_SECRET: 'test-only-secret', INSTAGRAM_GRAPH_API_VERSION: 'v99.0', INSTAGRAM_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64') };
   const security = load('src/lib/instagram-security.ts', { './seo': seo }, { process: { env } });
   const disabled = load('src/lib/instagram-security.ts', { './seo': seo }, { process: { env: {} } });
@@ -65,7 +66,7 @@ async function main() {
   const connection = { id: 'conn-a', store_id: 'store-a', instagram_user_id: '123456', account_type: 'BUSINESS' };
   let containerCalls = 0, publishCalls = 0, containerStatus = 'IN_PROGRESS', uncertain = false;
   const publishing = load('src/lib/instagram-publishing.ts', {
-    './supabase': { supabaseAdmin: db }, './instagram-contract': contract, './public-image-url': publicImage,
+    './supabase': { supabaseAdmin: db }, './instagram-contract': contract, './public-image-url': publicImage, './instagram-design': design,
     './object-storage': { resolveBucket: () => 'public-images', createUploadUrl: async () => 'https://minio.test/upload', uploadCacheControl: () => 'public, max-age=31536000, immutable', headObject: async () => ({ ContentType: 'image/jpeg', ContentLength: 1234 }) },
     './instagram-store': { InstagramInputError: InputError, readInstagramConnection: async (storeId, id) => storeId === 'store-a' && (!id || id === connection.id) ? connection : { ...connection, id: 'conn-b', store_id: storeId }, usableInstagramToken: async () => 'test-token' },
     './instagram-provider': { createInstagramContainer: async () => { containerCalls++; return '987'; }, instagramContainerStatus: async () => containerStatus,
@@ -73,6 +74,10 @@ async function main() {
   });
   const payload = { id: postId, productId, target: 'feed', caption: 'Conteúdo real.', size: 1234, expectedUpdatedAt: tables.products[0].updated_at };
   const prepared = await publishing.prepareInstagramPost('store-a', payload);
+  assert(tables.creator_instagram_posts[0].caption.endsWith('@educalizando_brasil'), 'Server must enforce the brand mention on new Feed posts');
+  assert.equal(design.instagramBrandedCaption('Olá\n\n@educalizando_brasil'), 'Olá\n\n@educalizando_brasil', 'Do not duplicate an existing mention');
+  assert.equal(design.instagramBrandedCaption('Olá @educalizando_brasil_fake').endsWith('\n\n@educalizando_brasil'), true);
+  assert.equal(design.instagramBrandedCaption('Olá @educalizando_brasil.outro').endsWith('\n\n@educalizando_brasil'), true);
   assert.equal(prepared.post.status, 'awaiting_upload');
   assert.equal(prepared.uploadHeaders['Content-Type'], 'image/jpeg');
   assert(!JSON.stringify(prepared).includes('test-token'));
@@ -82,6 +87,7 @@ async function main() {
   await assert.rejects(publishing.prepareInstagramPost('store-a', { ...payload, caption: 'Outra legenda' }), /já foi usada/);
   await assert.rejects(publishing.prepareInstagramPost('store-b', { ...payload, id: '44444444-4444-4444-8444-444444444444' }), /produto publicado/);
   await assert.rejects(publishing.prepareInstagramPost('store-a', { ...payload, expectedUpdatedAt: 'outdated' }), /atualizado/);
+  await assert.rejects(publishing.prepareInstagramPost('store-a', { ...payload, caption: 'a'.repeat(2200) }), /Encurte/);
   await assert.rejects(publishing.advanceInstagramPost('store-b', postId, true), /não encontrada/);
   assert.equal((await publishing.advanceInstagramPost('store-a', postId, false)).status, 'awaiting_upload');
   assert.equal(containerCalls, 0, 'GET status cannot create a container');
@@ -150,14 +156,15 @@ async function main() {
   await assert.rejects(redirectedProvider.exchangeInstagramCode('private-code'), error => error.httpStatus === 302 && !JSON.stringify(error).includes('private-token'));
   assert.equal(redirectCalls, 1, 'Never forward OAuth credentials to redirected destinations');
 
-  const drawings = [], canvases = [];
+  const drawings = [], canvases = [], qrLinks = [], loadedImages = [];
   const context = { measureText: text => ({ width: text.length * 20 }), fillText: text => drawings.push(text), fillRect() {}, drawImage() {}, createLinearGradient: () => ({ addColorStop() {} }) };
   class TestImage {
     naturalWidth = 800; naturalHeight = 1200;
-    set src(value) { if (value) queueMicrotask(() => this.onload()); }
+    set src(value) { if (value) { loadedImages.push(value); queueMicrotask(() => this.onload()); } }
   }
   const artwork = load('src/lib/instagram-artwork.ts', {
-    './instagram-contract': contract, './catalog-image-url': { catalogImageUrl: value => value },
+    './instagram-contract': contract, './instagram-design': design, './catalog-image-url': { catalogImageUrl: value => value },
+    'qrcode': { toDataURL: async url => { qrLinks.push(url); return 'data:image/png;base64,test'; } },
   }, { Image: TestImage, document: { createElement: () => { const canvas = { width: 0, height: 0, getContext: () => context, toBlob: (callback, type) => callback(new Blob(['image'], { type })) }; canvases.push(canvas); return canvas; } } });
   const displayProduct = { titulo: 'Jogo de letras', capa_url: 'https://minio.test/capa.jpg', preco: 12.5, arquivo_url: 'PRIVATE' };
   const displayStore = { nome_loja: 'Minha loja', slug: 'minha-loja', cor_primaria: '#123456' };
@@ -165,12 +172,25 @@ async function main() {
   const feedImage = await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed');
   assert.equal(storyImage.type, 'image/jpeg'); assert.equal(feedImage.type, 'image/jpeg');
   assert.deepEqual(canvases.map(canvas => [canvas.width, canvas.height]), [[1080, 1920], [1080, 1350]]);
-  assert(drawings.includes('Jogo de letras') && drawings.some(text => /R\$\s+12,50/.test(text)));
+  assert(drawings.includes('Jogo de letras') && !drawings.some(text => /R\$\s+12,50/.test(text)), 'Price is hidden by default');
+  assert(drawings.includes('@educalizando_brasil'));
+  await artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...design.defaultInstagramDesign(), showPrice: true, title: 'Título da divulgação', cta: 'Veja o material', background: 'solid' });
+  assert(drawings.includes('Título da divulgação') && drawings.includes('Veja o material') && drawings.some(text => /R\$\s+12,50/.test(text)));
+  const qrOptions = { ...design.defaultInstagramDesign(), layout: 'editorial', background: 'photo', backgroundUrl: 'blob:local-background', logoUrl: 'blob:local-logo', showQr: true, fit: 'cover' };
+  await artwork.createInstagramArtwork({ ...displayProduct, id: productId, slug: 'jogo-real' }, displayStore, 'story', qrOptions);
+  assert.equal(qrLinks[0], 'https://www.educalizando.com.br/loja/minha-loja/produto/jogo-real');
+  assert(loadedImages.includes('blob:local-background') && loadedImages.includes('blob:local-logo'));
+  assert.equal(loadedImages.filter(url => url === displayProduct.capa_url).length, 1, 'Style changes must reuse the decoded cover, not download again');
+  await assert.rejects(artwork.createInstagramArtwork(displayProduct, displayStore, 'feed', { ...qrOptions, backgroundUrl: '' }), /imagem de fundo/);
+  const stripped = design.savedInstagramDesign({ ...design.defaultInstagramDesign(), title: 'Outro produto', subtitle: 'Não reutilizar', primary: 'javascript:bad', titleSize: 10000, backgroundUrl: 'https://private.invalid' });
+  assert.equal(stripped.title, ''); assert.equal(stripped.subtitle, ''); assert.equal(stripped.titleSize, 76); assert.equal(stripped.primary, '#173b79'); assert(!('backgroundUrl' in stripped));
   assert(!drawings.some(text => /PRIVATE|desconto|mais vendido/i.test(text)));
   assert(!contract.instagramProductCaption({ ...displayProduct, id: productId }, displayStore).includes('PRIVATE'));
   const longCaption = contract.instagramProductCaption({ ...displayProduct, id: productId, slug: 'produto-real', descricao: 'Descrição factual do arquivo. '.repeat(200) }, displayStore);
-  assert(longCaption.length <= 2200 && longCaption.endsWith('https://www.educalizando.com.br/loja/minha-loja/produto/produto-real'));
-  await assert.rejects(artwork.createInstagramArtwork({ ...displayProduct, preco: NaN }, displayStore, 'feed'), /preço/);
+  assert(longCaption.length <= 2200 && longCaption.includes('https://www.educalizando.com.br/loja/minha-loja/produto/produto-real') && longCaption.endsWith('@educalizando_brasil'));
+  assert(!longCaption.includes('R$'), 'Default caption also omits price');
+  assert(contract.instagramProductCaption({ ...displayProduct, id: productId }, displayStore, { showPrice: true }).includes('12,50'));
+  await assert.rejects(artwork.createInstagramArtwork({ ...displayProduct, preco: NaN }, displayStore, 'feed', { ...design.defaultInstagramDesign(), showPrice: true }), /preço/);
   const button = load('src/components/creator/InstagramProductButton.tsx', {
     'next/link': { __esModule: true, default: ({ href, children }) => React.createElement('a', { href }, children) },
   }).default;

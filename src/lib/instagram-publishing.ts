@@ -5,6 +5,7 @@ import { publicImageObjectUrl } from './public-image-url';
 import { isInstagramUuid, type InstagramTarget, type InstagramPostStatus } from './instagram-contract';
 import { InstagramInputError, readInstagramConnection, usableInstagramToken } from './instagram-store';
 import { createInstagramContainer, instagramContainerStatus, publishInstagramContainer } from './instagram-provider';
+import { instagramBrandedCaption } from './instagram-design';
 
 type Post = { id: string; store_id: string; connection_id: string | null; product_id: string | null; target: InstagramTarget; caption: string; image_key: string; image_url: string; image_size: number; status: InstagramPostStatus; container_id: string | null; media_id: string | null; error_message: string | null; updated_at: string };
 export const safeInstagramPost = (post: Post) => ({ id: post.id, target: post.target, status: post.status, media_id: post.media_id, error_message: post.error_message });
@@ -19,6 +20,10 @@ async function transition(post: Post, status: InstagramPostStatus, patch: Record
 }
 export async function prepareInstagramPost(storeId: string, input: Record<string, unknown>) {
   if (!isInstagramUuid(input.id) || !isInstagramUuid(input.productId) || !['story', 'feed'].includes(String(input.target)) || typeof input.caption !== 'string' || input.caption.length > 2200 || !Number.isInteger(input.size) || Number(input.size) < 1 || Number(input.size) > 8000000) throw new InstagramInputError('Confira o produto, o formato e a arte JPEG de até 8 MB.');
+  if (input.target === 'feed') {
+    input = { ...input, caption: instagramBrandedCaption(input.caption) };
+    if (String(input.caption).length > 2200) throw new InstagramInputError('Encurte a legenda para incluir a menção à Educalizando dentro de 2.200 caracteres.');
+  }
   const connection = await readInstagramConnection(storeId);
   if (!connection) throw new InstagramInputError('Conecte o Instagram da sua loja antes de publicar.', 409);
   if (input.target === 'story' && connection.account_type !== 'BUSINESS') throw new InstagramInputError('Para publicar Stories nesta integração, conecte uma conta profissional do tipo Empresa.', 409);
