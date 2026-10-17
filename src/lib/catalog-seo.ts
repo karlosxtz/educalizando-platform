@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { Product, Store, Kit } from './types';
-import { SITE_URL, productCoverImageUrl, DEFAULT_SOCIAL_IMAGE, socialMetadata } from './seo';
+import { SITE_URL, productCoverImageUrl, productPublicImageUrls, DEFAULT_SOCIAL_IMAGE, socialMetadata } from './seo';
 import { productSeoDescription, productSeoText, shortSeoTitle } from './page-seo';
 
 export function isIndexableProduct(product: Product | null): product is Product {
@@ -40,7 +40,16 @@ export function productSearchDescription(product: Product, plr = false, referenc
   const detail = productSeoText(plr && product.plr_descricao ? product.plr_descricao : product.descricao || '');
   // A missing description is not permission to cut or invent a registered name.
   if (!detail) return name + (reference ? ' · Ref. ' + reference : '') + '.';
-  const source = detail;
+  // Extract an existing factual sentence; never generate new product claims.
+  const candidates = detail.match(/[^.!?]+[.!?]?/g) || [detail];
+  const content = candidates.map((text, index) => {
+    const sentence = text.trim();
+    const match = sentence.match(/^(?:(?:o|a|este|esta|esse|essa)\s+)?(?:kit|material|arquivo|painel|recurso|pacote|combo)\b.{0,90}?\b(inclui|contém|reúne|acompanha|apresenta|possui)\b/i);
+    const score = match && !/\b(não|se|caso|talvez|pode|podem|poderá|poderão)\b/i.test(sentence) && !sentence.endsWith('?')
+      ? (/inclui|contém/i.test(match[1]) ? 3 : 2) + (/\d/.test(sentence) ? 1 : 0) : 0;
+    return { sentence, score, index };
+  }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || a.index - b.index);
+  const source = content[0]?.sentence || detail;
   const facts: string[] = [];
   if (!plr) {
     if (product.tipo === 'pdf' && !/\bpdf\b/i.test(source)) facts.push('PDF');
@@ -53,6 +62,7 @@ export function productSearchDescription(product: Product, plr = false, referenc
   let excerpt = source;
   if (excerpt.length > room) {
     excerpt = excerpt.slice(0, Math.max(0, room - 1)).replace(/\s+\S*$/, '').trim();
+    excerpt = excerpt.replace(/(?:\s+(?:a|o|as|os|de|do|da|dos|das|para|com|e|em|um|uma|no|na|nos|nas|ao|aos|que|se|por))+$/i, '');
     const sentence = excerpt.match(/^([\s\S]*[.!?])\s/);
     if (sentence && sentence[1].length >= Math.floor(room * 0.6)) excerpt = sentence[1];
   }
@@ -67,11 +77,12 @@ export function productStructuredData(product: Product, store: Pick<Store, 'nome
   const value = license ? product.preco_plr : product.is_free ? 0 : product.preco;
   const price = value === null || value === undefined ? NaN : Number(value);
   const description = license && product.plr_descricao ? product.plr_descricao : product.descricao;
+  const images = productPublicImageUrls(license ? { capa_url: product.capa_url } : product);
   return {
     '@context': 'https://schema.org', '@type': 'Product', '@id': url + '#product',
     name: product.titulo, description: productSeoText(description || '').slice(0, 5000) || productSeoDescription(product.titulo), url,
     sku: product.id, brand: { '@type': 'Brand', name: store.nome_loja },
-    ...(product.capa_url ? { image: [productCoverImageUrl(product.slug || product.id, product.capa_url)] } : {}),
+    ...(images.length ? { image: images } : {}),
     ...(category ? { category } : {}),
     ...(Number.isFinite(price) && price >= 0 ? { offers: {
       '@type': 'Offer', price: price.toFixed(2), priceCurrency: 'BRL',
@@ -82,7 +93,7 @@ export function productStructuredData(product: Product, store: Pick<Store, 'nome
     ...(Number(product.review_count) > 0 && Number(product.average_rating) >= 1 && Number(product.average_rating) <= 5 ? {
       aggregateRating: { '@type': 'AggregateRating', ratingValue: product.average_rating, reviewCount: product.review_count, bestRating: 5, worstRating: 1 },
     } : {}),
-    additionalProperty: [
+    additionalProperty: license ? [] : [
       ...(product.format_details ? [{ '@type': 'PropertyValue', name: 'Formato', value: product.format_details }] : []),
       ...(product.age_range ? [{ '@type': 'PropertyValue', name: 'Faixa etária', value: product.age_range }] : []),
       ...(product.page_count ? [{ '@type': 'PropertyValue', name: 'Páginas', value: product.page_count }] : []),

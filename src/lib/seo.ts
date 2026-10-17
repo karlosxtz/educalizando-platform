@@ -75,6 +75,31 @@ export function productCoverImageUrl(productSlugOrId: string, source?: string | 
   return absoluteUrl(`/imagens/produtos/${encodeURIComponent(productSlugOrId)}/capa`);
 }
 
+/** Already-public registered images only: no signing, delivery files or proxies. */
+export function productPublicImageUrls(product: {
+  capa_url?: string | null;
+  images?: { url: string; ordem?: number }[] | null;
+}, limit = 7): string[] {
+  const sources = [product.capa_url, ...[...(product.images || [])].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(image => image.url)];
+  const urls = new Set<string>();
+  for (const source of sources) {
+    if (!source) continue;
+    try {
+      const direct = directPublicImageUrl(source);
+      const url = new URL(direct || source);
+      if (url.protocol !== 'https:' || url.username || url.password || url.hash) continue;
+      if (!/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(url.pathname)) continue;
+      if (/\/(?:private[^/]*|sign|authenticated)(?:\/|$)/i.test(url.pathname)) continue;
+      if (Array.from(url.searchParams.keys()).some(key => /^(x-amz-|x-goog-|signature$|token$)/i.test(key))) continue;
+      if (url.hostname === 'arquivos.educalizando.com.br' && !url.pathname.startsWith('/public-images/uploads/')) continue;
+      if (/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(url.hostname)) continue;
+      urls.add(url.href);
+      if (urls.size >= Math.max(1, Math.min(limit, 7))) break;
+    } catch { /* Invalid legacy references cannot leak into image discovery. */ }
+  }
+  return [...urls];
+}
+
 export function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
