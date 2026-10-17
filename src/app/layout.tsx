@@ -4,6 +4,15 @@ import type { Metadata,Viewport } from 'next';
 import Script from 'next/script';
 import { Toaster } from 'sonner';
 import './globals.css';
+import localFont from 'next/font/local';
+
+const educalizandoFont = localFont({
+  src: './fonts/geist-latin.woff2',
+  variable: '--font-educalizando',
+  display: 'swap',
+  weight: '100 900',
+  fallback: ['Arial', 'sans-serif'],
+});
 
 export const viewport: Viewport = {
   themeColor: '#093b6c',
@@ -17,7 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Educalizando — Plataforma Digital para Materiais Didáticos',
   description:
-    'A Educalizando é a plataforma para compra e venda de materiais e produtos digitais educacionais. Venda apostilas em PDF, e-books esquematizados, simulados e videoaulas com PIX instantâneo.',
+    'Encontre atividades, apostilas e jogos pedagógicos na Educalizando. Conheça lojas de educadores ou crie sua loja de materiais didáticos digitais.',
   manifest: '/manifest.json',
   applicationName: 'Educalizando',
   appleWebApp: {
@@ -88,7 +97,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden" data-scroll-behavior="smooth">
+    <html lang="pt-BR" className={`${educalizandoFont.variable} scroll-smooth overflow-x-hidden`} data-scroll-behavior="smooth">
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <Script id="creator-pwa-install-capture" strategy="beforeInteractive">{`
           (() => {

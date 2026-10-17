@@ -1,6 +1,9 @@
+
+import CatalogImage from '@/components/ui/CatalogImage';
 import { Store } from '@/lib/types';
-import { ChevronRight,Star } from 'lucide-react';
-import Link from 'next/link';
+import { normalizePublicAssetUrl } from '@/lib/public-links';
+import { ChevronRight } from 'lucide-react';
+import Link from '@/components/OnDemandLink';
 
 export default function StoreCard({ store }: { store: Store }) {
   return (
@@ -8,7 +11,7 @@ export default function StoreCard({ store }: { store: Store }) {
       <div className="flex items-center gap-4 mb-4">
         <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-sm shrink-0">
           {store.logo_url ? (
-            <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+            <CatalogImage src={normalizePublicAssetUrl(store.logo_url) || store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
           ) : (
             <span className="text-2xl font-black text-slate-400">{store.nome_loja.charAt(0).toUpperCase()}</span>
           )}
@@ -17,11 +20,7 @@ export default function StoreCard({ store }: { store: Store }) {
           <h3 className="font-bold text-slate-900 text-lg truncate group-hover:text-blue-600 transition-colors">
             {store.nome_loja}
           </h3>
-          <div className="flex items-center gap-1 mt-1">
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span className="text-[11px] font-bold text-amber-500">5.0</span>
-            <span className="text-[11px] text-slate-500 ml-1">Top Criador</span>
-          </div>
+          <p className="mt-1 text-xs text-slate-500">Loja na Educalizando</p>
         </div>
       </div>
       {store.descricao ? (

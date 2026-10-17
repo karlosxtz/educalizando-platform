@@ -1,5 +1,7 @@
 'use client';
 
+import CatalogImage from '@/components/ui/CatalogImage';
+
 import { useCart } from '@/components/store/CartContext';
 import StoreCatalogControls from '@/components/store/StoreCatalogControls';
 import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
@@ -52,19 +54,19 @@ const FacebookIcon = ({ className }: { className?: string }) => (
 import { StoreThemeProps } from '@/lib/types';
 
 export default function ThemeDefault(props: StoreThemeProps) {
-  const { 
-    store, 
-    products, 
-    filteredProducts, 
-    categories, 
-    educationLevels, 
+  const {
+    store,
+    products,
+    filteredProducts,
+    categories,
+    educationLevels,
     kits,
     clubs,
-    selectedCategory, 
-    setSelectedCategory, 
-    selectedEducation, 
-    setSelectedEducation, 
-    searchFilter, 
+    selectedCategory,
+    setSelectedCategory,
+    selectedEducation,
+    setSelectedEducation,
+    searchFilter,
     setSearchFilter,
     selectedCollection,
     setSelectedCollection
@@ -75,7 +77,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
   const { addToCart, setIsOpen } = useCart();
 
   const primaryColor = store.cor_primaria || '#2563eb';
-  
+
   const getButtonRadiusClass = () => {
     switch (store.button_style) {
       case 'pill': return 'rounded-full';
@@ -165,7 +167,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
   ];
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
@@ -195,26 +197,26 @@ export default function ThemeDefault(props: StoreThemeProps) {
                 className="absolute inset-0 hidden bg-cover bg-center blur-2xl scale-110 opacity-70 sm:block"
                 style={{ backgroundImage: `url(${store.banner_url})` }}
               />
-              <img src={store.banner_url} alt={store.nome_loja} className="relative h-full w-full object-cover sm:object-contain" />
+              <CatalogImage src={store.banner_url} alt={store.nome_loja} className="relative h-full w-full object-cover sm:object-contain" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
             </>
           ) : (
-            <div 
+            <div
               className="w-full h-full relative flex items-center justify-center overflow-hidden transition-all"
               style={{
                 background: `radial-gradient(circle at 50% 30%, ${primaryColor}30 0%, #090d16 85%)`
               }}
             >
               {/* Subtle geometric dot matrix pattern */}
-              <div 
-                className="absolute inset-0 opacity-20 pointer-events-none" 
+              <div
+                className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
                   backgroundImage: `radial-gradient(${primaryColor} 1.5px, transparent 1.5px)`,
                   backgroundSize: '24px 24px'
                 }}
               />
               <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4">
-                <div 
+                <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md transition-transform hover:scale-105"
                   style={{ backgroundColor: `${primaryColor}25` }}
                 >
@@ -239,13 +241,13 @@ export default function ThemeDefault(props: StoreThemeProps) {
             <Search className="h-4 w-4" /> Acessar marketplace
           </Link>
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-6 text-center sm:text-left">
-            
+
             {/* Circular Logo Overlapping Banner */}
             <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white p-1.5 border-4 border-white shadow-xl overflow-hidden flex-shrink-0 relative z-10">
               {store.logo_url ? (
-                <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
+                <CatalogImage src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
               ) : (
-                <div 
+                <div
                   className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-3xl sm:text-4xl shadow-inner"
                   style={{ backgroundColor: primaryColor }}
                 >
@@ -384,12 +386,12 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
       {/* Main Store Products Catalog */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-        
+
         {/* Sobre o Autor */}
         {store.author_bio && (
           <section className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 sm:gap-6 items-center sm:items-start text-center sm:text-left">
             {store.author_image_url ? (
-              <img src={store.author_image_url} alt="Autor" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover shadow-md border-4 border-slate-50 flex-shrink-0" />
+              <CatalogImage src={store.author_image_url} alt="Autor" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover shadow-md border-4 border-slate-50 flex-shrink-0" />
             ) : (
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 shadow-inner flex-shrink-0">
                 <Sparkles className="w-10 h-10" />
@@ -403,7 +405,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
             </div>
           </section>
         )}
-        
+
         {clubs.length > 0 && (
           <section className="space-y-5">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -412,7 +414,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {clubs.map((club) => <Link key={club.id} href={`/clube/${club.slug}`} className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-                {club.cover_url ? <div className="relative aspect-[16/9] overflow-hidden bg-slate-100"><img src={club.cover_url} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-20 blur-lg" /><img src={club.cover_url} alt={club.name} className="relative z-10 h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]" /></div> : <div className="flex aspect-[16/9] items-center justify-center text-white" style={{ background: `linear-gradient(135deg,${primaryColor},#6d28d9)` }}><Crown className="h-12 w-12" /></div>}
+                {club.cover_url ? <div className="relative aspect-[16/9] overflow-hidden bg-slate-100"><CatalogImage src={club.cover_url} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-20 blur-lg" /><CatalogImage src={club.cover_url} alt={club.name} className="relative z-10 h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]" /></div> : <div className="flex aspect-[16/9] items-center justify-center text-white" style={{ background: `linear-gradient(135deg,${primaryColor},#6d28d9)` }}><Crown className="h-12 w-12" /></div>}
                 <div className="p-5"><h3 className="text-xl font-black text-slate-950">{club.name}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{club.description}</p><div className="mt-4 flex items-end justify-between gap-3"><div><p className="text-xs font-bold text-slate-500">{club.material_count} {club.club_type === 'plr' ? 'materiais com licença PLR' : 'materiais incluídos'}</p><p className="mt-1 text-xl font-black" style={{ color: primaryColor }}>{Number(club.monthly_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}<span className="text-xs text-slate-500"> / 30 dias</span></p></div><span className="flex h-10 w-10 items-center justify-center rounded-full text-white" style={{ backgroundColor: primaryColor }}><ArrowRight className="h-5 w-5" /></span></div></div>
               </Link>)}
             </div>
@@ -456,7 +458,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       {/* Kit Cover Image */}
                       <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {kit.capa_url ? (
-                          <img src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <CatalogImage src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-tr from-slate-900 to-slate-800 text-white">
                             <Boxes className="w-8 h-8 text-blue-400 mb-1" />
@@ -565,7 +567,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
-            <div 
+            <div
               className="w-20 h-20 rounded-full mx-auto flex items-center justify-center border border-slate-100 shadow-inner transition-transform hover:scale-105"
               style={{ backgroundColor: `${primaryColor}15` }}
             >
@@ -574,8 +576,8 @@ export default function ThemeDefault(props: StoreThemeProps) {
 
             <div className="space-y-2">
               <h3 className="text-xl font-black text-slate-900">
-                {searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all' 
-                  ? 'Nenhum material encontrado' 
+                {searchFilter || selectedCategory !== 'all' || selectedEducation !== 'all'
+                  ? 'Nenhum material encontrado'
                   : 'Ainda não há materiais publicados aqui'}
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
@@ -632,17 +634,17 @@ export default function ThemeDefault(props: StoreThemeProps) {
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
                       <Link href={`/loja/${store.slug}/produto/${prod.slug || prod.id}`} className="block aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {prod.capa_url ? (
-                          <img 
-                            src={prod.capa_url} 
-                            alt={prod.titulo} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          <CatalogImage
+                            src={prod.capa_url}
+                            alt={prod.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
                             Material Didático Digital
                           </div>
                         )}
-                        <span 
+                        <span
                           className="absolute top-2.5 left-2.5 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1.5 uppercase shadow-md backdrop-blur-xs"
                           style={{ backgroundColor: primaryColor }}
                         >
@@ -676,7 +678,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                             {prod.descricao}
                           </p>
                         )}
-                        
+
                         {prod.average_rating ? (
                           <div className="flex items-center gap-1 mt-2">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -742,7 +744,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
               className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto p-5 sm:p-6 space-y-5 relative shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
-                <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
+                <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
                 <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Checkout Seguro
                 </span>
@@ -773,12 +775,12 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   {getProductGallery(selectedProduct).length > 0 && (
                     <div className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {getProductGallery(selectedProduct).map((imageUrl, index) => (
-                        <img key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
+                        <CatalogImage key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
                       ))}
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <span 
+                    <span
                       className="p-2 rounded-lg text-white text-xs font-bold uppercase flex items-center gap-1"
                       style={{ backgroundColor: primaryColor }}
                     >
@@ -868,7 +870,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
         <div className="flex items-center justify-center gap-2 text-slate-500 mt-1">
           <span>Tecnologia e Entrega por</span>
           <Link href="/">
-            <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+            <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
           </Link>
         </div>
       </footer>

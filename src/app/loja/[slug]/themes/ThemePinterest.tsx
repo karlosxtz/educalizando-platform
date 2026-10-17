@@ -1,5 +1,7 @@
 'use client';
 
+import CatalogImage from '@/components/ui/CatalogImage';
+
 import { useCart } from '@/components/store/CartContext';
 import StoreCatalogControls from '@/components/store/StoreCatalogControls';
 import CustomSelect,{ CustomSelectOption } from '@/components/ui/CustomSelect';
@@ -149,7 +151,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
         <div className="h-52 sm:h-64 relative overflow-hidden bg-slate-950">
           {store.banner_url ? (
             <>
-              <img src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+              <CatalogImage src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
             </>
           ) : (
@@ -189,7 +191,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
             {/* Circular Logo Overlapping Banner */}
             <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white p-1.5 border-4 border-white shadow-xl overflow-hidden flex-shrink-0 relative z-10">
               {store.logo_url ? (
-                <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
+                <CatalogImage src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-full object-cover" />
               ) : (
                 <div
                   className="w-full h-full rounded-full flex items-center justify-center text-white font-black text-3xl sm:text-4xl shadow-inner"
@@ -331,7 +333,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
                       {/* Kit Cover Image */}
                       <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {kit.capa_url ? (
-                          <img src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <CatalogImage src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center bg-gradient-to-tr from-slate-900 to-slate-800 text-white">
                             <Boxes className="w-8 h-8 text-blue-400 mb-1" />
@@ -466,7 +468,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
                       <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {prod.capa_url ? (
-                          <img
+                          <CatalogImage
                             src={prod.capa_url}
                             alt={prod.titulo}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -558,7 +560,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
               className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto p-5 sm:p-6 space-y-5 relative shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
-                <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
+                <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" style={{ width: 'auto', height: '32px' }} />
                 <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Checkout Seguro
                 </span>
@@ -589,7 +591,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
                   {getProductGallery(selectedProduct).length > 0 && (
                     <div className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {getProductGallery(selectedProduct).map((imageUrl, index) => (
-                        <img key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
+                        <CatalogImage key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
                       ))}
                     </div>
                   )}
@@ -684,7 +686,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
         <div className="flex items-center justify-center gap-2 text-slate-500 mt-1">
           <span>Tecnologia e Entrega por</span>
           <Link href="/">
-            <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+            <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
           </Link>
         </div>
       </footer>
