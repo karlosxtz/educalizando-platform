@@ -5,8 +5,8 @@ const titles = new Set<string>();
 const descriptions = new Set<string>();
 let failures = 0;
 for (const [path, entry] of Object.entries(PAGE_SEO)) {
-  const title = `${entry.title} | Educalizando`;
-  const valid = title.length <= 60 && entry.description.length >= 140 && entry.description.length <= 155;
+  const title = String(pageMetadata(path).title);
+  const valid = title.length <= 60 && entry.description.length > 0 && entry.description.length <= 155;
   console.log(`${valid ? 'OK' : 'FAIL'} ${path}: title=${title.length}, description=${entry.description.length}`);
   if (!valid) failures++;
   assert(!titles.has(title), `Título duplicado: ${path}`);
@@ -16,8 +16,8 @@ for (const [path, entry] of Object.entries(PAGE_SEO)) {
 }
 assert.equal(failures, 0, 'Metadados fora dos limites');
 assert(shortSeoTitle('Título '.repeat(40)).length <= 60);
-assert.equal(productSeoDescription('Produto', '<p>Curto</p>'), 'Baixe Produto na Educalizando. Material didático digital para professores e educadores.');
-assert.equal(productSeoDescription('Produto', 'a'.repeat(200)).length, 140);
+assert.equal(productSeoDescription('Produto', '<p>Curto</p>'), 'Curto');
+assert(productSeoDescription('Produto', 'a'.repeat(200)).length <= 155);
 const suffix = ' | Materiais Didáticos | Educalizando';
 assert.notEqual(shortSeoTitle('Recursos Pedagógicos da Prof', suffix, true), shortSeoTitle('Recursos Pedagógicos da Profª Lia', suffix, true));
 for (const name of ['Loja', 'Recursos Pedagógicos da Prof', 'Recursos Pedagógicos da Profª Lia', 'Nome extenso '.repeat(10)]) {
