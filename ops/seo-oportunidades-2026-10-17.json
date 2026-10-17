@@ -1,0 +1,276 @@
+{
+  "observedAt": "2026-10-17",
+  "source": "Google Search Console, interface autenticada, Pesquisa Web",
+  "comparison": "Últimos 28 dias versus 28 dias anteriores, conforme filtro do painel",
+  "totals": {
+    "current": {
+      "clicks": 200,
+      "impressions": 4628,
+      "ctr": 4.3,
+      "position": 6.3
+    },
+    "previous": {
+      "clicks": 8,
+      "impressions": 69,
+      "ctr": 11.6,
+      "position": 10.3
+    }
+  },
+  "brandRegex": "educalizando|educaizando",
+  "brand": {
+    "clicks": 88,
+    "impressions": 106,
+    "ctr": 83,
+    "position": 1
+  },
+  "nonBrand": {
+    "clicks": 25,
+    "impressions": 1698,
+    "ctr": 1.5,
+    "position": 7.7
+  },
+  "privacyNote": "Filtros de consulta são parciais: 87 dos 200 cliques não podem ser classificados por esta separação. Não presumir que todos sejam não-marca.",
+  "deviceMobile": {
+    "clicks": 81,
+    "impressions": 3219,
+    "ctr": 2.5,
+    "position": 6.2
+  },
+  "observedQueries": 261,
+  "observedPages": 269,
+  "priorityPages": [
+    {
+      "url": "https://www.educalizando.com.br/produto/cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental",
+      "clicks": 5,
+      "impressions": 726,
+      "ctr": 0.7,
+      "position": 5
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cabelo-maluco-unicornio-menina-pdf-educacao-infantil-e-ensino-fundamental",
+      "clicks": 8,
+      "impressions": 513,
+      "ctr": 1.6,
+      "position": 5.5
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-lembrancinhas-dia-das-criancas-com-doces-4-modelos-para-imprimir-em-pdf",
+      "clicks": 10,
+      "impressions": 447,
+      "ctr": 2.2,
+      "position": 7.3
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-desfile-maluco-pdf-educacao-infantil-e-fundamental",
+      "clicks": 10,
+      "impressions": 248,
+      "ctr": 4,
+      "position": 4.8
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/kit-outubro-rosa-plaquinhas-para-fotos-e-conscientizacao",
+      "clicks": 5,
+      "impressions": 230,
+      "ctr": 2.2,
+      "position": 4.2
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/combo-mochila-maluca-ed-infantile-anos-inicais",
+      "clicks": 1,
+      "impressions": 153,
+      "ctr": 0.7,
+      "position": 7.5
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/semana-da-crianca-no-ritmo-dos-anos-80-ed-inf-anos-iniciais",
+      "clicks": 0,
+      "impressions": 137,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "url": "https://www.educalizando.com.br/lojas",
+      "clicks": 0,
+      "impressions": 103,
+      "ctr": 0,
+      "position": 7.2
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-9-partes-educacao-infantil-fundamental",
+      "clicks": 1,
+      "impressions": 98,
+      "ctr": 1,
+      "position": 4.7
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/novembro-azul-na-escola-painel-para-imprimir",
+      "clicks": 2,
+      "impressions": 83,
+      "ctr": 2.4,
+      "position": 4.7
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/romero-britto-exercicios-e-atividades-para-colorir",
+      "clicks": 2,
+      "impressions": 66,
+      "ctr": 3,
+      "position": 7.3
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/historinha-e-lembrancinhas-12-de-outubro-dia-das-criancas-e-de-nossa-senhora-aparecida-pdf",
+      "clicks": 1,
+      "impressions": 66,
+      "ctr": 1.5,
+      "position": 6.3
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/arte-primavera-y66a",
+      "clicks": 1,
+      "impressions": 53,
+      "ctr": 1.9,
+      "position": 9.3
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/bambole-outubro-rosa-para-fotos-decoracao-e-conscientizacao",
+      "clicks": 0,
+      "impressions": 44,
+      "ctr": 0,
+      "position": 7.4
+    },
+    {
+      "url": "https://www.educalizando.com.br/produto/cartoes-dia-dos-professores",
+      "clicks": 0,
+      "impressions": 44,
+      "ctr": 0,
+      "position": 8.7
+    }
+  ],
+  "priorityQueries": [
+    {
+      "query": "cabelo maluco carrinho",
+      "clicks": 1,
+      "impressions": 228,
+      "ctr": 0.4,
+      "position": 5.3
+    },
+    {
+      "query": "cabelo maluco unicornio menina",
+      "clicks": 0,
+      "impressions": 100,
+      "ctr": 0,
+      "position": 5.1
+    },
+    {
+      "query": "kit dia das crianças para imprimir",
+      "clicks": 1,
+      "impressions": 98,
+      "ctr": 1,
+      "position": 5.6
+    },
+    {
+      "query": "cabelo maluco de carrinho",
+      "clicks": 0,
+      "impressions": 81,
+      "ctr": 0,
+      "position": 5.5
+    },
+    {
+      "query": "cabelo maluco do unicórnio para menina",
+      "clicks": 0,
+      "impressions": 58,
+      "ctr": 0,
+      "position": 5.4
+    },
+    {
+      "query": "plaquinhas frases outubro rosa",
+      "clicks": 1,
+      "impressions": 53,
+      "ctr": 1.9,
+      "position": 10
+    },
+    {
+      "query": "arte da primavera",
+      "clicks": 1,
+      "impressions": 39,
+      "ctr": 2.6,
+      "position": 8.7
+    },
+    {
+      "query": "cabelo maluco unicórnio menina",
+      "clicks": 0,
+      "impressions": 33,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "query": "mochila maluca doces",
+      "clicks": 0,
+      "impressions": 33,
+      "ctr": 0,
+      "position": 8.8
+    },
+    {
+      "query": "cabelo maluco menina unicornio",
+      "clicks": 0,
+      "impressions": 24,
+      "ctr": 0,
+      "position": 5.9
+    },
+    {
+      "query": "lembrancinhas dia das crianças para imprimir",
+      "clicks": 0,
+      "impressions": 20,
+      "ctr": 0,
+      "position": 9.3
+    },
+    {
+      "query": "cabelo maluco unicórnio infantil",
+      "clicks": 0,
+      "impressions": 19,
+      "ctr": 0,
+      "position": 7.8
+    },
+    {
+      "query": "cabelo maluco corrida",
+      "clicks": 0,
+      "impressions": 18,
+      "ctr": 0,
+      "position": 4.3
+    },
+    {
+      "query": "cabelo maluco de corrida",
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "query": "atividade adaptada grecia antiga",
+      "clicks": 0,
+      "impressions": 16,
+      "ctr": 0,
+      "position": 7
+    }
+  ],
+  "indexing": {
+    "indexed": 441,
+    "notIndexed": 324,
+    "noindex": 194,
+    "canonicalAlternate": 13,
+    "redirect": 7,
+    "duplicateWithoutCanonical": 3,
+    "notFound": 1,
+    "robotsBlocked": 1,
+    "crawledNotIndexed": 20,
+    "discoveredNotIndexed": 85
+  },
+  "structuredData": {
+    "productValid": 19,
+    "productInvalid": 0,
+    "merchantValid": 19,
+    "merchantInvalid": 0,
+    "breadcrumbValid": 44,
+    "breadcrumbInvalid": 0
+  },
+  "coreWebVitals": "Sem dados suficientes no Search Console para celular e computador"
+}

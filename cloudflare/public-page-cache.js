@@ -1,6 +1,6 @@
 /* global EDUCALIZANDO_BUILD_ID */
 const version = typeof EDUCALIZANDO_BUILD_ID === 'string' ? EDUCALIZANDO_BUILD_ID : 'local';
-const publicPage = /^(?:\/$|\/lojas$|\/ofertas$|\/produto\/[^/]+$|\/categorias\/[^/]+$|\/kit\/[^/]+$|\/loja\/[^/]+(?:\/(?:produto\/[^/]+|kit\/[^/]+))?$|\/clube\/[^/]+$|\/sitemap[^/]*\.xml$)/;
+const publicPage = /^(?:\/$|\/(?:materiais-didaticos|recursos-pedagogicos|atividades-alfabetizacao|educacao-infantil|planos-de-aula-bncc|atividades-para-imprimir|jogos-pedagogicos|atividades-ensino-fundamental)$|\/lojas$|\/ofertas$|\/produto\/[^/]+$|\/categorias\/[^/]+$|\/kit\/[^/]+$|\/loja\/[^/]+(?:\/(?:produto\/[^/]+|kit\/[^/]+))?$|\/clube\/[^/]+$|\/sitemap[^/]*\.xml$)/;
 const variantHeaders = ['RSC', 'Next-Router-State-Tree', 'Next-Router-Prefetch', 'Next-Router-Segment-Prefetch', 'Next-Url', 'Range'];
 const pending = new Map();
 export const PUBLIC_HTML_TTL = 3600;

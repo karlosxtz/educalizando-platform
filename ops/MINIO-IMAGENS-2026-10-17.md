@@ -30,7 +30,7 @@ Dados locais completos: `.cloudflare/minio-image-measurements.json`.
   Sem entrada no manifesto, a imagem original é usada; se um preview falhar,
   há fallback para o original, sem parâmetros de cache busting.
 
-## Previews antigos: preparação e pendência
+## Previews antigos: publicados e verificados
 
 `node scripts/optimize-minio-previews.mjs` faz inventário público somente leitura.
 `--prepare` gera arquivos locais e um manifesto pendente, sem alterar o site.
@@ -57,25 +57,39 @@ A primeira publicação foi conferida na home: de 69 imagens sem lazy loading pa
 para absolutamente toda imagem lazy: ele pode antecipar itens próximos da tela.
 
 Comprovação local: `.cloudflare/minio-previews-uploaded.png` e
-`.cloudflare/minio-preview-verification.json`. O manifesto atualizado precisa
-ser publicado com a aplicação para os novos URLs serem usados.
+`.cloudflare/minio-preview-verification.json`. O manifesto foi publicado:
+a home respondeu 200 com 66 tags usando previews (32 URLs distintas),
+3 imagens sem lazy loading e nenhum proxy de imagem da aplicação.
 
-## Cache no Nginx da VPS: ainda depende de acesso
+## Cache no Nginx da VPS: aplicado e verificado
 
-Inspecionar a localização existente que atende `/public-images/`, preservando
-seu proxy, CORS, TLS e cabeçalhos de segurança. Identificar a origem da diretiva
-que acrescenta `no-cache` (por exemplo `expires -1` ou `add_header`). Corrigir
-somente a entrega das imagens públicas com nomes únicos. Resposta esperada:
+Após o usuário abrir o painel autenticado da VPS, a configuração existente foi
+lida e salva em backup local. A origem era `add_header Cache-Control no-cache`
+no proxy raiz para MinIO (`127.0.0.1:9000`). Esse bloco permaneceu intacto.
+Foi adicionada uma localização mais específica para `/public-images/uploads/`,
+preservando destino e cabeçalhos de proxy. Somente GET/HEAD de extensões de
+imagem recebem cache longo; os outros métodos recebem `private, no-store`.
+Não foi ativado cache em disco no proxy. Resposta confirmada em produção:
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-Não aplicar isso a `private-materials`, `private-plr`, console MinIO, links
-assinados ou respostas de autenticação. Não colar um novo bloco Nginx sem antes
-conferir a configuração existente. Validar com `nginx -t` antes do reload e
-conferir headers, CORS e acesso privado depois. Nenhuma regra Cloudflare é
-necessária para esta correção.
+A ação Salvar e Recarregar foi aceita pelo painel. Não foi executado um comando
+`nginx -t` separado por terminal. As verificações HTTP posteriores confirmaram:
+
+- Original e preview: 200, cache longo sem `no-cache`, servidor Nginx.
+- Acesso anônimo a arquivos de teste em `private-materials` e `private-plr`:
+  403, sem cache público.
+- Preflight CORS de upload: 204, origem `https://www.educalizando.com.br`
+  permitida e `private, no-store`.
+
+Nenhum bucket privado, política de acesso, dado cadastrado ou original foi
+alterado. Não houve alteração de DNS, plano ou serviços de imagem Cloudflare.
+Backups locais: `.cloudflare/minio-nginx-before.conf`,
+`.cloudflare/minio-proxy-before.conf` e `.cloudflare/minio-nginx-after.conf`.
+Evidências: `.cloudflare/minio-cache-final.json` e
+`.cloudflare/minio-cache-nginx-saved.png`.
 
 ## Arquivos alterados e motivos
 
@@ -102,7 +116,7 @@ necessária para esta correção.
 | scripts/optimize-minio-previews.mjs | Manutenção opcional dos previews sem alterar originais. |
 | scripts/verify-direct-storage-upload.cjs | Atualizar fixture da compressão. |
 | scripts/verify-minio-image-performance.cjs | Verificar URLs, lazy, formatos e proteção de arquivos privados. |
-| ops/MINIO-IMAGENS-2026-10-17.md | Medições, implementação e pendências reais. |
+| ops/MINIO-IMAGENS-2026-10-17.md | Medições, implementação e confirmação em produção. |
 
 ## Validação local
 
@@ -110,5 +124,6 @@ Lint: zero erros, 17 avisos preexistentes. Typecheck Vinext e build de produçã
 Cloudflare com dry-run passaram. Testes de performance MinIO, upload direto,
 regressões de cache/imagens Cloudflare e SEO de marca passaram.
 
-Publicação do código não equivale a corrigir a configuração do servidor MinIO;
-essa etapa continua dependente de acesso à VPS.
+Código e manifesto publicados nos commits `604458e` e `e9a4a94`.
+A configuração Nginx foi aplicada separadamente no painel da VPS e conferida
+por HTTP. A atualização final deste relatório não exige nova publicação da aplicação.

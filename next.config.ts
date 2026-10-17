@@ -83,7 +83,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      ...['/', '/lojas', '/ofertas', '/loja/:slug', '/produto/:slug', '/kit/:id', '/clube/:slug', '/loja/:slug/produto/:produtoSlug', '/loja/:slug/kit/:id', '/categorias/:slug', '/sitemap.xml', '/sitemap-catalogo.xml'].map(source => ({
+      ...['/', '/materiais-didaticos', '/recursos-pedagogicos', '/atividades-alfabetizacao', '/educacao-infantil', '/planos-de-aula-bncc', '/atividades-para-imprimir', '/jogos-pedagogicos', '/atividades-ensino-fundamental', '/lojas', '/ofertas', '/loja/:slug', '/produto/:slug', '/kit/:id', '/clube/:slug', '/loja/:slug/produto/:produtoSlug', '/loja/:slug/kit/:id', '/categorias/:slug', '/sitemap.xml', '/sitemap-catalogo.xml'].map(source => ({
         source,
         // These documents read only the public catalogue. The edge cache also
         // rejects every session, query parameter and React navigation variant.

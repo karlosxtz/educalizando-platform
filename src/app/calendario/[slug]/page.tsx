@@ -11,6 +11,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { CALENDAR_EDITORIAL } from '@/lib/calendar-editorial';
+import CalendarPlanningContent from '@/components/seo/CalendarPlanningContent';
 
 type CalendarDetailProps = { params: Promise<{ slug: string }> };
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -31,8 +33,9 @@ export async function generateMetadata({ params }: CalendarDetailProps): Promise
   const event = getSchoolCalendarEvent((await params).slug);
   if (!event) return {};
   const dateLabel = `${event.day} de ${MONTHS[event.month - 1]}`;
-  const title = `${event.name}: atividades e ideias para aulas | Educalizando`;
-  const description = `${event.description} Veja ideias pedagógicas para trabalhar o tema em ${dateLabel}.`;
+  const editorial = CALENDAR_EDITORIAL[event.slug];
+  const title = editorial?.title || `${event.name}: atividades e ideias para aulas | Educalizando`;
+  const description = editorial?.description || `${event.description} Veja ideias pedagógicas para trabalhar o tema em ${dateLabel}.`;
   const url = `/calendario/${event.slug}`;
   return { title, description, alternates: { canonical: url }, ...socialMetadata({ title, description, url }) };
 }
@@ -85,5 +88,6 @@ export default async function CalendarDetailPage({ params }: CalendarDetailProps
     <section aria-labelledby="materiais-relacionados" className="mt-9"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.14em] text-blue-700">Catálogo Educalizando</p><h2 id="materiais-relacionados" className="mt-1 text-2xl font-black text-slate-950">Materiais para este tema</h2></div><Link href={searchHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 px-4 text-sm font-black text-blue-800 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Ver busca completa <Search aria-hidden="true" className="h-4 w-4" /></Link></div>{featuredProducts.length ? <><p className="mt-2 text-sm leading-6 text-slate-600">Estes materiais possuem exatamente a tag temática cadastrada pelo criador.</p><div className="mt-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-5 lg:grid-cols-4">{featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div></> : <div role="status" className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-center"><h3 className="text-lg font-black text-slate-900">Ainda não há materiais marcados para este tema</h3><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">A busca temática continua disponível, sem criar uma associação automática ou falsa.</p><Link href={searchHref} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Search aria-hidden="true" className="h-4 w-4" />Buscar materiais sobre este tema</Link></div>}</section>
     {featuredFreeProducts.length > 0 && <section className="mt-8 border-t border-slate-200 pt-8" aria-labelledby="materiais-gratuitos-relacionados"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.14em] text-emerald-700">Para conhecer sem custo</p><h2 id="materiais-gratuitos-relacionados" className="mt-1 text-2xl font-black text-slate-950">Materiais gratuitos relacionados</h2><p className="mt-2 text-sm leading-6 text-slate-600">Também marcados pelos criadores com esta mesma data temática.</p></div><Link href={searchHref + '&preco=gratis'} className="text-sm font-black text-emerald-700 hover:underline">Ver todos os gratuitos →</Link></div><div className="mt-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-5 lg:grid-cols-4">{featuredFreeProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div></section>}
     {relatedStores.length > 0 && <section className="mt-8 border-t border-slate-200 pt-8" aria-labelledby="criadores-relacionados"><div><p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.14em] text-violet-700"><Sparkles className="h-4 w-4" /> Vitrines criadoras</p><h2 id="criadores-relacionados" className="mt-1 text-2xl font-black text-slate-950">Criadores que trabalham este tema</h2><p className="mt-2 text-sm leading-6 text-slate-600">Vitrines relacionadas porque possuem materiais marcados para esta data.</p></div><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{relatedStores.map((store) => <StoreCard key={store.id} store={store} />)}</div></section>}
+    <CalendarPlanningContent slug={event.slug} />
   </article></main><Footer /></div>;
 }

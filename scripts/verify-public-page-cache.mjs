@@ -58,3 +58,14 @@ assert.equal((await fetchPublicPage(request(transitionPath),ctx,render,cache,fre
 await Promise.all(tasks.splice(0));
 assert.equal((await fetchPublicPage(request(transitionPath),ctx,render,cache,freshRevision,time)).headers.get('X-Educalizando-Page-Cache'),'HIT');
 console.log('PASS: transição após edição não prolonga HTML stale do ISR no cache de borda.');
+// Existing editorial landings use public RLS data and the same catalogue revision.
+for (const path of ['/materiais-didaticos','/recursos-pedagogicos','/atividades-alfabetizacao','/educacao-infantil','/planos-de-aula-bncc','/atividades-para-imprimir','/jogos-pedagogicos','/atividades-ensino-fundamental']) {
+ const start = renders;
+ await fetchPublicPage(request(path),ctx,render,cache,'editorial-v1'); await Promise.all(tasks.splice(0));
+ assert.equal((await fetchPublicPage(request(path),ctx,render,cache,'editorial-v1')).headers.get('X-Educalizando-Page-Cache'),'HIT');
+ assert.equal(renders,start+1);
+ assert.equal(publicPageCacheKey(request(path,{headers:{Cookie:'session=one'}})),null);
+ assert.equal(publicPageCacheKey(request(path+'?q=teste')),null);
+ assert.notEqual(publicPageCacheKey(request(path),'before').url,publicPageCacheKey(request(path),'after').url);
+}
+console.log('PASS: oito páginas editoriais usam cache com revisão do catálogo; sessões e filtros continuam fora.');
