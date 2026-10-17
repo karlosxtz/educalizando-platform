@@ -11,6 +11,7 @@ type SocialMetadataOptions = {
   type?: 'website' | 'article';
   image?: string;
   imageAlt?: string;
+  preserveName?: boolean;
 };
 
 export function socialMetadata({
@@ -20,8 +21,11 @@ export function socialMetadata({
   type = 'website',
   image = DEFAULT_SOCIAL_IMAGE,
   imageAlt = DEFAULT_SOCIAL_IMAGE_ALT,
+  preserveName = false,
 }: SocialMetadataOptions): Pick<Metadata, 'metadataBase' | 'title' | 'description' | 'alternates' | 'openGraph' | 'twitter'> {
-  title = seoExcerpt(title, 60);
+  title = title.replace(/\s+/g, ' ').trim();
+  if (!preserveName && title.length > 60 && title.endsWith(' | Educalizando')) title = title.slice(0, -' | Educalizando'.length);
+  if (!preserveName) title = seoExcerpt(title, 60);
   description = seoExcerpt(description, 155);
   const path = new URL(url, SITE_URL);
   url = SITE_URL + path.pathname + path.search;

@@ -4,7 +4,7 @@ import ProductCard from '@/components/ProductCard';
 import { getEducationLevels } from '@/lib/category-service';
 import { searchProducts } from '@/lib/search-service';
 import { serializeJsonLd,socialMetadata } from '@/lib/seo';
-import { pageMetadata, PAGE_SEO } from '@/lib/page-seo';
+import { pageMetadata, PAGE_SEO, shortSeoTitle } from '@/lib/page-seo';
 import { CheckCircle2 } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: EducationLevelPageProps): Pro
 
   if (PAGE_SEO[`/atividades-por-ano/${slug}`]) return pageMetadata(`/atividades-por-ano/${slug}`);
 
-  const title = `Atividades para ${level.nome} para Imprimir | Educalizando`;
-  const description = `Encontre os melhores materiais didáticos, apostilas e atividades prontas para ${level.nome}. Alinhados à BNCC e desenvolvidos por especialistas para potencializar suas aulas.`;
+  const title = shortSeoTitle(`Materiais para ${level.nome}`);
+  const description = `Consulte materiais de ${level.nome}. Compare os temas, o formato e as informações de cada cadastro antes de escolher um recurso para suas aulas.`;
   const url = `https://www.educalizando.com.br/atividades-por-ano/${level.slug}`;
 
   return {
@@ -82,11 +82,11 @@ export default async function EducationLevelLandingPage({ params }: EducationLev
         <section className="bg-white border-b py-12 md:py-16">
           <div className="container mx-auto px-4 max-w-[1200px] text-center">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-6">
-              <CheckCircle2 className="w-4 h-4" /> Alinhado à BNCC
+              <CheckCircle2 className="w-4 h-4" /> Materiais por etapa de ensino
             </span>
             <h1 className="text-3xl md:text-5xl font-black text-[#093b6c] mb-6 tracking-tight leading-tight">Materiais e Atividades para <br className="hidden md:block"/> {level.nome}</h1>
             <p className="text-gray-600 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-              Explore nossa seleção de apostilas, e-books e recursos pedagógicos desenvolvidos especificamente para {level.nome}.
+              Consulte os materiais classificados pelos criadores em {level.nome}. Confira a descrição e o público indicado de cada recurso antes de escolher.
             </p>
           </div>
         </section>

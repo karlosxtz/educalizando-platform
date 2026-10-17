@@ -14,30 +14,32 @@ export function catalogMetadata(name: string, description: string | null, path: 
   return {
     metadataBase: new URL(SITE_URL), title, description: text, alternates: { canonical: url },
     robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
-    ...socialMetadata({ title, description: text, url, image: image || DEFAULT_SOCIAL_IMAGE, imageAlt: 'Capa de ' + name }),
+    ...socialMetadata({ title, description: text, url, image: image || DEFAULT_SOCIAL_IMAGE, imageAlt: 'Capa de ' + name, preserveName: true }),
   };
 }
 
-export function productMetadata(product: Product, plr = false, storefront?: Pick<Store, 'nome_loja' | 'slug'>, reference?: string): Metadata {
+export function productMetadata(product: Product, plr = false, _storefront?: Pick<Store, 'nome_loja' | 'slug'>, reference?: string): Metadata {
   const isPlr = plr && product.is_plr;
-  const path = (storefront ? '/loja/' + encodeURIComponent(storefront.slug) : '') + '/produto/' + encodeURIComponent(product.slug || product.id);
-  const context = (storefront ? `${storefront.nome_loja}: ` : 'Educalizando: ') + (reference ? `Ref. ${reference}. ` : '') + productSeoText(product.titulo).slice(0, 85) + '. ';
-  const metadata = catalogMetadata(product.titulo, context + (isPlr && product.plr_descricao ? product.plr_descricao : product.descricao || ''),
-    path,
+  const path = '/produto/' + encodeURIComponent(product.slug || product.id);
+  const name = productSeoText(product.titulo);
+  const detail = productSeoText(isPlr && product.plr_descricao ? product.plr_descricao : product.descricao || '');
+  const prefix = name + (reference ? ' · Ref. ' + reference : '') + '.';
+  const room = 155 - prefix.length - 1;
+  const excerpt = room > 20 ? (detail.length <= room ? detail : detail.slice(0, room).replace(/\s+\S*$/, '').trimEnd()) : '';
+  const description = prefix + (excerpt ? ' ' + excerpt : '');
+  const metadata = catalogMetadata(name, description, path,
     product.capa_url ? productCoverImageUrl(product.slug || product.id) : DEFAULT_SOCIAL_IMAGE);
-  if (storefront || reference) {
-    const suffix = storefront ? ' | Loja ' + storefront.nome_loja.slice(0, 15) : ' | Educalizando';
-    const title = shortSeoTitle(product.titulo, (reference ? ' · ' + reference : '') + suffix);
-    metadata.title = title;
-    metadata.openGraph = { ...metadata.openGraph, title };
-    metadata.twitter = { ...metadata.twitter, title };
-  }
-  return { ...metadata, metadataBase: new URL(SITE_URL) };
+  // Both storefront and marketplace share one document identity. Store links,
+  // affiliation, checkout, and license selection remain untouched.
+  const title = shortSeoTitle(name + (reference ? ' · ' + reference : ''));
+  return { ...metadata, title, description,
+    openGraph: { ...metadata.openGraph, title, description },
+    twitter: { ...metadata.twitter, title, description } };
 }
 
-export function productStructuredData(product: Product, store: Pick<Store, 'nome_loja' | 'slug'>, plr = false, category?: string, storefront = false) {
+export function productStructuredData(product: Product, store: Pick<Store, 'nome_loja' | 'slug'>, plr = false, category?: string, _storefront = false) {
   const license = plr && product.is_plr;
-  const url = SITE_URL + (storefront ? '/loja/' + encodeURIComponent(store.slug) : '') + '/produto/' + encodeURIComponent(product.slug || product.id) + (license ? '?licenca=plr' : '');
+  const url = SITE_URL + '/produto/' + encodeURIComponent(product.slug || product.id) + (license ? '?licenca=plr' : '');
   const value = license ? product.preco_plr : product.is_free ? 0 : product.preco;
   const price = value === null || value === undefined ? NaN : Number(value);
   const description = license && product.plr_descricao ? product.plr_descricao : product.descricao;
