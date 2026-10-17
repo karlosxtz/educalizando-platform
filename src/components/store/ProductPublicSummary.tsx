@@ -19,14 +19,14 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
         <Link href={`/loja/${encodeURIComponent(store.slug)}`} className="font-bold text-blue-800">{store.nome_loja}</Link>
         <h1 className="text-3xl font-black text-slate-900">{product.titulo}</h1>
         {Number(product.review_count) > 0 && <p className="text-sm text-slate-700">Avaliação: {product.average_rating}/5 · {product.review_count} avaliações</p>}
-        <p className="text-sm font-bold text-slate-600">{license ? 'Versão PLR' : 'Material digital'}{product.format_details ? ` · ${product.format_details}` : ''}</p>
+        <p className="text-sm font-bold text-slate-600">{license ? 'Versão PLR' : 'Material digital'}{!license && product.format_details ? ` · ${product.format_details}` : ''}</p>
         <p className="text-2xl font-bold text-blue-900">{price != null && Number.isFinite(Number(price)) ? Number(price) === 0 ? 'Gratuito' : Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Consulte as opções de compra'}</p>
         <Link href={checkout} className="inline-block rounded-xl bg-blue-900 px-6 py-3 font-bold text-white">Ver opções de compra</Link>
         <h2 className="text-xl font-bold">Sobre este material</h2>
         <p className="whitespace-pre-line leading-relaxed text-slate-700">{readableProductDescription(description || '')}</p>
         <dl className="space-y-2 text-slate-700">
-          {product.page_count ? <div><dt className="inline font-bold">Páginas: </dt><dd className="inline">{product.page_count}</dd></div> : null}
-          {product.age_range && <div><dt className="inline font-bold">Faixa indicada: </dt><dd className="inline">{product.age_range}</dd></div>}
+          {!license && product.page_count ? <div><dt className="inline font-bold">{product.tipo === 'video' ? 'Itens: ' : 'Páginas: '}</dt><dd className="inline">{product.page_count}</dd></div> : null}
+          {!license && product.age_range && <div><dt className="inline font-bold">Faixa indicada: </dt><dd className="inline">{product.age_range}</dd></div>}
         </dl>
       </article>
     </main>

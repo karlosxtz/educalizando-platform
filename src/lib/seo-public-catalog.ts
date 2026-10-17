@@ -30,7 +30,7 @@ export const readSeoCategoryProducts = cache(async (slug: string) => {
   // The product records themselves are never reclassified or edited.
   const ids = rule.categoryIds.join(',');
   const { data, error } = await db.from('products')
-    .select('id,store_id,titulo,slug,descricao,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,category_id,category_ids,education_level_id,education_level_ids,age_range,format_details,page_count,tags,store:store_id(id,nome_loja,slug,logo_url)')
+    .select('id,store_id,titulo,slug,descricao,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,category_id,category_ids,education_level_id,education_level_ids,age_range,format_details,page_count,tags,seasonal_tags,education_level:education_level_id(id,nome,slug,ordem,created_at),store:store_id(id,nome_loja,slug,logo_url)')
     .in('status', ['publicado', 'ativo', 'published']).is('excluido_em', null)
     .in('store_id', catalog.stores.map(s => s.id))
     .or(`category_id.in.(${ids}),category_ids.ov.{${ids}}`)

@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { notFound,permanentRedirect } from 'next/navigation';
 import ProductProgressiveView from '@/components/store/ProductProgressiveView';
 import ProductPublicSummary from '@/components/store/ProductPublicSummary';
+import ProductSelectionGuide from '@/components/store/ProductSelectionGuide';
 import ProductDiscoveryLinks from '@/components/store/ProductDiscoveryLinks';
 import { publicProductDetail, publicStoreProduct } from '@/lib/public-store-presentation';
 
@@ -188,6 +189,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
         >
           <ProductPublicSummary product={reviewedProduct} store={store} plr={licenca === 'plr'} />
         </ProductProgressiveView>
+        <ProductSelectionGuide product={reviewedProduct} store={store} plr={licenca === 'plr'} />
         <ProductDiscoveryLinks store={store} category={category} levels={selectedLevels} products={relatedProducts} />
       </div>
       <Footer />

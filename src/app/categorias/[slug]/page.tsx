@@ -3,6 +3,7 @@ export const revalidate = 3600;
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
+import CategorySelectionGuide from '@/components/seo/CategorySelectionGuide';
 import { readSeoPublicCatalog, readSeoCategoryProducts } from '@/lib/seo-public-catalog';
 import { categoryIntroduction } from '@/lib/category-editorial';
 import { serializeJsonLd,socialMetadata } from '@/lib/seo';
@@ -102,6 +103,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
             <h1 className="text-3xl md:text-4xl font-bold text-[#093b6c] mb-4">
               Materiais de {category.nome}
             </h1>
+            {products.length > 0 && <a href="#materiais-categoria" className="mb-5 inline-flex min-h-11 items-center rounded-xl bg-blue-900 px-5 py-3 font-bold text-white">Ver materiais desta categoria</a>}
             <div className="text-gray-600 text-base leading-relaxed max-w-3xl mx-auto text-left space-y-4">
               {intro.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
             </div>
@@ -112,8 +114,10 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
           </div>
         </section>
 
+        <CategorySelectionGuide name={category.nome} products={products} />
+
         {/* Product Grid */}
-        <section className="py-12">
+        <section id="materiais-categoria" aria-label={`Materiais de ${category.nome}`} className="scroll-mt-6 py-12">
           <div className="container mx-auto px-4 max-w-[1200px]">
             {products.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-6 lg:grid-cols-4">
