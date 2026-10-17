@@ -1,0 +1,745 @@
+[
+  {
+    "url": "https://www.educalizando.com.br/lojas",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Lojas de materiais didáticos | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/lojas",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 231546
+  },
+  {
+    "url": "https://www.educalizando.com.br/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Educalizando: plataforma de materiais didáticos",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br",
+    "schemas": [
+      "WebSite",
+      "Organization",
+      "FAQPage"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 624468
+  },
+  {
+    "url": "https://www.educalizando.com.br/materiais-didaticos",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Materiais didáticos digitais para ensinar com mais…",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/materiais-didaticos",
+    "schemas": [
+      [
+        "CollectionPage",
+        "BreadcrumbList",
+        "FAQPage",
+        "ItemList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 145019
+  },
+  {
+    "url": "https://www.educalizando.com.br/blog",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Blog Educalizando | Ideias e Guias Pedagógicos",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/blog",
+    "schemas": [
+      [
+        "CollectionPage",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 41037
+  },
+  {
+    "url": "https://www.educalizando.com.br/materiais-gratis",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Materiais Pedagógicos Gratuitos | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/materiais-gratis",
+    "schemas": [
+      "CollectionPage"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 44911
+  },
+  {
+    "url": "https://www.educalizando.com.br/atividades-para-imprimir",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Atividades pedagógicas para imprimir grátis | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/atividades-para-imprimir",
+    "schemas": [
+      [
+        "CollectionPage",
+        "BreadcrumbList",
+        "FAQPage",
+        "ItemList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 145301
+  },
+  {
+    "url": "https://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Lojinha Pedagógica da Prô Vanessa | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa",
+    "schemas": [
+      [
+        "Organization",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 220172
+  },
+  {
+    "url": "https://www.educalizando.com.br/loja/loja-da-pro",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Loja da Prô | Materiais Didáticos | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/loja/loja-da-pro",
+    "schemas": [
+      [
+        "Organization",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 385516
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/-alfabeto-magico-boquinhas-da-alfabetizacao--qeag",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "universo-pedagogico-da-prof.lu | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu",
+    "schemas": [
+      [
+        "Organization",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 223030
+  },
+  {
+    "url": "https://www.educalizando.com.br/offline",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Educalizando — Plataforma Digital para Materiais Didáticos",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex, nofollow"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/offline",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 23830
+  },
+  {
+    "url": "https://www.educalizando.com.br/disciplinas/educacao-fisica",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Atividades de Educação Física para Imprimir | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/disciplinas/educacao-fisica",
+    "schemas": [
+      "CollectionPage",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 68824
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/kit-o-poderoso-paizao--qfmv",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/cafe-literario-um-kit-completo-para-encantar",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/produto-7dac23a9",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/zuzu-da-divisao-aprendendo-divisao-de-forma-divertida-47ls",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/kit-das-caixinhas-da-alfabetizacao-yvy5",
+    "status": 308,
+    "type": "",
+    "location": "/produto/kit-das-caixinhas-da-alfabetizacao",
+    "title": "",
+    "robots": [],
+    "canonical": "",
+    "schemas": [],
+    "h1": 0,
+    "resourceLimit": false,
+    "bytes": 0
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/bolsinhos-das-vogais-6vij",
+    "status": 404,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Página não encontrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex,nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 383
+  },
+  {
+    "url": "https://www.educalizando.com.br/clube/loja-da-pro-clube-loja-da-pro-717afa",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Clube - Loja da Prô | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/clube/loja-da-pro-clube-loja-da-pro-717afa",
+    "schemas": [
+      [
+        "CollectionPage",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 106040
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/atividade-de-grafomotricidade-com-lousinha-magica",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Atividade de Grafomotricidade com Lousinha Mágica",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/atividade-de-grafomotricidade-com-lousinha-magica",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 98596
+  },
+  {
+    "url": "https://www.educalizando.com.br/loja/atividade-criativa",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "ATIVIDADE CRIATIVA | Materiais Didáticos | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "noindex, follow"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/loja/atividade-criativa",
+    "schemas": [
+      [
+        "Organization",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 59347
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/kit-vitamina-de-frutas-com-receita-ilustrada",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Kit Vitamina de Frutas com Receita Ilustrada | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/kit-vitamina-de-frutas-com-receita-ilustrada",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 105160
+  },
+  {
+    "url": "https://www.educalizando.com.br/calendario/proclamacao-da-republica",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Proclamação da República: atividades e ideias para aulas",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/calendario/proclamacao-da-republica",
+    "schemas": [
+      [
+        "WebPage",
+        "BreadcrumbList"
+      ]
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 99980
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/mural-interativo-arvore-de-natal-de-recordacoes",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Mural Interativo Árvore de Natal de Recordações",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/mural-interativo-arvore-de-natal-de-recordacoes",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 100242
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Folder Outubro Rosa Infantil – Informativo e para Colorir",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 101574
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/combo-apostila-das-4-operacoes",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "COMBO APOSTILA DAS 4 OPERAÇÕES | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/combo-apostila-das-4-operacoes",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 91966
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-32-paginas-educacao-infantil",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Painel Consciência Negra PDF &quot;32 páginas&quot; Educação Infantil",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-32-paginas-educacao-infantil",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 109623
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/bingo",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Bingo das sílabas – Material Pedagógico | Educalizando",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/bingo",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 96808
+  },
+  {
+    "url": "https://www.educalizando.com.br/vender",
+    "status": 307,
+    "type": "",
+    "location": "/cadastro/produtor",
+    "title": "",
+    "robots": [],
+    "canonical": "",
+    "schemas": [],
+    "h1": 0,
+    "resourceLimit": false,
+    "bytes": 0
+  },
+  {
+    "url": "https://www.educalizando.com.br/produto/lembrancinha-para-professora-cone-para-imprimir",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Lembrancinha para Professora: Cone para Imprimir",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "index, follow"
+      },
+      {
+        "name": "googlebot",
+        "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      }
+    ],
+    "canonical": "https://www.educalizando.com.br/produto/lembrancinha-para-professora-cone-para-imprimir",
+    "schemas": [
+      "Product",
+      "BreadcrumbList"
+    ],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 95431
+  },
+  {
+    "url": "https://www.educalizando.com.br/aluno/login",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "location": null,
+    "title": "Educalizando — Plataforma Digital para Materiais Didáticos",
+    "robots": [
+      {
+        "name": "robots",
+        "value": "noindex, nofollow"
+      }
+    ],
+    "canonical": "",
+    "schemas": [],
+    "h1": 1,
+    "resourceLimit": false,
+    "bytes": 27699
+  },
+  {
+    "url": "https://www.educalizando.com.br/robots.txt",
+    "status": 200,
+    "type": "text/plain",
+    "location": null,
+    "title": "",
+    "robots": [],
+    "canonical": "",
+    "schemas": [],
+    "h1": 0,
+    "resourceLimit": false,
+    "bytes": 1191
+  },
+  {
+    "url": "https://www.educalizando.com.br/sitemap.xml",
+    "status": 200,
+    "type": "application/xml",
+    "location": null,
+    "title": "",
+    "robots": [],
+    "canonical": "",
+    "schemas": [],
+    "h1": 0,
+    "resourceLimit": false,
+    "bytes": 101574,
+    "kind": "urlset",
+    "urls": 378,
+    "children": []
+  }
+]

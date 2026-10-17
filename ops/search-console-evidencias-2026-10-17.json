@@ -1,0 +1,380 @@
+{
+  "noindex": {
+    "count": 194,
+    "urls": [
+      "https://www.educalizando.com.br/produto/-alfabeto-magico-boquinhas-da-alfabetizacao--qeag",
+      "https://www.educalizando.com.br/offline",
+      "https://www.educalizando.com.br/buscar?categoria=datas-comemorativas",
+      "https://www.educalizando.com.br/buscar?categoria=geografia",
+      "https://www.educalizando.com.br/disciplinas/educacao-fisica",
+      "https://www.educalizando.com.br/produto/kit-o-poderoso-paizao--qfmv",
+      "https://www.educalizando.com.br/produto/cafe-literario-um-kit-completo-para-encantar",
+      "https://www.educalizando.com.br/buscar?categoria=alfabetizacao",
+      "https://www.educalizando.com.br/buscar?categoria=educacao-especial",
+      "https://www.educalizando.com.br/buscar?categoria=combo",
+      "https://www.educalizando.com.br/buscar",
+      "https://www.educalizando.com.br/buscar?categoria=bercario",
+      "https://www.educalizando.com.br/buscar?categoria=educacao-financeira",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-religioso",
+      "https://www.educalizando.com.br/buscar?categoria=ingles",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia",
+      "https://www.educalizando.com.br/buscar?categoria=jogos&data=Inclusão+e+Acessibilidade",
+      "https://www.educalizando.com.br/buscar?categoria=jogos&data=Dia+dos+Pais",
+      "https://www.educalizando.com.br/buscar?categoria=jogos&data=Festa+Junina",
+      "https://www.educalizando.com.br/buscar?categoria=jogos&data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?categoria=libras&data=Educação+no+Trânsito",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Independência+do+Brasil",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Circo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Outubro+Rosa",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Meio+Ambiente",
+      "https://www.educalizando.com.br/buscar?data=Dia+da+Escola",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Educação+Financeira",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Formatura",
+      "https://www.educalizando.com.br/buscar?categoria=artes&data=Dia+das+Crianças",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+dos+Pais",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+Mundial+da+Água",
+      "https://www.educalizando.com.br/buscar?categoria=libras&data=Festa+Junina",
+      "https://www.educalizando.com.br/buscar?categoria=libras&data=Alimentação+Saudável",
+      "https://www.educalizando.com.br/produto/produto-7dac23a9",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Primavera",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Circo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Inclusão+e+Acessibilidade",
+      "https://www.educalizando.com.br/buscar?data=Dia+da+Terra",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Halloween",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Orgulho+Autista",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Soldado",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+dos+Professores",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Festa+Junina",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Adaptação+escolar",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Escola",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Educação+Financeira",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Estudante",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+dos+Animais",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Polícia",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+dos+Pais",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Educação+no+Trânsito",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Semana+da+Pátria",
+      "https://www.educalizando.com.br/buscar?data=Dia+Mundial+da+Saúde",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Terra",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Brinquedo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Meio+Ambiente",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Amigo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Descobrimento+do+Brasil",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Formatura",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Independência+do+Brasil",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Projeto+de+Leitura",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Setembro+Amarelo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+dos+Povos+Indígenas",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Psicólogo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+das+Crianças",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Combate+ao+Bullying",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Consciência+Negra",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Ano+Novo",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Bandeira",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Saúde+Bucal",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Cultura+Afro-Brasileira",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+das+Mães",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+Mundial+da+Saúde",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Trânsito",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Projeto+de+Ciências",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Proclamação+da+República",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Volta+às+aulas",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Árvore",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Cultura+Indígena",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+Internacional+da+Mulher",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Carnaval",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Outubro+Rosa",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Páscoa",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Alimentação+Saudável",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Livro+Infantil",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Cabelo+Maluco",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Tiradentes",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+da+Família",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Trabalho",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+dos+Namorados",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Natal",
+      "https://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Folclore",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Amigo",
+      "https://www.educalizando.com.br/buscar?data=Educação+Financeira",
+      "https://www.educalizando.com.br/produto/zuzu-da-divisao-aprendendo-divisao-de-forma-divertida-47ls",
+      "https://www.educalizando.com.br/produto/bolsinhos-das-vogais-6vij",
+      "https://www.educalizando.com.br/buscar?sort=relevancia",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Outubro+Rosa",
+      "https://www.educalizando.com.br/buscar?data=Ano+Novo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+Internacional+da+Mulher",
+      "https://www.educalizando.com.br/buscar?q=material",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Livro+Infantil",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Setembro+Amarelo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+das+Crianças",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Estudante",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+das+Mães",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Proclamação+da+República",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Descobrimento+do+Brasil",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Educação+Financeira",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Cultura+Afro-Brasileira",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Saúde+Bucal",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Amigo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+da+Bandeira",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Ano+Novo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Alimentação+Saudável",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Folclore",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Trânsito",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Inclusão+e+Acessibilidade",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Cultura+Indígena",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+da+Família",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Orgulho+Autista",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+dos+Professores",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Tiradentes",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Páscoa",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Psicólogo",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Médico",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+dos+Namorados",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Halloween",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Semana+da+Pátria",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+dos+Animais",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+da+Escola",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Formatura",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Adaptação+escolar",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Primavera",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Educação+no+Trânsito",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Livro+Infantil",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Projeto+de+Ciências",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Combate+ao+Bullying",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Trabalho",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Volta+às+aulas",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Educação+Financeira",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+dos+Animais",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Semana+da+Pátria",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Festa+Junina",
+      "https://www.educalizando.com.br/buscar?data=Dia+do+Trânsito",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Cabelo+Maluco",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Brinquedo",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Alimentação+Saudável",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Carnaval",
+      "https://www.educalizando.com.br/buscar?data=Cultura+Indígena",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Carnaval",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Volta+às+aulas",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Semana+da+Pátria",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Projeto+de+Leitura",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+da+Árvore",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+dos+Namorados",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Saúde+Bucal",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Páscoa",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Inclusão+e+Acessibilidade",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+dos+Namorados",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Psicólogo",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Cultura+Indígena",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Formatura",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Médico",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+das+Crianças",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Descobrimento+do+Brasil",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+do+Amigo",
+      "https://www.educalizando.com.br/buscar?data=Setembro+Amarelo",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Cabelo+Maluco",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Trabalho",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Brinquedo",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Outubro+Rosa",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Cultura+Afro-Brasileira",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+dos+Pais",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+dos+Animais",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+das+Mães",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Projeto+de+Ciências",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Adaptação+escolar",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Alimentação+Saudável",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Dia+dos+Professores",
+      "https://www.educalizando.com.br/buscar?data=Dia+da+Árvore",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+do+Trabalho",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Cabelo+Maluco",
+      "https://www.educalizando.com.br/buscar?q=Jogos&data=Saúde+Bucal",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Natal",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Soldado",
+      "https://www.educalizando.com.br/buscar?q=Jogos",
+      "https://www.educalizando.com.br/buscar?categoria=ensino-fundamental&data=Dia+dos+Povos+Indígenas",
+      "https://www.educalizando.com.br/buscar?data=Semana+da+Criança",
+      "https://www.educalizando.com.br/buscar?q=Matemática&data=Dia+do+Psicólogo"
+    ]
+  },
+  "alternate": {
+    "count": 13,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/produto/asas-de-anjo-painel-dia-dos-professores?licenca=plr\n\t11 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/cabelo-maluco-unicornio-menina-pdf-educacao-infantil-e-ensino-fundamental?licenca=plr\n\t11 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=educacao-infantil\n\t11 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=jogos\n\t10 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=libras\n\t9 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=musica\n\t9 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=outros\n\t9 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=planners-e-organizacao\n\t9 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=aep-abordagem-educacional-por-principios\n\t8 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=educacao-crista\n\t8 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=educacao-crista-classica\n\t8 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?data=31 de outubro – Dia da Reforma Protestante\n\n\n\n\t8 de out. de 2026\n\n\nhttps://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu?level=4e6ff176-762c-484d-ab57-f7c197ffa7db\n\t19 de set. de 2026"
+  },
+  "redirects": {
+    "count": 7,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://educalizando.com.br/\n\t12 de out. de 2026\n\nhttp://www.educalizando.com.br/\n\t12 de out. de 2026\n\nhttp://educalizando.com.br/\n\t30 de set. de 2026\n\nhttps://educalizando.com.br/loja/professor-gamificado\n\t29 de set. de 2026\n\nhttps://educalizando.com.br/loja/universo-pedagogico-da-prof-lu\n\t28 de set. de 2026\n\nhttps://educalizando.com.br/categorias/matematica\n\t1 de set. de 2026\n\nhttps://www.educalizando.com.br/vender\n\t1 de set. de 2026"
+  },
+  "duplicate": {
+    "count": 3,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/buscar?data=Educação no Trânsito\n\t21 de set. de 2026\n\nhttps://www.educalizando.com.br/buscar?data=Proclamação da República\n\t20 de set. de 2026\n\nhttps://www.educalizando.com.br/aluno/login\n\t1 de set. de 2026"
+  },
+  "notFound": {
+    "count": 1,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/produto/kit-das-caixinhas-da-alfabetizacao-yvy5\n\t9 de set. de 2026"
+  },
+  "robots": {
+    "count": 1,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/cliente/login?from=doce-aprender-pedagogico-plr\n\t23 de set. de 2026"
+  },
+  "crawled": {
+    "count": 20,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/clube/loja-da-pro-clube-loja-da-pro-717afa\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/atividade-de-grafomotricidade-com-lousinha-magica\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/loja/atividade-criativa\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/kit-vitamina-de-frutas-com-receita-ilustrada\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/mural-interativo-arvore-de-natal-de-recordacoes\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/calendario/proclamacao-da-republica\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/folder-outubro-rosa-infantil-informativo-e-para-colorir\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/combo-apostila-das-4-operacoes\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=artes\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/lembrancinha-para-professora-cone-para-imprimir?licenca=plr\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/painel-consciencia-negra-pdf-32-paginas-educacao-infantil\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/produto/bingo\n\n\n\n\t13 de out. de 2026\n\n\nhttps://www.educalizando.com.br/produto/lembrancinha-para-professora-cone-para-imprimir\n\t13 de out. de 2026\n\nhttps://www.educalizando.com.br/api/storage/public-image?bucket=public-images&key=uploads/2faf3416-d1d1-4ae8-ba2c-1a3f567eab08/2026-09-21/f64fb46d-15dc-4fdf-8563-9f9d0c4b678f.webp\n\t12 de out. de 2026\n\nhttps://www.educalizando.com.br/favicon.ico?3ce06c41bd6d0d96\n\t11 de out. de 2026\n\nhttps://www.educalizando.com.br/api/storage/public-image?bucket=public-images&key=uploads/2faf3416-d1d1-4ae8-ba2c-1a3f567eab08/2026-09-21/4b8380ed-0fa9-4848-adc9-055da84da567.webp\n\t4 de out. de 2026\n\nhttps://www.educalizando.com.br/branding/favicon.ico?v=3\n\t27 de set. de 2026\n\nhttps://www.educalizando.com.br/buscar?categoria=ciencia-e-biologia&data=Dia+do+Médico\n\t23 de set. de 2026\n\nhttps://www.educalizando.com.br/manifest.json\n\t22 de set. de 2026\n\nhttps://www.educalizando.com.br/buscar?q=Matemática&data=Projeto+de+Leitura\n\t21 de set. de 2026"
+  },
+  "discovered": {
+    "count": 85,
+    "rows": "URL\n\t\nÚltimo rastreamento\n\nhttps://www.educalizando.com.br/afiliados/cadastro\n\tN/D\n\nhttps://www.educalizando.com.br/ajuda\n\tN/D\n\nhttps://www.educalizando.com.br/aluno/cadastro\n\tN/D\n\nhttps://www.educalizando.com.br/atividades-por-ano/ensino-medio\n\tN/D\n\nhttps://www.educalizando.com.br/atividades-por-ano/idiomas-cursos-livres\n\tN/D\n\nhttps://www.educalizando.com.br/atividades-por-ano/pre-vestibular-enem\n\tN/D\n\nhttps://www.educalizando.com.br/cadastro/produtor\n\tN/D\n\nhttps://www.educalizando.com.br/calendario\n\tN/D\n\nhttps://www.educalizando.com.br/calendario/dia-do-livro-infantil\n\tN/D\n\nhttps://www.educalizando.com.br/calendario/dia-dos-povos-indigenas\n\tN/D\n\nhttps://www.educalizando.com.br/calendario/dia-mundial-da-agua\n\tN/D\n\nhttps://www.educalizando.com.br/calendario/festa-junina\n\n\n\n\tN/D\n\n\nhttps://www.educalizando.com.br/calendario/primavera\n\tN/D\n\nhttps://www.educalizando.com.br/disciplinas/lingua-inglesa\n\tN/D\n\nhttps://www.educalizando.com.br/glossario/alfabetizacao\n\tN/D\n\nhttps://www.educalizando.com.br/glossario/professor-criador\n\tN/D\n\nhttps://www.educalizando.com.br/loja/bau-pedagogico\n\tN/D\n\nhttps://www.educalizando.com.br/loja/digitaledujoycelemos\n\tN/D\n\nhttps://www.educalizando.com.br/loja/encantamente-recursos-pedagogicos\n\tN/D\n\nhttps://www.educalizando.com.br/loja/layla-martins-atividades-pedagogicas\n\tN/D\n\nhttps://www.educalizando.com.br/loja/loja-da-pro\n\tN/D\n\nhttps://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa\n\tN/D\n\nhttps://www.educalizando.com.br/loja/pedagogogiali\n\tN/D\n\nhttps://www.educalizando.com.br/loja/portal-mae-profe\n\tN/D\n\nhttps://www.educalizando.com.br/loja/profkei-atividades-pedagogicas\n\tN/D\n\nhttps://www.educalizando.com.br/loja/recursos-criativos7\n\tN/D\n\nhttps://www.educalizando.com.br/loja/turminha-do-saber\n\tN/D\n\nhttps://www.educalizando.com.br/produto/60-fichas-de-leitura\n\tN/D\n\nhttps://www.educalizando.com.br/produto/alfabeto-magico-boquinhas-da-alfabetizacao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/apostila-de-alfabetizacao-letras-a-a-z-com-atividades-ludicas\n\tN/D\n\nhttps://www.educalizando.com.br/produto/apostila-transporte-pela-membrana-biologia-ensino-medio\n\tN/D\n\nhttps://www.educalizando.com.br/produto/apostila-treino-letra-cursiva\n\tN/D\n\nhttps://www.educalizando.com.br/produto/atividadeavaliacao-adaptada-8-ano-sobre-periodo-joanino\n\tN/D\n\nhttps://www.educalizando.com.br/produto/bate-silabas-jogo-de-alfabetizacao-para-formar-palavras-e-desenvolver-a-consciencia-fonologica\n\tN/D\n\nhttps://www.educalizando.com.br/produto/bingo-dos-substantivos-coletivos\n\tN/D\n\nhttps://www.educalizando.com.br/produto/bolsinhos-do-alfabeto\n\tN/D\n\nhttps://www.educalizando.com.br/produto/caca-multiplicacao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/caixa-musical-32-musicas-infantis\n\tN/D\n\nhttps://www.educalizando.com.br/produto/caixa-piramide-dia-das-criancas\n\tN/D\n\nhttps://www.educalizando.com.br/produto/caligrafia-palavras-para-alfabetizacao-atividades-de-escrita-para-imprimir\n\tN/D\n\nhttps://www.educalizando.com.br/produto/cantinho-motivacional-outubro-rosa-fichas-e-decoracao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/cobra-sussu-amazonia\n\tN/D\n\nhttps://www.educalizando.com.br/produto/emocoes-em-acao-atividades-de-educacao-emocional-para-fundamental-1\n\tN/D\n\nhttps://www.educalizando.com.br/produto/flipbook-de-fracoes-para-ensino-fundamental-numerador-denominador-tipos-e-comparacao-de-fracoes\n\tN/D\n\nhttps://www.educalizando.com.br/produto/historia-na-luva-a-volta-as-aulas-dos-sete-amigos\n\tN/D\n\nhttps://www.educalizando.com.br/produto/historinha-da-primavera-o-jardim-encantado-um-recurso-encantador-para-trabalhar-o-tema-primavera-de-forma-ludica-colorida-e-divertida-com-as-criancas-o-que-acompanha-historinha-da-primavera-em-plaquinhas-1-viseira-tematica-2-atividades-para-complementar-a-aprendizagem-plr-total-r-16-90-preco-para-venda-apenas-r-7-00-perfeito-para-momentos-de-contacao-de-historias-atividades-em-sala-e-para-deixar-a-chegada-da-primavera-ainda-mais-especi\n\tN/D\n\nhttps://www.educalizando.com.br/produto/interpretando-tirinhas-atividade-pedagogica-para-imprimir\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-das-caixinhas-da-alfabetizacao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-de-leitura-e-interpretacao-de-textos-1-ao-3-ano-reforco-escolar\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-dia-das-criancas-7-atividades-ludicas-certificado\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-lembrancinha-dia-dos-professores-caixa-coracao-de-acrilico\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-lembrancinhas-dia-da-merendeira-merendeiro\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-o-poderoso-paizao-atividade-pedagogica-para-imprimir\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-outubro-rosa-infantil-painel-lembrancinhas-e-atividades-para-educacao-infantil\n\tN/D\n\nhttps://www.educalizando.com.br/produto/kit-outubro-rosa-para-bambole-decoracao-e-moldura-para-fotos\n\tN/D\n\nhttps://www.educalizando.com.br/produto/lap-book-interativo-renascimento-7-ano\n\tN/D\n\nhttps://www.educalizando.com.br/produto/lembrancinha-dia-dos-professores-kit-com-porta-bis-porta-chocolate-e-porta-caneta\n\tN/D\n\nhttps://www.educalizando.com.br/produto/lembrancinhas-de-halloween\n\tN/D\n\nhttps://www.educalizando.com.br/produto/livro-3d-as-quatro-estacoes-do-ano-recurso-ludico-para-educacao-infantil\n\tN/D\n\nhttps://www.educalizando.com.br/produto/lousa-magica\n\tN/D\n\nhttps://www.educalizando.com.br/produto/luva-pedagogica-assim-nasceu-jesus-historia-de-natal-em-pdf\n\tN/D\n\nhttps://www.educalizando.com.br/produto/material-gratuito-cartao-dia-das-criancas-caracol\n\tN/D\n\nhttps://www.educalizando.com.br/produto/montagem-de-engenho-de-acucar\n\tN/D\n\nhttps://www.educalizando.com.br/produto/oficina-das-cores\n\tN/D\n\nhttps://www.educalizando.com.br/produto/oficina-de-squishy-paper-squishy\n\tN/D\n\nhttps://www.educalizando.com.br/produto/oficina-poetica-as-borboletas\n\tN/D\n\nhttps://www.educalizando.com.br/produto/oficina-poetica-leilao-de-jardim\n\tN/D\n\nhttps://www.educalizando.com.br/produto/os-tres-porquinhos-atividade-de-interpretacao-de-texto-para-educacao-infantil\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-coletivo-setembro-amarelo-para-colorir-com-a-turma-que-tal-transformar-o-setembro-amarelo-em-um-momento-de-uniao-criatividade-e-reflexao-preparei-um-lindo-painel-coletivo-para-colorir-perfeito-para-envolver-as-criancas-em-uma-atividade-colaborativa-cada-aluno-pode-pintar-uma-parte-e-juntos-construir-um-painel-cheio-de-cor-esperanca-e-significado-30-paginas-prontinhas-para-imprimir-ideal-para-trabalho-coletivo-em-sala-de-aula-tema-setembro-amarelo-arquivo-em-pdf-apenas-r-10-00-uma-atividade-que-une-arte-participacao-e-uma-mensagem-de-cuidado-e-valorizacao-da-vida-quer-o-seu-me-chama-e-garanta-ja-o-seu-painel-professora-ale-turminha-kids\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-de-porta-feliz-dia-das-criancas\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-dia-da-proclamacao-da-republica-pdf-para-impressao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-dia-dos-professores-ensinar-e-um-ato-de-amor\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-outubro-rosa-cartaozinho\n\tN/D\n\nhttps://www.educalizando.com.br/produto/painel-setembro-amarelo-para-aria-externa-50-paginas-10-00-um-painel-lindo-acolhedor-e-cheio-de-mensagens-de-esperanca-cuidado-e-valorizacao-da-vida-perfeito-para-decorar-a-escola-e-criar-um-espaco-especial-para-falar-sobre-a-importancia-de-acolher-escutar-e-cuidar-contem-50-paginas-largura-1-90-m-altura-1-40-m-arquivo-em-pdf-pronto-para-imprimir-e-montar-sua-vida-importa-voce-nao-esta-sozinho-um-painel-que-transmite-uma-mensagem-necessaria-de-amor-esperanca-e-empatia-garanta-ja-o-seu-e-deixe-sua-escola-ainda-mais-bonita-e-acolhedora-neste-setembro-amarelo\n\tN/D\n\nhttps://www.educalizando.com.br/produto/pratica-experimental-de-ciencias-10-experimentos-para-o-ensino-fundamental\n\tN/D\n\nhttps://www.educalizando.com.br/produto/quantas-silabas-48-fichas-para-consciencia-fonologica-e-alfabetizacao\n\tN/D\n\nhttps://www.educalizando.com.br/produto/recadinho-movimento-de-pinca\n\tN/D\n\nhttps://www.educalizando.com.br/produto/recorte-e-combine-dinossauros-o-que-vem-antes-e-depois-sequencia-numerica\n\tN/D\n\nhttps://www.educalizando.com.br/produto/roda-biblica-das-emocoes\n\tN/D\n\nhttps://www.educalizando.com.br/produto/roleta-dia-da-consciencia-negra-diversidade-cultural\n\tN/D\n\nhttps://www.educalizando.com.br/produto/sacola-versiculo-do-dia\n\tN/D\n\nhttps://www.educalizando.com.br/produto/seguranca-domestica-situacoes-de-perigo-e-seguranca\n\tN/D\n\nhttps://www.educalizando.com.br/produto/sequencia-de-10-aulas-de-ciencias-ciencia-tecnologia-saude-e-meio-ambiente\n\tN/D\n\nhttps://www.educalizando.com.br/produto/sucolandia-vamos-preparar-um-suco-educacao-infantil-e-anos-inicias\n\tN/D\n\nhttps://www.educalizando.com.br/produto/ta-na-biblia-ou-ta-amarrado-o-jogo-divertido-para-ensinar-a-palavra-de-deus\n\tN/D"
+  },
+  "cwv": {
+    "updated": "13/10/2026",
+    "mobile": "Dados insuficientes nos últimos 90 dias",
+    "desktop": "Dados insuficientes nos últimos 90 dias"
+  },
+  "https": {
+    "updated": "15/10/2026",
+    "https": 64,
+    "nonHttps": 0,
+    "errors": 0
+  },
+  "product": {
+    "updated": "14/10/2026",
+    "valid": 22,
+    "invalid": 0,
+    "warnings": [
+      {
+        "field": "aggregateRating",
+        "count": 22
+      },
+      {
+        "field": "review",
+        "count": 22
+      }
+    ]
+  },
+  "merchant": {
+    "updated": "14/10/2026",
+    "valid": 22,
+    "invalid": 0,
+    "warnings": [
+      {
+        "field": "offers.hasMerchantReturnPolicy",
+        "count": 22
+      },
+      {
+        "field": "offers.shippingDetails",
+        "count": 22
+      },
+      {
+        "field": "name length",
+        "count": 0
+      },
+      {
+        "field": "global identifier",
+        "count": 0
+      }
+    ]
+  },
+  "breadcrumbs": {
+    "updated": "14/10/2026",
+    "valid": 46,
+    "invalid": 0,
+    "warnings": 0
+  },
+  "review": {
+    "updated": "14/10/2026",
+    "valid": 0,
+    "invalid": 0
+  },
+  "property": {
+    "domain": "educalizando.com.br",
+    "alreadyVerified": true,
+    "otherEducalizandoProperties": []
+  },
+  "sitemap": {
+    "url": "https://www.educalizando.com.br/sitemap.xml",
+    "submitted": "17/10/2026",
+    "status": "Processado",
+    "lastRead": "17/10/2026",
+    "discovered": 378,
+    "type": "Sitemap único; sem sub-sitemaps"
+  },
+  "indexation": {
+    "updated": "11/10/2026",
+    "indexed": 441,
+    "notIndexed": 324
+  },
+  "requests": [
+    {
+      "url": "https://www.educalizando.com.br/",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/lojas",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/materiais-didaticos",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/blog",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/materiais-gratis",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/atividades-para-imprimir",
+      "inspection": "O URL está no Google",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/loja-da-pro",
+      "inspection": "Detectada, mas não indexada no momento; sem rastreamento anterior",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/lojinha-pedagogica-da-pro-vanessa",
+      "inspection": "Detectada, mas não indexada no momento; sem rastreamento anterior",
+      "requested": true
+    },
+    {
+      "url": "https://www.educalizando.com.br/loja/universo-pedagogico-da-prof-lu",
+      "inspection": "O URL está no Google",
+      "requested": true
+    }
+  ],
+  "quotaReached": false,
+  "currentDuplicates": [
+    {
+      "path": "/buscar?data=Educação no Trânsito",
+      "status": 200,
+      "robots": "noindex, follow",
+      "canonical": "https://www.educalizando.com.br/buscar"
+    },
+    {
+      "path": "/buscar?data=Proclamação da República",
+      "status": 200,
+      "robots": "noindex, follow",
+      "canonical": "https://www.educalizando.com.br/buscar"
+    }
+  ],
+  "cloudflare": {
+    "status": "Login solicitado; agente parou",
+    "crawlerHintsActivated": false,
+    "dnsChanged": false
+  },
+  "validation": {
+    "lint": "pass; 0 errors, 17 existing warnings",
+    "typecheck": "pass",
+    "seoTests": "pass",
+    "productionBuild": "pass; dry-run, no deployment"
+  }
+}
