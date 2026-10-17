@@ -30,7 +30,7 @@ export default function PrivacidadePage() {
               Política de Privacidade - Educalizando
             </h1>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-              Última atualização: {new Date().toLocaleDateString('pt-BR')}
+              Última atualização: <time dateTime="2026-10-17">17/10/2026</time>
             </p>
           </div>
 
@@ -88,6 +88,13 @@ export default function PrivacidadePage() {
               </div>
             </section>
 
+            <section id="instagram" className="space-y-4 scroll-mt-6">
+              <h2 className="text-xl font-black text-slate-900">Integração opcional com Instagram</h2>
+              <p>Quando a integração estiver ativada e você autorizar a conexão, a Educalizando tratará o identificador, o nome de usuário, o tipo da conta e a credencial de autorização do Instagram. A credencial é armazenada de forma cifrada no servidor e não é exibida a outros criadores. Não solicitamos sua senha do Instagram.</p>
+              <p>Para publicar uma divulgação que você confirmar, a arte será armazenada no MinIO como imagem pública e enviada à Meta, junto da legenda quando aplicável. Mantemos um histórico com o produto relacionado, o formato, o estado do envio e os identificadores necessários para conferir a publicação. Não acessamos mensagens, contatos ou comentários por meio desta integração.</p>
+              <p>Você pode desconectar sua conta em “Instagram · Story e Feed” no painel do criador. Isso remove a credencial da integração na Educalizando e impede novos envios; solicitações já recebidas pela Meta podem ser concluídas. Desconectar não apaga publicações que já estejam no Instagram. As permissões do aplicativo também podem ser removidas nas configurações da sua conta no Instagram.</p>
+              <p>Para solicitar a exclusão dos dados e das artes desta integração, envie uma solicitação para <a href="mailto:educalizando@proton.me" className="font-bold text-blue-700 underline">educalizando@proton.me</a> a partir do e-mail cadastrado, informando sua loja e o perfil conectado, sem enviar senha ou token. A equipe verificará a titularidade e tratará a solicitação pelos canais de suporte.</p>
+            </section>
           </div>
         </div>
       </main>

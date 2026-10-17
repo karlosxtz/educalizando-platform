@@ -3,6 +3,7 @@
 import { readApiJson } from '@/lib/api-response';
 import { notifySeoSaved, onSeoSaved } from '@/lib/seo-sync';
 import CatalogImage from '@/components/ui/CatalogImage';
+import InstagramProductButton from '@/components/creator/InstagramProductButton';
 import { calculateProductSeoScore } from '@/lib/product-seo-score';
 import { toast } from 'sonner';
 import { aiFetch } from '@/lib/ai-client';
@@ -578,6 +579,7 @@ export default function ProductsManagementPage() {
                     </button>
                   </div>
                 </div>
+                <InstagramProductButton productId={prod.id} published={prod.status === 'publicado'} />
               </div>
             );
           })}
