@@ -1,6 +1,7 @@
 'use client';
 
 import CatalogImage from '@/components/ui/CatalogImage';
+import { PUBLIC_BRAND_LOGO } from '@/lib/brand-assets';
 
 import { Mail,MessageCircle,ShieldCheck } from 'lucide-react';
 import Link from '@/components/OnDemandLink';
@@ -18,7 +19,8 @@ export default function Footer() {
           <div className="space-y-6">
             <Link href="/" className="inline-block">
               <CatalogImage
-                src="/branding/logo-educalizando.png?v=3"
+                src={PUBLIC_BRAND_LOGO}
+                width={504} height={168}
                 alt="Educalizando"
                 className="h-9 w-auto object-contain"
                 style={{ width: 'auto', height: '36px' }}
@@ -49,7 +51,7 @@ export default function Footer() {
 
           {/* Coluna 2: Para Compradores */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Compradores</h4>
+            <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Compradores</h3>
             <ul className="space-y-4">
               <li><Link href="/buscar" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Explorar Categorias</Link></li>
               <li><Link href="/lojas" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
@@ -68,7 +70,7 @@ export default function Footer() {
 
           {/* Coluna 3: Para Vendedores */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Vendedores</h4>
+            <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Vendedores</h3>
             <ul className="space-y-4">
               <li><Link href="/cadastro/produtor" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Comece a Vender</Link></li>
               <li><Link href="/painel" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Painel do Vendedor</Link></li>
@@ -78,7 +80,7 @@ export default function Footer() {
 
           {/* Coluna 4: Suporte e Contato */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Suporte e Contato</h4>
+            <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Suporte e Contato</h3>
             <ul className="space-y-4">
               <li><Link href="/ajuda" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Central de Ajuda</Link></li>
               <li><Link href="/glossario" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Glossário Pedagógico</Link></li>

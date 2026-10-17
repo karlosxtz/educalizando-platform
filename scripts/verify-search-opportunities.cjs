@@ -8,7 +8,7 @@ function load(file, mocks = {}) {
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
-  } }).outputText, { exports, require: name => mocks[name] || require(name), URL, Request, Response, console });
+  } }).outputText, { exports, require: name => mocks[name] || require(name), URL, URLSearchParams, Request, Response, console });
   return exports;
 }
 const seo = load('src/lib/seo.ts', { './public-image-url': load('src/lib/public-image-url.ts') });
@@ -67,3 +67,22 @@ assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/produto/construc
 assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/produto/__proto__')), null);
 assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/api/checkout')), null);
 console.log('PASS URLs antigas: 301 apenas em três correspondências confirmadas; query preservada, POST e checkout intactos.');
+const brand = load('src/lib/brand-assets.ts');
+const Header = load('src/components/MarketplaceHeader.tsx', {
+  '@/lib/brand-assets': brand,
+  '@/components/ui/CatalogImage': { __esModule: true, default: props => React.createElement('img', props) },
+  '@/components/OnDemandLink': link,
+  '@/components/store/CartContext': { useCart: () => ({ items: [], total: 0, toggleCart: () => {} }) },
+  '@/lib/supabase': { supabase: {} },
+  'next/navigation': { useSearchParams: () => { throw new Promise(() => {}); } },
+  './CategoryDropdown': { __esModule: true, default: () => null },
+  './SearchBar': { __esModule: true, default: () => React.createElement('input', { placeholder: 'Buscar material' }) },
+}).default;
+const header = renderToStaticMarkup(React.createElement(Header));
+assert.match(header, /<header/);
+assert.match(header, /Buscar material/);
+assert.match(header, /Abrir carrinho/);
+assert.match(header, /href="\/entrar"/);
+assert(header.includes(brand.PUBLIC_BRAND_LOGO));
+assert.doesNotMatch(header, /Carregando menu|logo-educalizando\.png/);
+console.log('PASS cabeçalho completo no SSR mesmo com parâmetros suspensos; logo leve no MinIO.');

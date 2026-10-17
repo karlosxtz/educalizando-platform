@@ -82,7 +82,7 @@ export default function HomepageMarketplace({
         </div>
       </section>
 
-      <Shelf priority title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar" products={featured} />
+      <Shelf title="Materiais em destaque" description="Uma seleção dos materiais publicados no catálogo." href="/buscar" products={featured} />
 
       <UpcomingCalendarDates products={products} />
 

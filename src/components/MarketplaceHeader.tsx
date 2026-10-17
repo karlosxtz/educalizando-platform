@@ -1,6 +1,7 @@
 'use client';
 
 import CatalogImage from '@/components/ui/CatalogImage';
+import { PUBLIC_BRAND_LOGO } from '@/lib/brand-assets';
 
 import { useCart } from '@/components/store/CartContext';
 import { supabase } from '@/lib/supabase';
@@ -12,16 +13,22 @@ import CategoryDropdown from './CategoryDropdown';
 import SearchBar from './SearchBar';
 
 export default function MarketplaceHeader() {
-  return (
-    <Suspense fallback={<div className="h-[73px] w-full bg-white border-b border-slate-100 flex items-center justify-center text-slate-400 text-sm font-semibold">Carregando menu...</div>}>
-      <MarketplaceHeaderInner />
-    </Suspense>
-  );
+  return <MarketplaceHeaderInner />;
+}
+
+// Only the active-filter highlight depends on searchParams. Suspending the
+// entire header replaced 73px with a much taller mobile header after hydration.
+function HeaderQueryState({ onChange }: { onChange: (value: string) => void }) {
+  const params = useSearchParams();
+  const query = params?.toString() || '';
+  useEffect(() => { onChange(query); }, [query, onChange]);
+  return null;
 }
 
 function MarketplaceHeaderInner() {
   const { items, toggleCart, total } = useCart();
-  const searchParams = useSearchParams();
+  const [query, setQuery] = useState('');
+  const searchParams = new URLSearchParams(query);
   const [isMounted, setIsMounted] = useState(false);
   const [accountAreaHref, setAccountAreaHref] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -78,6 +85,7 @@ function MarketplaceHeaderInner() {
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
     <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
+      <Suspense fallback={null}><HeaderQueryState onChange={setQuery} /></Suspense>
       {cartItemsCount > 0 && (
         <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
           <span aria-hidden="true">🎁</span>
@@ -93,8 +101,8 @@ function MarketplaceHeaderInner() {
           <div className="flex items-center justify-between w-full md:w-auto">
             <Link href="/" className="flex items-center cursor-pointer group shrink-0">
               <CatalogImage
-                src="/branding/logo-educalizando.png?v=3"
-                width={2172} height={724} loading="eager"
+                src={PUBLIC_BRAND_LOGO}
+                width={504} height={168} loading="eager"
                 alt="Educalizando"
                 className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02]"
                 style={{ width: 'auto', height: '42px' }}
