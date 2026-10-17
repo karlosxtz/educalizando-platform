@@ -1,5 +1,6 @@
 import { getAffiliateApprovedProducts,getAffiliateProfileBySlug } from '@/lib/affiliate-service';
 import { Metadata } from 'next';
+import { socialMetadata } from '@/lib/seo';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import AffiliateStoreClientView from './AffiliateStoreClientView';
@@ -54,25 +55,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const profile = await getAffiliateProfileBySlug(slug);
 
   if (!profile) {
-    return {
-      title: 'Afiliado Não Encontrado — Educalizando'
-    };
+    notFound();
   }
 
-  return {
-    title: `Vitrine de ${profile.nome || 'Afiliado'} — Educalizando`,
-    description: profile.descricao || `Confira as recomendações de ${profile.nome || 'Afiliado'} na Educalizando.`,
-    alternates: { canonical: `/afiliado/${profile.slug}` },
-    openGraph: {
-      title: `Vitrine de ${profile.nome || 'Afiliado'} — Educalizando`,
-      images: profile.logo_url ? [{ url: profile.logo_url }] : []
-    }
-  };
+  return socialMetadata({
+    title: `Vitrine de ${profile.nome || profile.slug} — Educalizando`,
+    description: profile.descricao || `Confira as recomendações de ${profile.nome || profile.slug} na Educalizando.`,
+    url: `/afiliado/${profile.slug}`,
+    ...(profile.logo_url ? { image: profile.logo_url } : {}),
+  });
 }
 
 export default async function AffiliateStorePage({ params }: PageProps) {
   const { slug } = await params;
-  
+
   const profile = await getAffiliateProfileBySlug(slug);
 
   if (!profile) {
@@ -83,7 +79,7 @@ export default async function AffiliateStorePage({ params }: PageProps) {
 
   return (
     <Suspense fallback={<StoreSkeleton />}>
-      <AffiliateStoreClientView 
+      <AffiliateStoreClientView
         profile={profile}
         products={products}
       />

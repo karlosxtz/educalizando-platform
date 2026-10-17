@@ -1,33 +1,51 @@
 export const revalidate = 60;
 
 import Footer from '@/components/Footer';
+import { HomeIntroduction, HomeFaq } from '@/components/HomeBrandContent';
+import { HOME_FAQ } from '@/lib/home-content';
+import HomeCatalogSkeleton from '@/components/HomeCatalogSkeleton';
+import { Suspense } from 'react';
 import HomepageMarketplace from '@/components/HomepageMarketplace';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getActiveBanners } from '@/lib/banners-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
-import { absoluteUrl,DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL } from '@/lib/seo';
+import { absoluteUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
 import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
 import { pageMetadata } from '@/lib/page-seo';
+import { homepageKit, homepageProduct, homepageStore } from '@/lib/homepage-presentation';
 
 async function loadPublicSection<T>(name: string, loader: () => Promise<T[]>): Promise<T[]> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    return await loader();
+    return await Promise.race([
+      loader(),
+      new Promise<T[]>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`Tempo de carregamento excedido: ${name}`)), 15_000);
+      }),
+    ]);
   } catch (error) {
     console.error(`[homepage] Não foi possível carregar ${name}:`, error);
     return [];
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
 export function generateMetadata() { return pageMetadata('/'); }
 
-export default async function Home() {
+async function HomeCatalog() {
   const [products, banners, stores, kits] = await Promise.all([
-    loadPublicSection('produtos', () => getAllPublicMarketplaceProducts(100)),
+    loadPublicSection('produtos', () => getAllPublicMarketplaceProducts(100, 'cards')),
     loadPublicSection('banners', getActiveBanners),
     loadPublicSection('lojas', getAllPublicStores),
     loadPublicSection('kits', () => getPublicMarketplaceKits(8)),
   ]);
+
+  return <HomepageMarketplace banners={banners} products={products.map(homepageProduct)} stores={stores.map(homepageStore)} kits={kits.map(homepageKit)} monthlyTags={getSchoolCalendarTagsForMonth()} />;
+}
+
+export default function Home() {
 
   const websiteJsonLd = {
     '@context': 'https://schema.org',
@@ -46,10 +64,16 @@ export default async function Home() {
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': SITE_URL + '/#organization',
     name: 'Educalizando',
     url: SITE_URL,
-    logo: absoluteUrl(DEFAULT_SOCIAL_IMAGE),
+    logo: absoluteUrl('/branding/logo-educalizando-icon-512.png'),
     description: 'Marketplace brasileiro de materiais didáticos digitais para educadores.',
+    sameAs: [
+      'https://www.instagram.com/educalizando_brasil/',
+      'https://www.youtube.com/@educalizandobrasil',
+      'https://www.tiktok.com/@educalizando_',
+    ],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
@@ -62,8 +86,14 @@ export default async function Home() {
     <div className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 selection:bg-violet-700 selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({
+        '@context': 'https://schema.org', '@type': 'FAQPage',
+        mainEntity: HOME_FAQ.map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })),
+      }) }} />
       <MarketplaceHeader />
-      <HomepageMarketplace banners={banners} products={products} stores={stores} kits={kits} monthlyTags={getSchoolCalendarTagsForMonth()} />
+      <HomeIntroduction />
+      <Suspense fallback={<HomeCatalogSkeleton />}><HomeCatalog /></Suspense>
+      <HomeFaq />
       <Footer />
     </div>
   );

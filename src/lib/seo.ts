@@ -20,8 +20,16 @@ export function socialMetadata({
   type = 'website',
   image = DEFAULT_SOCIAL_IMAGE,
   imageAlt = DEFAULT_SOCIAL_IMAGE_ALT,
-}: SocialMetadataOptions): Pick<Metadata, 'openGraph' | 'twitter'> {
+}: SocialMetadataOptions): Pick<Metadata, 'metadataBase' | 'title' | 'description' | 'alternates' | 'openGraph' | 'twitter'> {
+  title = seoExcerpt(title, 60);
+  description = seoExcerpt(description, 155);
+  const path = new URL(url, SITE_URL);
+  url = SITE_URL + path.pathname + path.search;
   return {
+    metadataBase: new URL(SITE_URL),
+    title,
+    description,
+    alternates: { canonical: url },
     openGraph: {
       title,
       description,
@@ -38,6 +46,12 @@ export function socialMetadata({
       images: [image],
     },
   };
+}
+
+export function seoExcerpt(value: string, max = 155) {
+  const text = value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (text.length <= max) return text;
+  return text.slice(0, max - 1).replace(/\s+\S*$/, '').trimEnd() + '…';
 }
 
 export function absoluteUrl(pathname: string) {

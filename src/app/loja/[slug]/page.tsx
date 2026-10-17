@@ -25,10 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const store = await getStoreBySlug(slug);
 
   if (!store) {
-    return {
-      title: 'Loja Não Encontrada — Educalizando',
-      description: 'A loja solicitada não foi encontrada na plataforma Educalizando.'
-    };
+    notFound();
   }
 
   const [allProducts, categories] = await Promise.all([getPublicProductsByStoreId(store.id), getCategories(store.id)]);
@@ -70,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicStorePage({ params }: PageProps) {
   const { slug } = await params;
   console.log(`[PublicStorePage] Solicitando vitrine para a loja: "${slug}"`);
-  
+
   const store = await getStoreBySlug(slug);
 
   if (!store) {

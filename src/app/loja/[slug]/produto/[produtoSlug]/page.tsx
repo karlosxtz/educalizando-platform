@@ -1,15 +1,20 @@
+import { readPublicRelatedProducts } from '@/lib/public-page-data';
+import { readPublicReviewSummary } from '@/lib/product-review-summary';
+import { isIndexableProduct, productMetadata, productStructuredData } from '@/lib/catalog-seo';
 import StoreAnalytics from '@/components/store/StoreAnalytics';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
-import { DEFAULT_SOCIAL_IMAGE,productCoverImageUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
-import { getProductById,getPublicProductsByStoreId,getStoreBySlug } from '@/lib/store-service';
+import { serializeJsonLd } from '@/lib/seo';
+import { readPublicProduct as getProductById, readPublicStoreProducts as getPublicProductsByStoreId, readPublicStore as getStoreBySlug } from '@/lib/public-page-data';
 import type { Product } from '@/lib/types';
 import { ChevronRight,Home,Store } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound,redirect } from 'next/navigation';
+import { notFound,permanentRedirect } from 'next/navigation';
 import { ReactNode } from 'react';
-import ProductDetailClientView from './ProductDetailClientView';
+import ProductProgressiveView from '@/components/store/ProductProgressiveView';
+import ProductPublicSummary from '@/components/store/ProductPublicSummary';
+import { publicProductDetail, publicStoreProduct } from '@/lib/public-store-presentation';
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -22,54 +27,22 @@ interface ProductDetailPageProps {
 export async function generateMetadata({ params, searchParams }: ProductDetailPageProps): Promise<Metadata> {
   const { produtoSlug, slug } = await params;
   const query = await searchParams;
-  
+
   let product = await getProductById(produtoSlug);
   const store = await getStoreBySlug(slug);
 
   if (!product && store) {
-    const { getPublicProductsByStoreId } = await import('@/lib/store-service');
     const storeProducts = await getPublicProductsByStoreId(store.id);
     const cleanId = produtoSlug.replace(/^prod_/i, '');
     product = storeProducts.find(p => p.id === produtoSlug || p.id === cleanId || p.id === `prod_${cleanId}` || p.slug === produtoSlug) || null;
   }
-  
-  if (!product) {
-    return { title: 'Produto não encontrado | Educalizando' };
+
+  if (!store || !isIndexableProduct(product)) {
+    notFound();
   }
 
-  const title = `${product.titulo} | ${store?.nome_loja || 'Educalizando'}`;
-  const publicDescription = query.licenca === 'plr' && product.is_plr && product.plr_descricao ? product.plr_descricao : product.descricao;
-  const description = publicDescription ? (publicDescription.substring(0, 155) + (publicDescription.length > 155 ? '...' : '')) : 'Material didático digital de alta qualidade.';
-  const url = `${SITE_URL}/produto/${product.slug || product.id}`;
-  const image = product.capa_url
-    ? productCoverImageUrl(product.slug || product.id)
-    : DEFAULT_SOCIAL_IMAGE;
-
-  return {
-    title,
-    description,
-    alternates: {
-      // O produto pode ser acessado pela vitrine e pelo catálogo público. As
-      // duas telas exibem o mesmo material, portanto concentramos a indexação
-      // na URL global para não dividir relevância entre páginas duplicadas.
-      canonical: url,
-    },
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: 'Educalizando',
-      locale: 'pt_BR',
-      images: [{ url: image, alt: `Capa do material ${product.titulo}` }],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [image],
-    },
-  };
+  if (product.store_id !== store.id && !(await getPublicProductsByStoreId(store.id)).some(item => item.id === product.id)) notFound();
+  return productMetadata(product, query.licenca === 'plr', store);
 }
 
 export default async function ProductDetailPage({ params, searchParams }: ProductDetailPageProps) {
@@ -82,23 +55,24 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
   }
 
   let product = await getProductById(produtoSlug);
-  if (!product) {
-    const { getPublicProductsByStoreId } = await import('@/lib/store-service');
+  if (!isIndexableProduct(product)) {
     const storeProducts = await getPublicProductsByStoreId(store.id);
     const cleanId = produtoSlug.replace(/^prod_/i, '');
     product = storeProducts.find(p => p.id === produtoSlug || p.id === cleanId || p.id === `prod_${cleanId}` || p.slug === produtoSlug) || null;
   }
 
-  if (!product) {
+  if (!isIndexableProduct(product)) {
     notFound();
   }
+
+  if (product.store_id !== store.id && !(await getPublicProductsByStoreId(store.id)).some(item => item.id === product.id)) notFound();
 
   // Redirecionamento SEO (301) se a URL atual não for o slug oficial
   if (product.slug && produtoSlug !== product.slug) {
     const isPlrLink = query.licenca === 'plr' && product.is_plr;
     const fromPlrMarketplace = query.origem === 'mercado-plr';
     const preservedQuery = [isPlrLink ? 'licenca=plr' : '', fromPlrMarketplace ? 'origem=mercado-plr' : ''].filter(Boolean).join('&');
-    redirect(`/loja/${store.slug || store.id}/produto/${product.slug}${preservedQuery ? `?${preservedQuery}` : ''}`);
+    permanentRedirect(`/loja/${store.slug || store.id}/produto/${product.slug}${preservedQuery ? `?${preservedQuery}` : ''}`);
   }
 
   if (product.order_bump_id) {
@@ -117,9 +91,10 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
   product.sales_count = salesCount;
 
   const category = categories.find(c => c.id === product?.category_id) || null;
-  const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
+  const selectedLevels = educationLevels.filter(e => (product.education_level_ids?.length ? product.education_level_ids : [product.education_level_id]).includes(e.id));
+  const educationLevel = selectedLevels.length ? { ...selectedLevels[0], nome: selectedLevels.map(e => e.nome).join(' · ') } : null;
 
-  const storeProducts = await getPublicProductsByStoreId(store.id);
+  const storeProducts = await readPublicRelatedProducts(store.id, product.id);
   const otherStoreProducts = storeProducts.filter((item) => item.id !== product.id);
   const productCategories = product.category_ids?.length ? product.category_ids : product.category_id ? [product.category_id] : [];
   const productLevels = product.education_level_ids?.length ? product.education_level_ids : product.education_level_id ? [product.education_level_id] : [];
@@ -138,39 +113,17 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     { label: 'Início', href: '/', icon: <Home className="w-4 h-4" /> },
     { label: store.nome_loja, href: `/loja/${store.slug}`, icon: <Store className="w-4 h-4" /> }
   ];
-  
+
   if (category) {
     breadcrumbItems.push({ label: category.nome, href: `/loja/${store.slug}?category=${category.id}` });
   } else if (educationLevel) {
     breadcrumbItems.push({ label: educationLevel.nome, href: `/loja/${store.slug}?level=${educationLevel.id}` });
   }
-  
+
   breadcrumbItems.push({ label: product.titulo, href: `/loja/${store.slug}/produto/${product.slug || product.id}` });
 
-  const productJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.titulo,
-    description: product.descricao || 'Material didático digital.',
-    ...(product.capa_url ? {
-      image: [productCoverImageUrl(product.slug || product.id)],
-    } : {}),
-    sku: product.id,
-    offers: {
-      '@type': 'Offer',
-      price: product.preco,
-      priceCurrency: 'BRL',
-      availability: 'https://schema.org/InStock',
-      url: `https://www.educalizando.com.br/loja/${store.slug}/produto/${product.slug || product.id}`,
-    },
-    ...(product.average_rating && product.review_count ? {
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: product.average_rating,
-        reviewCount: product.review_count,
-      }
-    } : {})
-  };
+  const reviewedProduct = { ...product, ...await readPublicReviewSummary(product.id) };
+  const productJsonLd = productStructuredData(reviewedProduct, store, query.licenca === 'plr', category?.nome, true);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -193,7 +146,7 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
-      
+
       {/* Visual Breadcrumb */}
       <div className="hidden sm:block bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -221,18 +174,20 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
         </div>
       </div>
 
-      <ProductDetailClientView 
-        store={store} 
-        product={product} 
-        category={category} 
+      <ProductProgressiveView
+        store={store}
+        product={publicProductDetail(reviewedProduct)}
+        category={category}
         educationLevel={educationLevel}
         context="store"
-        relatedProducts={relatedProducts}
+        relatedProducts={relatedProducts.map(publicStoreProduct)}
         bnccSkills={bnccSkills}
         storeCategories={categories.filter((item) => storeProducts.some((storeProduct) =>
           storeProduct.category_id === item.id || storeProduct.category_ids?.includes(item.id)
         ))}
-      />
+      >
+          <ProductPublicSummary product={reviewedProduct} store={store} plr={query.licenca === 'plr'} />
+        </ProductProgressiveView>
       <StoreAnalytics
         storeId={store.id}
         metaPixelId={store.meta_pixel_id}

@@ -1,5 +1,7 @@
 'use client';
 
+import CatalogImage from '@/components/ui/CatalogImage';
+
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import dynamic from 'next/dynamic';
 import PurchaseLicenseSummary from '@/components/PurchaseLicenseSummary';
@@ -34,10 +36,10 @@ interface ProductDetailClientViewProps {
   storeCategories?: Category[];
 }
 
-export default function ProductDetailClientView({ 
-  store, 
-  product, 
-  category, 
+export default function ProductDetailClientView({
+  store,
+  product,
+  category,
   educationLevel,
   context = 'store',
   relatedProducts = [],
@@ -116,7 +118,7 @@ export default function ProductDetailClientView({
   useEffect(() => {
     // Registra a visualização no histórico local
     addRecentView({ ...product, store });
-    
+
     // Incrementa contagem de visualizações no Supabase (silencioso e assíncrono)
     incrementProductViews(product.id);
 
@@ -146,8 +148,8 @@ export default function ProductDetailClientView({
   const basePrice = isPlrPurchase && product.preco_plr ? product.preco_plr : product.preco;
   const isFreeProduct = !isPlrPurchase && (product.is_free === true || Number(basePrice) === 0);
 
-  const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined 
-    ? couponResult.finalPrice 
+  const currentPrice = couponResult?.valid && couponResult.finalPrice !== undefined
+    ? couponResult.finalPrice
     : basePrice;
   const originalPrice = !isPlrPurchase && Number(product.preco_original || 0) > Number(product.preco || 0)
     ? Number(product.preco_original)
@@ -357,7 +359,7 @@ export default function ProductDetailClientView({
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
@@ -365,7 +367,7 @@ export default function ProductDetailClientView({
       {context !== 'marketplace' && <header className="lg:hidden relative bg-white border-b border-slate-100 px-4 pt-3 pb-3 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <Link href={backHref} aria-label={fromPlrMarketplace ? 'Voltar ao Mercado de PLR' : `Ir para a loja ${store.nome_loja}`} className="shrink-0">
-            <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
+            <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-8 w-auto object-contain" />
           </Link>
           <button type="button" onClick={() => setShowMobileCategories((open) => !open)} className="flex flex-col items-center text-[9px] font-bold text-slate-700" aria-expanded={showMobileCategories}><Grid2X2 className="h-4 w-4" />Categorias</button>
           <button type="button" onClick={toggleCart} className="relative flex flex-col items-center text-[9px] font-bold text-slate-700" aria-label="Abrir carrinho"><ShoppingCart className="h-5 w-5" />Carrinho{items.length > 0 && <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] text-white">{items.length}</span>}</button>
@@ -438,7 +440,7 @@ export default function ProductDetailClientView({
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
+
           {/* LEFT COLUMN: Content */}
           <div className="min-w-0 lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
             <div className="lg:hidden space-y-2">
@@ -496,13 +498,13 @@ export default function ProductDetailClientView({
                       aria-pressed={activeImageIndex === idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
-                        activeImageIndex === idx 
-                          ? 'border-brand-navy shadow-md opacity-100' 
+                        activeImageIndex === idx
+                          ? 'border-brand-navy shadow-md opacity-100'
                           : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
                       }`}
                       style={activeImageIndex === idx ? { borderColor: primaryColor } : undefined}
                     >
-                      {media.type === 'image' ? <img src={media.url} alt="" loading="lazy" className="w-full h-full object-contain" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-orange-400 text-white"><Camera className="h-5 w-5" /><Play className="h-3.5 w-3.5 fill-current" /></span>}
+                      {media.type === 'image' ? <CatalogImage src={media.url} alt="" loading="lazy" className="w-full h-full object-contain" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-orange-400 text-white"><Camera className="h-5 w-5" /><Play className="h-3.5 w-3.5 fill-current" /></span>}
                     </button>
                   ))}
                 </div>
@@ -637,7 +639,7 @@ export default function ProductDetailClientView({
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
                 <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center font-black text-2xl text-slate-700 shadow-md">
                   {store.logo_url ? (
-                    <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+                    <CatalogImage src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
                   ) : (
                     <span style={{ color: primaryColor }}>{store.nome_loja.charAt(0).toUpperCase()}</span>
                   )}
@@ -669,11 +671,11 @@ export default function ProductDetailClientView({
           {/* RIGHT COLUMN: Buy Action Card */}
           <div className="hidden min-w-0 lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
             <div className="bg-white shadow-[0_10px_40px_rgb(0,0,0,0.06)] rounded-3xl p-6 sm:p-8 flex flex-col space-y-6">
-              
+
               {/* Product Header (Mobile & Desktop in Sidebar) */}
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span 
+                  <span
                     className="text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-md flex items-center gap-1.5 uppercase shadow-sm"
                     style={{ backgroundColor: primaryColor }}
                   >
@@ -734,9 +736,9 @@ export default function ProductDetailClientView({
                   )}
                 </div>
               </div>
-              
+
               <div className="h-px w-full bg-slate-100" /> {/* Divider */}
-              
+
               <div className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
                   Investimento Único
@@ -774,7 +776,7 @@ export default function ProductDetailClientView({
               {/* Coupon Box Input (Minimalist Toggle) */}
               <div>
                 {!showCouponInput ? (
-                  <button 
+                  <button
                     onClick={() => setShowCouponInput(true)}
                     className="text-xs font-bold text-slate-400 hover:text-slate-600 flex items-center justify-center sm:justify-start gap-1 transition-colors w-full sm:w-auto"
                   >
@@ -802,8 +804,8 @@ export default function ProductDetailClientView({
 
                     {couponResult && (
                       <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                        couponResult.valid 
-                          ? 'bg-emerald-50 text-brand-green border border-emerald-200' 
+                        couponResult.valid
+                          ? 'bg-emerald-50 text-brand-green border border-emerald-200'
                           : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}>
                         {couponResult.valid ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
@@ -864,7 +866,7 @@ export default function ProductDetailClientView({
                 Materiais que você também vai gostar
               </h2>
             </div>
-            
+
             <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={{ ...p, store }} />
@@ -884,7 +886,7 @@ export default function ProductDetailClientView({
           <div className="flex items-center justify-center gap-2 text-slate-500">
             <span>Tecnologia e Entrega por</span>
             <Link href="/">
-              <img src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
+              <CatalogImage src="/branding/logo-educalizando.png?v=3" alt="Educalizando" className="h-6 w-auto object-contain" style={{ width: 'auto', height: '24px' }} />
             </Link>
           </div>
         </footer>

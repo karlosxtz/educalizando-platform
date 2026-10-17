@@ -1,16 +1,20 @@
+import { readPublicRelatedProducts } from '@/lib/public-page-data';
+import { readPublicReviewSummary } from '@/lib/product-review-summary';
+import { isIndexableProduct, productMetadata, productStructuredData } from '@/lib/catalog-seo';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
-import { DEFAULT_SOCIAL_IMAGE,productCoverImageUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
-import { getProductById,getPublicProductsByStoreId,getStoreById } from '@/lib/store-service';
+import { serializeJsonLd } from '@/lib/seo';
+import { readPublicProduct as getProductById, readPublicStoreById as getStoreById } from '@/lib/public-page-data';
 import type { Product } from '@/lib/types';
-import { shortSeoTitle, productSeoDescription } from '@/lib/page-seo';
 import { ChevronRight,Home } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound,permanentRedirect } from 'next/navigation';
-import ProductDetailClientView from '../../loja/[slug]/produto/[produtoSlug]/ProductDetailClientView';
+import ProductProgressiveView from '@/components/store/ProductProgressiveView';
+import ProductPublicSummary from '@/components/store/ProductPublicSummary';
+import { publicProductDetail, publicStoreProduct } from '@/lib/public-store-presentation';
 
 interface GlobalProductDetailPageProps {
   params: Promise<{
@@ -27,46 +31,18 @@ const LEGACY_PRODUCT_SLUGS: Record<string, string> = {
   'kit-das-caixinhas-da-alfabetizacao-yvy5': 'kit-das-caixinhas-da-alfabetizacao',
 };
 
-export async function generateMetadata({ params }: GlobalProductDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: GlobalProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductById(LEGACY_PRODUCT_SLUGS[slug] || slug);
-  
-  if (!product) {
-    return { title: 'Produto não encontrado | Educalizando' };
+
+  if (!isIndexableProduct(product)) {
+    notFound();
   }
 
-  const title = shortSeoTitle(product.titulo);
-  const description = productSeoDescription(product.titulo, product.descricao);
-  const url = `${SITE_URL}/produto/${product.slug || product.id}`;
-  const image = product.capa_url
-    ? productCoverImageUrl(product.slug || product.id)
-    : DEFAULT_SOCIAL_IMAGE;
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    keywords: [product.titulo, 'material didático digital', ...(product.tags || [])],
-    title,
-    description,
-    robots: { index: true, follow: true },
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: 'Educalizando',
-      locale: 'pt_BR',
-      images: [{ url: image, alt: `Capa do material ${product.titulo}` }],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [image],
-    },
-  };
+  const { licenca } = await searchParams;
+  const store = await getStoreById(product.store_id);
+  if (!store) notFound();
+  return productMetadata(product, licenca === 'plr');
 }
 
 export default async function GlobalProductDetailPage({ params, searchParams }: GlobalProductDetailPageProps) {
@@ -79,7 +55,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   }
 
   const product = await getProductById(slug);
-  if (!product) {
+  if (!isIndexableProduct(product)) {
     notFound();
   }
 
@@ -109,9 +85,10 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   product.sales_count = salesCount;
 
   const category = categories.find(c => c.id === product?.category_id) || null;
-  const educationLevel = educationLevels.find(e => e.id === product?.education_level_id) || null;
+  const selectedLevels = educationLevels.filter(e => (product.education_level_ids?.length ? product.education_level_ids : [product.education_level_id]).includes(e.id));
+  const educationLevel = selectedLevels.length ? { ...selectedLevels[0], nome: selectedLevels.map(e => e.nome).join(' · ') } : null;
 
-  const storeProducts = await getPublicProductsByStoreId(store.id);
+  const storeProducts = await readPublicRelatedProducts(store.id, product.id);
   const otherStoreProducts = storeProducts.filter((item) => item.id !== product.id);
   const productCategories = product.category_ids?.length ? product.category_ids : product.category_id ? [product.category_id] : [];
   const productLevels = product.education_level_ids?.length ? product.education_level_ids : product.education_level_id ? [product.education_level_id] : [];
@@ -131,7 +108,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   const breadcrumbItems = [
     { label: 'Início', href: '/' }
   ];
-  
+
   if (category) {
     breadcrumbItems.push({ label: category.nome, href: `/categorias/${category.slug || category.id}` });
   } else if (educationLevel) {
@@ -139,47 +116,11 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   } else {
     breadcrumbItems.push({ label: 'Produtos', href: '/buscar' });
   }
-  
+
   breadcrumbItems.push({ label: product.titulo, href: `/produto/${product.slug || product.id}` });
 
-  const productJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.titulo,
-    description: productSeoDescription(product.titulo, product.descricao),
-    ...(product.capa_url ? {
-      image: [productCoverImageUrl(product.slug || product.id)],
-    } : {}),
-    sku: product.id,
-    brand: {
-      '@type': 'Brand',
-      name: 'Educalizando',
-    },
-    ...(category ? { category: category.nome } : {}),
-    ...(product.format_details || product.color_mode || product.age_range || product.tags?.length ? {
-      additionalProperty: [
-        ...(product.format_details ? [{ '@type': 'PropertyValue', name: 'Formato', value: product.format_details }] : []),
-        ...(product.color_mode ? [{ '@type': 'PropertyValue', name: 'Apresentação', value: product.color_mode === 'colorido_e_preto_e_branco' ? 'Material colorido e em preto e branco' : product.color_mode === 'colorido' ? 'Material colorido' : 'Material em preto e branco' }] : []),
-        ...(product.age_range ? [{ '@type': 'PropertyValue', name: 'Faixa etária', value: product.age_range }] : []),
-        ...(product.tags?.length ? [{ '@type': 'PropertyValue', name: 'Temas de busca', value: product.tags.join(', ') }] : []),
-      ],
-    } : {}),
-    offers: {
-      '@type': 'Offer',
-      price: product.preco,
-      priceCurrency: 'BRL',
-      availability: 'https://schema.org/InStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      url: `https://www.educalizando.com.br/produto/${product.slug || product.id}`,
-    },
-    ...(product.average_rating && product.review_count ? {
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: product.average_rating,
-        reviewCount: product.review_count,
-      }
-    } : {})
-  };
+  const reviewedProduct = { ...product, ...await readPublicReviewSummary(product.id) };
+  const productJsonLd = productStructuredData(reviewedProduct, store, licenca === 'plr', category?.nome);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -203,7 +144,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <MarketplaceHeader />
-      
+
       {/* Visual Breadcrumb */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -232,15 +173,17 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
       </div>
 
       <div className="flex-1">
-        <ProductDetailClientView
+        <ProductProgressiveView
           store={store}
-          product={product}
+        product={publicProductDetail(reviewedProduct)}
           category={category}
           educationLevel={educationLevel}
           context="marketplace"
-          relatedProducts={relatedProducts}
+          relatedProducts={relatedProducts.map(publicStoreProduct)}
           bnccSkills={bnccSkills}
-        />
+        >
+          <ProductPublicSummary product={reviewedProduct} store={store} plr={licenca === 'plr'} />
+        </ProductProgressiveView>
       </div>
       <Footer />
     </div>

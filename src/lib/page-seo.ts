@@ -3,8 +3,8 @@ import { SITE_URL, socialMetadata } from './seo';
 
 export const PAGE_SEO: Record<string, { title: string; description: string; keywords: string[] }> = {
   '/': {
-    title: 'Materiais didáticos digitais para professores',
-    description: 'Encontre materiais didáticos digitais para professores: atividades, apostilas e planos de aula para poupar tempo no planejamento. Explore o catálogo!',
+    title: 'Educalizando: plataforma de materiais didáticos',
+    description: 'Na Educalizando, encontre atividades, apostilas e jogos pedagógicos digitais. Conheça lojas de educadores ou crie sua loja de materiais didáticos.',
     keywords: ['materiais didáticos digitais para professores', 'recursos pedagógicos', 'planos de aula BNCC'],
   },
   '/buscar': {
@@ -91,11 +91,11 @@ export const PAGE_SEO: Record<string, { title: string; description: string; keyw
 
 export function pageMetadata(path: string): Metadata {
   const entry = PAGE_SEO[path];
-  const title = `${entry.title} | Educalizando`;
+  const title = path === '/' ? entry.title : shortSeoTitle(entry.title);
   return {
     metadataBase: new URL(SITE_URL), title: { absolute: title },
     description: entry.description, keywords: entry.keywords,
-    robots: { index: true, follow: true },
+    robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
     alternates: { canonical: new URL(path, SITE_URL).href },
     ...socialMetadata({ title, description: entry.description, url: path }),
   };
@@ -112,9 +112,16 @@ export function shortSeoTitle(name: string, suffix = ' | Educalizando', preserve
   return shortened + suffix;
 }
 
+export function productSeoText(value: string) {
+  return value.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
+    .replace(/\s+/g, ' ').trim();
+}
+
 export function productSeoDescription(title: string, description?: string | null) {
-  const clean = (description || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-  return clean.length >= 50 ? clean.slice(0, 140) : `Baixe ${title} na Educalizando. Material didático digital para professores e educadores.`;
+  const clean = productSeoText(description || '') || `Conheça ${productSeoText(title)} na Educalizando. Material didático digital para professores e educadores.`;
+  if (clean.length <= 155) return clean;
+  return clean.slice(0, 154).replace(/\s+\S*$/, '').trimEnd() + '…';
 }
 
 export function storeSeoDescription(name: string, count: number, category: string) {

@@ -1,3 +1,5 @@
+
+import CatalogImage from '@/components/ui/CatalogImage';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getPublishedBlogPosts } from '@/lib/blog-service';
@@ -43,7 +45,7 @@ export default async function BlogPage() {
             <div className="grid grid-cols-1 gap-4 min-[390px]:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {posts.map((post) => (
                 <article key={post.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-                  {post.cover_url && <img src={post.cover_url} alt={`Capa do guia: ${post.title}`} width={640} height={352} loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover" />}
+                  {post.cover_url && <CatalogImage src={post.cover_url} alt={`Capa do guia: ${post.title}`} width={640} height={352} loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover" />}
                   <div className="flex h-full flex-col p-4 sm:p-5"><p className="text-xs font-bold text-blue-600">Guia Educalizando</p><h2 className="mt-2 text-lg font-black leading-snug text-slate-900 sm:text-xl">{post.title}</h2><p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{post.excerpt}</p><Link href={`/blog/${post.slug}`} className="mt-5 inline-flex min-h-11 items-center self-start rounded-lg px-1 text-sm font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">Ler guia<span className="sr-only">: {post.title}</span> →</Link></div>
                 </article>
               ))}

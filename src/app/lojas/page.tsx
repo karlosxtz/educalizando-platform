@@ -1,3 +1,5 @@
+
+import CatalogImage from '@/components/ui/CatalogImage';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { socialMetadata } from '@/lib/seo';
@@ -43,11 +45,11 @@ export default async function LojasPage() {
             <div className="grid grid-cols-1 min-[390px]:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {listedStores.map((store: Store) => (
                 <div key={store.id} className="min-w-0 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group hover:-translate-y-1">
-                  
+
                   {/* Banner */}
                   <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 relative">
                     {store.banner_url && (
-                      <img src={store.banner_url} alt={`Banner de ${store.nome_loja}`} width={768} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <CatalogImage src={store.banner_url} alt={`Banner de ${store.nome_loja}`} width={768} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                   </div>
 
@@ -56,7 +58,7 @@ export default async function LojasPage() {
                     {/* Logo Sobreposta */}
                     <div className="w-16 h-16 rounded-full bg-white border-4 border-white shadow-sm overflow-hidden flex items-center justify-center -mt-8 mb-4 relative z-10">
                       {store.logo_url ? (
-                        <img src={store.logo_url} alt={`Logo de ${store.nome_loja}`} width={64} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                        <CatalogImage src={store.logo_url} alt={`Logo de ${store.nome_loja}`} width={64} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-2xl font-black text-slate-400">
                           {store.nome_loja.charAt(0).toUpperCase()}
@@ -67,13 +69,13 @@ export default async function LojasPage() {
                     <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2">
                       {store.nome_loja}
                     </h2>
-                    
+
                     <p className="text-sm text-slate-500 line-clamp-3 mb-6 flex-1">
                       {store.descricao || 'Esta loja ainda não adicionou uma apresentação.'}
                     </p>
 
                     <div className="mt-auto">
-                      <Link 
+                      <Link
                         href={`/loja/${store.slug}`}
                         className="inline-flex min-h-11 w-full justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-xl text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
                       >

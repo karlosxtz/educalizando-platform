@@ -1,3 +1,4 @@
+import { catalogMetadata } from '@/lib/catalog-seo';
 import { getKitById } from '@/lib/kit-service';
 import { getStoreBySlug } from '@/lib/store-service';
 import { getPublicMarketplaceKitById } from '@/lib/marketplace-kit-service';
@@ -15,13 +16,8 @@ interface KitDetailPageProps {
 export async function generateMetadata({ params }: KitDetailPageProps): Promise<Metadata> {
   const { slug, id } = await params;
   const publicKit = await getPublicMarketplaceKitById(id);
-  return {
-    alternates: {
-      canonical: publicKit?.store
-        ? `/kit/${encodeURIComponent(id)}`
-        : `/loja/${encodeURIComponent(slug)}/kit/${encodeURIComponent(id)}`,
-    },
-  };
+  if (!publicKit?.store || publicKit.store.slug !== slug) notFound();
+  return catalogMetadata(publicKit.titulo + ' — ' + publicKit.store.nome_loja, publicKit.descricao, '/loja/' + encodeURIComponent(slug) + '/kit/' + encodeURIComponent(id), publicKit.capa_url);
 }
 
 export default async function KitDetailPage({ params }: KitDetailPageProps) {
@@ -33,7 +29,7 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
   }
 
   const kit = await getKitById(id);
-  if (!kit) {
+  if (!kit || kit.store_id !== store.id || kit.status !== 'publicado' || kit.excluido_em) {
     notFound();
   }
 
