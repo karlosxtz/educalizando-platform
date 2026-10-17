@@ -3,8 +3,11 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const SITE_URL = 'https://www.educalizando.com.br';
+const isLiveCatalogPath = path => /^\/(?:produto|loja|kit|clube)\//.test(path) || /^\/blog\/.+/.test(path);
 
 const REQUIRED_PUBLIC_PATHS = [
+  '/materiais-didaticos', '/recursos-pedagogicos', '/atividades-alfabetizacao',
+  '/educacao-infantil', '/jogos-pedagogicos', '/planos-de-aula-bncc',
   '/ajuda',
   '/atividades-ensino-fundamental',
   '/atividades-para-imprimir',
@@ -15,7 +18,6 @@ const REQUIRED_PUBLIC_PATHS = [
   '/atividades-por-ano/pre-vestibular-enem',
   '/cadastro/produtor',
   '/calendario',
-  '/vender',
 ];
 
 // Crawl rules are intentionally narrower than sitemap exclusions.
@@ -33,6 +35,10 @@ const ROBOTS_DISALLOW = [
 ];
 
 const PRIVATE_PATHS = [
+  '/cadastro', '/aluno/*', '/cliente', '/cliente/*', '/vender',
+  '/seguranca', '/redefinir-senha', '/auth/*', '/carrinho', '/offline',
+  '/recuperar-carrinho/*', '/loja/*/checkout', '/loja/*/checkout/*',
+  '/atendimento/*', '/solicitar-material-exclusivo/*',
   '/admin',
   '/admin/*',
   '/painel',
@@ -284,14 +290,17 @@ async function getSupabasePaths() {
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
   siteUrl: SITE_URL,
-  generateRobotsTxt: true,
+  // App Router owns /sitemap.xml and /robots.txt. Legacy postbuild must not shadow them.
+  outDir: '.cloudflare/legacy-sitemap',
+  generateRobotsTxt: false,
+  autoLastmod: false,
   trailingSlash: false,
   changefreq: 'weekly',
   priority: 0.7,
   sitemapSize: 5000,
   exclude: [...PRIVATE_PATHS, '/sitemap-catalogo.xml'],
   transform: async (config, path) => {
-    if (path.includes('[')) return null;
+    if (path.includes('[') || isLiveCatalogPath(path)) return null;
 
     return {
       loc: path,
@@ -320,7 +329,7 @@ module.exports = {
       })),
     ];
 
-    return [...editorialPaths, ...(await getSupabasePaths())];
+    return [...new Map([...editorialPaths, ...(await getSupabasePaths())].filter(entry => !isLiveCatalogPath(entry.loc)).map(entry => [entry.loc, entry])).values()];
   },
   robotsTxtOptions: {
     additionalSitemaps: [`${SITE_URL}/sitemap-catalogo.xml`],
@@ -334,6 +343,8 @@ module.exports = {
     transformRobotsTxt: async () => [
       'User-agent: *',
       'Allow: /',
+      'Allow: /api/storage/public-image',
+      'Allow: /api/storage/public-media',
       ...ROBOTS_DISALLOW.map((path) => `Disallow: ${path}`),
       '',
       `Sitemap: ${SITE_URL}/sitemap.xml`,

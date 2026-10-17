@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { requiresSecondFactor } from '@/lib/auth-assurance'
 import { NextResponse,type NextRequest } from 'next/server'
+import { PUBLIC_DOCUMENT_PATH, publicDocumentStatus, publicDocumentError } from '@/lib/public-document-status'
 
 const AUTH_CHECK_TIMEOUT_MS = 8_000
 
@@ -41,6 +42,10 @@ function authenticationUnavailable(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (['GET', 'HEAD'].includes(request.method) && PUBLIC_DOCUMENT_PATH.test(request.nextUrl.pathname)) {
+    const status = await publicDocumentStatus(request.nextUrl.pathname)
+    return status === 200 ? NextResponse.next() : publicDocumentError(status, request.method === 'HEAD')
+  }
   // As rotas protegidas ainda são pré-renderizadas pelo Next. Um CSP baseado
   // em nonce só funciona com renderização dinâmica, pois o nonce precisa ser
   // inserido nos scripts durante cada resposta. O CSP global de next.config.ts
@@ -129,6 +134,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/produto/:slug', '/loja/:slug', '/loja/:slug/produto/:produtoSlug', '/blog/:slug',
     '/admin/:path*', '/api/admin/:path*', '/dashboard/:path*', '/painel/:path*',
     '/afiliados/dashboard/:path*',
     '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*', '/cliente/favoritos/:path*',

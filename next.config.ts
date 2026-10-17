@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
   async redirects() {
     return [
+      ...['.*\\.vercel\\.app', '.*\\.workers\\.dev', '.*\\.pages\\.dev'].map(value => ({
+        source: '/:path*',
+        has: [{ type: 'host' as const, value }],
+        destination: 'https://www.educalizando.com.br/:path*',
+        statusCode: 301 as const,
+      })),
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'educalizando.com.br' }],
