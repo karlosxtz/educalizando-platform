@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { sendSaleNotificationToCreator } from './mail-service';
 import { createNotification } from './notification-service';
 import type { OrderRecord } from './order-service';
@@ -10,7 +11,7 @@ export async function notifyConfirmedSale(order: OrderRecord, options: {
   retryWhatsApp?: boolean;
   retryWhatsAppEvent?: 'CREATOR_SALE_ALERT' | 'MATERIAL_DELIVERY';
 } = {}) {
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+  const appUrl = publicSiteOrigin();
   const isPlrPurchase = order.is_plr_purchase === true;
   const purchaseAccess = getPurchaseAccess(isPlrPurchase, appUrl);
   const accessUrl = purchaseAccess.url;

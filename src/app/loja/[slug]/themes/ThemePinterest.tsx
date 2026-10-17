@@ -9,7 +9,8 @@ import { ProductType,StoreListingProduct } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 import { AnimatePresence,motion } from 'framer-motion';
 import { BookOpen, Boxes, CheckCircle2, FileText, GraduationCap, HelpCircle, Layers, MessageCircle, Search, ShieldCheck, ShoppingBag, Sparkles, Star, Tags, Video, X, Zap } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
+import ProductEducationBadges from '@/components/store/ProductEducationBadges';
 import { useState } from 'react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -73,10 +74,6 @@ export default function ThemePinterest(props: StoreThemeProps) {
     return categories.find(c => c.id === catId)?.nome || null;
   };
 
-  const getEducationName = (edId?: string | null) => {
-    if (!edId) return null;
-    return educationLevels.find(e => e.id === edId)?.nome || null;
-  };
 
   const getProductGallery = (product: StoreListingProduct) => Array.from(new Set([
     product.capa_url,
@@ -450,7 +447,6 @@ export default function ThemePinterest(props: StoreThemeProps) {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {filteredProducts.map((prod, index) => {
               const catName = getCategoryName(prod.category_id);
-              const edName = getEducationName(prod.education_level_id);
 
               return (
                 <motion.div
@@ -495,11 +491,7 @@ export default function ThemePinterest(props: StoreThemeProps) {
                             <Tags className="w-3 h-3" /> {catName}
                           </span>
                         )}
-                        {edName && (
-                          <span className="bg-indigo-50/80 text-indigo-700 border border-indigo-100/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
-                            <GraduationCap className="w-3 h-3" /> {edName}
-                          </span>
-                        )}
+                        <ProductEducationBadges product={prod} levels={educationLevels} />
                       </div>
 
                       {/* Title & Description */}

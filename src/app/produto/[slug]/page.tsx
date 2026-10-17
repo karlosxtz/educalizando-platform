@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import { readPublicRelatedProducts } from '@/lib/public-page-data';
 import { readPublicReviewSummary } from '@/lib/product-review-summary';
 import { readSeoProductReference } from '@/lib/seo-identity';
@@ -35,7 +37,7 @@ const LEGACY_PRODUCT_SLUGS: Record<string, string> = {
 export async function generateMetadata({ params, searchParams }: GlobalProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductById(LEGACY_PRODUCT_SLUGS[slug] || slug);
-
+  
   if (!isIndexableProduct(product)) {
     notFound();
   }
@@ -109,7 +111,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   const breadcrumbItems = [
     { label: 'Início', href: '/' }
   ];
-
+  
   if (category) {
     breadcrumbItems.push({ label: category.nome, href: `/categorias/${category.slug || category.id}` });
   } else if (educationLevel) {
@@ -117,7 +119,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
   } else {
     breadcrumbItems.push({ label: 'Produtos', href: '/buscar' });
   }
-
+  
   breadcrumbItems.push({ label: product.titulo, href: `/produto/${product.slug || product.id}` });
 
   const reviewedProduct = { ...product, ...await readPublicReviewSummary(product.id) };
@@ -145,7 +147,7 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <MarketplaceHeader />
-
+      
       {/* Visual Breadcrumb */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">

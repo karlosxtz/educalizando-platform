@@ -1,3 +1,4 @@
+import { requestPublicRevalidation } from './request-public-revalidation';
 import { normalizeStoreSocialLinks } from './social-links';
 import { allowsLocalDevelopmentFallback,supabase } from './supabase';
 import { Store } from './types';
@@ -265,6 +266,7 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
         .single();
         
       if (error) throw new Error(error.message);
+      await requestPublicRevalidation(data.id);
       return normalizeStoreSocialLinks(data as Store);
     }
 
@@ -276,7 +278,8 @@ export async function updateStore(storeId: string, updates: Partial<Store>): Pro
       .single();
 
     if (error) throw new Error(error.message);
-    return normalizeStoreSocialLinks(data as Store);
+    await requestPublicRevalidation(data.id);
+      return normalizeStoreSocialLinks(data as Store);
   }
 
   // Fallback Local
@@ -313,7 +316,7 @@ export async function getTopMarketplaceStores(limit: number = 4): Promise<Store[
       const { data, error } = await query;
 
       if (!error && data) {
-        return data as Store[];
+        return (data as Store[]).map(normalizeStoreSocialLinks);
       }
     } catch (err) {
       console.error('[getTopMarketplaceStores] Erro:', err);
@@ -343,7 +346,7 @@ export async function getAllPublicStores(): Promise<Store[]> {
       const { data, error } = await query;
 
       if (!error && data) {
-        return data as Store[];
+        return (data as Store[]).map(normalizeStoreSocialLinks);
       }
     } catch (err) {
       console.error('[getAllPublicStores] Erro:', err);

@@ -1,5 +1,11 @@
 'use client';
 
+import { readApiJson } from '@/lib/api-response';
+import { notifySeoSaved, onSeoSaved } from '@/lib/seo-sync';
+import CatalogImage from '@/components/ui/CatalogImage';
+import { calculateProductSeoScore } from '@/lib/product-seo-score';
+import { toast } from 'sonner';
+import { aiFetch } from '@/lib/ai-client';
 import ProductManagementDialogs from './ProductManagementDialogs';
 import { SeoAuditCard,SeoChangePreview } from './SeoAuditCards';
 
@@ -67,7 +73,7 @@ export default function ProductsManagementPage() {
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const [seoAuditing, setSeoAuditing] = useState(false);
   const [seoAuditError, setSeoAuditError] = useState<string | null>(null);
-  const [seoAudit, setSeoAudit] = useState<{ summary: string; average: number; items: Array<{ id: string; title: string; score: number; issues: string[]; quickWins: string[]; recommendedTitle: string; suggestedCaption: string; description: string; tags: string[]; themes: string[]; categoryId: string; educationLevelId: string; ageRange: string; formatDetails: string; metaDescription: string; keywords: string[]; coverUrl: string | null; isPlr: boolean }> } | null>(null);
+  const [seoAudit, setSeoAudit] = useState<{ summary: string; generationNotice?: string | null; average: number; items: Array<{ id: string; expectedUpdatedAt?: string | null; projectedScore?: number; remainingIssues?: string[]; categoryName?: string; educationLevelName?: string; generatedByAi?: boolean; title: string; score: number; issues: string[]; quickWins: string[]; recommendedTitle: string; suggestedCaption: string; description: string; tags: string[]; themes: string[]; categoryId: string; educationLevelId: string; ageRange: string; formatDetails: string; metaDescription: string; keywords: string[]; coverUrl: string | null; isPlr: boolean }> } | null>(null);
   const [selectedSeoIds, setSelectedSeoIds] = useState<string[]>([]);
   const [bulkPreviewOpen, setBulkPreviewOpen] = useState(false);
   const [applyingBulkSeo, setApplyingBulkSeo] = useState(false);
@@ -75,6 +81,14 @@ export default function ProductsManagementPage() {
   const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
   const marketingTriggerRef = useRef<HTMLButtonElement | null>(null);
   const refreshedAuditRef = useRef(false);
+  useEffect(() => {
+    if (!store?.id) return;
+    return onSeoSaved(store.id, () => {
+      setSeoAudit(null); setSelectedSeoIds([]);
+      try { localStorage.removeItem(`educalizando_seo_audit_${store.id}`); } catch { /* Cache optional. */ }
+      void loadData();
+    });
+  }, [store?.id]);
 
   const loadData = async () => {
     try {
@@ -82,11 +96,11 @@ export default function ProductsManagementPage() {
       setStore(currentStore);
       const [prods, settingsResponse] = await Promise.all([
         getProductsByStoreId(currentStore.id),
-        fetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
+        aiFetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
       ]);
       setProducts(prods);
       if (settingsResponse?.ok) {
-        const settings = await settingsResponse.json();
+        const settings = await readApiJson(settingsResponse);
         setAiConfigured(Boolean(settings.configured));
       } else {
         setAiConfigured(false);
@@ -152,12 +166,12 @@ export default function ProductsManagementPage() {
     setCampaignData('');
     setActionError(null);
     try {
-      const res = await fetch('/api/ai/campaign', {
+      const res = await aiFetch('/api/ai/campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo: marketingProduct.titulo, storeId: store.id })
+        body: JSON.stringify({ productId: marketingProduct.id, storeId: store.id })
       });
-      const data = await res.json();
+      const data = await readApiJson(res);
       if (!res.ok) throw new Error(data.error || 'Erro ao gerar campanha.');
       setCampaignData(data.campaign);
     } catch (err: unknown) {
@@ -189,9 +203,9 @@ export default function ProductsManagementPage() {
 
     let configured = aiConfigured;
     if (configured === null) {
-      const settingsResponse = await fetch(`/api/ai/settings?storeId=${encodeURIComponent(store.id)}`).catch(() => null);
+      const settingsResponse = await aiFetch(`/api/ai/settings?storeId=${encodeURIComponent(store.id)}`).catch(() => null);
       if (settingsResponse?.ok) {
-        const settings = await settingsResponse.json();
+        const settings = await readApiJson(settingsResponse);
         configured = Boolean(settings.configured);
         setAiConfigured(configured);
       } else {
@@ -205,15 +219,15 @@ export default function ProductsManagementPage() {
 
     setSeoAuditing(true);
     try {
-      const response = await fetch('/api/ai/seo-audit', {
+      const response = await aiFetch('/api/ai/seo-audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ storeId: store.id }),
       });
-      const data = await response.json().catch(() => ({}));
+      const data = await readApiJson(response);
       if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a auditoria.');
       setSeoAudit(data);
-      setSelectedSeoIds((data.items || []).filter((item: { score: number }) => item.score < 100).map((item: { id: string }) => item.id));
+      setSelectedSeoIds((data.items || []).filter((item: { score: number; generatedByAi?: boolean }) => item.score < 100 && item.generatedByAi).map((item: { id: string }) => item.id));
       localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error: unknown) {
       setSeoAuditError(error instanceof Error ? error.message : 'Não foi possível concluir a auditoria.');
@@ -264,15 +278,8 @@ export default function ProductsManagementPage() {
   };
 
   const seoReports = useMemo(() => products.map(product => {
-    const checks = [
-      { label: 'Título claro (30–65 caracteres)', ok: product.titulo.trim().length >= 30 && product.titulo.trim().length <= 65 },
-      { label: 'Descrição preenchida (120+ caracteres)', ok: Boolean(product.descricao && product.descricao.trim().length >= 120) },
-      { label: 'Capa otimizada', ok: Boolean(product.capa_url) },
-      { label: 'Categoria definida', ok: Boolean(product.category_id) },
-      { label: 'Nível de ensino definido', ok: Boolean(product.education_level_id) },
-    ];
-    const score = Math.round((checks.filter(check => check.ok).length / checks.length) * 100);
-    return { product, score, checks, suggestions: checks.filter(check => !check.ok).map(check => check.label) };
+    const { score, issues } = calculateProductSeoScore(product);
+    return { product, score, suggestions: issues };
   }), [products]);
   const getSeoReport = (productId: string) => seoReports.find(report => report.product.id === productId);
   const getAiSeoReport = (productId: string) => seoAudit?.items.find(report => report.id === productId);
@@ -287,14 +294,19 @@ export default function ProductsManagementPage() {
     if (!selectedSeoItems.length || !store?.id) return;
     setApplyingBulkSeo(true);
     try {
-      const response = await fetch('/api/ai/seo-apply', {
+      const response = await aiFetch('/api/ai/seo-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, changes: selectedSeoItems.map(item => ({ id: item.id, titulo: item.recommendedTitle, descricao: item.description, tags: item.tags, seasonal_tags: item.themes, category_id: item.categoryId, education_level_id: item.educationLevelId, age_range: item.ageRange, format_details: item.formatDetails })) }),
+        body: JSON.stringify({ storeId: store.id, changes: selectedSeoItems.map(item => ({ id: item.id, ...(item.expectedUpdatedAt !== undefined ? { expectedUpdatedAt: item.expectedUpdatedAt } : {}), titulo: item.recommendedTitle, descricao: item.description, tags: item.tags, seasonal_tags: item.themes, category_id: item.categoryId, education_level_id: item.educationLevelId, age_range: item.ageRange, format_details: item.formatDetails })) }),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.success) throw new Error(result.error || 'Não foi possível salvar as otimizações.');
-      await loadData();
+      const result = await readApiJson(response);
+      if (!response.ok || !result.success || selectedSeoItems.some(item => !result.updatedIds?.includes(item.id))) throw new Error(result.error || 'O servidor não confirmou todas as otimizações.');
+      const reports = result.seoResults || [];
+      const complete = reports.filter((item: { score: number }) => item.score === 100).length;
+      toast.success(`${result.updatedIds.length} produto(s) salvo(s). ${complete} com nota confirmada 100/100.`);
+      reports.filter((item: { score: number }) => item.score < 100).forEach((item: { id: string; issues: string[] }) => toast.message(`${selectedSeoItems.find(product => product.id === item.id)?.title || 'Produto'}: ${item.issues.join(' ')}`));
+      setProducts(current => current.map(product => ({ ...product, ...(result.savedProducts?.find((saved: Partial<Product>) => saved.id === product.id) || {}) })));
+      notifySeoSaved(store.id);
       localStorage.removeItem(`educalizando_seo_audit_${store.id}`);
       setBulkPreviewOpen(false);
       setActionError(null);
@@ -385,7 +397,7 @@ export default function ProductsManagementPage() {
       )}
 
       {showSeo && <section className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-4 shadow-xs sm:p-6">
-        {aiConfigured === false ? <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">Conecte a IA para analisar os seus materiais</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">Depois da conexão, esta área encontra os produtos que precisam de ajustes, explica cada oportunidade e prepara sugestões para revisão.</p></div><button type="button" onClick={() => router.push('/dashboard/ia')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-violet-700"><Sparkles className="h-4 w-4" /> Configurar IA</button></div> : seoAuditing ? <div className="flex min-h-32 items-center justify-center gap-3 text-sm font-bold text-blue-800"><Loader2 className="h-5 w-5 animate-spin" /> A IA está analisando títulos, descrições, tags e dados dos materiais...</div> : seoAudit ? <div className="space-y-5">{seoAuditError && <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900 sm:flex-row sm:items-center sm:justify-between"><span>A nova consulta não foi concluída. A auditoria já salva continua disponível para revisão e aplicação.</span><button type="button" onClick={() => void handleSeoAudit(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-3 text-xs font-black text-blue-700 ring-1 ring-blue-200"><RefreshCw className="h-3.5 w-3.5" /> Tentar novamente</button></div>}<div className="flex flex-col gap-4 border-b border-blue-100 pb-5 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">O que melhorar para seus materiais aparecerem melhor</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{seoAudit.summary}</p></div><div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm ring-1 ring-blue-100"><span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Saúde da loja</span><strong className="text-2xl font-black text-blue-700">{seoAudit.average}/100</strong></div></div><div className="grid gap-4 lg:grid-cols-2">{seoAudit.items.filter(item => item.score < 100).map(item => <SeoAuditCard key={item.id} item={item} selected={selectedSeoIds.includes(item.id)} onToggle={() => toggleSeoItem(item.id)} onOptimize={() => openAiOptimizer(item.id, 'final')} onOptimizePlr={item.isPlr ? () => openAiOptimizer(item.id, 'plr') : undefined} />)}{!seoAudit.items.some(item => item.score < 100) && <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-800 lg:col-span-2"><CheckCircle2 className="mr-2 inline h-5 w-5" /> Seus produtos têm todos os campos essenciais preenchidos.</div>}</div></div> : seoAuditError ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm font-semibold text-rose-700">{seoAuditError}</p><button type="button" onClick={() => void handleSeoAudit(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-3 text-xs font-black text-blue-700 ring-1 ring-blue-200"><RefreshCw className="h-3.5 w-3.5" /> Tentar novamente</button></div> : <div className="text-sm text-slate-600">Prepare sua auditoria para visualizar as recomendações da IA.</div>}
+        {aiConfigured === false ? <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">Conecte a IA para analisar os seus materiais</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">Depois da conexão, esta área encontra os produtos que precisam de ajustes, explica cada oportunidade e prepara sugestões para revisão.</p></div><button type="button" onClick={() => router.push('/dashboard/ia')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-violet-700"><Sparkles className="h-4 w-4" /> Configurar IA</button></div> : seoAuditing ? <div className="flex min-h-32 items-center justify-center gap-3 text-sm font-bold text-blue-800"><Loader2 className="h-5 w-5 animate-spin" /> A IA está analisando títulos, descrições, tags e dados dos materiais...</div> : seoAudit ? <div className="space-y-5">{seoAuditError && <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900 sm:flex-row sm:items-center sm:justify-between"><span>A nova consulta não foi concluída. A auditoria já salva continua disponível para revisão e aplicação.</span><button type="button" onClick={() => void handleSeoAudit(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-3 text-xs font-black text-blue-700 ring-1 ring-blue-200"><RefreshCw className="h-3.5 w-3.5" /> Tentar novamente</button></div>}<div className="flex flex-col gap-4 border-b border-blue-100 pb-5 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Auditoria de SEO com IA</p><h2 className="mt-1 text-lg font-black text-slate-900">O que melhorar para seus materiais aparecerem melhor</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{seoAudit.summary}</p>{seoAudit.generationNotice && <p className="mt-2 text-xs text-blue-700">{seoAudit.generationNotice}</p>}</div><div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm ring-1 ring-blue-100"><span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Saúde da loja</span><strong className="text-2xl font-black text-blue-700">{seoAudit.average}/100</strong></div></div><div className="grid gap-4 lg:grid-cols-2">{seoAudit.items.filter(item => item.score < 100).map(item => <SeoAuditCard key={item.id} item={item} selected={selectedSeoIds.includes(item.id)} onToggle={() => toggleSeoItem(item.id)} onOptimize={() => openAiOptimizer(item.id, 'final')} onOptimizePlr={item.isPlr ? () => openAiOptimizer(item.id, 'plr') : undefined} />)}{!seoAudit.items.some(item => item.score < 100) && <div className="rounded-2xl bg-emerald-50 p-5 text-sm font-semibold text-emerald-800 lg:col-span-2"><CheckCircle2 className="mr-2 inline h-5 w-5" /> Seus produtos têm todos os campos essenciais preenchidos.</div>}</div></div> : seoAuditError ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm font-semibold text-rose-700">{seoAuditError}</p><button type="button" onClick={() => void handleSeoAudit(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-3 text-xs font-black text-blue-700 ring-1 ring-blue-200"><RefreshCw className="h-3.5 w-3.5" /> Tentar novamente</button></div> : <div className="text-sm text-slate-600">Prepare sua auditoria para visualizar as recomendações da IA.</div>}
       </section>}
 
       {showSeo && seoAudit && seoAudit.items.some(item => item.score < 100) && <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-black text-violet-950">Aplicar sugestões da IA em lote</p><p className="mt-1 text-xs leading-5 text-violet-800">Selecione os materiais desejados e revise título, descrição, tags e temas antes de salvar.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => setSelectedSeoIds(seoAudit.items.filter(item => item.score < 100).map(item => item.id))} className="min-h-10 rounded-xl bg-white px-3 text-xs font-black text-violet-700 ring-1 ring-violet-200">Selecionar todos</button><button type="button" onClick={() => setSelectedSeoIds([])} className="min-h-10 rounded-xl bg-white px-3 text-xs font-black text-slate-600 ring-1 ring-slate-200">Limpar seleção</button><button type="button" disabled={!selectedSeoItems.length} onClick={() => setBulkPreviewOpen(true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-violet-600 px-4 text-xs font-black text-white disabled:opacity-50"><CheckCircle2 className="h-4 w-4" /> Revisar {selectedSeoItems.length} alteração(ões)</button></div></div>}
@@ -459,7 +471,7 @@ export default function ProductsManagementPage() {
                 <div className="space-y-3">
                   <div className="h-40 rounded-xl overflow-hidden bg-slate-100 relative">
                     {prod.capa_url ? (
-                      <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" />
+                      <CatalogImage src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
                         Sem Capa

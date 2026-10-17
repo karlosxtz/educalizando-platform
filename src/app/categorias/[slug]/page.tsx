@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import ProductCard from '@/components/ProductCard';
@@ -92,7 +94,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
         <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
       ))}
       <MarketplaceHeader />
-
+      
       <main className="flex-1">
         {/* SEO Optimized Header */}
         <section className="bg-white border-b py-12">
@@ -130,7 +132,7 @@ export default async function CategoryLandingPage({ params }: CategoryPageProps)
                 <p className="text-gray-600 mb-6">
                   Ainda não temos materiais disponíveis para a categoria <strong>{category.nome}</strong>. Que tal explorar outros recursos?
                 </p>
-                <Link
+                <Link 
                   href="/buscar"
                   className="inline-flex items-center justify-center px-6 py-3 bg-[#093b6c] text-white font-medium rounded-lg hover:bg-[#06284a] transition-colors"
                 >

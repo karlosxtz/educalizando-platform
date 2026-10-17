@@ -1,4 +1,5 @@
 import 'server-only';
+import { createHash } from 'node:crypto';
 
 import { resolveRemoteAddresses } from '@/lib/remote-addresses';
 import { isIP } from 'node:net';
@@ -9,6 +10,7 @@ import { mirrorWooDelivery,mirrorWooDescriptionMedia,mirrorWooPublicMedia } from
 export { decryptWooSecret,encryptWooSecret,validWooSignature } from '@/lib/woocommerce-security';
 
 export type WooCredentials = { siteUrl: string; consumerKey: string; consumerSecret: string };
+export function safeWooError(error: unknown) { const message = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : 'Não foi possível concluir esta etapa.'; return message.replace(/https?:\/\/\S+/gi, '[endereço remoto]').replace(/(?:ck_|cs_)\w+/gi, '[credencial]').replace(/<[^>]*>/g, '').slice(0, 240); }
 export type WooProduct = { id: number; name: string; description?: string; short_description?: string; price?: string; regular_price?: string; status?: string; permalink?: string; stock_status?: string; stock_quantity?: number | null; images?: Array<{ src?: string }>; categories?: Array<{ id?: number; name?: string; slug?: string }>; tags?: Array<{ id?: number; name?: string; slug?: string }>; downloads?: Array<{ id?: string; name?: string; file?: string }>; meta_data?: Array<{ key?: string; value?: unknown }> };
 type WooOrder = { id: number; status: string; currency?: string; total?: string; billing?: Record<string, string>; line_items?: unknown[]; date_created?: string; date_modified?: string };
 
@@ -20,15 +22,19 @@ export async function normalizeWooUrl(input: string) {
   if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de loja inválido.');
   const addresses = await resolveRemoteAddresses(url.hostname);
   if (!addresses.length || addresses.some(item => privateIp(item.address))) throw new Error('O endereço da loja não pode apontar para uma rede privada.');
-  return `${url.origin}${url.pathname.replace(/\/+$/, '')}`;
+  return `${url.origin}${url.pathname.replace(/\/(?:wp-admin|wp-json)(?:\/.*)?$/, '').replace(/\/+$/, '')}`;
 }
 
 export async function wooRequest<T>(credentials: WooCredentials, path: string, init: RequestInit = {}): Promise<T> {
   const siteUrl = await normalizeWooUrl(credentials.siteUrl);
   const endpoint = new URL(`${siteUrl}/wp-json/wc/v3/${path.replace(/^\//, '')}`);
-  const response = await fetch(endpoint, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Basic ${Buffer.from(`${credentials.consumerKey}:${credentials.consumerSecret}`).toString('base64')}`, ...init.headers }, signal: AbortSignal.timeout(20000), cache: 'no-store' });
+  const response = await fetch(endpoint, { ...init, redirect: 'error', headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Basic ${Buffer.from(`${credentials.consumerKey}:${credentials.consumerSecret}`).toString('base64')}`, ...init.headers }, signal: AbortSignal.timeout(20000), cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.message || `WooCommerce respondeu com erro ${response.status}.`);
+  if (!response.ok) {
+    const message = response.status === 401 || response.status === 403 ? 'O WooCommerce recusou o acesso. Confira as chaves, as permissões de leitura e os bloqueios de segurança do WordPress.' : response.status === 429 ? 'A loja WooCommerce limitou as consultas. A importação tentará novamente.' : payload?.message || `WooCommerce respondeu com erro ${response.status}.`;
+    const error = new Error(safeWooError(new Error(message))) as Error & { code: string; status: number }; error.code = payload?.code || ''; error.status = response.status; throw error;
+  }
+  if (payload === null) throw new Error('O endereço retornou uma página em vez de JSON. Confira a URL, os links permanentes e a REST API da loja.');
   return payload as T;
 }
 
@@ -44,7 +50,7 @@ export async function wooListAll<T>(credentials: WooCredentials, resource: strin
 }
 
 export function credentialsFromIntegration(row: any): WooCredentials { return { siteUrl: row.site_url, consumerKey: decryptWooSecret(row.consumer_key_encrypted), consumerSecret: decryptWooSecret(row.consumer_secret_encrypted) }; }
-export async function testWooConnection(credentials: WooCredentials) { const system = await wooRequest<Array<{ environment?: { site_url?: string; version?: string } }>>(credentials, 'system_status'); return { connected: true, siteUrl: credentials.siteUrl, version: system?.[0]?.environment?.version || null }; }
+export async function testWooConnection(credentials: WooCredentials) { await wooRequest<WooProduct[]>(credentials, 'products?per_page=1&_fields=id'); return { connected: true, siteUrl: credentials.siteUrl, version: null }; }
 
 export async function syncProductsToWoo(integration: any, origin: string) {
   const { data: products, error } = await supabaseAdmin.from('products').select('id,titulo,descricao,slug,preco,preco_original,capa_url,status').eq('store_id', integration.store_id).neq('status', 'excluido').is('excluido_em', null);
@@ -128,14 +134,19 @@ export async function hasWooProductMapping(integrationId: string, wooProductId: 
   return Boolean(data?.product_id);
 }
 
-export async function importWooProduct(integration: any, item: WooProduct) {
+export function wooImportUuid(value: string) { const hex = createHash('sha256').update(value).digest('hex'); return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-8${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`; }
+export async function importWooProduct(integration: any, item: WooProduct, options: { metadataOnly?: boolean } = {}) {
   const { data: mapping, error: mappingError } = await supabaseAdmin.from('woocommerce_product_mappings').select('product_id').eq('integration_id', integration.id).eq('woo_product_id', item.id).maybeSingle();
   if (mappingError) throw mappingError;
-  const { data: currentProduct, error: currentProductError } = mapping?.product_id
-    ? await supabaseAdmin.from('products').select('preco,import_incomplete').eq('id', mapping.product_id).eq('store_id', integration.store_id).maybeSingle()
-    : { data: null, error: null };
+  let candidateId = mapping?.product_id || wooImportUuid(integration.id + ':' + item.id);
+  if (!mapping?.product_id && item.permalink) {
+    const { data: unfinished, error: unfinishedError } = await supabaseAdmin.from('products').select('id').eq('store_id', integration.store_id).eq('import_source', 'woocommerce').eq('import_incomplete', true).eq('preview_url', item.permalink).order('created_at', { ascending: true }).limit(1);
+    if (unfinishedError) throw unfinishedError;
+    if (unfinished?.[0]) candidateId = unfinished[0].id;
+  }
+  const { data: currentProduct, error: currentProductError } = await supabaseAdmin.from('products').select('id,preco,import_incomplete,capa_url').eq('id', candidateId).eq('store_id', integration.store_id).maybeSingle();
   if (currentProductError) throw currentProductError;
-  const shouldRefreshContent = !mapping?.product_id || Boolean(currentProduct?.import_incomplete);
+  const shouldRefreshContent = !currentProduct || Boolean(currentProduct.import_incomplete);
   const sourceLabels = [...(item.categories || []), ...(item.tags || [])].flatMap(entry => [entry.name, entry.slug]).filter((value): value is string => Boolean(value));
   const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const sourceKeys = new Set(sourceLabels.map(normalize));
@@ -150,26 +161,26 @@ export async function importWooProduct(integration: any, item: WooProduct) {
   const matchedCategories = (categories || []).filter(category => sourceKeys.has(normalize(category.slug || category.nome))).slice(0, 5);
   const matchedEducation = (educationLevels || []).filter(level => sourceKeys.has(normalize(level.slug || level.nome))).slice(0, 5);
   const wooPrice = Number(item.price || item.regular_price || 0);
-  const gallery = shouldRefreshContent ? await Promise.all((item.images || []).map(image => image.src).filter((url): url is string => Boolean(url)).slice(0, 10).map(async (url, index) => (await mirrorWooPublicMedia(url, integration.id, item.id, index)).url)) : [];
+  const gallery = shouldRefreshContent && !options.metadataOnly ? await Promise.all((item.images || []).map(image => image.src).filter((url): url is string => Boolean(url)).slice(0, 10).map(async (url, index) => (await mirrorWooPublicMedia(url, integration.id, item.id, index)).url)) : [];
   const rawDescription = item.description || item.short_description || '';
-  const mirroredHtml = shouldRefreshContent && rawDescription ? await mirrorWooDescriptionMedia(rawDescription, integration.id, item.id) : rawDescription;
+  const mirroredHtml = shouldRefreshContent && rawDescription && !options.metadataOnly ? await mirrorWooDescriptionMedia(rawDescription, integration.id, item.id) : rawDescription;
   const mirroredDescription = readableProductDescription(mirroredHtml);
-  const values = { store_id: integration.store_id, titulo: item.name.slice(0, 160), descricao: mirroredDescription || null, tipo: 'pdf', preco: Number.isFinite(wooPrice) ? wooPrice : 0, capa_url: gallery[0] || null, preview_url: item.permalink || null, category_id: matchedCategories[0]?.id || null, category_ids: matchedCategories.map(category => category.id), education_level_id: matchedEducation[0]?.id || null, education_level_ids: matchedEducation.map(level => level.id), tags: [...new Set(sourceLabels.map(label => label.trim()).filter(Boolean))].slice(0, 30), updated_at: new Date().toISOString() };
-  let productId = mapping?.product_id;
+  const values = { store_id: integration.store_id, titulo: item.name.slice(0, 160), descricao: mirroredDescription || null, tipo: 'pdf', preco: Number.isFinite(wooPrice) && wooPrice >= 0 ? wooPrice : 0, capa_url: gallery[0] || currentProduct?.capa_url || null, preview_url: item.permalink || null, category_id: matchedCategories[0]?.id || null, category_ids: matchedCategories.map(category => category.id), education_level_id: matchedEducation[0]?.id || null, education_level_ids: matchedEducation.map(level => level.id), tags: [...new Set(sourceLabels.map(label => label.trim()).filter(Boolean))].slice(0, 30), updated_at: new Date().toISOString() };
+  let productId = currentProduct ? candidateId : null;
   if (productId) {
     if (shouldRefreshContent) {
-      const { error } = await supabaseAdmin.from('products').update(values).eq('id', productId).eq('store_id', integration.store_id);
+      const { error } = await supabaseAdmin.from('products').update(values).eq('id', productId).eq('store_id', integration.store_id).eq('import_incomplete', true);
       if (error) throw error;
     } else if (Number(currentProduct?.preco || 0) !== values.preco) {
       const { error } = await supabaseAdmin.from('products').update({ preco: values.preco, import_price_confirmed: false, import_incomplete: true, status: 'rascunho', updated_at: values.updated_at }).eq('id', productId).eq('store_id', integration.store_id);
       if (error) throw error;
     }
   } else {
-    const { data, error } = await supabaseAdmin.from('products').insert({ ...values, status: 'rascunho', import_source: 'woocommerce', import_incomplete: true, import_price_confirmed: false, created_at: new Date().toISOString() }).select('id').single();
+    const { data, error } = await supabaseAdmin.from('products').insert({ ...values, id: candidateId, slug: (normalize(item.name).slice(0, 100) || 'material') + '-' + candidateId, status: 'rascunho', import_source: 'woocommerce', import_incomplete: true, import_price_confirmed: false, created_at: new Date().toISOString() }).select('id').single();
     if (error) throw error;
     productId = data.id;
   }
-  if (shouldRefreshContent) {
+  if (shouldRefreshContent && !options.metadataOnly) {
     const { error: deleteImagesError } = await supabaseAdmin.from('product_images').delete().eq('product_id', productId);
     if (deleteImagesError) throw deleteImagesError;
     if (gallery.length) {

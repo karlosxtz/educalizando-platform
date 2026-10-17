@@ -1,4 +1,5 @@
 'use client';
+import { publicSiteOrigin } from '@/lib/public-links';
 
 import StoreLivePreview from '@/components/dashboard/StoreLivePreview';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -110,7 +111,7 @@ export default function AffiliateStoreSettingsPage() {
     loadProfileData();
   }, [reset]);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br';
+  const siteUrl = publicSiteOrigin();
   const publicUrl = `${siteUrl}/afiliado/${watchedSlug || 'sua-vitrine'}`;
 
   const handleCopyLink = () => {

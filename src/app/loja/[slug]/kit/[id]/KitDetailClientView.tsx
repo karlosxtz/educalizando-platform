@@ -1,4 +1,5 @@
 'use client';
+import { catalogImageUrl } from '@/lib/catalog-image-url';
 
 import { validateCouponCode } from '@/lib/coupon-service';
 import { CouponValidationResult,Kit,ProductType,Review,Store } from '@/lib/types';
@@ -172,7 +173,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
             <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md">
               <div className="aspect-[16/9] max-w-2xl mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                 {kit.capa_url ? (
-                  <img src={kit.capa_url} alt={kit.titulo} className="w-full h-full object-cover" />
+                  <img src={catalogImageUrl(kit.capa_url) || undefined} alt={kit.titulo} className="w-full h-full object-cover" />
                 ) : <KitCoverMosaic products={includedProducts} />}
               </div>
             </div>
@@ -199,7 +200,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-12 h-14 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 shadow-xs">
                           {prod.capa_url ? (
-                            <img src={prod.capa_url} alt={prod.titulo} className="w-full h-full object-cover" />
+                            <img src={catalogImageUrl(prod.capa_url) || undefined} alt={prod.titulo} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">
                               PDF
@@ -317,7 +318,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
                 <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center font-black text-2xl text-slate-700 shadow-md">
                   {store.logo_url ? (
-                    <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+                    <img src={catalogImageUrl(store.logo_url) || undefined} alt={store.nome_loja} className="w-full h-full object-cover" />
                   ) : (
                     <span style={{ color: primaryColor }}>{store.nome_loja.charAt(0).toUpperCase()}</span>
                   )}

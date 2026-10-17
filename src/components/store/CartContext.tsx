@@ -60,7 +60,8 @@ export function CartProvider({ children, storeId }: { children: ReactNode; store
   }, [storeId]);
 
   const addToCart = (item: Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }) => {
-    _addToCart(item);
+    const localStore = Boolean(storeId && item.storeId === storeId && new URLSearchParams(window.location.search).get('origem') !== 'marketplace');
+    _addToCart({ ...item, origin: localStore ? 'store' : 'marketplace' });
     window.dispatchEvent(new CustomEvent('educalizando:tracking', {
       detail: {
         event: 'AddToCart',

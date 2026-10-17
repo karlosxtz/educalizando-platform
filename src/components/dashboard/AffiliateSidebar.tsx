@@ -15,7 +15,7 @@ User,
 Wallet,
 X
 } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import { usePathname,useRouter } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 

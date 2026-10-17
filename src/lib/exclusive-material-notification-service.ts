@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import 'server-only';
 
 import { resolveCreatorWhatsAppAccess } from './creator-whatsapp-access';
@@ -15,7 +16,7 @@ type ExclusiveContext = {
   instanceName?: string;
 };
 
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+const appUrl = publicSiteOrigin();
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
 async function loadContext(requestId: string): Promise<ExclusiveContext | null> {

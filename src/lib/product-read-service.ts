@@ -106,7 +106,6 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       .eq('id', validStoreId)
       .maybeSingle();
 
-    console.log('[getPublicProductsByStoreId] cleanStoreId:', validStoreId);
 
     // Containers for aggregating public products and tracking IDs
     const allProducts: Product[] = [];
@@ -122,12 +121,10 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       .order('created_at', { ascending: false });
 
     if (ownProducts && Array.isArray(ownProducts)) {
-      console.log(`[getPublicProductsByStoreId] Query retornou ${ownProducts.length} produto(s) publicado(s)`);
       for (const p of ownProducts as Product[]) {
         if (!ownProductIds.has(p.id)) {
           allProducts.push(p);
           ownProductIds.add(p.id);
-          console.log(`[getPublicProductsByStoreId] Produto encontrado: id=${p.id}, titulo="${p.titulo}", status="${p.status}", store_id="${p.store_id}"`);
         }
       }
     } else {
@@ -198,7 +195,6 @@ export async function getPublicProductsByStoreId(storeId: string): Promise<Produ
       imagesByProductId.set(image.product_id, images);
     });
 
-    console.log('[getPublicProductsByStoreId] total products before filter:', allProducts.length);
     return allProducts
       .filter(p => !deletedIds.has(p.id) && !deletedIds.has(p.id.replace(/^prod_/i, '')))
       .map(p => {
@@ -377,7 +373,7 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
   return freeProducts as (Product & { store?: Store })[];
 }
 
-export async function getAllPublicMarketplaceProducts(limit: number = 50): Promise<(Product & { store?: Store })[]> {
+export async function getAllPublicMarketplaceProducts(limit: number = 50, view: 'complete' | 'cards' = 'complete'): Promise<(Product & { store?: Store })[]> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id')
@@ -388,7 +384,7 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50): Promi
       const { data, error } = await supabase
         .from('products')
         .select(`
-          *,
+          ${view === 'cards' ? 'id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,seasonal_tags' : '*'},
           store:stores (
             id, nome_loja, slug, logo_url
           )
@@ -399,7 +395,8 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50): Promi
         .limit(limit);
 
       if (!error && data) {
-        return data as (Product & { store?: Store })[];
+        const products = data as unknown as (Product & { store?: Store })[];
+        return view === 'cards' ? products.map(product => ({ ...product, descricao: null, arquivo_url: null })) : products;
       }
     } catch (err) {
       console.error('[getAllPublicMarketplaceProducts] Erro:', err);

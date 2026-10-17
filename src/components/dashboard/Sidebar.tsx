@@ -1,11 +1,15 @@
 'use client';
+import CatalogImage from '@/components/ui/CatalogImage';
 
 import NotificationCenter from '@/components/dashboard/NotificationCenter';
+import StoreAvatar from '@/components/dashboard/StoreAvatar';
 import { signOutUser } from '@/lib/supabase';
 import { Store as StoreType } from '@/lib/types';
 import {
 Boxes,
 ChartNoAxesCombined,
+CalendarDays,
+SearchX,
 ChevronRight,
 CloudCog,
 Crown,
@@ -26,12 +30,13 @@ Sparkles,
 Store,
 Tags,
 Ticket,
-User,Users,
+Users,
 Wallet,
 Wrench,
+Webhook,
 X
 } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import { usePathname,useRouter,useSearchParams } from 'next/navigation';
 import { useCallback,useEffect,useRef,useState } from 'react';
 interface SidebarProps {
@@ -41,7 +46,7 @@ interface SidebarProps {
   creatorEmail?: string;
 }
 
-export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo Silva', creatorEmail = 'prof.rico@gmail.com' }: SidebarProps) {
+export default function Sidebar({ store, storeId }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,7 +88,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
 
   const storeSlug = store?.slug || 'prof-ricardo';
-  const storeName = store?.nome_loja || 'Prof. Ricardo Silva';
+  const storeName = store?.nome_loja || 'Minha loja';
 
   const NAV_ITEMS = [
     {
@@ -189,6 +194,10 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
       badge: 'NOVO'
     },
     { label: 'Métricas e Anúncios', href: '/dashboard/metricas-anuncios', icon: ChartNoAxesCombined, badge: 'NOVO' },
+    { label: 'Calendário de oportunidades', href: '/dashboard/oportunidades', icon: CalendarDays, badge: 'NOVO' },
+    { label: 'Buscas sem resultado', href: '/dashboard/buscas-sem-resultado', icon: SearchX, badge: 'NOVO' },
+    { label: 'Recuperar compras', href: '/dashboard/carrinhos', icon: ShoppingCart, badge: 'NOVO' },
+    { label: 'Webhooks e Integrações', href: '/dashboard/webhooks', icon: Webhook, badge: 'NOVO' },
     { label: 'WhatsApp da Loja', href: '/dashboard/whatsapp-loja', icon: MessageCircle, badge: 'PREMIUM' },
     { label: 'WooCommerce', href: '/dashboard/woocommerce', icon: CloudCog, badge: 'NOVO' },
     {
@@ -222,7 +231,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
-    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/ia'] },
+    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
   ].map((group) => ({ ...group, items: NAV_ITEMS.filter((item) => group.hrefs.includes(item.href)) }));
 
@@ -301,7 +310,7 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
 
           {/* Current Store Badge */}
           <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-3">
-            {store?.logo_url ? <img src={store.logo_url} alt={`Logo ${storeName}`} className="h-9 w-9 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5 shadow-xs" /> : <div className="w-9 h-9 rounded-lg bg-brand-navy text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+            {store?.logo_url ? <CatalogImage src={store.logo_url} alt={`Logo ${storeName}`} className="h-9 w-9 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5 shadow-xs" /> : <div className="w-9 h-9 rounded-lg bg-brand-navy text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
               {storeName.charAt(0).toUpperCase()}
             </div>}
             <div className="min-w-0 flex-1">
@@ -392,12 +401,9 @@ export default function Sidebar({ store, storeId, creatorName = 'Prof. Ricardo S
         {/* Sidebar Footer: Creator Account & Logout */}
         <div className="flex min-w-0 items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-              <User className="w-4 h-4" />
-            </div>
+            <StoreAvatar name={storeName} logo={store?.logo_url} />
             <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-900 truncate block">{creatorName}</span>
-              <span className="text-[10px] text-slate-500 truncate block">{creatorEmail}</span>
+              <span title={storeName} className="block truncate text-xs font-bold text-slate-900">{storeName}</span>
             </div>
           </div>
 

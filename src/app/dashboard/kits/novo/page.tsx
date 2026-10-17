@@ -1,5 +1,7 @@
 'use client';
 
+import { readApiJson } from '@/lib/api-response';
+import { aiFetch } from '@/lib/ai-client';
 import { motion } from 'framer-motion';
 import {
 AlertCircle,
@@ -79,7 +81,9 @@ function KitWizardContent() {
     initData();
   }, [editId]);
 
+  const [optimizingAi, setOptimizingAi] = useState(false);
   const handleOptimizeAll = async () => {
+    if (optimizingAi) return;
     if (!store?.id) {
       toast.error('Loja não configurada.');
       return;
@@ -89,21 +93,23 @@ function KitWizardContent() {
       return;
     }
 
+    setOptimizingAi(true);
     const loadingToast = toast.loading('A IA está gerando o kit mágico...');
     try {
       // In Kits, we inform the AI it's a kit/bundle context by modifying the payload slightly if needed,
       // but the API is generic enough. We just ensure we send the current values.
-      const res = await fetch('/api/ai/optimize', {
+      const res = await aiFetch('/api/ai/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           titulo: titulo + " (Kit/Combo de Produtos)",
+          descricao,
           storeId: store.id
         })
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+        const data = await readApiJson(res);
         throw new Error(data.error || 'Erro ao otimizar com IA.');
       }
 
@@ -147,7 +153,7 @@ function KitWizardContent() {
       toast.success(`Kit gerado com sucesso!`, { id: loadingToast });
     } catch (err: any) {
       toast.error(err.message, { id: loadingToast });
-    }
+    } finally { setOptimizingAi(false); }
   };
 
   // Dynamic real-time calculation of selected products sum
@@ -339,7 +345,7 @@ function KitWizardContent() {
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Título do Kit / Combo *
                     </label>
-                    <button type="button" onClick={handleOptimizeAll} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
+                    <button type="button" disabled={optimizingAi} onClick={handleOptimizeAll} className="text-sm text-blue-600 flex items-center gap-1 font-bold hover:text-blue-800 transition-colors">
                       <Sparkles className="w-4 h-4"/> Gerar com IA
                     </button>
                   </div>

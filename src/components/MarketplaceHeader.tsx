@@ -5,7 +5,7 @@ import CatalogImage from '@/components/ui/CatalogImage';
 import { useCart } from '@/components/store/CartContext';
 import { supabase } from '@/lib/supabase';
 import { Menu,ShoppingCart,UserRound,X } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import { useSearchParams } from 'next/navigation';
 import { Suspense,useEffect,useRef,useState } from 'react';
 import CategoryDropdown from './CategoryDropdown';
@@ -88,7 +88,7 @@ function MarketplaceHeaderInner() {
       <div className="py-3 sm:py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
-
+          
           {/* Esquerda: Logo */}
           <div className="flex items-center justify-between w-full md:w-auto">
             <Link href="/" className="flex items-center cursor-pointer group shrink-0">
@@ -100,7 +100,7 @@ function MarketplaceHeaderInner() {
                 style={{ width: 'auto', height: '42px' }}
               />
             </Link>
-
+            
             <div className="flex md:hidden items-center gap-1">
               <button
                 ref={mobileMenuButtonRef}
@@ -146,7 +146,7 @@ function MarketplaceHeaderInner() {
               <Link href="/cadastro" className="text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2.5 rounded-full transition-all border border-transparent hover:border-blue-100">Criar Conta</Link>
               <Link href="/entrar" className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20">Entrar</Link>
             </>}
-
+            
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
 
             <button onClick={toggleCart} aria-label="Abrir carrinho" className="min-h-11 min-w-11 p-2.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors relative group">
@@ -158,7 +158,7 @@ function MarketplaceHeaderInner() {
               )}
             </button>
           </div>
-
+          
         </div>
       </div>
 
@@ -167,7 +167,7 @@ function MarketplaceHeaderInner() {
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="hidden xl:flex xl:items-center justify-between py-3 gap-4">
-
+            
             {/* Esquerda: Links Simples */}
             <div className="flex items-center gap-5">
               <Link href="/" className="whitespace-nowrap text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors">
@@ -189,7 +189,7 @@ function MarketplaceHeaderInner() {
             <div className="flex items-center gap-2">
               {quickCategories.map((category) => <Link key={category.href} href={category.href} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${category.active ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{category.label}</Link>)}
             </div>
-
+            
           </div>
 
           <div className="xl:hidden">

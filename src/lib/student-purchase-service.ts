@@ -18,6 +18,9 @@ export async function getStudentPurchases(studentId: string): Promise<Purchase[]
   }
 
   if (isRealSupabase) {
+    // Claim only grants bound to the authenticated account's confirmed email.
+    // Missing migration or a temporary claim failure must not hide existing purchases.
+    try { await supabase.rpc('claim_external_store_access'); } catch { /* Retry when the library is opened again. */ }
     try {
       // Buscar registros ativos de acesso no student_product_access por ID ou Email
       let query = supabase

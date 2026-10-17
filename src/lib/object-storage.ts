@@ -1,4 +1,6 @@
 import 'server-only';
+import { publicSiteOrigin } from './public-links';
+import { publicImageObjectUrl } from './public-image-url';
 
 import { DeleteObjectCommand,GetObjectCommand,HeadBucketCommand,PutObjectCommand,S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -19,6 +21,7 @@ function config() {
     endpoint,
     region: process.env.OBJECT_STORAGE_REGION || 'us-east-1',
     forcePathStyle: process.env.OBJECT_STORAGE_FORCE_PATH_STYLE !== 'false',
+    requestChecksumCalculation: 'WHEN_REQUIRED' as const,
     credentials: {
       accessKeyId: required('OBJECT_STORAGE_ACCESS_KEY_ID'),
       secretAccessKey: required('OBJECT_STORAGE_SECRET_ACCESS_KEY'),
@@ -26,8 +29,17 @@ function config() {
   };
 }
 
+let storageClient: S3Client | undefined;
+let storageClientConfig: string | undefined;
+
 function client() {
-  return new S3Client(config());
+  const settings = config();
+  const identity = JSON.stringify(settings);
+  if (!storageClient || storageClientConfig !== identity) {
+    storageClient = new S3Client(settings);
+    storageClientConfig = identity;
+  }
+  return storageClient;
 }
 
 export function resolveBucket(legacyBucket: LegacyUploadBucket) {
@@ -61,26 +73,32 @@ export function publicObjectUrl(bucket: string, key: string) {
 }
 
 export function platformPublicImageUrl(bucket: string, key: string) {
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br').replace(/\/+$/, '');
+  const direct = publicImageObjectUrl(bucket, key);
+  if (direct) return direct;
+  const origin = publicSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL);
   const params = new URLSearchParams({ bucket, key });
   return `${origin}/api/storage/public-image?${params.toString()}`;
 }
 
 export function platformPublicMediaUrl(bucket: string, key: string) {
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br').replace(/\/+$/, '');
+  const origin = publicSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL);
   const params = new URLSearchParams({ bucket, key });
   return `${origin}/api/storage/public-media?${params.toString()}`;
 }
 
-export async function createUploadUrl({ bucket, key, contentType }: { bucket: string; key: string; contentType: string }) {
+export function uploadCacheControl(bucket: string) {
+  return bucket === (process.env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images')
+    ? 'public, max-age=31536000, immutable' : 'private, no-store';
+}
+
+export async function createUploadUrl({ bucket, key, contentType, size }: { bucket: string; key: string; contentType: string; size: number }) {
   return getSignedUrl(client(), new PutObjectCommand({
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
-    CacheControl: bucket === (process.env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images')
-      ? 'public, max-age=31536000, immutable'
-      : 'private, no-store',
-  }), { expiresIn: 15 * 60 });
+    ContentLength: size,
+    CacheControl: uploadCacheControl(bucket),
+  }), { expiresIn: 15 * 60, signableHeaders: new Set(['content-type', 'content-length', 'cache-control']) });
 }
 
 export async function uploadObject({ bucket, key, body, contentType }: {
@@ -118,6 +136,7 @@ export async function createDownloadUrl(bucket: string, key: string, filename?: 
   return getSignedUrl(client(), new GetObjectCommand({
     Bucket: bucket,
     Key: key,
+    ResponseCacheControl: 'private, no-store, max-age=0',
     ...(filename ? { ResponseContentDisposition: `attachment; filename="${filename.replace(/["\\]/g, '_')}"` } : {}),
   }), { expiresIn: 60 * 15 });
 }

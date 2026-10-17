@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ cont
   if (!productId) return NextResponse.json({ error: 'Produto do conteúdo não informado.' }, { status: 400 });
 
   const [{ data: access }, { data: content }] = await Promise.all([
-    supabaseAdmin.from('student_product_access').select('id').eq('student_id', user.id).eq('product_id', productId).eq('status', 'ACTIVE').maybeSingle(),
+    supabaseAdmin.from('student_product_access').select('id').eq('student_id', user.id).eq('product_id', productId).eq('status', 'ACTIVE').limit(1).maybeSingle(),
     supabaseAdmin.from('digital_contents').select('id, store_id, product_id, titulo, url, active, tipo').eq('id', contentId).eq('product_id', productId).maybeSingle(),
   ]);
 

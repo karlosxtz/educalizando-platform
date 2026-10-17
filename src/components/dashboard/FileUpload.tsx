@@ -1,6 +1,7 @@
 'use client';
 
 import { uploadToObjectStorage } from '@/lib/object-storage-client';
+import { normalizePublicAssetUrl } from '@/lib/public-links';
 import imageCompression from 'browser-image-compression';
 import { AlertCircle,CheckCircle2,File,Image as ImageIcon,Info,RefreshCw,Sparkles,UploadCloud,VideoOff,X } from 'lucide-react';
 import { useRef,useState } from 'react';
@@ -46,6 +47,9 @@ export default function FileUpload({
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [failedPreview, setFailedPreview] = useState<string | null>(null);
+  const previewUrl = normalizePublicAssetUrl(value);
+  const previewUnavailable = !!previewUrl && failedPreview === previewUrl;
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,14 +101,12 @@ export default function FileUpload({
       }
     }
 
-    try {
-      // Simulação de progresso fluído
-      const interval = setInterval(() => {
+    // Stop the progress timer on failures as well as successful uploads.
+    const interval = setInterval(() => {
         setProgress((prev) => (prev >= 85 ? prev : prev + 15));
       }, 150);
-
+    try {
       const finalUrl = await uploadToObjectStorage(bucket, finalFile);
-      clearInterval(interval);
       setProgress(100);
       setTimeout(() => {
         setUploading(false);
@@ -116,6 +118,8 @@ export default function FileUpload({
         title: 'Erro no Upload',
         message: err instanceof Error ? err.message : 'Erro ao realizar o upload do arquivo. Tente novamente.'
       });
+    } finally {
+      clearInterval(interval);
     }
   };
 
@@ -130,6 +134,7 @@ export default function FileUpload({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       processFileUpload(e.target.files[0]);
+      e.target.value = '';
     }
   };
 
@@ -187,7 +192,7 @@ export default function FileUpload({
                 aspectRatio === '3:1' ? 'w-36 h-12 rounded-xl' :
                 'w-14 h-18 rounded-xl'
               }`}>
-                <img src={value} alt="Preview" className="w-full h-full object-cover" />
+                {previewUnavailable ? <div className="flex h-full w-full items-center justify-center text-slate-500"><ImageIcon className="h-6 w-6" aria-hidden="true" /></div> : <img src={previewUrl || value} alt={'Prévia de ' + label} onLoad={() => setFailedPreview(null)} onError={() => setFailedPreview(previewUrl)} className="w-full h-full object-cover" />}
               </div>
             ) : (
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center flex-shrink-0">
@@ -196,7 +201,7 @@ export default function FileUpload({
             )}
             <div className="truncate">
               <span className="text-xs font-bold text-slate-900 block truncate">
-                {isImage ? 'Imagem Carregada com Sucesso' : 'Arquivo Digital Validade'}
+                {isImage ? previewUnavailable ? 'Imagem salva — prévia indisponível' : 'Imagem carregada' : 'Arquivo digital enviado'}
               </span>
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Arquivo carregado com sucesso (≤ {effectiveMaxSizeMB}MB)

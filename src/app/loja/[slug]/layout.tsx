@@ -1,7 +1,8 @@
 import { CartProvider } from '@/components/store/CartContext';
 import CartSidebar from '@/components/store/CartSidebar';
 import CartWidget from '@/components/store/CartWidget';
-import { getStoreBySlug } from '@/lib/store-service';
+import StoreCartTracker from '@/components/store/StoreCartTracker';
+import { readPublicStore as getStoreBySlug } from '@/lib/public-page-data';
 import { notFound } from 'next/navigation';
 import { ReactNode } from 'react';
 
@@ -22,6 +23,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
 
   return (
     <CartProvider storeId={store.id}>
+      <StoreCartTracker storeId={store.id} storeSlug={store.slug} />
       {children}
       <CartWidget />
       <CartSidebar storeSlug={store.slug} store={store} />

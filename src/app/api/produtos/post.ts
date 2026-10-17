@@ -1,19 +1,29 @@
+import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
-import { NextResponse } from 'next/server';
+import { after,NextResponse } from 'next/server';
 import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
 import { syncSavedProductToWoo } from '@/lib/woocommerce-service';
+import { validDeliveryInput } from '@/lib/product-update-payload';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function POST(request: Request) {
+  let savedProductId: string | null = null;
   try {
     const user = await getRequestUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try { body = await request.json(); } catch { return NextResponse.json({ error: 'Dados do produto inválidos.' }, { status: 400 }); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'Dados do produto inválidos.' }, { status: 400 });
+    for (const field of ['delivery_files', 'plr_delivery_files']) {
+      if (field in body && !validDeliveryInput(body[field])) return NextResponse.json({ error: 'A lista de arquivos está inválida.' }, { status: 400 });
+    }
+    const creationId = typeof body.creation_request_id === 'string' ? body.creation_request_id : null;
+    if (creationId && !isValidUUID(creationId)) return NextResponse.json({ error: 'Identificador de cadastro inválido.' }, { status: 400 });
     const {
       store_id,
       titulo,
@@ -160,6 +170,7 @@ export async function POST(request: Request) {
     }
 
     const productPayload: Record<string, any> = {
+      ...(creationId ? { id: creationId } : {}),
       titulo: titulo.trim(),
       slug: await uniqueProductSlug(titulo.trim()),
       descricao: descricao || null,
@@ -203,19 +214,26 @@ export async function POST(request: Request) {
       productPayload.store_id = targetStoreId;
     }
 
-    console.log('[API /api/produtos POST] Criando produto no Supabase via Admin:', productPayload);
-
     let insertedProduct = null;
+    // A product must not be purchasable until its private delivery records exist.
+    const requestedStatus = productPayload.status;
+    const stagedPayload = { ...productPayload, status: 'rascunho' };
     const { data, error } = await supabaseAdmin
       .from('products')
-      .insert([productPayload])
+      .insert([stagedPayload])
       .select()
       .single();
 
-    if (error) {
+    if (error && creationId && error.code === '23505') {
+      const existing = await supabaseAdmin.from('products').select('*').eq('id', creationId).eq('store_id', targetStoreId).maybeSingle();
+      if (existing.error) throw existing.error;
+      if (existing.data) insertedProduct = existing.data;
+    }
+    if (error && !insertedProduct) {
       console.error('[API /api/produtos POST] Erro Supabase:', error.message);
       // Fallback sem FKs caso haja restrição relacional em categorias
       const fallbackPayload = {
+        ...(creationId ? { id: creationId } : {}),
         store_id: targetStoreId,
         titulo: titulo.trim(),
         slug: productPayload.slug,
@@ -251,7 +269,7 @@ export async function POST(request: Request) {
 
       const { data: retryData, error: retryError } = await supabaseAdmin
         .from('products')
-        .insert([fallbackPayload])
+        .insert([{ ...fallbackPayload, status: 'rascunho' }])
         .select()
         .single();
 
@@ -261,9 +279,11 @@ export async function POST(request: Request) {
       }
 
       insertedProduct = retryData;
-    } else {
+    } else if (!insertedProduct) {
       insertedProduct = data;
     }
+
+    savedProductId = insertedProduct.id;
 
     const { error: deliveryError } = await supabaseAdmin.from('product_deliveries').upsert({
       product_id: insertedProduct.id,
@@ -279,22 +299,33 @@ export async function POST(request: Request) {
       ...deliveryRows(insertedProduct.id, 'plr', normalizedPlrDeliveryFiles.length ? normalizedPlrDeliveryFiles : primaryPlrUrl ? [{ url: primaryPlrUrl, name: 'Arquivo da licença PLR' }] : []),
     ];
     if (allDeliveryRows.length) {
-      const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(allDeliveryRows);
+      const { error: filesError } = await supabaseAdmin.from('product_delivery_files').upsert(allDeliveryRows, { onConflict: 'product_id,delivery_type,order_index' });
       if (filesError) throw filesError;
     }
 
-    try { await syncSavedProductToWoo(insertedProduct.store_id, insertedProduct.id, new URL(request.url).origin); }
-    catch (syncError) { console.error('[API /api/produtos POST] Sincronização WooCommerce:', syncError); }
+    const published = await supabaseAdmin.from('products').update({ status: requestedStatus })
+      .eq('id', insertedProduct.id).eq('store_id', targetStoreId).select().single();
+    if (published.error) throw published.error;
+    insertedProduct = published.data;
+
+    const savedStoreId = insertedProduct.store_id;
+    const productId = insertedProduct.id;
+    after(async () => {
+      try { await syncSavedProductToWoo(savedStoreId, productId, new URL(request.url).origin); }
+      catch { console.warn('[Produtos] Sincronização externa pendente após salvar produto.', productId); }
+    });
 
     // Purga imediata do cache do Next.js para as páginas afetadas
+    after(async () => {
     try {
-      revalidatePath('/', 'layout');
+      await invalidatePublicCatalog();
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard', 'page');
       revalidatePath('/dashboard/produtos', 'page');
       revalidatePath('/dashboard/conteudo', 'page');
       revalidatePath('/dashboard/kits', 'page');
     } catch (_e) {}
+    });
 
     // Inserir galeria de imagens
     if (insertedProduct && insertedProduct.id && Array.isArray(gallery_urls) && gallery_urls.length > 0) {
@@ -304,7 +335,8 @@ export async function POST(request: Request) {
           url,
           ordem: index
         }));
-        await supabaseAdmin.from('product_images').insert(imagesToInsert);
+        const { count } = await supabaseAdmin.from('product_images').select('id', { count: 'exact', head: true }).eq('product_id', insertedProduct.id);
+        if (!count) await supabaseAdmin.from('product_images').insert(imagesToInsert);
       } catch (e) {
         console.error('[API /api/produtos POST] Erro ao inserir product_images:', e);
       }
@@ -319,7 +351,7 @@ export async function POST(request: Request) {
         })).filter(item => item.bncc_skill_id !== null);
 
         if (bnccToInsert.length > 0) {
-          await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
+          await supabaseAdmin.from('product_bncc_skills').upsert(bnccToInsert, { onConflict: 'product_id,bncc_skill_id' });
         }
       } catch (e) {
         console.error('[API /api/produtos POST] Erro ao inserir product_bncc_skills:', e);
@@ -329,6 +361,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, product: { ...insertedProduct, arquivo_url: primaryOriginalUrl, arquivo_nome: primaryOriginalName, plr_license_url: primaryPlrUrl, delivery_files: normalizedDeliveryFiles, plr_delivery_files: normalizedPlrDeliveryFiles } });
   } catch (err: any) {
     console.error('[API /api/produtos POST] Exceção:', err);
-    return NextResponse.json({ error: err.message || 'Erro interno ao criar produto.' }, { status: 500 });
+    return NextResponse.json({ error: savedProductId ? 'O cadastro foi iniciado, mas a entrega não foi concluída. Tente salvar novamente para retomar o mesmo produto.' : err.message || 'Erro interno ao criar produto.', product_id: savedProductId }, { status: 500 });
   }
 }

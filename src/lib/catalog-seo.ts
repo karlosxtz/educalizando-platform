@@ -28,7 +28,7 @@ export function productMetadata(product: Product, plr = false, _storefront?: Pic
   const excerpt = room > 20 ? (detail.length <= room ? detail : detail.slice(0, room).replace(/\s+\S*$/, '').trimEnd()) : '';
   const description = prefix + (excerpt ? ' ' + excerpt : '');
   const metadata = catalogMetadata(name, description, path,
-    product.capa_url ? productCoverImageUrl(product.slug || product.id) : DEFAULT_SOCIAL_IMAGE);
+    product.capa_url ? productCoverImageUrl(product.slug || product.id, product.capa_url) : DEFAULT_SOCIAL_IMAGE);
   // Both storefront and marketplace share one document identity. Store links,
   // affiliation, checkout, and license selection remain untouched.
   const title = shortSeoTitle(name + (reference ? ' · ' + reference : ''));
@@ -47,7 +47,7 @@ export function productStructuredData(product: Product, store: Pick<Store, 'nome
     '@context': 'https://schema.org', '@type': 'Product', '@id': url + '#product',
     name: product.titulo, description: productSeoText(description || '').slice(0, 5000) || productSeoDescription(product.titulo), url,
     sku: product.id, brand: { '@type': 'Brand', name: store.nome_loja },
-    ...(product.capa_url ? { image: [productCoverImageUrl(product.slug || product.id)] } : {}),
+    ...(product.capa_url ? { image: [productCoverImageUrl(product.slug || product.id, product.capa_url)] } : {}),
     ...(category ? { category } : {}),
     ...(Number.isFinite(price) && price >= 0 ? { offers: {
       '@type': 'Offer', price: price.toFixed(2), priceCurrency: 'BRL',

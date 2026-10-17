@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
 import { NextResponse } from 'next/server';
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     const { data: order } = email ? await supabaseAdmin.from('orders').select('buyer_phone').eq('buyer_email', email).not('buyer_phone', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle() : { data: null };
     const phone = phoneFromProfile || String(order?.buyer_phone || '').replace(/\D/g, '');
     const store = Array.isArray(product.stores) ? product.stores[0] : product.stores;
-    const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+    const baseUrl = publicSiteOrigin();
     const url = `${baseUrl}/loja/${store?.slug}/produto/${product.slug}`;
 
     const { data: alert, error: claimError } = await supabaseAdmin.rpc('claim_favorite_price_alert', { p_user: favorite.user_id, p_product: favorite.product_id, p_old: oldPrice, p_new: currentPrice });

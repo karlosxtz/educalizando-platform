@@ -221,6 +221,7 @@ export async function createOrderRecord(data: {
   creatorReferralCommissionAmount?: number;
   couponId?: string;
   aiMarketingCampaignId?: string;
+  trackingParameters?: Record<string,string>;
   platformSettings?: { platform_fee_percentage: number; platform_fixed_fee: number };
 }): Promise<OrderRecord> {
 
@@ -319,13 +320,14 @@ export async function createOrderRecord(data: {
         creator_referral_commission_amount: newOrder.creatorReferralCommissionAmount || 0,
         coupon_id: newOrder.couponId,
         ai_marketing_campaign_id: newOrder.aiMarketingCampaignId,
+        tracking_parameters: data.trackingParameters || {},
         created_at: newOrder.createdAt
       };
       let { error: orderInsertError } = await supabaseAdmin.from('orders').insert([orderRow]);
 
       // Mantém compras disponíveis durante a janela entre deploy e migration.
       if (orderInsertError && /ai_marketing_campaign_id|column/i.test(orderInsertError.message || '')) {
-        const { ai_marketing_campaign_id: _campaignId, ...legacyOrderRow } = orderRow;
+        const { ai_marketing_campaign_id: _campaignId, tracking_parameters: _tracking, ...legacyOrderRow } = orderRow;
         ({ error: orderInsertError } = await supabaseAdmin.from('orders').insert([legacyOrderRow]));
       }
 

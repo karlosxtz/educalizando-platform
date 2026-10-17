@@ -11,7 +11,8 @@ import { usePathname,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 
 import { isValidCPF } from '@/lib/infinitepay-service';
-
+import { readStoreAttribution } from '@/lib/store-webhook-contract';
+import { useCheckoutRecovery } from '@/components/store/useCheckoutRecovery';
 interface CheckoutClientViewProps {
   store: Store;
   product?: Product | null;
@@ -71,6 +72,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const [buyerCpf, setBuyerCpf] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [remarketingConsent, setRemarketingConsent] = useState(false);
+  const storeRecovery = useCheckoutRecovery({ storeId: store.id, storeSlug: store.slug, marketplace: marketplaceOrigin, productId: product?.id, kitId: kit?.id, isPlr: isPlrPurchase, cartItems, bumpId: includeOrderBump ? orderBump?.id : undefined, consent: remarketingConsent, phone: buyerPhone, name: buyerName });
 
   // Coupon State
   const [couponCode, setCouponCode] = useState(initialCouponCode || '');
@@ -99,7 +101,6 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   const primaryColor = store.cor_primaria || '#093b6c';
   const checkoutTracked = useRef<string | null>(null);
   const checkoutAttemptKey = useRef<{ signature: string; key: string } | null>(null);
-
   const getCheckoutIdempotencyKey = (signature: string) => {
     const storageKey = `@educalizando:checkout-attempt:${signature}`;
     if (checkoutAttemptKey.current?.signature === signature) return checkoutAttemptKey.current.key;
@@ -139,7 +140,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
   }, [cartItems, isPlrPurchase, kit, product, store.id]);
 
   useEffect(() => {
-    if (!remarketingConsent || buyerPhone.replace(/\D/g, '').length < 10) return;
+    if (!marketplaceOrigin || !remarketingConsent || buyerPhone.replace(/\D/g, '').length < 10) return;
     const browserKey = '@educalizando:remarketing-browser-token';
     let browserToken = localStorage.getItem(browserKey);
     if (!browserToken) { browserToken = crypto.randomUUID(); localStorage.setItem(browserKey, browserToken); }
@@ -149,7 +150,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
       void fetch('/api/remarketing/abandoned-cart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: store.id, browserToken, phone: buyerPhone, customerName: buyerName, consent: true, items }) });
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [remarketingConsent, buyerPhone, buyerName, store.id, product?.id, kit?.id, cartItems]);
+  }, [marketplaceOrigin, remarketingConsent, buyerPhone, buyerName, store.id, product?.id, kit?.id, cartItems]);
 
   // Verificar se o usuário está logado ao carregar o Checkout
   useEffect(() => {
@@ -296,7 +297,8 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
         buyerEmail: buyerEmail.trim().toLowerCase(),
         buyerCpf: cleanCpf,
         buyerPhone,
-        remarketingBrowserToken: typeof window !== 'undefined' ? localStorage.getItem('@educalizando:remarketing-browser-token') : null,
+        remarketingBrowserToken: marketplaceOrigin ? localStorage.getItem('@educalizando:remarketing-browser-token') : null,
+        storeRecoveryToken: storeRecovery.token(),
         isPlrPurchase,
         couponCode: couponResult?.valid ? couponCode : undefined,
         kitId: kit?.id,
@@ -350,10 +352,12 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      await storeRecovery.flush();
+      payload.storeRecoveryToken = storeRecovery.token();
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers,
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, trackingParameters: readStoreAttribution(store.id) })
       });
 
       const data = await res.json();
@@ -599,7 +603,7 @@ export default function CheckoutClientView({ store, product, kit, initialCouponC
                 </div>
                 <label htmlFor="remarketing-consent" className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
                   <input id="remarketing-consent" type="checkbox" checked={remarketingConsent} onChange={(event) => setRemarketingConsent(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                  <span>Quero receber no WhatsApp da <strong>Educalizando</strong> um lembrete único sobre este carrinho caso eu não conclua a compra. Posso cancelar a qualquer momento respondendo SAIR.</span>
+                  <span>{marketplaceOrigin ? <>Quero receber no WhatsApp da <strong>Educalizando</strong> um lembrete único sobre este carrinho caso eu não conclua a compra. Posso cancelar respondendo SAIR.</> : <>Autorizo a loja <strong>{store.nome_loja}</strong> a enviar um único lembrete deste carrinho pelo WhatsApp se eu não concluir a compra. Posso desmarcar esta opção ou cancelar pelo link de retomada.</>}</span>
                 </label>
               </div>
             </div>

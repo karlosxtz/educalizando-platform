@@ -14,19 +14,15 @@ import { searchHref,searchPage } from '@/lib/search-navigation';
 import { quickSearch,searchProducts } from '@/lib/search-service';
 import { getTopMarketplaceStores } from '@/lib/store-service';
 import { Frown,Sparkles } from 'lucide-react';
-import { pageMetadata, PAGE_SEO } from '@/lib/page-seo';
+import { searchMetadata } from '@/lib/search-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchQuery from './SearchQuery';
 
 export const revalidate = 0;
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
-  const { categoria } = await searchParams;
-  if (categoria === 'ensino-fundamental') return pageMetadata('/atividades-ensino-fundamental');
-  const categoryPath = `/buscar?categoria=${categoria}`;
-  const path = categoria && PAGE_SEO[categoryPath] ? categoryPath : '/buscar';
-  return pageMetadata(path);
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return searchMetadata(await searchParams);
 }
 
 export default async function BuscarPage({ 

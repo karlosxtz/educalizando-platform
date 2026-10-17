@@ -12,7 +12,7 @@ import { notFound } from 'next/navigation';
 import PublicStoreClientView from './PublicStoreClientView';
 
 // Public catalogue only. Short revalidation avoids rendering the entire store on every crawl.
-export const revalidate = 60;
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,7 +20,6 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  console.log(`[generateMetadata] Carregando metadados dinâmicos para a loja: "${slug}"`);
   const store = await getStoreBySlug(slug);
 
   if (!store) {
@@ -67,8 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicStorePage({ params }: PageProps) {
   const { slug } = await params;
-  console.log(`[PublicStorePage] Solicitando vitrine para a loja: "${slug}"`);
-
+  
   const store = await getStoreBySlug(slug);
 
   if (!store) {
@@ -76,7 +74,6 @@ export default async function PublicStorePage({ params }: PageProps) {
     notFound();
   }
 
-  console.log(`[PublicStorePage] Loja encontrada: id=${store.id}, nome="${store.nome_loja}"`);
 
   const allProducts = await getPublicProductsByStoreId(store.id);
   const products = allProducts.filter((product) => {
@@ -86,7 +83,6 @@ export default async function PublicStorePage({ params }: PageProps) {
   });
   const clubs = await getPublicCreatorClubsByStoreId(store.id);
 
-  console.log(`[PublicStorePage] Produtos pagos encontrados: ${products.length} (total: ${allProducts.length}) para store.id="${store.id}"`);
 
   const pageUrl = `${SITE_URL}/loja/${store.slug}`;
   const jsonLd = {

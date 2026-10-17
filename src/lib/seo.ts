@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { directPublicImageUrl } from './public-image-url';
 
 export const SITE_URL = 'https://www.educalizando.com.br';
 export const DEFAULT_SOCIAL_IMAGE = '/branding/logo-og.png?v=3';
@@ -62,7 +63,15 @@ export function absoluteUrl(pathname: string) {
   return new URL(pathname, SITE_URL).toString();
 }
 
-export function productCoverImageUrl(productSlugOrId: string) {
+export function productCoverImageUrl(productSlugOrId: string, source?: string | null) {
+  if (source) {
+    const direct = directPublicImageUrl(source);
+    if (direct) return direct;
+    try {
+      const url = new URL(source, SITE_URL);
+      if (url.protocol === 'https:') return url.href;
+    } catch { /* Preserve the historical resolver for invalid legacy references. */ }
+  }
   return absoluteUrl(`/imagens/produtos/${encodeURIComponent(productSlugOrId)}/capa`);
 }
 

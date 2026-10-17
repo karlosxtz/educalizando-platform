@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { getRequestUser } from '@/lib/api-auth';
 import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
 import { sendAccessResendEmail } from '@/lib/mail-service';
@@ -7,7 +8,7 @@ import { firstName,sendEvolutionText } from '@/lib/whatsapp-notification-service
 import { NextResponse } from 'next/server';
 
 const paidStatuses = new Set(['paid', 'pago', 'liberado', 'aprovado', 'concluido']);
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+const appUrl = publicSiteOrigin();
 const isExternalCreatorLink = (url?: string | null) => /^https:\/\//i.test(url || '') && !/supabase\.co\//i.test(url || '');
 
 export async function POST(request: Request) {

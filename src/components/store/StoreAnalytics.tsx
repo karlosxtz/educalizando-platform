@@ -1,6 +1,7 @@
 'use client';
 
 import Script from 'next/script';
+import { captureStoreAttribution, readStoreAttribution } from '@/lib/store-webhook-contract';
 import { useEffect,useRef,useState } from 'react';
 
 type TrackingProduct = { productId: string; title: string; price: number; currency?: string };
@@ -8,25 +9,9 @@ type TrackingDetail = { event: 'AddToCart' | 'InitiateCheckout' | 'Purchase'; st
 type Props = { storeId: string; metaPixelId?: string | null; googleAnalyticsId?: string | null; viewContent?: TrackingProduct };
 
 function currentCampaignParameters(storeId: string) {
-  const params = new URLSearchParams(window.location.search);
-  // Somente parâmetros de campanha: não enviamos formulário, e-mail, telefone
-  // ou outros dados identificáveis aos provedores de anúncios.
-  const campaign = Object.fromEntries(
-    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
-      .map((key) => [key, params.get(key)?.slice(0, 160) || undefined])
-      .filter(([, value]) => Boolean(value)),
-  );
-  const storageKey = `educalizando_campaign_${storeId}`;
-  if (Object.keys(campaign).length) {
-    sessionStorage.setItem(storageKey, JSON.stringify(campaign));
-    return campaign;
-  }
-  try {
-    const persisted = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
-    return persisted && typeof persisted === 'object' ? persisted : {};
-  } catch {
-    return {};
-  }
+  captureStoreAttribution(storeId);
+  const campaign = readStoreAttribution(storeId);
+  return Object.fromEntries(Object.entries(campaign).filter(([key]) => key.startsWith('utm_')));
 }
 
 function sendTrackingEvent(event: 'ViewContent' | TrackingDetail['event'], detail: Omit<TrackingDetail, 'event' | 'storeId'> & { product?: TrackingProduct }, storeId: string) {
@@ -59,6 +44,7 @@ export default function StoreAnalytics({ storeId, metaPixelId, googleAnalyticsId
   const viewedProduct = useRef<string | null>(null);
 
   useEffect(() => {
+    captureStoreAttribution(storeId);
     if (hasTracking) setConsent(localStorage.getItem(storageKey) as 'accepted' | 'rejected' | null);
   }, [hasTracking, storageKey]);
 

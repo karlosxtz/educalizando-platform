@@ -1,4 +1,5 @@
 'use client';
+import { publicStoreUrl } from '@/lib/public-links';
 
 import StoreLivePreview from '@/components/dashboard/StoreLivePreview';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -119,8 +120,7 @@ export default function StoreSettingsPage() {
     loadStoreData();
   }, [reset]);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educalizando.com.br';
-  const publicUrl = `${siteUrl}/loja/${watchedSlug || 'sua-loja'}`;
+  const publicUrl = publicStoreUrl(watchedSlug || 'sua-loja');
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl);
@@ -583,3 +583,4 @@ export default function StoreSettingsPage() {
     </div>
   );
 }
+

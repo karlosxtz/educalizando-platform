@@ -4,6 +4,11 @@ import type { LucideIcon } from 'lucide-react';
 import { BarChart3,Check,Crown,ExternalLink,Eye,ImagePlus,Info,Loader2,Package,Pencil,Plus,Save,Search,Trash2,X } from 'lucide-react';
 import Link from 'next/link';
 import { creatorClubMaterialEligible } from '@/lib/creator-club';
+import { uploadToObjectStorage } from '@/lib/object-storage-client';
+import { normalizePublicAssetUrl } from '@/lib/public-links';
+import { authenticatedFetch } from '@/lib/client-api';
+import { readApiJson } from '@/lib/api-response';
+import { clearCreationRequest, productCreationRequest } from '@/lib/product-create-request';
 import { useEffect,useMemo,useState } from 'react';
 
 type Product = { id: string; titulo: string; capa_url: string | null; status: string; is_plr: boolean; has_plr_delivery: boolean };
@@ -11,6 +16,7 @@ type Club = { id: string; name: string; slug: string; description: string; cover
 const blankForm = { id: '', name: '', description: '', price: '', coverUrl: '', published: false, clubType: 'final' };
 
 function CoverFrame({ src, alt, compact = false }: { src: string | null; alt: string; compact?: boolean }) {
+  src = normalizePublicAssetUrl(src);
   const size = compact ? 'aspect-[16/9]' : 'aspect-[16/9] min-h-[220px]';
   if (!src) return <div className={`flex ${size} items-center justify-center bg-gradient-to-br from-blue-950 via-blue-700 to-violet-700 text-white`}><Crown className="h-14 w-14" /></div>;
   return <div className={`relative ${size} overflow-hidden bg-slate-100`}><img src={src} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-25 blur-xl" /><div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 to-white/5" /><img src={src} alt={alt} className="relative z-10 h-full w-full object-contain" /></div>;
@@ -34,8 +40,8 @@ export default function CreatorClubPage() {
   async function load() {
     setLoading(true);
     try {
-      const response = await fetch('/api/creator-clubs', { cache: 'no-store' });
-      const data = await response.json();
+      const response = await authenticatedFetch('/api/creator-clubs');
+      const data = await readApiJson(response);
       if (!response.ok) throw new Error(data.error || 'Falha ao carregar.');
       setClubs(data.clubs || []); setProducts(data.products || []); setSelections(data.selectedProductIdsByClub || {});
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Falha ao carregar.'); }
@@ -61,10 +67,8 @@ export default function CreatorClubPage() {
     if (!file) return;
     setUploading(true); setError('');
     try {
-      const payload = new FormData(); payload.set('bucket', 'store-assets'); payload.set('file', file);
-      const response = await fetch('/api/storage/upload-image', { method: 'POST', body: payload }); const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Não foi possível enviar a capa.');
-      update('coverUrl', data.value);
+      const url = await uploadToObjectStorage('store-assets', file, { materialName: form.name || 'capa-do-clube' });
+      update('coverUrl', url);
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível enviar a capa.'); }
     finally { setUploading(false); }
   }
@@ -72,8 +76,11 @@ export default function CreatorClubPage() {
   async function save() {
     setSaving(true); setError(''); setMessage('');
     try {
-      const response = await fetch('/api/creator-clubs', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: form.id || undefined, name: form.name, description: form.description, monthlyPrice: Number(form.price.replace(',', '.')), coverUrl: form.coverUrl, status: form.published ? 'published' : 'draft', productIds: selected, clubType: form.clubType }) });
-      const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Não foi possível salvar.');
+      const payload = { id: form.id || undefined, name: form.name, description: form.description, monthlyPrice: Number(form.price.replace(',', '.')), coverUrl: normalizePublicAssetUrl(form.coverUrl), status: form.published ? 'published' : 'draft', productIds: selected, clubType: form.clubType };
+      const creationId = form.id ? undefined : productCreationRequest(payload, sessionStorage, () => crypto.randomUUID(), 'educalizando_pending_club_creation');
+      const response = await authenticatedFetch('/api/creator-clubs', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, creation_request_id: creationId }) });
+      const data = await readApiJson(response); if (!response.ok) throw new Error(data.error || 'Não foi possível salvar.');
+      clearCreationRequest(sessionStorage, 'educalizando_pending_club_creation');
       setMessage(form.id ? 'Clube atualizado com sucesso.' : 'Novo clube criado com sucesso.'); setEditing(false); setForm(blankForm); setSelected([]); await load();
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível salvar.'); }
     finally { setSaving(false); }
@@ -83,7 +90,7 @@ export default function CreatorClubPage() {
     if (!window.confirm(club.paid_sales_count > 0 ? 'Este clube possui vendas e será arquivado, preservando os acessos ativos. Continuar?' : 'Excluir este clube e todas as configurações dele?')) return;
     setRemoving(club.id); setError('');
     try {
-      const response = await fetch(`/api/creator-clubs?id=${encodeURIComponent(club.id)}`, { method: 'DELETE' }); const data = await response.json();
+      const response = await authenticatedFetch(`/api/creator-clubs?id=${encodeURIComponent(club.id)}`, { method: 'DELETE' }); const data = await readApiJson(response);
       if (!response.ok) throw new Error(data.error || 'Não foi possível excluir.');
       setMessage(data.message); if (form.id === club.id) { setEditing(false); setForm(blankForm); setSelected([]); } await load();
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Não foi possível excluir.'); }
@@ -103,7 +110,7 @@ export default function CreatorClubPage() {
     </section></>}
 
     {editing && <section className="space-y-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-xs font-black uppercase tracking-widest text-blue-700">{form.id ? 'Editando clube' : 'Novo clube'}</p><h2 className="mt-1 text-3xl font-black text-slate-950">{form.id ? form.name : 'Cadastrar clube'}</h2><p className="mt-1 text-sm text-slate-500">Preencha as informações e monte o acervo que o assinante receberá.</p></div><button onClick={() => setEditing(false)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-black"><X className="h-4 w-4" />Fechar</button></div><div className="grid gap-6 xl:grid-cols-[.9fr_1.1fr]"><div className="space-y-5">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm"><CoverFrame src={form.coverUrl || null} alt="Prévia da capa do clube" /><div className="border-t p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-black text-slate-950">Capa do clube</h3><p className="mt-1 text-xs leading-5 text-slate-500">A imagem inteira será enquadrada, sem cortes. Recomendado: formato horizontal 16:9, como 1600 × 900 px.</p></div><div className="flex gap-2"><label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 px-4 text-sm font-black text-blue-800">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}{uploading ? 'Enviando…' : 'Escolher capa'}<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadCover(event.target.files?.[0])} className="hidden" /></label>{form.coverUrl && <button onClick={() => update('coverUrl', '')} className="h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600">Remover</button>}</div></div></div></div>
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm"><CoverFrame src={form.coverUrl || null} alt="Prévia da capa do clube" /><div className="border-t p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-black text-slate-950">Capa do clube</h3><p className="mt-1 text-xs leading-5 text-slate-500">A imagem inteira será enquadrada, sem cortes. Recomendado: formato horizontal 16:9, como 1600 × 900 px.</p></div><div className="flex gap-2"><label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 px-4 text-sm font-black text-blue-800">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}{uploading ? 'Enviando…' : 'Escolher capa'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading} onChange={(event) => { void uploadCover(event.target.files?.[0]); event.currentTarget.value = ''; }} className="hidden" /></label>{form.coverUrl && <button onClick={() => update('coverUrl', '')} className="h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600">Remover</button>}</div></div></div></div>
       <div className="space-y-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><div><p className="text-xs font-black uppercase tracking-widest text-blue-700">1. Informações</p><h3 className="mt-1 text-xl font-black">Apresentação do clube</h3></div><label className="block text-sm font-bold text-slate-800">Tipo do clube<select aria-label="Tipo do clube" value={form.clubType} disabled={Boolean(form.id)} onChange={(event) => { update('clubType', event.target.value); setSelected([]); }} className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4"><option value="final">Materiais finais — uso pedagógico</option><option value="plr">Clube PLR — licença de revenda</option></select><span className="mt-2 block text-xs font-medium text-slate-500">{form.clubType === 'plr' ? 'Somente produtos com licença PLR. O assinante recebe os arquivos PLR e deve seguir os termos de cada material.' : 'O assinante recebe os arquivos da versão final, para uso pedagógico.'}</span></label><label className="block text-sm font-bold text-slate-800">Nome do clube<input value={form.name} onChange={(event) => update('name', event.target.value)} maxLength={100} className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="Ex.: Clube da Alfabetização" /><span className="mt-1 block text-right text-[11px] text-slate-400">{form.name.length}/100</span></label><label className="block text-sm font-bold text-slate-800">Descrição e benefícios<textarea value={form.description} onChange={(event) => update('description', event.target.value)} rows={6} maxLength={3000} className="mt-2 w-full resize-none rounded-xl border border-slate-300 p-4 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="Explique para quem é o clube, quais materiais estão incluídos e quais benefícios o assinante terá." /><span className="mt-1 block text-right text-[11px] text-slate-400">{form.description.length}/3000</span></label><label className="block text-sm font-bold text-slate-800">Mensalidade por 30 dias (R$)<div className="relative mt-2"><span className="absolute left-4 top-3.5 font-black text-slate-500">R$</span><input value={form.price} onChange={(event) => update('price', event.target.value)} inputMode="decimal" className="min-h-12 w-full rounded-xl border border-slate-300 pl-12 pr-4 text-lg font-black outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="29,90" /></div><span className="mt-2 block text-xs font-medium text-slate-500">Este é o preço do clube. Os valores individuais dos materiais não são somados.</span></label><label className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${form.published ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}><input type="checkbox" checked={form.published} onChange={(event) => update('published', event.target.checked)} className="mt-1 h-5 w-5 accent-blue-700" /><span><strong className="block text-sm text-slate-950">Publicar este clube na loja</strong><span className="mt-1 block text-xs leading-5 text-slate-600">Quando ativo, clientes poderão abrir a página detalhada e assinar. Para publicar, selecione pelo menos um material.</span></span></label></div>
     </div><div className="space-y-5"><div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-widest text-blue-700">2. Acervo</p><h3 className="mt-1 text-xl font-black">Materiais do clube</h3><p className="mt-1 text-sm text-slate-500"><strong className="text-blue-700">{selected.length}</strong> selecionado(s), sem limite.</p></div><div className="relative"><Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 pl-10 pr-3 text-sm outline-none focus:border-blue-600 sm:w-64" placeholder="Buscar material" /></div></div>
       {selectedProducts.length > 0 && <div className="mt-5 rounded-2xl bg-blue-50 p-4"><div className="mb-3 flex items-center justify-between"><p className="text-xs font-black uppercase tracking-wider text-blue-800">Selecionados</p><button onClick={() => setSelected([])} className="text-xs font-bold text-blue-700">Limpar seleção</button></div><div className="flex flex-wrap gap-2">{selectedProducts.slice(0, 8).map((product) => <button key={product.id} onClick={() => toggle(product.id)} title="Remover" className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-white py-1.5 pl-3 pr-2 text-xs font-bold text-blue-900"><span className="max-w-44 truncate">{product.titulo}</span><X className="h-3.5 w-3.5" /></button>)}{selectedProducts.length > 8 && <span className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-black text-blue-800">+{selectedProducts.length - 8}</span>}</div></div>}
@@ -112,3 +119,4 @@ export default function CreatorClubPage() {
     </section>}
   </div>;
 }
+

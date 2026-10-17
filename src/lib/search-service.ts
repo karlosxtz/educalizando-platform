@@ -1,5 +1,5 @@
 import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from './category-service';
-import { searchMatchScore } from './search-matching';
+import { createSearchScorer, searchMatchScore } from './search-matching';
 import { parseRecommendedAges } from './age-range';
 import { getAllPublicMarketplaceProducts } from './store-service';
 import { supabase } from './supabase';
@@ -48,7 +48,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
     try {
       let query = supabase
         .from('products')
-        .select('*, store:store_id(*), category:category_id(*)', { count: 'exact' })
+        .select('*, store:store_id(id,nome_loja,slug,logo_url), category:category_id(id,nome,slug)', { count: 'exact' })
         .eq('status', 'publicado')
         .is('excluido_em', null);
 
@@ -155,8 +155,9 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
       if (filters.q || filters.idade) {
         const { data, error } = await query.order('created_at', { ascending: false }).limit(500);
         if (!error && data) {
+          const matchScore = createSearchScorer(filters.q || '');
           const matching = (data as (Product & { store?: Store })[])
-            .filter(product => !filters.q || searchMatchScore(product, filters.q) > 0)
+            .filter(product => !filters.q || matchScore(product) > 0)
             .filter(product => !filters.idade || parseRecommendedAges(product.age_range).includes(Number(filters.idade)))
             .sort((a, b) => {
               if (filters.sort === 'recentes') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -165,7 +166,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
               if (filters.sort === 'maior-preco') return Number(filters.filter === 'plr' ? b.preco_plr : b.preco) - Number(filters.filter === 'plr' ? a.preco_plr : a.preco);
               if (filters.sort === 'avaliacao') return Number(b.average_rating || 0) - Number(a.average_rating || 0) || Number(b.review_count || 0) - Number(a.review_count || 0);
               if (filters.sort === 'vendas') return Number(b.sales_count || 0) - Number(a.sales_count || 0);
-              const score = filters.q ? searchMatchScore(b, filters.q) - searchMatchScore(a, filters.q) : 0;
+              const score = filters.q ? matchScore(b) - matchScore(a) : 0;
               return score || Number(b.views_count || 0) - Number(a.views_count || 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });
           return {

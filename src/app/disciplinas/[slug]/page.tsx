@@ -22,7 +22,7 @@ function copyFor(name: string) {
 export async function generateMetadata({ params }: DisciplinePageProps): Promise<Metadata> {
   const { slug } = await params;
   const discipline = (await getDisciplines()).find((item) => item.slug === slug);
-  if (!discipline) return { title: 'Disciplina não encontrada | Educalizando' };
+  if (!discipline) return { title: 'Disciplina não encontrada | Educalizando', robots: { index: false, follow: false } };
 
   const copy = copyFor(discipline.name);
   const url = `https://www.educalizando.com.br/disciplinas/${discipline.slug}`;

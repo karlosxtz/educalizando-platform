@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { Resend } from 'resend';
 import 'server-only';
 import { getPurchaseAccess } from './purchase-access';
@@ -6,7 +7,7 @@ type MailResult = { sent: boolean; id?: string; error?: string };
 type BuyerMailParams = { buyerEmail: string; buyerName: string; orderId: string; productTitles: string; products?: Array<{ id: string; title: string; fileUrl?: string | null; fileName?: string | null }>; creatorWhatsapp?: string | null; isPlrPurchase?: boolean };
 type ExclusiveMaterialMailParams = { email: string; name: string; requestId: string; title: string; amount?: number; creatorNetAmount?: number; url: string };
 
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/$/, '');
+const appUrl = publicSiteOrigin();
 const from = process.env.RESEND_FROM_EMAIL || 'Educalizando <onboarding@resend.dev>';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char] || char);

@@ -1,6 +1,6 @@
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { listWooProductsForReview } from '@/lib/woocommerce-service';
+import { wooReviewPage } from '@/lib/woo-catalog-page';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const user = await getRequestUser(request);
     if (!user) return NextResponse.json({ error: 'Faça login como criador.' }, { status: 401 });
 
-    const { data: store } = await supabaseAdmin.from('stores').select('id').eq('creator_id', user.id).maybeSingle();
+    const { data: store } = await supabaseAdmin.from('stores').select('id').eq('creator_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
     if (!store) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
 
     const { data: integration, error } = await supabaseAdmin.from('woocommerce_integrations').select('*').eq('store_id', store.id).maybeSingle();
@@ -16,8 +16,9 @@ export async function GET(request: Request) {
     if (!integration) return NextResponse.json({ error: 'Conecte uma loja WooCommerce primeiro.' }, { status: 409 });
     if (integration.status !== 'active') return NextResponse.json({ error: 'A integração está pausada.' }, { status: 409 });
 
-    const products = await listWooProductsForReview(integration);
-    return NextResponse.json({ products });
+    const page = Number(new URL(request.url).searchParams.get('page') || 1);
+    if (!Number.isSafeInteger(page) || page < 1) return NextResponse.json({ error: 'Página inválida.' }, { status: 400 });
+    return NextResponse.json(await wooReviewPage(integration, page), { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('[WooCommerce catalog]', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Não foi possível carregar os produtos.' }, { status: 503 });

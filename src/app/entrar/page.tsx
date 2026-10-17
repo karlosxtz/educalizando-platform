@@ -1,6 +1,8 @@
 import { ArrowLeft,BookOpen,Megaphone,Store } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function LoginTriagePage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-8 sm:p-6 selection:bg-blue-600 selection:text-white">

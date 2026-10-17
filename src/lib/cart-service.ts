@@ -15,6 +15,7 @@ export interface CartItem {
   isPlr: boolean;          // Se é compra de licença PLR
   imageUrl?: string;       // Capa do produto para a UI
   type: string;            // Tipo (video, pdf, kit, etc)
+  origin?: 'store' | 'marketplace';
 }
 
 const CART_STORAGE_KEY = '@educalizando:cart';
@@ -63,6 +64,7 @@ export function addToCart(item: Omit<CartItem, 'id' | 'quantity'> & { quantity?:
   if (existingIndex >= 0) {
     // Se o item já existe, atualiza a quantidade (limitado a 10)
     cart[existingIndex].quantity = Math.min(10, cart[existingIndex].quantity + (item.quantity || 1));
+    cart[existingIndex].origin = item.origin;
   } else {
     // Adiciona novo item
     cart.push({

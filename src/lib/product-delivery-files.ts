@@ -8,7 +8,7 @@ export function normalizeDeliveryFiles(value: unknown): ProductDeliveryFile[] {
     const row = item && typeof item === 'object' ? item as Record<string, unknown> : {};
     return {
       url: typeof row.url === 'string' ? row.url.trim() : '',
-      name: typeof row.name === 'string' ? row.name.trim().slice(0, 240) : `Arquivo ${index + 1}`,
+      name: typeof row.name === 'string' && row.name.trim() ? row.name.trim().slice(0, 240) : `Arquivo ${index + 1}`,
       size: typeof row.size === 'number' && Number.isFinite(row.size) ? Math.max(0, Math.round(row.size)) : null,
       mimeType: typeof row.mimeType === 'string' ? row.mimeType.trim().slice(0, 160) : null,
       orderIndex: index,

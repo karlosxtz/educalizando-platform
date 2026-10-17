@@ -2,6 +2,8 @@
 
 import { EXCLUSIVE_MATERIAL_STATUS_LABEL } from '@/lib/exclusive-material';
 import { supabase } from '@/lib/supabase';
+import { uploadToObjectStorage } from '@/lib/object-storage-client';
+import { readApiJson } from '@/lib/api-response';
 import { CalendarDays,Check,ChevronRight,CircleUserRound,FileText,FileUp,Link2,Loader2,MessageCircle,PackageCheck,Search,Send,Trash2,WalletCards } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { FormEvent,useEffect,useMemo,useState } from 'react';
@@ -111,7 +113,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     if (!silently) setLoading(true);
     try {
       const response = await request(`/api/exclusive-material?view=${view}`, { cache: 'no-store' });
-      const data = await response.json();
+      const data = await readApiJson(response);
       if (!response.ok) throw new Error(data.error);
       const requests = data.requests || [];
       setItems(requests);
@@ -127,7 +129,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     try {
       setActive(item);
       const response = await request(`/api/exclusive-material/${item.id}/messages`);
-      const data = await response.json().catch(() => ({}));
+      const data = await readApiJson(response).catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Não foi possível abrir a conversa.');
       setMessages(Array.isArray(data.messages) ? data.messages : []);
     } catch (caught) {
@@ -153,7 +155,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     const refreshMessages = async () => {
       const response = await request(`/api/exclusive-material/${active.id}/messages`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await readApiJson(response);
         setMessages(data.messages || []);
       }
     };
@@ -178,7 +180,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     if (!active) return;
     const form = new FormData(event.currentTarget);
     const response = await request(`/api/exclusive-material/${active.id}/proposals`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: Number(form.get('amount')), deliveryDays: Number(form.get('deliveryDays')), revisions: Number(form.get('revisions')), scope: form.get('scope') }) });
-    if (response.ok) { await load(true); await open(active); notify('Proposta enviada ao cliente com sucesso.'); } else { const data = await response.json(); const message = data.error || 'Não foi possível enviar a proposta.'; setError(message); notify(message, 'error'); }
+    if (response.ok) { await load(true); await open(active); notify('Proposta enviada ao cliente com sucesso.'); } else { const data = await readApiJson(response); const message = data.error || 'Não foi possível enviar a proposta.'; setError(message); notify(message, 'error'); }
   };
   const accept = async (proposalId: string) => {
     if (!active) return;
@@ -189,14 +191,14 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
   const cancelProposal = async (proposalId: string) => {
     if (!active) return;
     const response = await request(`/api/exclusive-material/${active.id}/proposals`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proposalId }) });
-    const data = await response.json().catch(() => ({}));
+    const data = await readApiJson(response).catch(() => ({}));
     if (response.ok) { await load(true); await open({ ...active, accepted_proposal_id: null }); notify(view === 'creator' ? 'Proposta cancelada. O cliente foi informado.' : 'Proposta cancelada com sucesso.'); }
     else notify(data.error || 'Não foi possível cancelar a proposta.', 'error');
   };
   const removeRequest = async () => {
     if (!active || !window.confirm('Deseja cancelar e remover esta solicitação do seu painel? O outro participante será avisado.')) return;
     const response = await request(`/api/exclusive-material?requestId=${encodeURIComponent(active.id)}`, { method: 'DELETE' });
-    const data = await response.json().catch(() => ({}));
+    const data = await readApiJson(response).catch(() => ({}));
     if (!response.ok) return notify(data.error || 'Não foi possível remover a solicitação.', 'error');
     setItems((current) => current.filter((item) => item.id !== active.id));
     setActive(null);
@@ -218,7 +220,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
       await open(active);
       notify('Contraproposta enviada ao criador.');
     } else {
-      const data = await response.json();
+      const data = await readApiJson(response);
       const message = data.error || 'Não foi possível enviar sua contraproposta.';
       setError(message);
       notify(message, 'error');
@@ -229,7 +231,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     setPaying(true);
     try {
       const response = await request(`/api/exclusive-material/${active.id}/checkout`, { method: 'POST' });
-      const data = await response.json();
+      const data = await readApiJson(response);
       if (!response.ok || !data.checkoutUrl) {
         const message = data.error || 'Não foi possível iniciar o pagamento.';
         setError(message);
@@ -243,22 +245,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     } finally { setPaying(false); }
   };
   const upload = async (file: File) => {
-    const init = new FormData();
-    init.append('action', 'init'); init.append('name', file.name); init.append('size', String(file.size)); init.append('contentType', file.type || 'application/octet-stream');
-    const started = await request('/api/storage/upload-file', { method: 'POST', body: init });
-    const meta = await started.json();
-    if (!started.ok) throw new Error(meta.error || 'Falha no envio.');
-    for (let offset = 0, index = 0; offset < file.size; offset += meta.chunkSize, index++) {
-      const part = new FormData();
-      part.append('action', 'chunk'); part.append('id', meta.id); part.append('index', String(index)); part.append('file', file.slice(offset, Math.min(file.size, offset + meta.chunkSize)), file.name);
-      if (!(await request('/api/storage/upload-file', { method: 'POST', body: part })).ok) throw new Error('Não foi possível enviar o arquivo.');
-    }
-    const complete = new FormData();
-    complete.append('action', 'complete'); complete.append('id', meta.id);
-    const response = await request('/api/storage/upload-file', { method: 'POST', body: complete });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Não foi possível concluir o envio.');
-    return data.value as string;
+    return uploadToObjectStorage('product-files', file, { materialName: active?.title || 'material-exclusivo' });
   };
   const deliver = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -278,7 +265,7 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
       const coverFile = form.get('coverFile');
       const coverUrl = coverFile instanceof File && coverFile.size > 0 ? await upload(coverFile) : String(form.get('coverUrl') || '').trim() || null;
       const response = await request(`/api/exclusive-material/${active.id}/deliveries`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files, coverUrl, title: form.get('title'), description: form.get('description'), educationYear: form.get('educationYear'), theme: form.get('theme'), tags: form.get('tags'), pages: Number(form.get('pages') || 0), fileFormat: form.get('fileFormat') }) });
-      if (response.ok) { await load(true); await open(active); notify('Entrega enviada ao cliente com sucesso.'); } else { const data = await response.json(); const message = data.error || 'Não foi possível registrar a entrega.'; setError(message); notify(message, 'error'); }
+      if (response.ok) { await load(true); await open(active); notify('Entrega enviada ao cliente com sucesso.'); } else { const data = await readApiJson(response); const message = data.error || 'Não foi possível registrar a entrega.'; setError(message); notify(message, 'error'); }
     } catch (caught) { const message = caught instanceof Error ? caught.message : 'Não foi possível enviar os arquivos.'; setError(message); notify(message, 'error'); }
   };
 
@@ -316,3 +303,4 @@ export default function ExclusiveMaterialPanel({ view }: { view: 'creator' | 'cu
     </section>
   </div>{notice && <div role="status" className={`fixed bottom-5 right-5 z-[100] max-w-sm rounded-2xl px-4 py-3 text-sm font-bold text-white shadow-xl ${notice.tone === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`}>{notice.message}</div>}</>;
 }
+

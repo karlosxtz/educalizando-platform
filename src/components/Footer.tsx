@@ -3,17 +3,17 @@
 import CatalogImage from '@/components/ui/CatalogImage';
 
 import { Mail,MessageCircle,ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import NewsletterForm from './NewsletterForm';
 
 export default function Footer() {
   return (
     <footer className="bg-slate-50 text-slate-700 border-t border-slate-200 pt-12 pb-6 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
+        
         {/* Estrutura de 4 Colunas (Grid) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 py-12">
-
+          
           {/* Coluna 1: Marca */}
           <div className="space-y-6">
             <Link href="/" className="inline-block">
@@ -59,6 +59,9 @@ export default function Footer() {
               <li><Link href="/atividades-para-imprimir" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades para Imprimir</Link></li>
               <li><Link href="/jogos-pedagogicos" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Jogos Pedagógicos</Link></li>
               <li><Link href="/educacao-infantil" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Educação Infantil</Link></li>
+              <li><Link href="/atividades-alfabetizacao" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Alfabetização e Leitura</Link></li>
+              <li><Link href="/planos-de-aula-bncc" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Planos de Aula e BNCC</Link></li>
+              <li><Link href="/calendario" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Datas Comemorativas</Link></li>
               <li><Link href="/cliente/materiais" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Minhas Compras</Link></li>
             </ul>
           </div>
@@ -82,7 +85,7 @@ export default function Footer() {
               <li><Link href="/sobre" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Sobre o Educalizando</Link></li>
               <li><Link href="/termos" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Termos de Uso</Link></li>
               <li><Link href="/privacidade" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Política de Privacidade</Link></li>
-
+              
               <li className="pt-4 space-y-3">
                 <a href="https://wa.me/5521965008441" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-slate-700 hover:text-blue-600 font-medium transition-colors">
                   <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center shrink-0">
@@ -124,7 +127,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-
+        
       </div>
     </footer>
   );

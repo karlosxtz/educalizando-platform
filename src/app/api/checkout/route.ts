@@ -1,3 +1,6 @@
+import { publicSiteOrigin } from '@/lib/public-links';
+import { linkStoreCartOrder } from '@/lib/store-cart-server';
+import { cleanCheckoutAttribution } from '@/lib/store-webhook-contract';
 import { getRequestUser } from '@/lib/api-auth';
 import { checkoutAttemptMatches,createCheckoutOrderId,isValidCheckoutIdempotencyKey,type CheckoutAttempt } from '@/lib/checkout-idempotency';
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -443,7 +446,7 @@ export async function POST(request: Request) {
       })),
     };
     const tempOrderId = createCheckoutOrderId(idempotencyKey, getConfiguredCryptoSecret());
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, '');
+    const appUrl = publicSiteOrigin();
 
     // 6. Persistir primeiro o pedido. Assim nunca existe cobrança válida sem um
     // pedido correspondente para o webhook confirmar e liberar os acessos.
@@ -468,6 +471,7 @@ export async function POST(request: Request) {
         creatorReferralCommissionAmount: creatorReferral?.commissionAmount,
         couponId: appliedCouponId || undefined,
         aiMarketingCampaignId: aiMarketingCampaignId || undefined,
+        trackingParameters: cleanCheckoutAttribution(body.trackingParameters),
         platformSettings: platformSettings || undefined
       });
     } catch (error) {
@@ -487,11 +491,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Esta compra já foi processada.' }, { status: 409 });
       }
       if (existingOrder.status === 'pending' && existingOrder.checkoutUrl) {
+        await linkStoreCartOrder(effectiveStoreId, body.storeRecoveryToken, existingOrder.id, request, effectiveStore.slug);
         return checkoutResponse(existingOrder, true)!;
       }
       return NextResponse.json({ success: false, error: CHECKOUT_ATTEMPT_ERROR }, { status: 409 });
     }
 
+    await linkStoreCartOrder(effectiveStoreId, body.storeRecoveryToken, orderRecord.id, request, effectiveStore.slug);
     if (remarketingBrowserToken) {
       await supabaseAdmin.from('abandoned_cart_reminders')
         .update({ order_id: orderRecord.id, updated_at: new Date().toISOString() })

@@ -51,7 +51,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
   const activeBanner = banners[currentIndex % banners.length];
 
   return (
-    <section
+    <section 
       className="w-full relative overflow-hidden aspect-[21/9] bg-slate-50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -71,10 +71,10 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
                 {activeBanner.image_mobile_url && (
                   <source media="(max-width: 768px)" srcSet={catalogImageUrl(activeBanner.image_mobile_url) || undefined} />
                 )}
-                <CatalogImage
+                <CatalogImage 
                   src={catalogImageUrl(activeBanner.image_desktop_url) || undefined}
                   fetchPriority="high" decoding="async"
-                  alt={activeBanner.title || 'Banner principal'}
+                  alt={activeBanner.title || 'Banner principal'} 
                   className="w-full h-full object-contain object-center"
                 />
               </picture>
@@ -84,10 +84,10 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
               {activeBanner.image_mobile_url && (
                 <source media="(max-width: 768px)" srcSet={catalogImageUrl(activeBanner.image_mobile_url) || undefined} />
               )}
-              <CatalogImage
+              <CatalogImage 
                 src={catalogImageUrl(activeBanner.image_desktop_url) || undefined}
                 fetchPriority="high" decoding="async"
-                alt={activeBanner.title || 'Banner principal'}
+                alt={activeBanner.title || 'Banner principal'} 
                 className="w-full h-full object-contain object-center"
               />
             </picture>
@@ -98,15 +98,15 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
       {/* Controles: Setas e Dots (só aparecem se tiver mais de 1 banner) */}
       {banners.length > 1 && (
         <>
-          <button
+          <button 
             onClick={handlePrev}
             aria-label="Banner anterior"
             className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center text-white transition-all opacity-0 md:opacity-100 focus:opacity-100 group-hover/section:opacity-100 z-10 shadow-sm"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-
-          <button
+          
+          <button 
             onClick={handleNext}
             aria-label="Próximo banner"
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center text-white transition-all opacity-0 md:opacity-100 focus:opacity-100 group-hover/section:opacity-100 z-10 shadow-sm"

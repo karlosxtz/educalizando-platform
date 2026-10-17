@@ -1,7 +1,7 @@
 'use client';
 
 import { Activity,Bot,DollarSign,FileText,GraduationCap,Home,LogOut,Mail,Megaphone,Menu,MessageSquare,MessagesSquare,MonitorPlay,Package,PlaySquare,Settings,ShieldAlert,Store,Tags,Users,Wallet,X } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import { usePathname } from 'next/navigation';
 import { ReactNode,useEffect,useState } from 'react';
 
@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="fixed inset-0 flex overflow-hidden overscroll-none bg-slate-900 font-sans text-slate-100 selection:bg-blue-500/30">
-
+      
       {/* Menu Lateral Admin */}
       <aside className="hidden h-full min-h-0 w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-950 md:flex">
         <div className="h-16 flex items-center justify-center border-b border-slate-800">

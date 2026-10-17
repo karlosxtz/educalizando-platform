@@ -1,7 +1,8 @@
 import { resolveCreatorWhatsAppAccess } from '@/lib/creator-whatsapp-access';
-import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { consumeRequestRateLimit } from '@/lib/request-rate-limit';
 import { hashStoreChatbotApiKey, isStoreChatbotApiKey, readStoreChatbotApiKey } from '@/lib/store-chatbot-api';
-import { buildWhatsAppCatalogMessage, catalogItemMatches, normalizeCatalogSearch } from '@/lib/store-chatbot-catalog-search';
+import { buildWhatsAppCatalogMessage } from '@/lib/store-chatbot-catalog-search';
+import { catalogFacets, CatalogQueryError, catalogSuggestions, commemorativeDates, paginateCatalog, parseCatalogQuery, selectCatalogItems } from '@/lib/store-chatbot-query';
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
@@ -14,10 +15,16 @@ function text(value: unknown) {
   return typeof value === 'string' ? value : null;
 }
 
+function catalogPrice(value: unknown) {
+  if(value == null || value === '') return null;
+  const price = Number(value);
+  return Number.isFinite(price) && price >= 0 ? price : null;
+}
+
 function absoluteUrl(value: unknown, origin: string) {
   const candidate = text(value)?.trim();
   if (!candidate) return null;
-  try { return new URL(candidate, origin).toString(); } catch { return null; }
+  try { const url = new URL(candidate, origin); return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : null; } catch { return null; }
 }
 
 function publicProduct(product: ProductRow, storeSlug: string, origin: string, categoryNames: Map<string, string>, levelNames: Map<string, string>) {
@@ -27,8 +34,8 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
   const publicUrl = `${origin}${path}`;
   const coverUrl = absoluteUrl(product.capa_url, origin);
   const description = text(product.descricao);
-  const price = Number(product.preco || 0);
-  const plrPrice = Number(product.preco_plr || 0);
+  const price = product.is_free === true ? 0 : catalogPrice(product.preco);
+  const plrPrice = catalogPrice(product.preco_plr);
   const plrUrl = `${publicUrl}?licenca=plr`;
   const preparedWhatsAppMessage = buildWhatsAppCatalogMessage({
     title: product.titulo,
@@ -45,7 +52,7 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     description,
     type: text(product.tipo),
     price,
-    originalPrice: product.preco_original == null ? null : Number(product.preco_original),
+    originalPrice: catalogPrice(product.preco_original),
     isFree: product.is_free === true,
     isPlr: product.is_plr === true,
     plr: product.is_plr === true ? {
@@ -68,6 +75,7 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
     categories: categoryIds.map((id) => ({ id, name: categoryNames.get(id) || null })),
     educationLevels: levelIds.map((id) => ({ id, name: levelNames.get(id) || null })),
     themes: Array.isArray(product.seasonal_tags) ? product.seasonal_tags : [],
+    commemorativeDates: commemorativeDates(product.seasonal_tags),
     tags: Array.isArray(product.tags) ? product.tags : [],
     publicUrl,
     whatsapp: {
@@ -80,14 +88,54 @@ function publicProduct(product: ProductRow, storeSlug: string, origin: string, c
   };
 }
 
-export async function GET(request: Request) {
-  const limited = await consumeRequestRateLimit(request, { namespace: 'store-chatbot-api', limit: 120, windowMs: 60_000 });
-  if (!limited.allowed) return rateLimitResponse(limited);
+// PostgREST can cap each response at 1,000 rows. Report bounded coverage explicitly.
+async function readCatalog(load: (start: number, end: number) => PromiseLike<{data: unknown[] | null; error: unknown; count: number | null}>) {
+  const rows: Row[] = [];
+  let total = 0;
+  for (let start = 0; start < 5000; start += 1000) {
+    const result = await load(start,start+999);
+    if(result.error) throw result.error;
+    total = result.count ?? total;
+    const batch = (result.data || []) as Row[];
+    rows.push(...batch);
+    if(batch.length < 1000 || result.count !== null && rows.length >= total) break;
+  }
+  return {data:rows,error:null,coverage:{loaded:rows.length,total:Math.max(total,rows.length),truncated:total > rows.length}};
+}
 
+async function readRelations(ids: string[], load: (ids: string[], start: number, end: number) => Parameters<typeof readCatalog>[0] extends (start: number,end: number) => infer R ? R : never) {
+  const data: Row[] = [];
+  for(let i=0;i<ids.length;i+=100) {
+    const result = await readCatalog((start,end) => load(ids.slice(i,i+100),start,end));
+    if(result.coverage.truncated) throw new Error('Relation coverage exceeded');
+    data.push(...result.data);
+  }
+  return {data,error:null};
+}
+
+async function withDeadline<T>(task: Promise<T>, signal: AbortSignal): Promise<T> {
+  if(signal.aborted) throw new Error('Deadline exceeded');
+  let listener: () => void = () => {};
+  const timeout = new Promise<never>((_,reject) => {
+    listener = () => reject(new Error('Deadline exceeded'));
+    signal.addEventListener('abort',listener,{once:true});
+  });
+  try { return await Promise.race([task,timeout]); }
+  finally { signal.removeEventListener('abort',listener); }
+}
+
+export async function GET(request: Request) {
+  const requestId = crypto.randomUUID();
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), 20_000);
+  const headers = { 'Cache-Control':'private, no-store', 'X-Request-ID':requestId };
+  const fail = (status: number, code: string, error: string, extra: Record<string,string> = {}) => NextResponse.json({error,code,requestId},{status,headers:{...headers,...extra}});
   try {
+    const limited = await withDeadline(consumeRequestRateLimit(request, { namespace: 'store-chatbot-api', limit: 120, windowMs: 60_000 }),controller.signal);
+    if (!limited.allowed) return fail(429,'RATE_LIMITED','Muitas consultas. Aguarde antes de tentar novamente.',{'Retry-After':String(limited.retryAfterSeconds)});
     const apiKey = readStoreChatbotApiKey(request);
     if (!isStoreChatbotApiKey(apiKey)) {
-      return NextResponse.json({ error: 'Chave de API ausente ou inválida. Envie Authorization: Bearer SUA_CHAVE.' }, { status: 401 });
+      return fail(401,'INVALID_API_KEY','Chave de API ausente ou inválida. Envie Authorization: Bearer SUA_CHAVE.');
     }
 
     const keyHash = hashStoreChatbotApiKey(apiKey);
@@ -95,48 +143,56 @@ export async function GET(request: Request) {
       .select('id,store_id,revoked_at')
       .eq('key_hash', keyHash)
       .is('revoked_at', null)
+      .abortSignal(controller.signal)
       .maybeSingle();
     if (keyError) throw keyError;
-    if (!keyRecord) return NextResponse.json({ error: 'Chave de API inválida ou revogada.' }, { status: 401 });
+    if (!keyRecord) return fail(401,'INVALID_API_KEY','Chave de API inválida ou revogada.');
 
-    const access = await resolveCreatorWhatsAppAccess(keyRecord.store_id);
+    const access = await withDeadline(resolveCreatorWhatsAppAccess(keyRecord.store_id),controller.signal);
     if (!access.active) {
-      return NextResponse.json({ error: 'A integração desta loja está suspensa. O módulo precisa estar pago ou liberado pelo administrador.' }, { status: 403 });
+      return fail(403,'INTEGRATION_SUSPENDED','A integração desta loja está suspensa. O módulo precisa estar pago ou liberado pelo administrador.');
     }
+
+    const query = parseCatalogQuery(new URL(request.url).searchParams);
 
     const [storeResult, productsResult, clubsResult, kitsResult] = await Promise.all([
       supabaseAdmin.from('stores')
         .select('id,nome_loja,slug,descricao,logo_url,banner_url,cor_primaria,whatsapp,instagram,tiktok,facebook,youtube,website,author_image_url,author_bio,welcome_message')
         .eq('id', keyRecord.store_id)
+        .abortSignal(controller.signal)
         .maybeSingle(),
-      supabaseAdmin.from('products').select(PRODUCT_FIELDS)
-        .eq('store_id', keyRecord.store_id).eq('status', 'publicado').is('excluido_em', null)
-        .order('created_at', { ascending: false }).limit(5000),
-      supabaseAdmin.from('creator_clubs').select('id,name,slug,description,cover_url,monthly_price,club_type,created_at,updated_at')
-        .eq('store_id', keyRecord.store_id).eq('status', 'published').order('created_at', { ascending: false }),
-      supabaseAdmin.from('kits').select('id,titulo,descricao,capa_url,preco_kit,created_at,updated_at,kit_items(product_id)')
-        .eq('store_id', keyRecord.store_id).eq('status', 'publicado').is('excluido_em', null).order('created_at', { ascending: false }),
+      readCatalog((start,end) => {
+        let builder = supabaseAdmin.from('products').select(PRODUCT_FIELDS,{count:'exact'})
+          .eq('store_id', keyRecord.store_id).eq('status', 'publicado').is('excluido_em', null);
+        if(query.id) builder = builder.eq('id',query.id);
+        return builder.order('created_at',{ascending:false}).order('id').range(start,end).abortSignal(controller.signal);
+      }),
+      !query.id && ['all','clubs'].includes(query.section) ? readCatalog((start,end) => supabaseAdmin.from('creator_clubs').select('id,name,slug,description,cover_url,monthly_price,club_type,created_at,updated_at',{count:'exact'})
+        .eq('store_id', keyRecord.store_id).eq('status','published').order('created_at',{ascending:false}).order('id').range(start,end).abortSignal(controller.signal)) : Promise.resolve({data:[],error:null,coverage:{loaded:0,total:0,truncated:false}}),
+      !query.id && ['all','kits'].includes(query.section) ? readCatalog((start,end) => supabaseAdmin.from('kits').select('id,titulo,descricao,capa_url,preco_kit,created_at,updated_at,kit_items(product_id)',{count:'exact'})
+        .eq('store_id', keyRecord.store_id).eq('status','publicado').is('excluido_em',null).order('created_at',{ascending:false}).order('id').range(start,end).abortSignal(controller.signal)) : Promise.resolve({data:[],error:null,coverage:{loaded:0,total:0,truncated:false}}),
     ]);
     const firstError = storeResult.error || productsResult.error || clubsResult.error || kitsResult.error;
     if (firstError) throw firstError;
-    if (!storeResult.data) return NextResponse.json({ error: 'Loja não encontrada.' }, { status: 404 });
+    if (!storeResult.data) return fail(404,'STORE_NOT_FOUND','Loja não encontrada.');
+    if(query.id && !productsResult.data.length) return fail(404,'PRODUCT_NOT_FOUND','Material não encontrado no catálogo publicado desta loja.');
 
     const store = storeResult.data as Row & { id: string; slug: string; nome_loja: string };
     const rawProducts = (productsResult.data || []) as ProductRow[];
     const categoryIds = [...new Set(rawProducts.flatMap((product) => [product.category_id, ...(product.category_ids || [])]).filter((id): id is string => Boolean(id)))];
     const levelIds = [...new Set(rawProducts.flatMap((product) => [product.education_level_id, ...(product.education_level_ids || [])]).filter((id): id is string => Boolean(id)))];
-    const clubIds = (clubsResult.data || []).map((club) => club.id);
+    const clubIds = (clubsResult.data || []).map((club) => String(club.id));
     const [categoriesResult, levelsResult, clubMaterialsResult] = await Promise.all([
-      categoryIds.length ? supabaseAdmin.from('categories').select('id,nome').in('id', categoryIds) : Promise.resolve({ data: [], error: null }),
-      levelIds.length ? supabaseAdmin.from('education_levels').select('id,nome').in('id', levelIds) : Promise.resolve({ data: [], error: null }),
-      clubIds.length ? supabaseAdmin.from('creator_club_materials').select('club_id,product_id').in('club_id', clubIds) : Promise.resolve({ data: [], error: null }),
+      readRelations(categoryIds,(ids,start,end) => supabaseAdmin.from('categories').select('id,nome',{count:'exact'}).in('id',ids).or(`store_id.is.null,store_id.eq.${keyRecord.store_id}`).order('id').range(start,end).abortSignal(controller.signal)),
+      readRelations(levelIds,(ids,start,end) => supabaseAdmin.from('education_levels').select('id,nome',{count:'exact'}).in('id',ids).order('id').range(start,end).abortSignal(controller.signal)),
+      readRelations(clubIds,(ids,start,end) => supabaseAdmin.from('creator_club_materials').select('club_id,product_id',{count:'exact'}).in('club_id',ids).order('club_id').order('product_id').range(start,end).abortSignal(controller.signal)),
     ]);
     const relationError = categoriesResult.error || levelsResult.error || clubMaterialsResult.error;
     if (relationError) throw relationError;
 
-    const origin = new URL(request.url).origin;
-    const categoryNames = new Map((categoriesResult.data || []).map((item) => [item.id, item.nome]));
-    const levelNames = new Map((levelsResult.data || []).map((item) => [item.id, item.nome]));
+    const origin = 'https://www.educalizando.com.br';
+    const categoryNames = new Map((categoriesResult.data || []).map((item) => [String(item.id),String(item.nome)]));
+    const levelNames = new Map((levelsResult.data || []).map((item) => [String(item.id),String(item.nome)]));
     const products = rawProducts.map((product) => publicProduct(product, store.slug, origin, categoryNames, levelNames));
     const productById = new Map(products.map((product) => [product.id, product]));
     const clubMaterials = clubMaterialsResult.data || [];
@@ -145,11 +201,11 @@ export async function GET(request: Request) {
       name: club.name,
       slug: club.slug,
       description: club.description,
-      coverUrl: club.cover_url,
-      monthlyPrice: Number(club.monthly_price || 0),
+      coverUrl: absoluteUrl(club.cover_url,origin),
+      monthlyPrice: catalogPrice(club.monthly_price),
       licenseType: club.club_type,
-      publicUrl: `${origin}/clube/${encodeURIComponent(club.slug)}`,
-      materials: clubMaterials.filter((item) => item.club_id === club.id).map((item) => productById.get(item.product_id)).filter((product) => Boolean(product) && (club.club_type !== 'plr' || product?.isPlr === true)),
+      publicUrl: `${origin}/clube/${encodeURIComponent(String(club.slug))}`,
+      materials: clubMaterials.filter((item) => item.club_id === club.id).map((item) => productById.get(String(item.product_id))).filter((product) => Boolean(product) && (club.club_type !== 'plr' || product?.isPlr === true)),
       createdAt: club.created_at,
       updatedAt: club.updated_at || null,
     }));
@@ -157,26 +213,38 @@ export async function GET(request: Request) {
       id: kit.id,
       title: kit.titulo,
       description: kit.descricao,
-      coverUrl: kit.capa_url,
-      price: Number(kit.preco_kit || 0),
-      publicUrl: `${origin}/loja/${encodeURIComponent(store.slug)}/kit/${encodeURIComponent(kit.id)}`,
-      materials: (kit.kit_items || []).map((item: { product_id: string }) => productById.get(item.product_id)).filter(Boolean),
+      coverUrl: absoluteUrl(kit.capa_url,origin),
+      price: catalogPrice(kit.preco_kit),
+      publicUrl: `${origin}/loja/${encodeURIComponent(store.slug)}/kit/${encodeURIComponent(String(kit.id))}`,
+      materials: (Array.isArray(kit.kit_items) ? kit.kit_items : []).map((item: { product_id: string }) => productById.get(item.product_id)).filter(Boolean),
       createdAt: kit.created_at,
       updatedAt: kit.updated_at || null,
     }));
 
-    const query = normalizeCatalogSearch(new URL(request.url).searchParams.get('q'));
-    const section = new URL(request.url).searchParams.get('section') || 'all';
-    const matches = (items: Array<Record<string, unknown>>) => query ? items.filter((item) => catalogItemMatches(item, query)) : items;
-    const paidProducts = matches(products.filter((product) => !product.isFree));
-    const freeMaterials = matches(products.filter((product) => product.isFree));
-    const plrProducts = matches(products.filter((product) => product.isPlr));
-    const visibleClubs = matches(clubs);
-    const visibleKits = matches(kits);
+    const enrich = <T extends {materials: unknown[]}>(item: T) => {
+      const materials = item.materials.filter(Boolean) as Row[];
+      return {...item,categories:materials.flatMap(p => p.categories as Row[]),educationLevels:materials.flatMap(p => p.educationLevels as Row[]),
+        themes:[...new Set(materials.flatMap(p => p.themes as string[]))],commemorativeDates:materials.flatMap(p => p.commemorativeDates as Row[])};
+    };
+    const paidProducts = selectCatalogItems(products.filter(p => !p.isFree),query);
+    const freeMaterials = selectCatalogItems(products.filter(p => p.isFree),query);
+    const plrProducts = selectCatalogItems(products.filter(p => p.isPlr),query);
+    const visibleClubs = selectCatalogItems(clubs.map(enrich),query);
+    const visibleKits = selectCatalogItems(kits.map(enrich),query);
+    const selected = {products:paidProducts,plrProducts,freeMaterials,clubs:visibleClubs,kits:visibleKits};
+    const sectionLists: Record<string,string[]> = {all:Object.keys(selected),products:['products'],plr:['plrProducts'],free_materials:['freeMaterials'],clubs:['clubs'],kits:['kits'],facets:[],summary:[]};
+    const lists: Record<string,unknown> = {}, pagination: Record<string,unknown> = {};
+    for(const key of sectionLists[query.section]) {
+      const result = paginateCatalog(selected[key as keyof typeof selected],query);
+      lists[key] = result.data;
+      if(query.paginated) pagination[key] = result.pagination;
+    }
     const payload = {
-      apiVersion: '1.0',
+      apiVersion: '1.1',
+      requestId,
+      catalogCoverage:{products:productsResult.coverage,clubs:clubsResult.coverage,kits:kitsResult.coverage},
       generatedAt: new Date().toISOString(),
-      scope: { storeId: store.id, privateToStore: true, externalSearch: false, query: query || null },
+      scope: { storeId: store.id, privateToStore: true, externalSearch: false, query: query.q || null },
       store: {
         id: store.id,
         name: store.nome_loja,
@@ -192,17 +260,20 @@ export async function GET(request: Request) {
         socialNetworks: { instagram: text(store.instagram), tiktok: text(store.tiktok), facebook: text(store.facebook), youtube: text(store.youtube) },
       },
       counts: { products: paidProducts.length, plrProducts: plrProducts.length, freeMaterials: freeMaterials.length, clubs: visibleClubs.length, kits: visibleKits.length },
-      ...(section === 'all' || section === 'products' ? { products: paidProducts } : {}),
-      ...(section === 'all' || section === 'plr' ? { plrProducts } : {}),
-      ...(section === 'all' || section === 'free_materials' ? { freeMaterials } : {}),
-      ...(section === 'all' || section === 'clubs' ? { clubs: visibleClubs } : {}),
-      ...(section === 'all' || section === 'kits' ? { kits: visibleKits } : {}),
+      ...lists,
+      ...(query.paginated ? {pagination} : {}),
+      ...(query.includeFacets || ['facets','summary'].includes(query.section) ? {facets:catalogFacets(products),facetsScope:'published-products-loaded-before-filters'} : {}),
+      ...(query.suggestions ? {suggestions:paidProducts.length+freeMaterials.length+plrProducts.length === 0 ? catalogSuggestions(products,query) : []} : {}),
     };
 
-    await supabaseAdmin.from('store_chatbot_api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', keyRecord.id);
-    return NextResponse.json(payload, { headers: { 'Cache-Control': 'private, no-store', 'X-RateLimit-Remaining': String(limited.remaining) } });
+    const audit = await supabaseAdmin.from('store_chatbot_api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', keyRecord.id).abortSignal(controller.signal);
+    if(audit.error) console.warn('[Store Chatbot Integration] Auditoria indisponível',requestId);
+    return NextResponse.json(payload, { headers: { ...headers, 'X-RateLimit-Remaining': String(limited.remaining) } });
   } catch (error) {
-    console.error('[Store Chatbot Integration] Falha:', error);
-    return NextResponse.json({ error: 'Não foi possível consultar o catálogo desta loja agora.' }, { status: 503 });
+    if(error instanceof CatalogQueryError) return fail(400,'INVALID_QUERY',error.message);
+    console.error('[Store Chatbot Integration] Falha',requestId,controller.signal.aborted ? 'timeout' : 'upstream');
+    return fail(503,controller.signal.aborted ? 'CATALOG_TIMEOUT' : 'CATALOG_UNAVAILABLE','Não foi possível consultar o catálogo desta loja agora.',{'Retry-After':'10'});
+  } finally {
+    clearTimeout(deadline);
   }
 }

@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { isSuperAdmin } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Confira nome, e-mail e tipo de conta.' }, { status: 400 });
   const { email, name, role, storeName } = parsed.data;
-  const origin = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.educalizando.com.br').replace(/\/+$/, '');
+  const origin = publicSiteOrigin();
   const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/confirmar?next=/seguranca`,
     data: { full_name: name, role, ...(role === 'creator' ? { store_name: storeName || `Loja de ${name}`, is_creator: true } : {}) },

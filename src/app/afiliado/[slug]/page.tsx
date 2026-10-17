@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function AffiliateStorePage({ params }: PageProps) {
   const { slug } = await params;
-
+  
   const profile = await getAffiliateProfileBySlug(slug);
 
   if (!profile) {
@@ -79,7 +79,7 @@ export default async function AffiliateStorePage({ params }: PageProps) {
 
   return (
     <Suspense fallback={<StoreSkeleton />}>
-      <AffiliateStoreClientView
+      <AffiliateStoreClientView 
         profile={profile}
         products={products}
       />

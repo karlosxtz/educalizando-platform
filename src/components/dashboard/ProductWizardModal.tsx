@@ -1,5 +1,7 @@
 'use client';
 
+import { readApiJson } from '@/lib/api-response';
+import { aiFetch } from '@/lib/ai-client';
 import CustomSelect from '@/components/ui/CustomSelect';
 import { readableProductDescription } from '@/lib/product-description';
 import { createCustomCategory,getCategories,getEducationLevels } from '@/lib/category-service';
@@ -55,6 +57,7 @@ export default function ProductWizardModal({
   onSave
 }: ProductWizardModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [optimizingAi, setOptimizingAi] = useState(false);
 
   // Form State
   const [titulo, setTitulo] = useState(editingProduct?.titulo || '');
@@ -136,24 +139,27 @@ export default function ProductWizardModal({
   };
 
   const handleOptimizeSEO = async () => {
+    if (optimizingAi) return;
     if (!titulo || titulo.length < 3) {
       toast.error('Digite pelo menos 3 caracteres no título para que a IA possa otimizá-lo.');
       return;
     }
 
+    setOptimizingAi(true);
     const loadingToast = toast.loading('A IA está otimizando seu SEO...');
     try {
-      const res = await fetch('/api/ai/optimize', {
+      const res = await aiFetch('/api/ai/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           titulo,
           descricao,
+          responseFormat: 'json',
           storeId
         })
       });
 
-      const data = await res.json();
+      const data = await readApiJson(res);
       if (!res.ok) throw new Error(data.error || 'Erro ao otimizar com IA.');
 
       setTitulo(data.titulo || titulo);
@@ -161,7 +167,7 @@ export default function ProductWizardModal({
       toast.success('SEO otimizado com sucesso!', { id: loadingToast });
     } catch (err: any) {
       toast.error(err.message, { id: loadingToast });
-    }
+    } finally { setOptimizingAi(false); }
   };
 
   // Step Validations
@@ -273,7 +279,7 @@ export default function ProductWizardModal({
                   </label>
                   <button 
                     type="button" 
-                    onClick={handleOptimizeSEO} 
+                    disabled={optimizingAi} onClick={handleOptimizeSEO} 
                     className="text-sm font-bold text-blue-600 flex items-center gap-1 hover:text-blue-800 transition-colors"
                   >
                     <Sparkles className="w-4 h-4"/> Otimizar com IA

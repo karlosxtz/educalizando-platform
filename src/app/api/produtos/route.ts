@@ -1,3 +1,4 @@
+import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { getProductDeletionProtection,productDeletionBlockedMessage } from '@/lib/product-deletion-policy';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -189,7 +190,7 @@ export async function DELETE(request: Request) {
 
     // Purga imediata do cache do Next.js
     try {
-      revalidatePath('/', 'layout');
+      await invalidatePublicCatalog();
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard', 'page');
       revalidatePath('/dashboard/produtos', 'page');

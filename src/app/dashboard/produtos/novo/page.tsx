@@ -1,5 +1,7 @@
 'use client';
 
+import { readApiJson } from '@/lib/api-response';
+import { aiFetch } from '@/lib/ai-client';
 import {
 Loader2
 } from 'lucide-react';
@@ -111,7 +113,7 @@ function ProductWizardContent() {
           getEducationLevels(),
           getPublicProductsByStoreId(currentStore.id),
           getBnccSkills(),
-          fetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
+          aiFetch(`/api/ai/settings?storeId=${encodeURIComponent(currentStore.id)}`).catch(() => null),
         ]);
         setCategories(cats);
         setEducationLevels(edLevels);
@@ -290,12 +292,12 @@ function ProductWizardContent() {
     setAiGenerating(true);
     const loadingToast = toast.loading('A IA está identificando e preenchendo o material...');
     try {
-      const res = await fetch('/api/ai/product-draft', {
+      const res = await aiFetch('/api/ai/product-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: titulo, storeId: store.id }),
+        body: JSON.stringify({ title: titulo, storeId: store.id, source: { descricao, tipo, page_count: pageCount ? Number(pageCount) : null, age_range: ageRange, format_details: formatDetails, category_ids: categoryIds, education_level_ids: educationLevelIds, tags: productTags, seasonal_tags: seasonalTags } }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = await readApiJson(res);
       if (!res.ok) {
         throw new Error(data.error || 'Não foi possível preencher o cadastro com IA.');
       }

@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from '@/lib/public-links';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendEvolutionText } from '@/lib/whatsapp-notification-service';
 import { NextResponse } from 'next/server';
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
     }
     const items = Array.isArray(reminder.cart_items) ? reminder.cart_items : [];
     const names = items.slice(0, 2).map((item: any) => item.title).join(', ');
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, '');
+    const appUrl = publicSiteOrigin();
     const link = `${appUrl}/recuperar-carrinho/${reminder.recovery_token}`;
     const result = await sendEvolutionText(reminder.phone_e164, `Olá${reminder.customer_name ? `, ${reminder.customer_name.split(' ')[0]}` : ''}! Seus materiais${names ? ` (${names})` : ''} continuam no carrinho. Finalize sua compra com segurança: ${link}`);
     if (result.sent) { await supabaseAdmin.from('abandoned_cart_reminders').update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', reminder.id); sent++; }

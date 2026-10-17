@@ -69,7 +69,7 @@ test('homepage exibe campanha temática conectada ao calendário', async ({ page
   await expect(campaign).toBeVisible();
   await expect(campaign.getByText('Trilha Educalizando')).toBeVisible();
   await expect(campaign.getByRole('link', { name: /planejar no calendário/i })).toBeVisible();
-  await expect(campaign.getByRole('link', { name: /explorar materiais|ver material/i })).toBeVisible();
+  await expect(campaign.getByRole('link', { name: /explorar materiais|ver material/i }).first()).toBeVisible();
   const visualOrder = await page.evaluate(() => {
     const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
     return {
@@ -77,7 +77,7 @@ test('homepage exibe campanha temática conectada ao calendário', async ({ page
       categories: top('[aria-labelledby="home-categorias"]'),
     };
   });
-  expect(visualOrder.campaign).toBeLessThan(visualOrder.categories);
+  expect(visualOrder.categories).toBeLessThan(visualOrder.campaign);
   const featuredProducts = page.getByRole('heading', { name: 'Materiais em destaque' });
   if (await featuredProducts.count()) {
     await expect(featuredProducts).toBeVisible();
@@ -86,8 +86,11 @@ test('homepage exibe campanha temática conectada ao calendário', async ({ page
       featuredProducts.evaluate((element) => element.getBoundingClientRect().top),
       page.locator('[aria-labelledby="home-categorias"]').evaluate((element) => element.getBoundingClientRect().top),
     ]);
-    expect(campaignTop).toBeLessThan(productsTop);
-    expect(productsTop).toBeLessThan(categoriesTop);
+    expect(categoriesTop).toBeLessThan(productsTop);
+    expect(productsTop).toBeLessThan(campaignTop);
+    const datesTop = await page.locator('[aria-labelledby="proximas-datas"]').evaluate(element => element.getBoundingClientRect().top);
+    expect(productsTop).toBeLessThan(datesTop);
+    expect(datesTop).toBeLessThan(campaignTop);
   }
   await expectNoHorizontalOverflow(page);
 });

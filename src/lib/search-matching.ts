@@ -51,8 +51,24 @@ function isOneEditAway(first: string, second: string) {
  * termos antes de uma correspondência parcial útil.
  */
 export function searchMatchScore(product: SearchableProduct, query: string) {
+  return createSearchScorer(query)(product);
+}
+
+/** Request-local scoring: sorting never normalizes the same long description repeatedly. */
+export function createSearchScorer(query: string) {
   const normalizedQuery = normalizeSearchText(query);
   const terms = getSearchTerms(query);
+  const scores = new WeakMap<SearchableProduct, number>();
+  return (product: SearchableProduct): number => {
+    const cached = scores.get(product);
+    if (cached !== undefined) return cached;
+    const score = scoreNormalizedProduct(product, normalizedQuery, terms);
+    scores.set(product, score);
+    return score;
+  };
+}
+
+function scoreNormalizedProduct(product: SearchableProduct, normalizedQuery: string, terms: string[]) {
   const haystack = productSearchText(product);
 
   if (!normalizedQuery || !haystack) return 0;

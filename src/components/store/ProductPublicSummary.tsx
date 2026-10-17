@@ -14,7 +14,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 md:grid-cols-2">
       <Suspense fallback={null}><CampaignAttribution storeId={store.id} /></Suspense>
-      {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
+      {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
       <article className="space-y-5">
         <Link href={`/loja/${encodeURIComponent(store.slug)}`} className="font-bold text-blue-800">{store.nome_loja}</Link>
         <h1 className="text-3xl font-black text-slate-900">{product.titulo}</h1>

@@ -1,3 +1,4 @@
+import { normalizePublicAssetUrl } from './public-links';
 export type StoreSocialPlatform = 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'website';
 
 type StoreSocialFields = Partial<Record<StoreSocialPlatform, string | null | undefined>>;
@@ -59,6 +60,12 @@ export function normalizeStoreSocialLinks<T extends StoreSocialFields>(source: T
   for (const platform of platforms) {
     if (Object.prototype.hasOwnProperty.call(source, platform)) {
       normalized[platform] = normalizeExternalUrl(source[platform], platform) as T[typeof platform];
+    }
+  }
+  for (const field of ['logo_url', 'banner_url', 'author_image_url'] as const) {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      const value = (source as Record<string, unknown>)[field];
+      Object.assign(normalized, { [field]: normalizePublicAssetUrl(typeof value === 'string' ? value : null) });
     }
   }
 

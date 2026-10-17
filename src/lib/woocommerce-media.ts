@@ -70,8 +70,9 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
   if (isImage && media.size > MAX_IMAGE_BYTES) throw new Error('A imagem remota ultrapassa 15 MB.');
   const bucket = resolveBucket('product-covers');
   if (media.contentType === 'image/svg+xml') throw new Error('Formato de imagem não permitido.');
-  const optimize = isImage && media.contentType !== 'image/gif';
-  const body = optimize ? await optimizeProductImage(media.body) : media.body;
+  let optimize = isImage && media.contentType !== 'image/gif';
+  let body: Uint8Array = media.body;
+  if (optimize) { try { body = await optimizeProductImage(media.body); } catch { optimize = false; } }
   const contentType = optimize ? 'image/webp' : media.contentType;
   const key = `uploads/woocommerce/${integrationId}/${wooProductId}/media/${index}-${stableName(media.finalUrl)}.${optimize ? 'webp' : extension(contentType, media.finalUrl)}`;
   await uploadObject({ bucket, key, body, contentType });

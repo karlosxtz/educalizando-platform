@@ -1,4 +1,7 @@
 import { supabase } from './supabase';
+import { clearCreationRequest, productCreationRequest } from './product-create-request';
+import { readApiJson } from './api-response';
+import { completedProductSave } from './product-save-recovery';
 import { generateSlug } from './string-utils';
 import { Product } from './types';
 import { addDeletedProductId, getLocalProducts, removeDeletedProductId, saveLocalProducts } from './product-local-storage';
@@ -84,20 +87,37 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
   headers['Authorization'] = `Bearer ${token}`;
 
   // 2. Chamar API backend — ÚNICA fonte de verdade
+  const creationRequestId = productCreationRequest(payload, sessionStorage, () => crypto.randomUUID());
   let res: Response;
   try {
     res = await fetch('/api/produtos', {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...payload, creation_request_id: creationRequestId })
     });
-  } catch (networkErr: any) {
-    throw new Error(`Falha de rede ao criar produto: ${networkErr.message}. Verifique sua conexão.`);
+  } catch {
+    // A disconnected response does not prove the database write failed.
+    // Use the same private-delivery verification used for gateway failures below.
+    res = new Response(JSON.stringify({ error: 'A conexão foi interrompida antes da confirmação. Tente salvar novamente; a tentativa mantém o mesmo identificador.' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const result = await res.json().catch(() => null);
+  let result;
+  if (!res.ok && res.status >= 500) {
+    // The Worker may fail after the database has committed. Read through the
+    // user's own database session and verify private deliveries before confirming success.
+    try {
+    const [saved, files] = await Promise.all([
+      supabase.from('products').select('*').eq('id', creationRequestId).eq('store_id', payload.store_id).maybeSingle(),
+      supabase.from('product_delivery_files').select('delivery_type,file_url').eq('product_id', creationRequestId),
+    ]);
+    if (!saved.error && !files.error && completedProductSave(saved.data as Product | null, payload, files.data || [])) {
+      result = { success: true, product: { ...saved.data, arquivo_url: payload.arquivo_url, plr_license_url: payload.plr_license_url, delivery_files: payload.delivery_files, plr_delivery_files: payload.plr_delivery_files } };
+    }
+    } catch { /* Keep the submission ID when even the verification is unavailable. */ }
+  }
+  result ||= await readApiJson(res);
 
-  if (!res.ok) {
+  if (!res.ok && !result?.success) {
     // Propagar o erro real da API para o frontend — NÃO cair em fallback
     const errMsg = result?.error || `Erro ${res.status} ao criar produto no servidor.`;
     console.error('[createProduct] Erro retornado pela API:', errMsg);
@@ -110,10 +130,13 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
 
   // 3. Sucesso: atualizar cache local com o produto real do banco
   const created = result.product as Product;
-  removeDeletedProductId(created.id);
-  const localProducts = getLocalProducts();
-  localProducts.unshift(created);
-  saveLocalProducts(localProducts);
+  try {
+    clearCreationRequest(sessionStorage);
+    removeDeletedProductId(created.id);
+    const localProducts = getLocalProducts();
+    localProducts.unshift(created);
+    saveLocalProducts(localProducts);
+  } catch { /* Local cache exhaustion must never turn a saved product into a failed submission. */ }
 
   return created;
 }
@@ -160,7 +183,7 @@ export async function updateProduct(productId: string, updates: Partial<Product>
       throw new Error(`Falha de rede ao atualizar produto: ${networkErr.message}.`);
     }
 
-    const result = await res.json().catch(() => null);
+    const result = await readApiJson(res);
 
     if (!res.ok) {
       const errMsg = result?.error || `Erro ${res.status} ao atualizar produto no servidor.`;
@@ -173,11 +196,13 @@ export async function updateProduct(productId: string, updates: Partial<Product>
     }
 
     const created = result.product as Product;
-    const products = getLocalProducts();
-    const idx = products.findIndex(p => p.id === productId);
-    if (idx >= 0) products[idx] = created;
-    else products.unshift(created);
-    saveLocalProducts(products);
+    try {
+      const products = getLocalProducts();
+      const idx = products.findIndex(p => p.id === productId);
+      if (idx >= 0) products[idx] = created;
+      else products.unshift(created);
+      saveLocalProducts(products);
+    } catch { /* The database remains the source of truth when local caching fails. */ }
     return created;
   }
 

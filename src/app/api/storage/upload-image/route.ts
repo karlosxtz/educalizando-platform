@@ -37,10 +37,12 @@ export async function POST(request: Request) {
 
     const bucket = resolveBucket(bucketValue as LegacyUploadBucket);
     const source = new Uint8Array(await fileValue.arrayBuffer());
-    const shouldOptimize = !['image/svg+xml', 'image/gif'].includes(fileValue.type);
-    const body = shouldOptimize
-      ? await optimizeProductImage(source, true)
-      : source;
+    let shouldOptimize = false;
+    let body: Uint8Array = source;
+    if (!['image/svg+xml', 'image/gif'].includes(fileValue.type)) {
+      try { body = await optimizeProductImage(source, true); shouldOptimize = true; }
+      catch { /* No paid transformation: preserve original bytes and MIME type. */ }
+    }
     const contentType = shouldOptimize ? 'image/webp' : fileValue.type;
     const fileExtension = shouldOptimize ? 'webp' : extension(fileValue.name);
     const { data: store, error: storeError } = await supabaseAdmin.from('stores').select('nome_loja').eq('creator_id', user.id).maybeSingle();

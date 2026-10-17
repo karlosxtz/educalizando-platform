@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const revalidate = 3600;
 
 import Footer from '@/components/Footer';
 import { HomeIntroduction, HomeFaq } from '@/components/HomeBrandContent';

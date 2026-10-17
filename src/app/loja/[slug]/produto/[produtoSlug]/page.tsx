@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import { readPublicRelatedProducts } from '@/lib/public-page-data';
 import { readPublicReviewSummary } from '@/lib/product-review-summary';
 import { readSeoProductReference } from '@/lib/seo-identity';
@@ -28,7 +30,7 @@ interface ProductDetailPageProps {
 export async function generateMetadata({ params, searchParams }: ProductDetailPageProps): Promise<Metadata> {
   const { produtoSlug, slug } = await params;
   const query = await searchParams;
-
+  
   let product = await getProductById(produtoSlug);
   const store = await getStoreBySlug(slug);
 
@@ -37,7 +39,7 @@ export async function generateMetadata({ params, searchParams }: ProductDetailPa
     const cleanId = produtoSlug.replace(/^prod_/i, '');
     product = storeProducts.find(p => p.id === produtoSlug || p.id === cleanId || p.id === `prod_${cleanId}` || p.slug === produtoSlug) || null;
   }
-
+  
   if (!store || !isIndexableProduct(product)) {
     notFound();
   }
@@ -114,13 +116,13 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
     { label: 'Início', href: '/', icon: <Home className="w-4 h-4" /> },
     { label: store.nome_loja, href: `/loja/${store.slug}`, icon: <Store className="w-4 h-4" /> }
   ];
-
+  
   if (category) {
     breadcrumbItems.push({ label: category.nome, href: `/loja/${store.slug}?category=${category.id}` });
   } else if (educationLevel) {
     breadcrumbItems.push({ label: educationLevel.nome, href: `/loja/${store.slug}?level=${educationLevel.id}` });
   }
-
+  
   breadcrumbItems.push({ label: product.titulo, href: `/loja/${store.slug}/produto/${product.slug || product.id}` });
 
   const reviewedProduct = { ...product, ...await readPublicReviewSummary(product.id) };
@@ -147,7 +149,7 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
-
+      
       {/* Visual Breadcrumb */}
       <div className="hidden sm:block bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -175,10 +177,10 @@ export default async function ProductDetailPage({ params, searchParams }: Produc
         </div>
       </div>
 
-      <ProductProgressiveView
-        store={store}
+      <ProductProgressiveView 
+        store={store} 
         product={publicProductDetail(reviewedProduct)}
-        category={category}
+        category={category} 
         educationLevel={educationLevel}
         context="store"
         relatedProducts={relatedProducts.map(publicStoreProduct)}

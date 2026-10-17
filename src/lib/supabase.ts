@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from './public-links';
 import { createClient } from '@supabase/supabase-js';
 import { sendWelcomeWhatsApp } from './evolution-api';
 
@@ -417,7 +418,7 @@ export async function registerAffiliateInSupabase({
 // 5. Recuperação de Senha (resetPasswordForEmail)
 export async function resetPasswordForEmail(email: string) {
   if (isRealSupabaseConfigured()) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const siteUrl = publicSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${siteUrl}/redefinir-senha`
     });

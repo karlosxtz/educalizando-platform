@@ -123,7 +123,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone(); url.pathname = '/cliente/login'; return NextResponse.redirect(url)
   }
 
-  if (pathname.startsWith('/api/produtos') || pathname.startsWith('/api/financeiro') || pathname.startsWith('/api/aluno/materiais')) {
+  if (pathname.startsWith('/api/financeiro') || pathname.startsWith('/api/aluno/materiais')) {
     if (!userId && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) && !pathname.includes('webhook') && !pathname.includes('checkout')) {
       return NextResponse.json({ error: 'Unauthorized. Token missing.' }, { status: 401 })
     }
@@ -139,6 +139,8 @@ export const config = {
     '/afiliados/dashboard/:path*',
     '/cliente/dashboard/:path*', '/cliente/conta/:path*', '/cliente/materiais/:path*', '/cliente/clubes/:path*', '/cliente/favoritos/:path*',
     '/aluno/dashboard/:path*', '/aluno/conta/:path*', '/aluno/materiais/:path*', '/aluno/clubes/:path*', '/aluno/favoritos/:path*',
-    '/api/produtos/:path*', '/api/financeiro/:path*', '/api/aluno/materiais/:path*',
+    // Product handlers authenticate and check ownership themselves, including 2FA.
+    // Avoid validating the same session twice in one CPU-limited request.
+    '/api/financeiro/:path*', '/api/aluno/materiais/:path*',
   ],
 }

@@ -15,7 +15,7 @@ const readRows = unstable_cache(async () => {
     collectSitemapRows((from, to) => db.from('categories').select('id,nome,slug,created_at').is('store_id', null).order('id').range(from, to)),
   ]);
   return { products, stores, categories };
-}, ['seo-public-catalog-quality-v1'], { revalidate: 300 });
+}, ['seo-public-catalog-quality-v1'], { revalidate: 3600, tags: ['public-catalog'] });
 
 export const readSeoPublicCatalog = cache(async () => {
   const rows = await readRows();

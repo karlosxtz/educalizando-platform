@@ -1,4 +1,5 @@
 import WhatsAppButton from '@/components/WhatsAppButton';
+import CampaignAttribution from '@/components/CampaignAttribution';
 import { DEFAULT_SOCIAL_IMAGE,DEFAULT_SOCIAL_IMAGE_ALT,SITE_URL } from '@/lib/seo';
 import type { Metadata,Viewport } from 'next';
 import Script from 'next/script';
@@ -53,9 +54,6 @@ export const metadata: Metadata = {
     'área de membros com certificado'
   ],
   authors: [{ name: 'Educalizando Plataforma Digital' }],
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     title: 'Educalizando — Plataforma Digital Educacional',
     description:
@@ -83,6 +81,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
   },
 };
 
@@ -118,6 +117,7 @@ export default function RootLayout({
           <CartSidebar />
           {children}
           <Suspense fallback={null}>
+            <CampaignAttribution />
             <AffiliateTracker />
           </Suspense>
           <WhatsAppButton />

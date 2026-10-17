@@ -1,4 +1,5 @@
 'use client';
+import { finishStoreRecovery } from '@/lib/store-recovery-client';
 
 import { useCart } from '@/components/store/CartContext';
 import { Store } from '@/lib/types';
@@ -51,6 +52,7 @@ export default function OrderSuccessClientView({ store, orderId }: OrderSuccessC
                 removeFromCart(`${productId}${isPlrPurchase ? '_plr' : ''}`);
               });
               clearedOrderRef.current = orderId;
+              finishStoreRecovery(store.id);
             }
             if (data.status === 'paid' && purchaseTrackedRef.current !== orderId) {
               const trackingKey = `educalizando_purchase_tracked_${orderId}`;

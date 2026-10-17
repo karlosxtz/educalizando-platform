@@ -2,7 +2,7 @@
 
 import { signOutStudent } from '@/lib/student-service';
 import { BookOpen,Crown,FilePenLine,GraduationCap,Heart,LogOut } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/OnDemandLink';
 import { useRouter } from 'next/navigation';
 
 interface StudentHeaderProps {

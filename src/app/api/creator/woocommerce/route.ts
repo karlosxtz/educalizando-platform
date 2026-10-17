@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 async function context(request: Request) {
   const user = await getRequestUser(request);
   if (!user) return null;
-  const { data: store, error } = await supabaseAdmin.from('stores').select('id,creator_id,nome_loja').eq('creator_id', user.id).maybeSingle();
+  const { data: store, error } = await supabaseAdmin.from('stores').select('id,creator_id,nome_loja').eq('creator_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (error) throw error;
   return store ? { user, store } : null;
 }
@@ -35,10 +35,10 @@ export async function POST(request: Request) {
     await testWooConnection({ siteUrl, consumerKey, consumerSecret });
     const { data: previousIntegration } = await supabaseAdmin.from('woocommerce_integrations').select('*').eq('store_id', ctx.store.id).maybeSingle();
     if (previousIntegration) {
-      const oldWebhookIds = Object.values(previousIntegration.webhook_ids || {}).filter((id): id is number => typeof id === 'number');
-      for (const webhookId of oldWebhookIds) {
-        try { await wooRequest(credentialsFromIntegration(previousIntegration), `webhooks/${webhookId}?force=true`, { method: 'DELETE' }); } catch (error) { console.error(`[WooCommerce replace webhook ${webhookId}]`, error); }
-      }
+      if (previousIntegration.site_url !== siteUrl) return NextResponse.json({ error: 'Para trocar de site, desconecte a integração anterior primeiro. Atualizar chaves mantém o mesmo site e seus produtos vinculados.' }, { status: 409 });
+      const { error: updateError } = await supabaseAdmin.from('woocommerce_integrations').update({ consumer_key_encrypted: encryptWooSecret(consumerKey), consumer_secret_encrypted: encryptWooSecret(consumerSecret), status: 'active', last_error: null, updated_at: new Date().toISOString() }).eq('id', previousIntegration.id).eq('store_id', ctx.store.id);
+      if (updateError) throw updateError;
+      return NextResponse.json({ success: true, integrationId: previousIntegration.id, webhooksConfigured: Object.keys(previousIntegration.webhook_ids || {}).length });
     }
     const webhookSecret = randomBytes(32).toString('hex');
     const now = new Date().toISOString();

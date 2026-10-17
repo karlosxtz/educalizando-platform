@@ -1,9 +1,12 @@
+import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
-import { NextResponse } from 'next/server';
+import { after,NextResponse } from 'next/server';
 import { deliveryRows,normalizeDeliveryFiles,validateDeliveryFiles } from '@/lib/product-delivery-files';
 import { syncSavedProductToWoo } from '@/lib/woocommerce-service';
+import { editableProductUpdates, validDeliveryInput } from '@/lib/product-update-payload';
+import { replaceProductImages, replaceProductSkills } from '@/lib/product-relations-write';
 import { isValidAffiliateRate,isValidProductPrice,isValidUUID,normalizeInstagramVideoUrl,normalizePreviewUrl,PRODUCT_STATUSES,PRODUCT_TYPES,sanitizeUUID,sanitizeUUIDList,uniqueProductSlug } from './helpers';
 
 export async function PUT(request: Request) {
@@ -13,12 +16,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Não autorizado. Token ausente ou inválido.' }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try { body = await request.json(); } catch { return NextResponse.json({ error: 'Dados do produto inválidos.' }, { status: 400 }); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'Dados do produto inválidos.' }, { status: 400 });
     const { id, updates } = body;
 
-    if (!id) {
+    if (typeof id !== 'string' || !isValidUUID(id)) {
       return NextResponse.json({ error: 'ID do produto é obrigatório para atualização.' }, { status: 400 });
     }
+    if (!updates || typeof updates !== 'object' || Array.isArray(updates)) return NextResponse.json({ error: 'Dados de atualização inválidos.' }, { status: 400 });
+    for (const field of ['delivery_files', 'plr_delivery_files']) {
+      if (field in updates && !validDeliveryInput(updates[field])) return NextResponse.json({ error: 'A lista de arquivos está inválida. Os arquivos anteriores foram preservados.' }, { status: 400 });
+    }
+    if ('gallery_urls' in updates && (!Array.isArray(updates.gallery_urls) || updates.gallery_urls.some((url: unknown) => typeof url !== 'string' || !normalizePreviewUrl(url)))) return NextResponse.json({ error: 'A galeria precisa conter links válidos de imagens.' }, { status: 400 });
+    if ('bncc_skill_ids' in updates && (!Array.isArray(updates.bncc_skill_ids) || updates.bncc_skill_ids.some((id: unknown) => typeof id !== 'string' || !isValidUUID(id)))) return NextResponse.json({ error: 'Seleção de habilidades BNCC inválida.' }, { status: 400 });
 
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
@@ -35,13 +46,15 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
     }
 
-    const { data: currentDelivery } = await supabaseAdmin
+    const { data: currentDelivery, error: currentDeliveryError } = await supabaseAdmin
       .from('product_deliveries')
       .select('arquivo_url, arquivo_nome, plr_license_url')
       .eq('product_id', id)
       .maybeSingle();
 
-    const cleanedUpdates: Record<string, any> = { ...updates };
+    if (currentDeliveryError) throw currentDeliveryError;
+
+    const cleanedUpdates = editableProductUpdates(updates);
     const confirmsImportedPrice = cleanedUpdates.confirm_import_price === true;
     delete cleanedUpdates.confirm_import_price;
     delete cleanedUpdates.import_source;
@@ -53,11 +66,13 @@ export async function PUT(request: Request) {
     const normalizedPlrDeliveryFiles = normalizeDeliveryFiles(cleanedUpdates.plr_delivery_files);
     validateDeliveryFiles(normalizedDeliveryFiles);
     validateDeliveryFiles(normalizedPlrDeliveryFiles);
-    if (hasOriginalFilesUpdate && normalizedDeliveryFiles.length) {
-      cleanedUpdates.arquivo_url = normalizedDeliveryFiles[0].url;
-      cleanedUpdates.arquivo_nome = normalizedDeliveryFiles[0].name;
+    if (hasOriginalFilesUpdate) {
+      // Link delivery deliberately sends an empty upload list to remove old files.
+      // Keep its explicit URL; only an empty list without a replacement clears delivery.
+      cleanedUpdates.arquivo_url = normalizedDeliveryFiles[0]?.url || cleanedUpdates.arquivo_url || null;
+      cleanedUpdates.arquivo_nome = normalizedDeliveryFiles[0]?.name || cleanedUpdates.arquivo_nome || null;
     }
-    if (hasPlrFilesUpdate && normalizedPlrDeliveryFiles.length) cleanedUpdates.plr_license_url = normalizedPlrDeliveryFiles[0].url;
+    if (hasPlrFilesUpdate) cleanedUpdates.plr_license_url = normalizedPlrDeliveryFiles[0]?.url || cleanedUpdates.plr_license_url || null;
     if ('titulo' in cleanedUpdates && (typeof cleanedUpdates.titulo !== 'string' || cleanedUpdates.titulo.trim().length < 4 || cleanedUpdates.titulo.trim().length > 160)) {
       return NextResponse.json({ error: 'O título deve ter entre 4 e 160 caracteres.' }, { status: 400 });
     }
@@ -176,6 +191,7 @@ export async function PUT(request: Request) {
     }
 
     // Validar movimentação de loja (novo store_id)
+    if ('store_id' in cleanedUpdates && (typeof cleanedUpdates.store_id !== 'string' || !isValidUUID(cleanedUpdates.store_id))) return NextResponse.json({ error: 'Identificador da loja inválido.' }, { status: 400 });
     if ('store_id' in cleanedUpdates && cleanedUpdates.store_id) {
       const cleanStoreId = cleanedUpdates.store_id.toString().replace(/^store_/i, '');
       if (isValidUUID(cleanStoreId)) {
@@ -194,6 +210,8 @@ export async function PUT(request: Request) {
     if ('arquivo_url' in cleanedUpdates) otherUpdates.has_original_delivery = Boolean(arquivo_url);
     if ('plr_license_url' in cleanedUpdates) otherUpdates.has_plr_delivery = Boolean(plr_license_url);
     otherUpdates.updated_at = new Date().toISOString();
+    const publishAfterSave = product.status !== 'publicado' && nextStatus === 'publicado';
+    if (publishAfterSave) otherUpdates.status = 'rascunho';
 
     const { data, error } = await supabaseAdmin
       .from('products')
@@ -219,76 +237,54 @@ export async function PUT(request: Request) {
     }
 
     if (hasOriginalFilesUpdate) {
-      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'original');
-      if (deleteError) throw deleteError;
       if (normalizedDeliveryFiles.length) {
-        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(deliveryRows(id, 'original', normalizedDeliveryFiles));
+        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').upsert(deliveryRows(id, 'original', normalizedDeliveryFiles), { onConflict: 'product_id,delivery_type,order_index' });
         if (filesError) throw filesError;
       }
+      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'original').gte('order_index', normalizedDeliveryFiles.length);
+      if (deleteError) throw deleteError;
     }
     if (hasPlrFilesUpdate) {
-      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'plr');
-      if (deleteError) throw deleteError;
       if (normalizedPlrDeliveryFiles.length) {
-        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').insert(deliveryRows(id, 'plr', normalizedPlrDeliveryFiles));
+        const { error: filesError } = await supabaseAdmin.from('product_delivery_files').upsert(deliveryRows(id, 'plr', normalizedPlrDeliveryFiles), { onConflict: 'product_id,delivery_type,order_index' });
         if (filesError) throw filesError;
       }
+      const { error: deleteError } = await supabaseAdmin.from('product_delivery_files').delete().eq('product_id', id).eq('delivery_type', 'plr').gte('order_index', normalizedPlrDeliveryFiles.length);
+      if (deleteError) throw deleteError;
     }
 
     // Purga imediata do cache do Next.js para as páginas afetadas
+    after(async () => {
     try {
-      revalidatePath('/', 'layout');
+      await invalidatePublicCatalog();
       revalidatePath('/loja/[slug]', 'page');
       revalidatePath('/dashboard', 'page');
       revalidatePath('/dashboard/produtos', 'page');
       revalidatePath('/dashboard/conteudo', 'page');
       revalidatePath('/dashboard/kits', 'page');
     } catch (_e) {}
+    });
 
     // Processar gallery_urls
     if (data && data.id && gallery_urls !== undefined) {
-      try {
-        // Excluir antigas
-        await supabaseAdmin.from('product_images').delete().eq('product_id', data.id);
-
-        // Inserir novas
-        if (Array.isArray(gallery_urls) && gallery_urls.length > 0) {
-          const imagesToInsert = gallery_urls.slice(0, 10).map((url: string, index: number) => ({
-            product_id: data.id,
-            url,
-            ordem: index
-          }));
-          await supabaseAdmin.from('product_images').insert(imagesToInsert);
-        }
-      } catch (e) {
-        console.error('[API /api/produtos PUT] Erro ao atualizar product_images:', e);
-      }
+      await replaceProductImages(supabaseAdmin, data.id, [...new Set<string>(gallery_urls)].slice(0, 10));
     }
 
     // Processar bncc_skill_ids
     if (data && data.id && bncc_skill_ids !== undefined) {
-      try {
-        // Excluir antigas
-        await supabaseAdmin.from('product_bncc_skills').delete().eq('product_id', data.id);
-
-        // Inserir novas
-        if (Array.isArray(bncc_skill_ids) && bncc_skill_ids.length > 0) {
-          const bnccToInsert = bncc_skill_ids.map((skill_id: string) => ({
-            product_id: data.id,
-            bncc_skill_id: sanitizeUUID(skill_id)
-          })).filter(item => item.bncc_skill_id !== null);
-
-          if (bnccToInsert.length > 0) {
-            await supabaseAdmin.from('product_bncc_skills').insert(bnccToInsert);
-          }
-        }
-      } catch (e) {
-        console.error('[API /api/produtos PUT] Erro ao atualizar product_bncc_skills:', e);
-      }
+      await replaceProductSkills(supabaseAdmin, data.id, [...new Set<string>(bncc_skill_ids)]);
     }
 
-    try { await syncSavedProductToWoo(product.store_id, data.id, new URL(request.url).origin); }
-    catch (syncError) { console.error('[API /api/produtos PUT] Sincronização WooCommerce:', syncError); }
+    if (publishAfterSave) {
+      const { error: publishError } = await supabaseAdmin.from('products').update({ status: 'publicado' }).eq('id', data.id).eq('store_id', data.store_id).select('id').single();
+      if (publishError) throw publishError;
+      data.status = 'publicado';
+    }
+
+    after(async () => {
+      try { await syncSavedProductToWoo(product.store_id, data.id, new URL(request.url).origin); }
+      catch { console.warn('[Produtos] Sincronização externa pendente após atualizar produto.', data.id); }
+    });
 
     return NextResponse.json({
       success: true,

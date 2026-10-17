@@ -48,13 +48,15 @@ export function buildStoreChatbotN8nWorkflow(input: {
             parameters: [
               { name: 'q', value: '={{ $json.termo }}' },
               { name: 'section', value: '={{ $json.secao }}' },
+              { name: 'pageSize', value: '20' },
+              { name: 'includeFacets', value: 'true' },
             ],
           },
           sendHeaders: true,
           headerParameters: {
             parameters: [{ name: 'Authorization', value: `Bearer ${input.apiKey}` }],
           },
-          options: {},
+          options: { timeout: 25000 },
         },
         id: 'educalizando-catalog-request',
         name: 'Consultar loja Educalizando',

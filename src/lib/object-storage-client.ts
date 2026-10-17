@@ -1,64 +1,47 @@
 import { supabase } from '@/lib/supabase';
+import imageCompression from 'browser-image-compression';
+import { normalizePublicAssetUrl } from './public-links';
+import { sendDirectStorageUpload, validateUploadMetadata, type DirectUploadTicket, type UploadBucket } from './direct-storage-upload';
+export type { UploadBucket } from './direct-storage-upload';
 
-export type UploadBucket = 'product-covers' | 'product-files' | 'plr-files' | 'store-assets' | 'student-avatars' | 'main-banners';
-
-type ImageUploadResult = { value: string };
-
-export async function uploadToObjectStorage(bucket: UploadBucket, file: File, options: { materialName?: string } = {}): Promise<string> {
-  // O app mantém a sessão do Supabase no armazenamento do navegador. A rota de
-  // presign precisa receber explicitamente o token para identificar quem está
-  // enviando o arquivo; cookies SSR não estão disponíveis neste fluxo legado.
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    throw new Error('Sua sessão expirou. Entre novamente para enviar arquivos.');
-  }
-
-  // Imagens são comprimidas no navegador para até 1,5 MB. Enviá-las pela API
-  // da própria plataforma evita bloqueios de CSP/CORS em logos, capas e fotos.
+export async function uploadToObjectStorage(bucket: UploadBucket, source: File, options: { materialName?: string } = {}): Promise<string> {
+  let file = source;
+  // Also compress campaign photos and admin banners, without server processing.
   if (bucket !== 'product-files' && bucket !== 'plr-files') {
-    const form = new FormData();
-    form.append('bucket', bucket);
-    form.append('file', file);
-    form.append('materialName', options.materialName || '');
-    const response = await fetch('/api/storage/upload-image', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${session.access_token}` },
-      body: form,
-    });
-    const payload = await response.json().catch(() => ({})) as Partial<ImageUploadResult> & { error?: string };
-    if (!response.ok || !payload.value) {
-      throw new Error(payload.error || 'Não foi possível enviar a imagem.');
+    if (source.size > 15 * 1024 * 1024 || !source.type.startsWith('image/') || source.type === 'image/svg+xml') {
+      throw new Error('Envie uma imagem PNG, JPG, WEBP, GIF ou AVIF de até 15 MB.');
     }
-    return payload.value;
+    const cover = bucket === 'product-covers';
+    const maxSizeMB = cover ? 0.25 : 1.5;
+    if ((source.type !== 'image/webp' || source.size > maxSizeMB * 1024 * 1024) && source.type !== 'image/gif') {
+      const compressed = await imageCompression(source, { maxSizeMB, maxWidthOrHeight: cover ? 1200 : 1920, useWebWorker: true, fileType: 'image/webp' });
+      file = new File([compressed], source.name.replace(/\.[^/.]+$/, '') + '.webp', { type: 'image/webp' });
+    }
   }
-
-  // Each request stays below Vercel's body limit, including for 15 MB files.
-  const send = async (fields: Record<string, string | Blob>) => {
-    const form = new FormData();
-    Object.entries({ bucket, ...fields }).forEach(([key, value]) => form.append(key, value));
-    let response: Response;
-    try {
-      response = await fetch('/api/storage/upload-file', {
-        method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` }, body: form,
-      });
-    } catch {
-      throw new Error('A conexão com a plataforma foi interrompida durante o envio. Tente novamente.');
+  const metadata = validateUploadMetadata({ bucket, fileName: file.name, contentType: file.type || 'application/octet-stream', size: file.size, materialName: options.materialName || '' });
+  const authorize = async (): Promise<DirectUploadTicket> => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const sessionResult = attempt ? await supabase.auth.refreshSession() : await supabase.auth.getSession();
+      const token = sessionResult.data.session?.access_token;
+      if (!token || sessionResult.error) throw new Error('Sua sessão expirou. Entre novamente para enviar arquivos.');
+      let response: Response;
+      try {
+        response = await fetch('/api/storage/presign-upload', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(metadata), cache: 'no-store', signal: AbortSignal.timeout(25000),
+        });
+      } catch {
+        throw new Error('Não foi possível autorizar o envio. Verifique sua conexão e tente novamente.');
+      }
+      if (response.status === 401 && !attempt) continue;
+      const ticket = await response.json().catch(() => ({})) as Partial<DirectUploadTicket> & { error?: string };
+      if (!response.ok || !ticket.uploadUrl || !ticket.value || !ticket.uploadHeaders) {
+        throw new Error(ticket.error || 'Não foi possível autorizar o envio. Tente novamente em instantes.');
+      }
+      return ticket as DirectUploadTicket;
     }
-    const result = await response.json().catch(() => ({})) as { id?: string; chunkSize?: number; value?: string; error?: string };
-    if (!response.ok) throw new Error(result.error || `Falha no envio do material (HTTP ${response.status}).`);
-    return result;
+    throw new Error('Sua sessão expirou. Entre novamente para enviar arquivos.');
   };
-  const ticket = await send({ action: 'init', name: file.name, materialName: options.materialName || '', size: String(file.size), contentType: file.type || 'application/octet-stream' });
-  if (!ticket.id || !ticket.chunkSize) throw new Error('Não foi possível iniciar o envio.');
-  try {
-    for (let offset = 0, index = 0; offset < file.size; offset += ticket.chunkSize, index++) {
-      await send({ action: 'chunk', id: ticket.id, index: String(index), file: file.slice(offset, offset + ticket.chunkSize) });
-    }
-    const result = await send({ action: 'complete', id: ticket.id });
-    if (!result.value) throw new Error('O armazenamento não confirmou o arquivo.');
-    return result.value;
-  } catch (error) {
-    await send({ action: 'cancel', id: ticket.id }).catch(() => undefined);
-    throw error;
-  }
+  const value = await sendDirectStorageUpload(file, authorize);
+  return normalizePublicAssetUrl(value) || value;
 }

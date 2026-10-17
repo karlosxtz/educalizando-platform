@@ -5,7 +5,7 @@ import { glossaryTerms } from '@/lib/glossary';
 import { seoLandings } from '@/lib/seo-landings';
 import { SITE_URL } from '@/lib/seo';
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const PUBLIC_SITEMAP_PATHS = [
   '/', '/sobre', '/lojas', '/buscar', '/ofertas', '/materiais-gratis',

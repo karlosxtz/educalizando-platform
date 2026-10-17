@@ -33,7 +33,7 @@ export async function getDisciplines(): Promise<Discipline[]> {
         .select('subject')
         .not('subject', 'is', null);
       if (!error && data?.length) {
-        return [...new Set(data.map((skill) => skill.subject?.trim()).filter(Boolean) as string[])]
+        return [...new Set([...FALLBACK_DISCIPLINES.map(item => item.name), ...(data.map((skill) => skill.subject?.trim()).filter(Boolean) as string[])])]
           .sort((a, b) => a.localeCompare(b, 'pt-BR'))
           .map((name) => ({ name, slug: toDisciplineSlug(name) }));
       }
