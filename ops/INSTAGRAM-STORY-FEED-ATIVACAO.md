@@ -2,10 +2,22 @@
 
 ## Situação e limite da entrega
 
-O proprietário informou que ainda não existe aplicativo da Educalizando na Meta.
-A implementação está preparada para Instagram Login, mas não foi possível testar
-uma publicação real, aprovação do aplicativo ou autorização de uma conta sem
-esse aplicativo. Nenhum post foi enviado e nenhum token real foi usado nos testes.
+O aplicativo Educalizando foi criado na Meta em 17/10/2026, sem portfólio
+empresarial por escolha do proprietário. As permissões básicas e de publicação
+estão prontas para teste. O perfil educalizando_brasil aceitou o convite de
+testador, e os Secrets foram cadastrados no Worker pelo Wrangler. A versão
+confirmada no painel da Meta é v26.0. Isso não equivale a acesso avançado nem
+liberação para todas as contas dos criadores. Nenhum post foi enviado.
+
+Na primeira autorização real, a conexão retornou falha. A documentação atual
+da Meta mostra as credenciais de curta duração dentro de `data: [{...}]`;
+o adaptador aceitava somente o formato plano anterior. O código agora aceita
+ambos na troca do código e na consulta ao perfil, exige uma única entrada válida,
+normaliza a capitalização do tipo da conta e usa multipart conforme o exemplo oficial.
+Os testes cobrem os dois formatos e rejeitam respostas vazias ou ambíguas.
+O callback registra somente etapas fixas e códigos numéricos/SQL para diagnóstico,
+sem URLs, respostas, códigos de autorização, tokens ou chaves. O retorno real
+precisa ser validado novamente após publicar essa correção.
 
 O painel oferece o botão “Criar Story ou Feed” nos produtos publicados e o menu
 “Instagram · Story e Feed”. Sem ativação, mostra claramente a pendência e permite
@@ -128,9 +140,9 @@ Wrangler com `--dry-run` aprovado. Prévia isolada no navegador confirmou JPEG
 Story 1080×1920, Feed 1080×1350, download e bloqueio de conexão/publicação sem
 configuração. A prévia usa dados de exemplo locais e não envia posts.
 
-Nenhum aplicativo da Meta foi criado ou aprovado nesta entrega; nenhuma conta
-real foi conectada e nenhuma publicação real foi enviada. A migration deve ser
-executada pelo administrador e a ativação depende da configuração abaixo.
+Na entrega inicial, os testes eram simulados. Depois, o administrador confirmou
+a execução da migration e autorizou a configuração do aplicativo e do servidor.
+Publicação real e aprovação para contas externas continuam sendo etapas separadas.
 
 `npm run test:instagram` cobre cifra por loja, OAuth state, campos mínimos,
 isolamento, repetição e concorrência, resultado incerto sem duplicação, JPEG
