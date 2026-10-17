@@ -148,7 +148,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
         <div className="h-52 sm:h-64 relative overflow-hidden bg-slate-950">
           {store.banner_url ? (
             <>
-              <CatalogImage src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
+              <CatalogImage thumbnail={false} loading="eager" fetchPriority="high" src={store.banner_url} alt={store.nome_loja} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
             </>
           ) : (
@@ -583,7 +583,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
                   {getProductGallery(selectedProduct).length > 0 && (
                     <div className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl bg-slate-100 p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {getProductGallery(selectedProduct).map((imageUrl, index) => (
-                        <CatalogImage key={`${imageUrl}-${index}`} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
+                        <CatalogImage key={`${imageUrl}-${index}`} thumbnail={false} src={imageUrl} alt={`${selectedProduct.titulo} — imagem ${index + 1}`} className="aspect-[4/3] min-w-full snap-center rounded-xl object-contain bg-white" />
                       ))}
                     </div>
                   )}

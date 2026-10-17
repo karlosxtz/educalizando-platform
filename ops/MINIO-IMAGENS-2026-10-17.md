@@ -17,6 +17,8 @@ Dados locais completos: `.cloudflare/minio-image-measurements.json`.
 - Logos de lojas/produtos, capas de combos e mosaicos carregam sob demanda,
   com dimensões declaradas e decodificação assíncrona.
 - Banner no fim da home deixa de competir com prioridade alta.
+- Banners no topo das lojas permanecem prioritários e em resolução original.
+  As galerias ampliadas dos cinco temas também preservam o original.
 - Preconnect/DNS-prefetch somente para o domínio existente do MinIO.
 - Uploads são compactados uma vez no navegador: avatar até 320px/0,06MB;
   capa até 1200px/0,18MB; banner até 1920px/0,32MB, conforme o compressor.
@@ -31,17 +33,32 @@ Dados locais completos: `.cloudflare/minio-image-measurements.json`.
 ## Previews antigos: preparação e pendência
 
 `node scripts/optimize-minio-previews.mjs` faz inventário público somente leitura.
+`--prepare` gera arquivos locais e um manifesto pendente, sem alterar o site.
 `node scripts/optimize-minio-previews.mjs --write` cria novos objetos sob
 `public-images/uploads/previews/v1/`, sem sobrescrever, apagar ou modificar
 cadastros/originais. Processamento local com sharp, nunca no Worker. Novas URLs
 dependem dos bytes gerados (hash), podendo receber cache imutável.
 
-A execução de gravação parou antes de criar objetos porque
-`OBJECT_STORAGE_ENDPOINT` e as credenciais de armazenamento não estão disponíveis
-no ambiente local. O manifesto permanece vazio. O usuário informou que abrirá
-o painel para permitir a continuidade. Não foram copiadas chaves do navegador
-nem criadas credenciais novas. Depois da geração autorizada, é necessário
-publicar o manifesto atualizado junto com a aplicação.
+A execução S3 inicial parou antes de criar objetos porque as credenciais não
+estavam disponíveis localmente. Após o login feito pelo usuário, foi usada a
+interface de upload do console MinIO, sem extrair tokens ou criar credenciais.
+Os arquivos foram preparados localmente e enviados em lote para a pasta nova.
+
+Resultado: 249 referências correspondem a 240 arquivos únicos. Peso agregado
+das referências: 63.664.751 bytes nos originais para 7.649.766 bytes nos previews,
+redução de 88%. Todos os 240 objetos passaram em HEAD público com status 200,
+Content-Type de imagem e tamanho igual ao arquivo local. Só então o manifesto
+da aplicação foi preenchido. Originais, cadastros e buckets privados intactos.
+O total de arquivos únicos adicionados é cerca de 7,45 MB; referências repetidas
+explicam a diferença em relação ao total agregado acima.
+
+A primeira publicação foi conferida na home: de 69 imagens sem lazy loading para
+3, mantendo 100 tags no HTML. Isso não significa que o navegador espere rolar
+para absolutamente toda imagem lazy: ele pode antecipar itens próximos da tela.
+
+Comprovação local: `.cloudflare/minio-previews-uploaded.png` e
+`.cloudflare/minio-preview-verification.json`. O manifesto atualizado precisa
+ser publicado com a aplicação para os novos URLs serem usados.
 
 ## Cache no Nginx da VPS: ainda depende de acesso
 
@@ -71,9 +88,14 @@ necessária para esta correção.
 | src/components/MainBannersCarousel.tsx | Retirar prioridade alta de banners abaixo da dobra. |
 | src/components/ui/CatalogImage.tsx | Lazy padrão, preview seguro e fallback para original. |
 | src/components/CatalogCover.tsx | Capas usam preview apenas quando disponível. |
+| src/app/loja/[slug]/themes/ThemeDefault.tsx | Galeria original e prioridade do banner da loja. |
+| src/app/loja/[slug]/themes/ThemeMinimalist.tsx | Galeria original e prioridade do banner da loja. |
+| src/app/loja/[slug]/themes/ThemeNetflix.tsx | Galeria original e prioridade do banner da loja. |
+| src/app/loja/[slug]/themes/ThemePinterest.tsx | Galeria original e prioridade do banner da loja. |
+| src/app/loja/[slug]/themes/ThemeLinkTree.tsx | Galeria original e prioridade do banner da loja. |
 | src/app/layout.tsx | Antecipar conexão com o MinIO. |
 | src/lib/catalog-image-url.ts | Resolver previews conhecidos no mesmo MinIO. |
-| src/lib/minio-preview-manifest.json | Inventário de previews verificados, inicialmente vazio. |
+| src/lib/minio-preview-manifest.json | Mapa de 249 referências para previews verificados no MinIO. |
 | src/lib/image-upload-profile.ts | Limites de compressão por finalidade. |
 | src/lib/object-storage-client.ts | Compressão no navegador antes do PUT direto MinIO. |
 | src/components/dashboard/FileUpload.tsx | Remover compressão duplicada e informar finalidade. |

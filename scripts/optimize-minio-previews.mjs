@@ -7,7 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const write = process.argv.includes('--write');
-if (process.argv.slice(2).some(arg => arg !== '--write')) throw new Error('Use --write or no options for a read-only inventory.');
+const prepare = process.argv.includes('--prepare');
+if ((write && prepare) || process.argv.slice(2).some(arg => !['--write', '--prepare'].includes(arg))) throw new Error('Use --write, --prepare or no options for a read-only inventory.');
 const env = { ...loadEnv('production', process.cwd(), ''), ...process.env };
 const bucket = env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images';
 if (bucket !== 'public-images') throw new Error('Maintenance restricted to the existing public-images bucket.');
@@ -46,16 +47,17 @@ for (const [table, fields] of [['products', 'id,capa_url'], ['stores', 'id,logo_
     if ((data || []).length < 500) break;
   }
 }
-console.log(JSON.stringify({ mode: write ? 'create-public-previews' : 'inventory-only', sources: sourceUrls.size }));
-if (!write) process.exit(0);
-for (const key of ['OBJECT_STORAGE_ENDPOINT','OBJECT_STORAGE_ACCESS_KEY_ID','OBJECT_STORAGE_SECRET_ACCESS_KEY']) {
+console.log(JSON.stringify({ mode: write ? 'create-public-previews' : prepare ? 'prepare-local-files' : 'inventory-only', sources: sourceUrls.size }));
+if (!write && !prepare) process.exit(0);
+for (const key of write ? ['OBJECT_STORAGE_ENDPOINT','OBJECT_STORAGE_ACCESS_KEY_ID','OBJECT_STORAGE_SECRET_ACCESS_KEY'] : []) {
   if (!env[key]) throw new Error(`Missing configuration: ${key}`);
 }
-const storage = new S3Client({ endpoint: env.OBJECT_STORAGE_ENDPOINT, region: env.OBJECT_STORAGE_REGION || 'us-east-1',
+const storage = write ? new S3Client({ endpoint: env.OBJECT_STORAGE_ENDPOINT, region: env.OBJECT_STORAGE_REGION || 'us-east-1',
   forcePathStyle: env.OBJECT_STORAGE_FORCE_PATH_STYLE !== 'false', requestChecksumCalculation: 'WHEN_REQUIRED',
-  credentials: { accessKeyId: env.OBJECT_STORAGE_ACCESS_KEY_ID, secretAccessKey: env.OBJECT_STORAGE_SECRET_ACCESS_KEY } });
-const manifestFile = 'src/lib/minio-preview-manifest.json';
-const manifest = JSON.parse(await fs.readFile(manifestFile, 'utf8'));
+  credentials: { accessKeyId: env.OBJECT_STORAGE_ACCESS_KEY_ID, secretAccessKey: env.OBJECT_STORAGE_SECRET_ACCESS_KEY } }) : null;
+const manifestFile = write ? 'src/lib/minio-preview-manifest.json' : '.cloudflare/minio-preview-manifest.pending.json';
+const manifest = JSON.parse(await fs.readFile('src/lib/minio-preview-manifest.json', 'utf8'));
+await fs.mkdir('.cloudflare/minio-previews/v1', { recursive: true });
 const results = [];
 async function optimize(url) {
   try {
@@ -73,6 +75,12 @@ async function optimize(url) {
     if (preview.length >= original.length) { results.push({ path, skipped: 'already_small', bytes: original.length }); return; }
     const hash = createHash('sha256').update(preview).digest('hex').slice(0, 32);
     const key = `uploads/previews/v1/${hash}.webp`;
+    if (prepare) {
+      await fs.writeFile(`.cloudflare/minio-previews/v1/${hash}.webp`, preview);
+      manifest[path] = hash; // Pending file only; never used by the application before verification.
+      results.push({ path, before: original.length, after: preview.length, prepared: true });
+      return;
+    }
     await storage.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: preview, ContentType: 'image/webp',
       CacheControl: 'public, max-age=31536000, immutable' }), { abortSignal: AbortSignal.timeout(30000) });
     const check = await fetch(`https://arquivos.educalizando.com.br/${bucket}/${key}`, { method: 'HEAD', signal: AbortSignal.timeout(20000) });
@@ -94,4 +102,4 @@ const report = { sources: urls.length, generated: results.filter(item => item.af
 await fs.mkdir('.cloudflare', { recursive: true });
 await fs.writeFile('.cloudflare/minio-preview-generation.json', JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ ...report, results: undefined }));
-storage.destroy();
+storage?.destroy();

@@ -9,6 +9,11 @@ function load(file, mocks = {}) {
   return exports;
 }
 const { imageUploadProfile } = load('src/lib/image-upload-profile.ts');
+const publishedManifest = JSON.parse(fs.readFileSync('src/lib/minio-preview-manifest.json','utf8'));
+for (const [path, hash] of Object.entries(publishedManifest)) {
+  assert(path.startsWith('/public-images/uploads/') && !path.includes('?') && !path.includes('/../'));
+  assert(/^[a-f0-9]{32}$/.test(hash));
+}
 assert.equal(imageUploadProfile('product-files'), null);
 assert.equal(imageUploadProfile('plr-files'), null);
 assert.equal(imageUploadProfile('store-assets', 'avatar').maxWidthOrHeight, 320);
@@ -31,6 +36,11 @@ const image=fs.readFileSync('src/components/ui/CatalogImage.tsx','utf8');
 assert(image.includes("loading = 'lazy'") && image.includes('fallback !== src'));
 assert(!image.includes('image_retry='), 'Retry must preserve the exact original URL, no cache busting');
 assert(fs.readFileSync('src/components/MainBannersCarousel.tsx','utf8').includes('thumbnail={false} loading="lazy" fetchPriority="auto"'));
+for (const theme of ['ThemeDefault','ThemeMinimalist','ThemeNetflix','ThemePinterest','ThemeLinkTree']) {
+  const source=fs.readFileSync(`src/app/loja/[slug]/themes/${theme}.tsx`,'utf8');
+  assert(source.includes('thumbnail={false} src={imageUrl}'), 'Full-size galleries preserve the original');
+  assert(source.includes('thumbnail={false} loading="eager" fetchPriority="high" src={store.banner_url}'), 'Store hero remains full-size and prioritized');
+}
 const maintenance=fs.readFileSync('scripts/optimize-minio-previews.mjs','utf8');
 assert(maintenance.includes('PutObjectCommand') && !maintenance.includes('DeleteObjectCommand'));
 assert(maintenance.includes('const key = `uploads/previews/v1/${hash}.webp`'));
