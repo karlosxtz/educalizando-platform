@@ -1,20 +1,20 @@
 import { supabase } from '@/lib/supabase';
 import imageCompression from 'browser-image-compression';
 import { normalizePublicAssetUrl } from './public-links';
+import { imageUploadProfile, type ImageRole } from './image-upload-profile';
 import { sendDirectStorageUpload, validateUploadMetadata, type DirectUploadTicket, type UploadBucket } from './direct-storage-upload';
 export type { UploadBucket } from './direct-storage-upload';
 
-export async function uploadToObjectStorage(bucket: UploadBucket, source: File, options: { materialName?: string } = {}): Promise<string> {
+export async function uploadToObjectStorage(bucket: UploadBucket, source: File, options: { materialName?: string; imageRole?: ImageRole } = {}): Promise<string> {
   let file = source;
   // Also compress campaign photos and admin banners, without server processing.
   if (bucket !== 'product-files' && bucket !== 'plr-files') {
     if (source.size > 15 * 1024 * 1024 || !source.type.startsWith('image/') || source.type === 'image/svg+xml') {
       throw new Error('Envie uma imagem PNG, JPG, WEBP, GIF ou AVIF de até 15 MB.');
     }
-    const cover = bucket === 'product-covers';
-    const maxSizeMB = cover ? 0.25 : 1.5;
-    if ((source.type !== 'image/webp' || source.size > maxSizeMB * 1024 * 1024) && source.type !== 'image/gif') {
-      const compressed = await imageCompression(source, { maxSizeMB, maxWidthOrHeight: cover ? 1200 : 1920, useWebWorker: true, fileType: 'image/webp' });
+    const profile = imageUploadProfile(bucket, options.imageRole)!;
+    if (source.type !== 'image/gif') {
+      const compressed = await imageCompression(source, { ...profile, initialQuality: 0.82, useWebWorker: true, fileType: 'image/webp' });
       file = new File([compressed], source.name.replace(/\.[^/.]+$/, '') + '.webp', { type: 'image/webp' });
     }
   }

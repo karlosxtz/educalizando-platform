@@ -85,6 +85,7 @@ async function authorize(body) {
   const renewedClient = load('src/lib/object-storage-client.ts', {
     '@/lib/supabase': { supabase: { auth: { getSession: async () => ({ data: { session: { access_token: 'old-token' } } }), refreshSession: async () => { refreshed++; return { data: { session: { access_token: 'renewed-token' } } }; } } } },
     './public-links': { normalizePublicAssetUrl: value => value },
+    './image-upload-profile': load('src/lib/image-upload-profile.ts'),
     './direct-storage-upload': { ...direct, sendDirectStorageUpload: async (_, auth) => (await auth()).value },
     'browser-image-compression': async input => input,
   });

@@ -1,4 +1,5 @@
 import FeaturedMonthlyCampaign from '@/components/FeaturedMonthlyCampaign';
+import CatalogImage from '@/components/ui/CatalogImage';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 import MonthlyCampaignCarousel from '@/components/MonthlyCampaignCarousel';
@@ -105,7 +106,7 @@ export default function HomepageMarketplace({
           <div className="marketplace-store-track flex w-max">
             {[0, 1].map((copy) => <div key={copy} className={`flex shrink-0 gap-3 pr-3 ${copy === 1 ? 'marketplace-store-copy' : ''}`} aria-hidden={copy === 1 || undefined}>
               {stores.map((store) => <Link prefetch={false} href={`/loja/${store.slug}`} key={`${copy}-${store.id}`} tabIndex={copy === 1 ? -1 : undefined} className="flex min-h-20 w-[245px] shrink-0 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 sm:w-[285px] sm:p-4">
-                {store.logo_url ? <img src={store.logo_url} alt="" className="h-12 w-12 shrink-0 rounded-full border border-slate-100 object-cover" /> : <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-black text-blue-700">{store.nome_loja?.charAt(0).toUpperCase() || 'L'}</span>}
+                {store.logo_url ? <CatalogImage src={store.logo_url} alt="" width={48} height={48} loading="lazy" className="h-12 w-12 shrink-0 rounded-full border border-slate-100 object-cover" /> : <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-black text-blue-700">{store.nome_loja?.charAt(0).toUpperCase() || 'L'}</span>}
                 <span className="min-w-0"><span className="block truncate text-sm font-black text-slate-900">{store.nome_loja}</span><span className="mt-1 flex items-center text-xs font-semibold text-slate-500"><Store className="mr-1 h-3.5 w-3.5" />Visitar vitrine</span></span>
               </Link>)}
             </div>)}

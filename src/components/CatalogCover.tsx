@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { BookOpen } from 'lucide-react';
-import { catalogImageUrl } from '@/lib/catalog-image-url';
+import { catalogThumbnailUrl } from '@/lib/catalog-image-url';
 import { normalizePublicAssetUrl } from '@/lib/public-links';
 
 export default function CatalogCover({ value, title, priority, className }: { value: string | null; title: string; priority: boolean; className: string }) {
-  const source = catalogImageUrl(value);
+  const source = catalogThumbnailUrl(value);
   // Keyed child resets the failure state when a different cover arrives.
   return <Cover key={source} source={source} fallback={normalizePublicAssetUrl(value)} title={title} priority={priority} className={className} />;
 }

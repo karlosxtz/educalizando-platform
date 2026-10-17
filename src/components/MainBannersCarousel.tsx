@@ -73,7 +73,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
                 )}
                 <CatalogImage 
                   src={catalogImageUrl(activeBanner.image_desktop_url) || undefined}
-                  fetchPriority="high" decoding="async"
+                  thumbnail={false} loading="lazy" fetchPriority="auto" decoding="async"
                   alt={activeBanner.title || 'Banner principal'} 
                   className="w-full h-full object-contain object-center"
                 />
@@ -86,7 +86,7 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
               )}
               <CatalogImage 
                 src={catalogImageUrl(activeBanner.image_desktop_url) || undefined}
-                fetchPriority="high" decoding="async"
+                thumbnail={false} loading="lazy" fetchPriority="auto" decoding="async"
                 alt={activeBanner.title || 'Banner principal'} 
                 className="w-full h-full object-contain object-center"
               />

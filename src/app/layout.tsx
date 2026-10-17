@@ -97,6 +97,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${educalizandoFont.variable} scroll-smooth overflow-x-hidden`} data-scroll-behavior="smooth">
+      <head>
+        <link rel="preconnect" href="https://arquivos.educalizando.com.br" />
+        <link rel="dns-prefetch" href="https://arquivos.educalizando.com.br" />
+      </head>
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden relative w-full">
         <Script id="creator-pwa-install-capture" strategy="beforeInteractive">{`
           (() => {

@@ -2,7 +2,6 @@
 
 import { uploadToObjectStorage } from '@/lib/object-storage-client';
 import { normalizePublicAssetUrl } from '@/lib/public-links';
-import imageCompression from 'browser-image-compression';
 import { AlertCircle,CheckCircle2,File,Image as ImageIcon,Info,RefreshCw,Sparkles,UploadCloud,VideoOff,X } from 'lucide-react';
 import { useRef,useState } from 'react';
 
@@ -81,32 +80,14 @@ export default function FileUpload({
     setUploading(true);
     setProgress(15);
 
-    let finalFile = file;
-
-    // 3. Compactação Inteligente de Imagens (Se for imagem, compacta no navegador antes do upload)
-    if (file.type.startsWith('image/')) {
-      try {
-        const options = {
-          maxSizeMB: 1.5, // Máximo de 1.5MB por imagem compactada (o suficiente para alta qualidade)
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-          fileType: 'image/webp' // Converte para webp para economizar ainda mais espaço
-        };
-        const compressedBlob = await imageCompression(file, options);
-        // Recriar como File para manter o nome original mas com nova extensão se necessário
-        const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
-        finalFile = new window.File([compressedBlob], newFileName, { type: 'image/webp' });
-      } catch (error) {
-        console.warn('Erro ao compactar a imagem, fazendo upload do arquivo original:', error);
-      }
-    }
-
     // Stop the progress timer on failures as well as successful uploads.
     const interval = setInterval(() => {
         setProgress((prev) => (prev >= 85 ? prev : prev + 15));
       }, 150);
     try {
-      const finalUrl = await uploadToObjectStorage(bucket, finalFile);
+      // Compress once, using dimensions appropriate to this image's role.
+      const imageRole = bucket === 'store-assets' && aspectRatio === '1:1' ? 'avatar' : aspectRatio === '3:1' ? 'banner' : 'cover';
+      const finalUrl = await uploadToObjectStorage(bucket, file, { imageRole });
       setProgress(100);
       setTimeout(() => {
         setUploading(false);
