@@ -1,5 +1,3 @@
-'use client';
-
 import CampaignTrackedLink from '@/components/CampaignTrackedLink';
 import { getSchoolCalendarArtworkForTag,SCHOOL_CALENDAR_EVENTS,type SchoolCalendarTag } from '@/lib/school-calendar';
 import { CalendarDays,ChevronRight,Sparkles } from 'lucide-react';

@@ -2,24 +2,41 @@
 
 import CatalogImage from '@/components/ui/CatalogImage';
 
-import { MainBanner } from '@/lib/banners-service';
+import type { MainBanner } from '@/lib/banners-service';
 import { catalogImageUrl } from '@/lib/catalog-image-url';
-import { AnimatePresence,motion } from 'framer-motion';
-import { ChevronLeft,ChevronRight,Search } from 'lucide-react';
+import { ChevronLeft,ChevronRight,Search,Pause,Play } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect,useState } from 'react';
+import { useEffect,useRef,useState } from 'react';
 
 export default function MainBannersCarousel({ banners }: { banners: MainBanner[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(true);
+  const carousel = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (isHovered || !banners || banners.length <= 1) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const syncMotion = () => setReducedMotion(motion.matches);
+    syncMotion();
+    motion.addEventListener('change', syncMotion);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+      setVisible(entries.some(entry => entry.isIntersecting));
+    });
+    if (carousel.current) observer?.observe(carousel.current);
+    if (!observer) setVisible(true);
+    return () => { motion.removeEventListener('change', syncMotion); observer?.disconnect(); };
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (isHovered || paused || !visible || reducedMotion || !banners || banners.length <= 1) return;
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [banners, isHovered]);
+  }, [banners.length, isHovered, paused, visible, reducedMotion]);
 
   // Se não houver banners, renderiza o Hero original como fallback
   if (!banners || banners.length === 0) {
@@ -52,21 +69,20 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
 
   return (
     <section 
+      ref={carousel}
+      aria-label="Campanhas em destaque"
       className="w-full relative overflow-hidden aspect-[21/9] bg-slate-50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsHovered(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsHovered(false); }}
     >
-      <AnimatePresence>
-        <motion.div
+        <div
           key={activeBanner.id}
-          initial={{ opacity: 0, x: '100%' }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: '-100%' }}
-          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           className="absolute inset-0 w-full h-full"
         >
           {activeBanner.link_url ? (
-            <Link href={activeBanner.link_url} className="block w-full h-full">
+            <Link prefetch={false} href={activeBanner.link_url} className="block w-full h-full">
               <picture className="w-full h-full">
                 {activeBanner.image_mobile_url && (
                   <source media="(max-width: 768px)" srcSet={catalogImageUrl(activeBanner.image_mobile_url) || undefined} />
@@ -92,12 +108,14 @@ export default function MainBannersCarousel({ banners }: { banners: MainBanner[]
               />
             </picture>
           )}
-        </motion.div>
-      </AnimatePresence>
+        </div>
 
       {/* Controles: Setas e Dots (só aparecem se tiver mais de 1 banner) */}
       {banners.length > 1 && (
         <>
+          <button type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? 'Reproduzir banners' : 'Pausar banners'} aria-pressed={paused} className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white text-blue-900 shadow-sm">
+            {paused ? <Play aria-hidden="true" className="h-5 w-5" /> : <Pause aria-hidden="true" className="h-5 w-5" />}
+          </button>
           <button 
             onClick={handlePrev}
             aria-label="Banner anterior"
