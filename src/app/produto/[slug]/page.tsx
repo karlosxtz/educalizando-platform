@@ -5,6 +5,7 @@ import { readPublicReviewSummary } from '@/lib/product-review-summary';
 import { readSeoProductReference } from '@/lib/seo-identity';
 import { isIndexableProduct, productMetadata, productStructuredData } from '@/lib/catalog-seo';
 import Footer from '@/components/Footer';
+import StoreAnalytics from '@/components/store/StoreAnalytics';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getBnccSkillsByIds,getCategories,getEducationLevels } from '@/lib/category-service';
 import { getPaidProductSalesCount } from '@/lib/product-social-proof';
@@ -193,6 +194,8 @@ export default async function GlobalProductDetailPage({ params, searchParams }: 
         <ProductDiscoveryLinks store={store} category={category} levels={selectedLevels} products={relatedProducts} />
       </div>
       <Footer />
+      <StoreAnalytics storeId={store.id} metaPixelId={store.meta_pixel_id} googleAnalyticsId={store.google_analytics_id}
+        viewContent={{ productId: product.id, title: product.titulo, price: Number(product.preco || 0), currency: 'BRL' }} />
     </div>
   );
 }
