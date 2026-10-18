@@ -10,6 +10,8 @@ import { useSearchGapTracking } from '@/components/store/useSearchGapTracking';
 
 // Import Themes
 import ThemeDefault from './themes/ThemeDefault';
+import StorefrontTheme from '@/components/store/themes/StorefrontTheme';
+import { storeThemeId } from '@/lib/store-themes';
 
 interface PublicStoreClientViewProps {
   store: Store;
@@ -126,7 +128,8 @@ export default function PublicStoreClientView({ store, initialProducts, initialC
     setSelectedCollection
   };
 
-  const theme = <ThemeDefault {...themeProps} />;
+  const selectedTheme = storeThemeId(store.layout_theme);
+  const theme = selectedTheme === 'default' ? <ThemeDefault {...themeProps} /> : <StorefrontTheme {...themeProps} theme={selectedTheme} />;
 
   const buttonStyle = store.button_style || 'rounded';
   return <div className={`store-button-style-${buttonStyle}`}>{theme}<style>{`.store-button-style-pill button,.store-button-style-pill a[class*="rounded"][class*="px-"]{border-radius:9999px!important}.store-button-style-square button,.store-button-style-square a[class*="rounded"][class*="px-"]{border-radius:.375rem!important}.store-button-style-rounded button,.store-button-style-rounded a[class*="rounded"][class*="px-"]{border-radius:.75rem!important}.store-button-style-soft button,.store-button-style-soft a[class*="rounded"][class*="px-"]{border-radius:1.25rem!important}.store-button-style-sharp button,.store-button-style-sharp a[class*="rounded"][class*="px-"]{border-radius:0!important}`}</style></div>;
