@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight, Camera, Check, CheckCircle2, ChevronDown, Download, ImagePlus, Loader2, RefreshCw, ShieldCheck, Smartphone } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Flame, Check, CheckCircle2, ChevronDown, Download, ImagePlus, Loader2, RefreshCw, ShieldCheck, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Product, Store } from '@/lib/types';
 import { instagramProductLink, type InstagramTarget, type InstagramPost, type InstagramSnapshot } from '@/lib/instagram-contract';
@@ -20,14 +20,18 @@ type Props = {
   statusLabels: Record<InstagramPost['status'], string>;
 };
 const primary = 'inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-40';
+function Instagram() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-8 w-8"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>;
+}
 export default function InstagramStudioView(p: Props) {
   const format = instagramDesignFormat(p.target, p.design);
   const publishReady = p.hasArt && !p.generating && p.ready && !p.busy && (p.target !== 'story' || p.snapshot?.account?.account_type === 'BUSINESS');
   return <div className="mx-auto max-w-7xl space-y-5 pb-12">
-    <header className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 sm:p-8">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full bg-violet-100/70 blur-3xl" />
+    <header className="relative overflow-hidden rounded-[28px] border border-fuchsia-200 bg-[linear-gradient(115deg,#fff7ed_0%,#fff1f5_45%,#f3e8ff_100%)] p-6 shadow-[0_12px_40px_-24px_rgba(192,38,211,0.45)] sm:p-8">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#f59e0b,#ec4899,#9333ea)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-20 h-64 w-64 rounded-full bg-fuchsia-200/50 blur-3xl" />
       <div className="relative flex flex-wrap items-center justify-between gap-5">
-        <div><Link href="/dashboard/produtos" className="inline-flex min-h-8 items-center gap-2 text-[11px] font-semibold text-slate-500 hover:text-violet-800"><ArrowLeft className="h-3.5 w-3.5" />Meus produtos</Link><div className="mt-3 flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white"><Camera className="h-5 w-5" strokeWidth={1.6} /></span><div><p className="text-[9px] font-bold uppercase tracking-[0.24em] text-violet-600">Estúdio de criação</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Turbine seu Instagram</h1></div></div><p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">Transforme seus materiais em publicações com a identidade da sua loja. Crie, personalize e compartilhe no Feed ou nos Stories.</p></div>
+        <div><Link href="/dashboard/produtos" className="inline-flex min-h-8 items-center gap-2 text-[11px] font-semibold text-slate-600 hover:text-violet-800"><ArrowLeft className="h-3.5 w-3.5" />Meus produtos</Link><div className="mt-3 flex items-center gap-4"><span aria-hidden="true" className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(145deg,#9333ea_0%,#db2777_55%,#f97316_100%)] text-white shadow-lg shadow-pink-500/25"><Instagram /><span className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-orange-100 text-orange-600 motion-safe:animate-pulse"><Flame className="h-4 w-4" fill="currentColor" /></span></span><div><p className="text-[9px] font-bold uppercase tracking-[0.24em] text-fuchsia-700">Estúdio de criação</p><h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Turbine seu <span className="bg-[linear-gradient(100deg,#7e22ce,#be185d,#c2410c)] bg-clip-text text-transparent">Instagram</span></h1></div></div><p className="mt-4 max-w-xl text-sm leading-6 text-slate-600">Transforme seus materiais em publicações com a identidade da sua loja. Crie, personalize e compartilhe no Feed ou nos Stories.</p></div>
         <div className="rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Criando para</p><p className="mt-1 text-sm font-bold text-slate-800">{p.store?.nome_loja || 'Sua loja'}</p></div>
       </div>
     </header>
