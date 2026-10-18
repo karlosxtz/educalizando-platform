@@ -2,6 +2,8 @@
 import { publicStoreUrl } from '@/lib/public-links';
 
 import StoreLivePreview from '@/components/dashboard/StoreLivePreview';
+import StoreThemePicker from '@/components/dashboard/StoreThemePicker';
+import { storeThemeId } from '@/lib/store-themes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
 AlertCircle,
@@ -98,7 +100,7 @@ export default function StoreSettingsPage() {
           cor_primaria: store.cor_primaria || '#2563eb',
           whatsapp: store.whatsapp ? formatWhatsApp(store.whatsapp) : '',
           instagram: store.instagram || '',
-          layout_theme: 'default',
+          layout_theme: storeThemeId(store.layout_theme),
           author_image_url: store.author_image_url || '',
           author_bio: store.author_bio || '',
           youtube: store.youtube || '',
@@ -141,7 +143,7 @@ export default function StoreSettingsPage() {
         cor_primaria: values.cor_primaria,
         whatsapp: values.whatsapp,
         instagram: values.instagram,
-        layout_theme: 'default',
+        layout_theme: storeThemeId(values.layout_theme),
         author_image_url: values.author_image_url,
         author_bio: values.author_bio,
         youtube: values.youtube,
@@ -496,13 +498,13 @@ export default function StoreSettingsPage() {
               />
             </div>
 
-            {/* Layout único */}
+            {/* Escolha visual: só é publicada ao salvar as configurações. */}
             <div className="space-y-3 pb-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                 Tema / Layout da Vitrine Pública
               </label>
-              <input type="hidden" value="default" {...register('layout_theme')} />
-              <div className="rounded-xl border-2 border-blue-600 bg-blue-50/50 p-4"><p className="font-bold text-slate-900 text-sm">✓ Vitrine padrão otimizada</p><p className="mt-1 text-xs text-slate-600">Layout estável, responsivo e focado na conversão. Personalize abaixo as cores e os formatos dos botões.</p></div>
+              <input type="hidden" {...register('layout_theme')} />
+              <StoreThemePicker value={watchedLayoutTheme} primary={watchedCorPrimaria} onChange={value => setValue('layout_theme', value, { shouldDirty: true, shouldValidate: true })} />
             </div>
 
             {/* Estilo dos Botões */}
