@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 const developmentScriptPolicy = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${developmentScriptPolicy};
+  script-src 'self' 'unsafe-inline'${developmentScriptPolicy} https://www.googletagmanager.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https:;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.checkout.infinitepay.io https://api.asaas.com https://arquivos.educalizando.com.br;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.checkout.infinitepay.io https://api.asaas.com https://arquivos.educalizando.com.br https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com;
   frame-src 'self' https://www.youtube.com;
   worker-src 'self' blob:;
   object-src 'none';

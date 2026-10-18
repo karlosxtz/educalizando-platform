@@ -11,6 +11,24 @@ function load(file, dependencies = {}, globals = {}) {
 }
 const store = load('src/lib/store-analytics-events.ts');
 const { createPlatformMetrics, isMetricsPage, isPurchaseConfirmation, metricsPageContext, PLATFORM_GA4_ID } = load('src/lib/platform-analytics.ts', { './store-analytics-events': store });
+// Exercise the deployed header configuration, not just SDK mocks: a blocked tag cannot measure anything.
+const config = load('next.config.ts', {}, { process: { env: { NODE_ENV: 'production' } } }).default;
+config.headers().then(rules => {
+  const policy = rules.find(rule => rule.source === '/(.*)').headers.find(header => header.key === 'Content-Security-Policy').value;
+  function permits(name, address) {
+    const origin = new URL(address).origin;
+    const directives = policy.split(';').map(part => part.trim().split(/\s+/));
+    const values = directives.find(part => part[0] === name).slice(1);
+    return values.some(value => value === origin || (value.startsWith('https://*.') && new URL(address).hostname.endsWith('.' + value.slice('https://*.'.length))));
+  }
+  assert(permits('script-src', `https://www.googletagmanager.com/gtag/js?id=${PLATFORM_GA4_ID}`));
+  assert(permits('connect-src', 'https://www.google-analytics.com/g/collect'));
+  assert(permits('connect-src', 'https://region1.google-analytics.com/g/collect'));
+  assert(!permits('script-src', 'https://arbitrary.example/script.js'));
+  assert(!permits('connect-src', 'https://google-analytics.com.evil.example/g/collect'));
+  assert(!policy.includes('unsafe-eval'));
+  console.log('PASS production CSP: consented Google tag and collection allowed; arbitrary hosts and eval remain blocked.');
+});
 for (const path of ['/', '/produto/material-real', '/loja/loja-real', '/categorias/historia', '/materiais-didaticos']) assert(isMetricsPage(path));
 for (const path of ['/admin', '/dashboard', '/aluno', '/api/catalog', '/login', '/busca?q=email', '/loja/loja-real/checkout', '/produto/real?email=private']) assert(!isMetricsPage(path));
 assert(isPurchaseConfirmation('/loja/loja-real/checkout/sucesso/order-123'));
