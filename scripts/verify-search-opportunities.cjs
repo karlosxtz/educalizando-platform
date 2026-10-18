@@ -66,7 +66,7 @@ assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/produto/inexiste
 assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/produto/constructor')), null);
 assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/produto/__proto__')), null);
 assert.equal(legacyProductRedirect(new Request(seo.SITE_URL + '/api/checkout')), null);
-console.log('PASS URLs antigas: 301 apenas em três correspondências confirmadas; query preservada, POST e checkout intactos.');
+console.log(`PASS URLs antigas: 301 apenas em ${Object.keys(LEGACY_PRODUCT_URLS).length} correspondências confirmadas; query preservada, POST e checkout intactos.`);
 const brand = load('src/lib/brand-assets.ts');
 const Header = load('src/components/MarketplaceHeader.tsx', {
   '@/lib/brand-assets': brand,

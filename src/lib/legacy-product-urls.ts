@@ -1,11 +1,13 @@
 import { SITE_URL } from './seo';
 
-// Search Console URLs returning 404 on 17/10/2026. Destinations were checked
-// against the published product, ID and owner; never infer matches at runtime.
+// Historical URLs verified against the published product. The UUID alias below
+// previously required a streamed HTML refresh; handle it before rendering instead.
+// Never infer matches or rewrite creator slugs at runtime.
 export const LEGACY_PRODUCT_URLS: Record<string, string> = {
   'arte-primavera-y66a': 'arte-primavera',
   'caixa-das-frases-40-frases-em-letra-cursiva-e-letra-bastao-62ce': 'caixa-das-frases-40-frases-em-letra-cursiva-e-letra-bastao',
   'lap-book-interativo-renascimento': 'lap-book-interativo-renascimento-7-ano',
+  'f08965bd-960b-4e4b-960a-782f663909d1': 'historinha-da-primavera-o-jardim-encantado-um-recurso-encantador-para-trabalhar-o-tema-primavera-de-forma-ludica-colorida-e-divertida-com-as-criancas-o-que-acompanha-historinha-da-primavera-em-plaquinhas-1-viseira-tematica-2-atividades-para-complementar-a-aprendizagem-plr-total-r-16-90-preco-para-venda-apenas-r-7-00-perfeito-para-momentos-de-contacao-de-historias-atividades-em-sala-e-para-deixar-a-chegada-da-primavera-ainda-mais-especi',
 };
 
 export function legacyProductRedirect(request: Request): Response | null {
