@@ -8,7 +8,11 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const write = process.argv.includes('--write');
 const prepare = process.argv.includes('--prepare');
-if ((write && prepare) || process.argv.slice(2).some(arg => !['--write', '--prepare'].includes(arg))) throw new Error('Use --write, --prepare or no options for a read-only inventory.');
+const args = process.argv.slice(2);
+const listIndex = args.indexOf('--sources');
+const listFile = listIndex >= 0 ? args[listIndex + 1] : null;
+const knownArgs = listIndex < 0 ? args : args.filter((_, index) => index !== listIndex && index !== listIndex + 1);
+if ((write && prepare) || (listIndex >= 0 && (!listFile || listFile.startsWith('--'))) || knownArgs.some(arg => !['--write', '--prepare'].includes(arg))) throw new Error('Use --write, --prepare or no options; optionally --sources path-to-public-url-list.json.');
 const env = { ...loadEnv('production', process.cwd(), ''), ...process.env };
 const bucket = env.OBJECT_STORAGE_BUCKET_PUBLIC_IMAGES || 'public-images';
 if (bucket !== 'public-images') throw new Error('Maintenance restricted to the existing public-images bucket.');
@@ -32,6 +36,11 @@ function add(value) {
       && /\.(?:jpe?g|png|webp|avif)$/i.test(url.pathname)) sourceUrls.add(url.href);
   } catch { /* Private, external and invalid URLs are deliberately excluded. */ }
 }
+if (listFile) {
+  const sources = JSON.parse(await fs.readFile(listFile, 'utf8'));
+  if (!Array.isArray(sources) || sources.some(url => typeof url !== 'string')) throw new Error('Sources must be a JSON array of public URLs.');
+  for (const url of sources) add(url);
+} else {
 // Prioritize the currently visible home. This is public HTML without a session.
 const home = await fetch('https://www.educalizando.com.br', { signal: AbortSignal.timeout(45000) });
 if (!home.ok) throw new Error('Public homepage unavailable.');
@@ -46,6 +55,7 @@ for (const [table, fields] of [['products', 'id,capa_url'], ['stores', 'id,logo_
     for (const row of data || []) for (const field of fields.split(',').filter(field => field !== 'id')) add(row[field]);
     if ((data || []).length < 500) break;
   }
+}
 }
 console.log(JSON.stringify({ mode: write ? 'create-public-previews' : prepare ? 'prepare-local-files' : 'inventory-only', sources: sourceUrls.size }));
 if (!write && !prepare) process.exit(0);
