@@ -1,5 +1,6 @@
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
+import IntentClassroomGuide from './IntentClassroomGuide';
 import ProductCard from '@/components/ProductCard';
 import { INTENT_EDITORIAL } from '@/lib/intent-editorial';
 import { readIntentProducts } from '@/lib/intent-catalog';
@@ -86,6 +87,7 @@ export default async function IntentLandingPage({ landing }: { landing: IntentLa
               <p className="mt-4 text-base leading-relaxed text-slate-600">{section.text}</p>
             </section>)}
           </div>}
+          <IntentClassroomGuide slug={landing.slug} />
           <section className="mt-14 grid gap-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-2 sm:p-9">
             <div>
               <div className="flex items-center gap-2 text-blue-700"><Lightbulb aria-hidden="true" className="h-5 w-5" /><h2 className="text-xl font-black">Como escolher um bom material</h2></div>
