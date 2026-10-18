@@ -1,4 +1,5 @@
 'use client';
+import GuidedProductDescription from '@/components/dashboard/GuidedProductDescription';
 
 import { readApiJson } from '@/lib/api-response';
 import { aiFetch } from '@/lib/ai-client';
@@ -386,13 +387,14 @@ export default function ProductWizardModal({
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                     Descrição Detalhada
                   </label>
-                  <input
-                    type="text"
+                  <textarea
+                    rows={4}
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Resumo do que o aluno encontrará..."
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm focus:outline-none transition-all"
                   />
+                  <GuidedProductDescription value={descricao} onChange={setDescricao} />
                 </div>
               </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import CatalogImage from '@/components/ui/CatalogImage';
+import ProductDescriptionContent from '@/components/store/ProductDescriptionContent';
 
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
 import dynamic from 'next/dynamic';
@@ -574,7 +575,7 @@ export default function ProductDetailClientView({
 
               <p className="text-xs text-slate-500">Descrição informada pelo criador.</p>
               <div className="text-sm sm:text-base text-slate-700 leading-relaxed space-y-3 whitespace-pre-line [overflow-wrap:anywhere]">
-                {displayedDescription || 'O criador ainda não adicionou uma descrição detalhada para este produto.'}
+                <ProductDescriptionContent value={displayedDescription || 'O criador ainda não adicionou uma descrição detalhada para este produto.'} />
               </div>
             </div>
 

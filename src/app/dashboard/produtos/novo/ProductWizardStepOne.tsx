@@ -14,6 +14,7 @@ X
 import Link from 'next/link';
 
 import AgeRangePicker from '@/components/dashboard/AgeRangePicker';
+import GuidedProductDescription from '@/components/dashboard/GuidedProductDescription';
 import LimitedMultiSelect from '@/components/ui/LimitedMultiSelect';
 import TagInput from '@/components/ui/TagInput';
 import { SCHOOL_CALENDAR_TAGS } from '@/lib/school-calendar';
@@ -93,6 +94,7 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
                     placeholder="Descreva o conteúdo do material, número de páginas, temas abordados e benefícios..."
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 rounded-xl text-slate-900 text-sm font-medium focus:outline-none"
                   />
+                  <GuidedProductDescription value={descricao} onChange={setDescricao} />
                 </div>
 
                 <div className="pt-2">

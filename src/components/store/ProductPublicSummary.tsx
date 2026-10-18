@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import CatalogImage from '@/components/ui/CatalogImage';
 import type { Product, Store } from '@/lib/types';
-import { readableProductDescription } from '@/lib/product-description';
+import ProductDescriptionContent from './ProductDescriptionContent';
 import { productCoverImageUrl, productPublicImageUrls } from '@/lib/seo';
 import CampaignAttribution from '@/components/CampaignAttribution';
 import { Suspense } from 'react';
@@ -21,7 +22,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
         {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
         {gallery.length > 0 && <section aria-label="Imagens cadastradas do material" className="grid grid-cols-3 gap-2">
           {gallery.map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Ampliar imagem da galeria ${index + 1} de ${product.titulo}`}>
-            <Image unoptimized src={url} alt={`Imagem da galeria ${index + 1} de ${product.titulo}`} width={240} height={240} loading="lazy" className="aspect-square w-full rounded-xl border border-slate-200 bg-white object-contain" />
+            <CatalogImage src={url} alt={`Imagem da galeria ${index + 1} de ${product.titulo}`} width={240} height={240} loading="lazy" className="aspect-square w-full rounded-xl border border-slate-200 bg-white object-contain" />
           </a>)}
         </section>}
       </div>
@@ -33,7 +34,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
         <p className="text-2xl font-bold text-blue-900">{price != null && Number.isFinite(Number(price)) ? Number(price) === 0 ? 'Gratuito' : Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Consulte as opções de compra'}</p>
         <Link href={checkout} className="inline-block rounded-xl bg-blue-900 px-6 py-3 font-bold text-white">Ver opções de compra</Link>
         <h2 className="text-xl font-bold">Sobre este material</h2>
-        <p className="whitespace-pre-line leading-relaxed text-slate-700">{readableProductDescription(description || '')}</p>
+        <ProductDescriptionContent value={description || ''} />
         <dl className="space-y-2 text-slate-700">
           {!license && product.page_count ? <div><dt className="inline font-bold">{product.tipo === 'video' ? 'Itens: ' : 'Páginas: '}</dt><dd className="inline">{product.page_count}</dd></div> : null}
           {!license && product.age_range && <div><dt className="inline font-bold">Faixa indicada: </dt><dd className="inline">{product.age_range}</dd></div>}
