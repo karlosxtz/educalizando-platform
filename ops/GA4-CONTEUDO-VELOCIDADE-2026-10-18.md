@@ -60,6 +60,16 @@ A conferência de recebimento encontrou uma falha preexistente adicional: a CSP 
 
 Na primeira versão publicada foram conferidas as 13 rotas do roteiro: páginas públicas com canonical e um H1, oito guias existentes, divulgação de privacidade, sitemap e robots 200. O sitemap retornou 397 URLs na data e nenhuma variante `/loja/.../produto/...`. A tag própria não estava no DOM antes do consentimento e apareceu depois do aceite; isso, sozinho, não comprovava recebimento, por causa do bloqueio CSP identificado depois. Não se deve declarar a coleta validada até conferir o recebimento na propriedade.
 
+### Conferência final em produção
+
+Código publicado até o commit `9ed7f25`, incluindo a correção de CSP `fa09a9f`. As 13 rotas passaram na conferência final: status, H1 único, canonical, guias e divulgação de privacidade; o header CSP permite os hosts previstos e a página do produto inclui preload da capa original. O sitemap respondeu 200 com **398 URLs** na última leitura, sem variantes de produto da loja; o total é dinâmico e não foi fixado em código.
+
+**GA4 recebido e validado:** a propriedade mostrou um usuário ativo e os eventos `first_visit`, `page_view` e `session_start` após a navegação consentida de teste. Isso comprova recebimento da navegação, não uma venda. A confirmação visual está no arquivo local `.cloudflare/ga4-recebimento-validado-2026-10-18.png`. A tag não estava presente antes do aceite e carregou depois; os testes de recusa e rotas privadas também passaram. Nenhuma compra fictícia foi disparada. A compra permanece pendente da próxima transação real consentida para conferência completa, com a limitação de itens descrita acima.
+
+No produto testado, as dez miniaturas exibidas no navegador carregaram com sucesso por URLs diretas de `/public-images/uploads/previews/v1/` no MinIO, preservando a imagem principal original.
+
+Último teste móvel do produto, 18/10 às 19:25: **75 de desempenho, SEO 100, LCP 4,9 s, índice de velocidade 3,5 s, CLS 0 e TBT 10 ms**. Antes: desempenho 70, LCP 5,6 s e índice de velocidade 5,6 s. [Relatório final do produto](https://pagespeed.web.dev/analysis/https-www-educalizando-com-br-produto-cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental/62woh1ii28?form_factor=mobile). A última medição da home nesta entrega foi 82 de desempenho e LCP 3,9 s, na primeira conferência acima. **O LCP ainda não está na faixa ideal**; estas medições não demonstram aprovação dos Core Web Vitals de campo nem garantem posição no Google.
+
 ## Validação local
 
 Lint: zero erros, 17 avisos preexistentes. Typecheck Vinext aprovado. Build de produção real com o script do projeto e empacotamento Wrangler em dry-run aprovado. A primeira tentativa de build esbarrou em acesso negado local numa dependência; a execução autorizada fora da restrição concluiu.
