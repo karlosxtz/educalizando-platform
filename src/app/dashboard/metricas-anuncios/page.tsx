@@ -2,6 +2,8 @@
 
 import { getCurrentCreatorStore,updateStore } from '@/lib/store-service';
 import type { Store } from '@/lib/types';
+import Link from 'next/link';
+import CampaignLinkBuilder from '@/components/dashboard/CampaignLinkBuilder';
 import { BarChart3,CheckCircle2,ExternalLink,Info,LineChart,Loader2,Save,Target } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
@@ -79,6 +81,7 @@ export default function MetricsAndAdsPage() {
       </div>
     </section>
 
+    <Link href="/dashboard/seo" className="block rounded-2xl border border-blue-200 bg-blue-50 p-5 text-blue-950"><strong>Plano de melhorias dos produtos →</strong><p className="mt-2 text-sm">Veja os cadastros e prévias que merecem atenção antes de divulgar sua loja.</p></Link>
     <section className="grid gap-4 md:grid-cols-3">
       <article className="rounded-2xl border bg-white p-5 shadow-sm"><Target className="h-6 w-6 text-blue-600" /><p className="mt-3 font-black">Meta Pixel</p><div className="mt-2"><TrackingStatus configured={Boolean(metaPixelId)} /></div></article>
       <article className="rounded-2xl border bg-white p-5 shadow-sm"><LineChart className="h-6 w-6 text-indigo-600" /><p className="mt-3 font-black">Google Analytics 4</p><div className="mt-2"><TrackingStatus configured={Boolean(googleAnalyticsId)} /></div></article>
@@ -99,6 +102,7 @@ export default function MetricsAndAdsPage() {
       <article className="rounded-3xl border bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 font-black text-indigo-700">2</span><div><h2 className="font-black">Como pegar o ID do Google Analytics</h2><p className="text-sm text-slate-500">Para acompanhar o tráfego da sua vitrine.</p></div></div><ol className="mt-5 space-y-3 text-sm leading-6 text-slate-700"><li><b>1.</b> Abra o Google Analytics e escolha ou crie uma propriedade GA4.</li><li><b>2.</b> Vá em <b>Administração → Fluxos de dados</b>.</li><li><b>3.</b> Selecione o fluxo <b>Web</b> da sua loja.</li><li><b>4.</b> Copie o ID de medição que começa com <b>G-</b>, cole aqui e salve.</li></ol><div className="mt-5 flex flex-wrap gap-4"><a href={GOOGLE_ANALYTICS_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-black text-blue-700 hover:underline">Abrir Google Analytics <ExternalLink className="h-4 w-4" /></a><a href={GOOGLE_HELP_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-black text-blue-700 hover:underline">Ver tutorial do Google <ExternalLink className="h-4 w-4" /></a></div></article>
     </section>
 
+    {store && <CampaignLinkBuilder slug={store.slug} />}
     <section className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><h2 className="font-black">Como testar depois de salvar</h2><p className="mt-2 leading-6">Abra sua vitrine em uma nova aba, aceite o aviso de métricas e navegue por uma página de produto. Depois confira os eventos no Gerenciador de Eventos da Meta ou no relatório em tempo real do Google Analytics. Os dados podem levar alguns minutos para aparecer nas plataformas externas.</p></section>
   </div>;
 }

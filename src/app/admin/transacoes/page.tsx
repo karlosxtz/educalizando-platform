@@ -1,4 +1,5 @@
 "use client";
+import OrderOriginsPanel from '@/components/admin/OrderOriginsPanel';
 
 import { downloadCSV } from '@/lib/csv-utils';
 import { DollarSign,Download,Loader2,RotateCcw,ShieldAlert } from 'lucide-react';
@@ -155,6 +156,7 @@ export default function SuperAdminTransacoes() {
         <p><strong>Antes de estornar:</strong> devolva o valor ao comprador pelo gateway quando aplicável. Esta ação da Educalizando revoga o acesso e registra os ajustes financeiros internos; ela não envia um PIX nem solicita reembolso automaticamente ao gateway.</p>
       </div>
 
+      <OrderOriginsPanel />
       <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-400">

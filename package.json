@@ -12,6 +12,7 @@
     "test:instagram": "node scripts/verify-instagram-publishing.cjs",
     "test:pinterest": "node scripts/verify-pinterest-publishing.cjs",
     "test:store-themes": "node scripts/verify-store-themes.cjs",
+    "test:product-growth": "node scripts/verify-product-growth.cjs",
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
