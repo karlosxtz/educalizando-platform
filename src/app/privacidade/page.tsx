@@ -30,7 +30,7 @@ export default function PrivacidadePage() {
               Política de Privacidade - Educalizando
             </h1>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-              Última atualização: <time dateTime="2026-10-17">17/10/2026</time>
+              Última atualização: <time dateTime="2026-10-18">18/10/2026</time>
             </p>
           </div>
 
@@ -69,12 +69,19 @@ export default function PrivacidadePage() {
             <section className="space-y-4">
               <h2 className="text-xl font-black text-slate-900">4. Uso de Cookies</h2>
               <p>
-                A plataforma utiliza cookies com duas funções essenciais e fundamentais para o nosso modelo de negócios:
+                A plataforma utiliza cookies para autenticação e atribuição de afiliados. As métricas opcionais são descritas separadamente abaixo:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Cookies de Autenticação:</strong> Para manter sua sessão ativa e segura na área do cliente, painel do produtor ou vitrine do afiliado.</li>
                 <li><strong>Cookies de Rastreamento (Afiliados):</strong> Para identificar de qual parceiro veio o comprador, garantindo que as comissões de venda sejam pagas corretamente e de forma justa a quem indicou o material.</li>
               </ul>
+            </section>
+
+            <section id="metricas" className="space-y-4 scroll-mt-6">
+              <h2 className="text-xl font-black text-slate-900">Métricas opcionais de visitas e compras</h2>
+              <p>Com sua autorização em “Aceitar métricas”, utilizamos Google Analytics, um serviço do Google, para entender visitas às páginas públicas, origens de campanhas e compras confirmadas. Podemos enviar o endereço público da página sem parâmetros de consulta, a origem do site de referência, identificadores de produtos e o identificador interno, valor e moeda de uma compra confirmada. Não enviamos nome, e-mail, CPF, endereço, dados de cartão, senhas ou links de acesso do comprador por essa integração.</p>
+              <p>O Google utiliza identificadores do navegador e cookies para produzir os relatórios. O carregamento da medição própria da plataforma depende de sua escolha; a recusa não impede navegar ou comprar. Para alterar sua escolha, use “Preferências de métricas” nas páginas públicas e selecione aceitar ou recusar. A recusa interrompe os novos envios desta integração. O tratamento de informações pelo Google é explicado na <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-700 underline">Política de Privacidade do Google</a>.</p>
+              <p>Algumas lojas também possuem integrações de métricas configuradas pelo próprio criador, com uma solicitação de consentimento separada. A escolha sobre as métricas da plataforma não autoriza automaticamente as métricas de cada loja, nem o contrário. Não utilizamos esta integração para capturar formulários automaticamente ou habilitar personalização de anúncios.</p>
             </section>
 
             <section className="space-y-4">

@@ -1,5 +1,6 @@
 import WhatsAppButton from '@/components/WhatsAppButton';
 import CampaignAttribution from '@/components/CampaignAttribution';
+import PlatformAnalytics from '@/components/PlatformAnalytics';
 import { DEFAULT_SOCIAL_IMAGE,DEFAULT_SOCIAL_IMAGE_ALT,SITE_URL } from '@/lib/seo';
 import type { Metadata,Viewport } from 'next';
 import Script from 'next/script';
@@ -121,6 +122,7 @@ export default function RootLayout({
           <CartSidebar />
           {children}
           <Suspense fallback={null}>
+            <PlatformAnalytics />
             <CampaignAttribution />
             <AffiliateTracker />
           </Suspense>
