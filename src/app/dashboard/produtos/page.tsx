@@ -3,6 +3,7 @@
 import { readApiJson } from '@/lib/api-response';
 import { notifySeoSaved, onSeoSaved } from '@/lib/seo-sync';
 import CatalogImage from '@/components/ui/CatalogImage';
+import ProductOpportunityReport from '@/components/dashboard/ProductOpportunityReport';
 import InstagramProductButton from '@/components/creator/InstagramProductButton';
 import { calculateProductSeoScore } from '@/lib/product-seo-score';
 import { toast } from 'sonner';
@@ -390,6 +391,7 @@ export default function ProductsManagementPage() {
         </div>
       </div>
 
+      {store && <ProductOpportunityReport products={products} storeId={store.id} compact />}
       {actionError && (
         <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-center gap-3 font-semibold" role="alert">
           <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
