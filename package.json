@@ -10,6 +10,7 @@
     "test:cloudflare-free": "node scripts/verify-public-page-cache.mjs && node scripts/verify-cloudflare-performance.mjs && node scripts/verify-cloudflare-adapters.cjs && node scripts/verify-catalog-images.mjs",
     "test:uploads": "node scripts/verify-direct-storage-upload.cjs && node scripts/verify-storage-upload.cjs && node scripts/verify-migration-client.cjs && node scripts/verify-product-create.cjs && node scripts/verify-club-save.cjs && node scripts/verify-product-relations.cjs",
     "test:instagram": "node scripts/verify-instagram-publishing.cjs",
+    "test:pinterest": "node scripts/verify-pinterest-publishing.cjs",
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",

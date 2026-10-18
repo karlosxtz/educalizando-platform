@@ -12,6 +12,7 @@ export * from 'vinext/server/fetch-handler';
 export default {
   ...app,
   async scheduled(_controller, _env, ctx) {
+    ctx.waitUntil(import('../src/lib/pinterest-publishing.ts').then(module => module.processPinterestQueue()).catch(() => console.error('pinterest_queue_unavailable')));
     ctx.waitUntil(import('../src/lib/woo-import-queue.ts').then(module => module.processWooImport()).catch(() => console.error('woo_import_queue_unavailable')));
     ctx.waitUntil(import('../src/lib/store-webhook-delivery.ts').then(module => module.dispatchStoreWebhooks()).then(result => {
       if (!result.schemaReady || result.receiptErrors) console.error('store_webhook_queue_attention');
