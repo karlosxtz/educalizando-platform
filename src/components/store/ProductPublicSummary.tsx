@@ -19,7 +19,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
     <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 md:grid-cols-2">
       <Suspense fallback={null}><CampaignAttribution storeId={store.id} /></Suspense>
       <div className="space-y-4">
-        {product.capa_url && <Image unoptimized src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
+        {product.capa_url && <Image unoptimized preload src={productCoverImageUrl(product.slug || product.id, product.capa_url)} alt={`Capa de ${product.titulo}`} width={600} height={800} loading="eager" fetchPriority="high" className="max-h-[640px] w-full rounded-2xl bg-white object-contain" />}
         {gallery.length > 0 && <section aria-label="Imagens cadastradas do material" className="grid grid-cols-3 gap-2">
           {gallery.map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Ampliar imagem da galeria ${index + 1} de ${product.titulo}`}>
             <CatalogImage src={url} alt={`Imagem da galeria ${index + 1} de ${product.titulo}`} width={240} height={240} loading="lazy" className="aspect-square w-full rounded-xl border border-slate-200 bg-white object-contain" />

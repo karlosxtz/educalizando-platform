@@ -22,19 +22,20 @@ Documentação técnica: [configuração do GA4](https://developers.google.com/a
 
 ## Imagens no MinIO
 
-Foram preparadas localmente e enviadas ao bucket público existente 57 prévias WebP, sem substituir os originais:
+Foram preparadas localmente 66 referências a prévias WebP, correspondentes a 64 arquivos distintos enviados ao bucket público existente, sem substituir os originais. O hash compartilha a mesma prévia quando duas imagens de origem possuem o mesmo conteúdo:
 
 | Conjunto | Prévias | Originais somados | Prévias somadas |
 | --- | ---: | ---: | ---: |
 | Novas capas e imagens do catálogo | 15 | 1.709.340 bytes | 365.936 bytes |
 | Galerias dos produtos prioritários | 42 | 19.322.044 bytes | 1.982.180 bytes |
-| Total | 57 | 21.031.384 bytes | 2.348.116 bytes |
+| Imagens adicionais da galeria completa | 9 | 4.134.866 bytes | 420.550 bytes |
+| Total | 66 | 25.166.250 bytes | 2.768.666 bytes |
 
-Redução de aproximadamente **89% nesses arquivos**, não de 89% do site inteiro. As 57 URLs responderam 200, com tipo imagem, tamanho esperado e Cache-Control contendo max-age=31536000, antes de entrar no manifesto. O catálogo usa somente prévias verificadas e preserva fallback no endereço original. As galerias principais mantêm as imagens originais; suas miniaturas passam a usar as prévias.
+Redução de aproximadamente **89% nesses arquivos**, não de 89% do site inteiro. As 66 URLs responderam 200, com tipo imagem, tamanho esperado e Cache-Control contendo max-age=31536000, antes de entrar no manifesto. O catálogo usa somente prévias verificadas e preserva fallback no endereço original. As galerias principais mantêm as imagens originais; suas miniaturas passam a usar as prévias. A conferência final leu todas as 60 imagens públicas registradas nos nove produtos prioritários, pois o JSON-LD mostra no máximo sete imagens por produto e não representa necessariamente a galeria inteira.
 
 Nenhum processamento de imagem foi acrescentado ao Worker. Os bytes continuam vindo diretamente do MinIO. Nenhum arquivo privado, material comprado, política de acesso, bucket ou transformação paga foi alterado. Novos uploads dos criadores continuam usando a arquitetura existente. O script de manutenção ganhou `--sources lista.json` para preparar apenas URLs públicas selecionadas, sem inventário completo a cada execução.
 
-A primeira imagem do produto também ganhou prioridade explícita, dimensões e exibição sem a animação inicial de opacidade, preservando a transição entre imagens posteriores.
+A primeira imagem do produto também ganhou prioridade explícita, dimensões e exibição sem a animação inicial de opacidade, preservando a transição entre imagens posteriores. Após o relatório apontar atraso na descoberta da capa, o resumo público ganhou preload compatível com o Vinext; a URL e o arquivo original permanecem iguais.
 
 ## Conteúdo editorial
 
@@ -51,6 +52,14 @@ A revisão das dez páginas está em [SEO-REVISAO-DEZ-PAGINAS-2026-10-18.md](SEO
 
 Testes PageSpeed de 18/10, Moto G Power emulado, 4G lento. São medidas de laboratório variáveis; não há dados CrUX suficientes nessa consulta e nota técnica 100 não é posição no Google. Relatórios: [home](https://pagespeed.web.dev/analysis/https-www-educalizando-com-br/m4wdpfuypz?form_factor=mobile) e [produto](https://pagespeed.web.dev/analysis/https-www-educalizando-com-br-produto-cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental/v9uj874vka?form_factor=mobile).
 
+### Primeira conferência após publicar
+
+Home: 82 de desempenho, LCP 3,9 s, SEO 100, CLS 0. Produto: 72 de desempenho, LCP 6,1 s, SEO 100, CLS 0. Houve redução das imagens, mas esse teste não comprovou melhora do LCP do produto. Isso motivou a conferência da galeria completa e o preload, sem escolher apenas resultados favoráveis. Relatórios: [home](https://pagespeed.web.dev/analysis/https-www-educalizando-com-br/w1qlae66fq?form_factor=mobile) e [produto](https://pagespeed.web.dev/analysis/https-www-educalizando-com-br-produto-cabelo-maluco-carrinho-de-corrida-pdf-educacao-infantil-e-fundamental/gc0231n7om?form_factor=mobile).
+
+A conferência de recebimento encontrou uma falha preexistente adicional: a CSP permitia scripts somente do próprio site, bloqueando também o SDK consentido do Google. O ajuste libera o host exato `www.googletagmanager.com` para scripts e os hosts oficiais de coleta Google para conexões, sem liberar scripts de origens arbitrárias nem eval em produção. O teste agora importa e executa a configuração real de headers, para não validar somente os mocks da SDK. A tentativa de injeção automática de Cloudflare Insights também aparece bloqueada no Lighthouse; esse serviço e sua coleta não foram ativados nesta entrega.
+
+Na primeira versão publicada foram conferidas as 13 rotas do roteiro: páginas públicas com canonical e um H1, oito guias existentes, divulgação de privacidade, sitemap e robots 200. O sitemap retornou 397 URLs na data e nenhuma variante `/loja/.../produto/...`. A tag própria não estava no DOM antes do consentimento e apareceu depois do aceite; isso, sozinho, não comprovava recebimento, por causa do bloqueio CSP identificado depois. Não se deve declarar a coleta validada até conferir o recebimento na propriedade.
+
 ## Validação local
 
 Lint: zero erros, 17 avisos preexistentes. Typecheck Vinext aprovado. Build de produção real com o script do projeto e empacotamento Wrangler em dry-run aprovado. A primeira tentativa de build esbarrou em acesso negado local numa dependência; a execução autorizada fora da restrição concluiu.
@@ -66,9 +75,12 @@ Testes aprovados: plataforma GA4 (inclusive ciclo do componente, consentimento, 
 | `src/app/layout.tsx` | Montar a integração em Suspense sem mudar as páginas. |
 | `src/app/privacidade/page.tsx` | Explicar medição opcional, dados tratados e como recusar. |
 | `scripts/verify-platform-analytics.cjs` | Regressões de privacidade, inicialização, deduplicação e renderização dos guias. |
-| `src/lib/minio-preview-manifest.json` | Habilitar somente as 57 novas prévias verificadas. |
+| `src/lib/minio-preview-manifest.json` | Habilitar somente as 66 novas prévias verificadas. |
 | `scripts/optimize-minio-previews.mjs` | Aceitar lista pública direcionada para manutenção local. |
 | `src/app/loja/[slug]/produto/[produtoSlug]/ProductDetailClientView.tsx` | Priorizar a primeira imagem e evitar atraso visual de opacidade. |
+| `src/components/store/ProductPublicSummary.tsx` | Antecipar a descoberta da capa original com preload. |
+| `next.config.ts` | Permitir os endereços oficiais necessários ao GA4 consentido na CSP. |
+| `scripts/verify-security-headers.ts` | Verificar as origens previstas e a manutenção das restrições de produção. |
 | `src/lib/intent-classroom-examples.ts` | Oito exemplos úteis e distintos, separados dos anúncios. |
 | `src/components/seo/IntentClassroomGuide.tsx` | Renderização acessível dos exemplos no servidor. |
 | `src/components/seo/IntentLandingPage.tsx` | Incluir o guia nas páginas existentes. |
