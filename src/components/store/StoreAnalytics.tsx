@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { captureStoreAttribution, readStoreAttribution } from '@/lib/store-webhook-contract';
 import { useEffect,useMemo,useRef,useState } from 'react';
 import { createStoreTracking, trackingIds, type TrackingBrowser, type TrackingProduct } from '@/lib/store-analytics-events';
+import { recordConversion } from '@/lib/conversion-client';
 type Props = { storeId: string; metaPixelId?: string | null; googleAnalyticsId?: string | null; viewContent?: TrackingProduct };
 
 function currentCampaignParameters(storeId: string) {
@@ -19,7 +20,15 @@ export default function StoreAnalytics({ storeId, metaPixelId, googleAnalyticsId
   const [choice, setChoice] = useState<{ key: string; value: 'accepted' | 'rejected' | null } | null>(null);
   const consent = choice?.key === storageKey ? choice.value : null;
   const viewedProduct = useRef<string | null>(null);
+  const productId = viewContent?.productId;
   const tracking = useMemo(() => createStoreTracking(storeId, ids, () => window as typeof window & TrackingBrowser, () => currentCampaignParameters(storeId)), [storeId, ids]);
+
+  useEffect(() => {
+    if (!productId) return;
+    const view = () => recordConversion({ storeId, productId, stage: 'view' });
+    view(); window.addEventListener('educalizando:metrics-consent', view);
+    return () => window.removeEventListener('educalizando:metrics-consent', view);
+  }, [storeId, productId]);
 
   // Listen before restoring consent: payment confirmation may arrive while the SDK initializes.
   useEffect(() => {

@@ -4,6 +4,7 @@ import { getCurrentCreatorStore,updateStore } from '@/lib/store-service';
 import type { Store } from '@/lib/types';
 import Link from 'next/link';
 import CampaignLinkBuilder from '@/components/dashboard/CampaignLinkBuilder';
+import StoreConversionPanel from '@/components/dashboard/StoreConversionPanel';
 import { BarChart3,CheckCircle2,ExternalLink,Info,LineChart,Loader2,Save,Target } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
@@ -81,11 +82,12 @@ export default function MetricsAndAdsPage() {
       </div>
     </section>
 
+    {store && <StoreConversionPanel storeId={store.id} />}
     <Link href="/dashboard/seo" className="block rounded-2xl border border-blue-200 bg-blue-50 p-5 text-blue-950"><strong>Plano de melhorias dos produtos →</strong><p className="mt-2 text-sm">Veja os cadastros e prévias que merecem atenção antes de divulgar sua loja.</p></Link>
     <section className="grid gap-4 md:grid-cols-3">
       <article className="rounded-2xl border bg-white p-5 shadow-sm"><Target className="h-6 w-6 text-blue-600" /><p className="mt-3 font-black">Meta Pixel</p><div className="mt-2"><TrackingStatus configured={Boolean(metaPixelId)} /></div></article>
       <article className="rounded-2xl border bg-white p-5 shadow-sm"><LineChart className="h-6 w-6 text-indigo-600" /><p className="mt-3 font-black">Google Analytics 4</p><div className="mt-2"><TrackingStatus configured={Boolean(googleAnalyticsId)} /></div></article>
-      <article className="rounded-2xl border border-blue-100 bg-blue-50 p-5"><Info className="h-6 w-6 text-blue-700" /><p className="mt-3 font-black text-blue-950">Onde os dados aparecem</p><p className="mt-1 text-sm text-blue-800">Nos painéis oficiais da Meta e do Google, não dentro da Educalizando.</p></article>
+      <article className="rounded-2xl border border-blue-100 bg-blue-50 p-5"><Info className="h-6 w-6 text-blue-700" /><p className="mt-3 font-black text-blue-950">Onde os dados aparecem</p><p className="mt-1 text-sm text-blue-800">O painel acima mostra indicadores internos. As integrações de anúncios continuam nos painéis oficiais da Meta e do Google.</p></article>
     </section>
 
     <section className="rounded-3xl border bg-white p-5 shadow-sm sm:p-7">

@@ -2,14 +2,14 @@ import { cleanTrackingEvent, trackingPayload, type TrackingBrowser } from './sto
 
 // Public measurement identifier. No API secret or server credentials belong here.
 export const PLATFORM_GA4_ID = 'G-39R0YCQBJS';
-export const PLATFORM_CONSENT_KEY = 'educalizando_platform_metrics_v1';
+export const PLATFORM_CONSENT_KEY = 'educalizando_platform_metrics_v2';
 const SITE = 'https://www.educalizando.com.br';
 const names = { ViewContent: 'view_item', AddToCart: 'add_to_cart', InitiateCheckout: 'begin_checkout', Purchase: 'purchase' };
 export type MetricsConsent = 'accepted' | 'rejected' | null;
 
 /** An allowlist avoids measuring private routes, order IDs and arbitrary search URLs. */
 export function isMetricsPage(path: string) {
-  return /^\/(?:lojas|materiais-didaticos|materiais-gratis|atividades-alfabetizacao|educacao-infantil|atividades-para-imprimir|jogos-pedagogicos|atividades-ensino-fundamental|planos-de-aula-bncc|recursos-pedagogicos)?\/?$/.test(path)
+  return /^\/(?:buscar|videos|marketplace-de-materiais-pedagogicos|lojas|materiais-didaticos|materiais-gratis|atividades-alfabetizacao|educacao-infantil|atividades-para-imprimir|jogos-pedagogicos|atividades-ensino-fundamental|planos-de-aula-bncc|recursos-pedagogicos)?\/?$/.test(path)
     || /^\/(?:produto|categorias|atividades-por-ano)\/[a-z0-9-]+\/?$/.test(path)
     || /^\/blog(?:\/[a-z0-9-]+)?\/?$/.test(path)
     || /^\/loja\/[a-z0-9-]+(?:\/produto\/[a-z0-9-]+)?\/?$/.test(path);

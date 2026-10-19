@@ -6,7 +6,7 @@ function load(file, dependencies = {}, globals = {}) {
   const output = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-  }).outputText, { exports: output, URL, URLSearchParams, ...globals, require: name => dependencies[name] || require(name) });
+  }).outputText, { exports: output, URL, URLSearchParams, Event, ...globals, require: name => dependencies[name] || require(name) });
   return output;
 }
 const store = load('src/lib/store-analytics-events.ts');
@@ -74,9 +74,11 @@ const hooks = {
   useEffect: (fn, deps) => { const index = cursor++; if (changed(slots[index]?.deps, deps)) { const previous = slots[index]; slots[index] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[index].cleanup = fn(); }); } },
 };
 const platformExports = load('src/lib/platform-analytics.ts', { './store-analytics-events': store });
-const sdkBrowser = { location: { search: '?email=private' }, gtag: (...args) => sdkCalls.push(args), addEventListener: (_, fn) => listeners.add(fn), removeEventListener: (_, fn) => listeners.delete(fn) };
+let withdrawnCollector = 0;
+const sdkBrowser = { location: { search: '?email=private' }, dispatchEvent: () => {}, gtag: (...args) => sdkCalls.push(args), addEventListener: (_, fn) => listeners.add(fn), removeEventListener: (_, fn) => listeners.delete(fn) };
 const Component = load('src/components/PlatformAnalytics.tsx', {
   react: hooks, 'next/script': { __esModule: true, default: 'mock-script' }, 'next/navigation': { usePathname: () => route }, '@/lib/platform-analytics': platformExports,
+  '@/lib/conversion-client': { recordConversion: () => {}, clearConversionSession: () => { withdrawnCollector++; } }, '@/lib/cart-service': { getCartByStore: () => [] },
 }, { window: sdkBrowser, document: { referrer: 'https://google.com/search?q=private' }, queueMicrotask: fn => microtasks.push(fn), localStorage: { getItem: () => { throw Error('blocked'); }, setItem: () => { throw Error('blocked'); } } }).default;
 const React = require('react');
 function render() { cursor = 0; effects = []; const tree = Component(); effects.forEach(fn => fn()); return tree; }
@@ -97,6 +99,7 @@ nodes(tree).find(n => n.type === 'button' && n.props.children === 'Preferências
 nodes(tree).find(n => n.type === 'button' && n.props.children === 'Recusar métricas').props.onClick(); tree = render();
 assert.equal(sdkBrowser[`ga-disable-${PLATFORM_GA4_ID}`], true);
 assert.equal(nodes(tree).filter(n => n.type === 'mock-script').length, 0);
+assert(withdrawnCollector > 0, 'Withdrawal clears the internal collector');
 console.log('PASS platform component: blocked storage, consent before SDK, Vinext callback timing, private navigation and withdrawal.');
 
 const { renderToStaticMarkup } = require('react-dom/server');

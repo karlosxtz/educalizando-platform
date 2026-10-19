@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { createPlatformMetrics, isMetricsPage, isPurchaseConfirmation, metricsPageContext, PLATFORM_CONSENT_KEY, PLATFORM_GA4_ID, type MetricsConsent } from '@/lib/platform-analytics';
 import type { TrackingBrowser } from '@/lib/store-analytics-events';
+import { recordConversion, clearConversionSession } from '@/lib/conversion-client';
+import { getCartByStore } from '@/lib/cart-service';
 
 export default function PlatformAnalytics() {
   const pathname = usePathname() || '';
@@ -22,7 +24,18 @@ export default function PlatformAnalytics() {
   }, [metrics]);
 
   useEffect(() => {
-    const listener = (event: Event) => metrics.event((event as CustomEvent).detail, pathname);
+    const listener = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      metrics.event(detail, pathname);
+      const checkoutPage = /^\/loja\/[a-z0-9-]+\/checkout\/?$/.test(pathname);
+      if (!isMetricsPage(pathname) && !checkoutPage) return;
+      if (detail?.event === 'AddToCart' && detail.product?.productId) recordConversion({ storeId: detail.storeId, productId: detail.product.productId, stage: 'cart' });
+      if (detail?.event === 'InitiateCheckout' && checkoutPage) {
+        const productId = new URLSearchParams(window.location.search).get('produtoId');
+        const ids = productId ? [productId] : getCartByStore(detail.storeId).map(item => item.productId);
+        for (const id of ids) recordConversion({ storeId: detail.storeId, productId: id, stage: 'checkout' });
+      }
+    };
     window.addEventListener('educalizando:tracking', listener);
     return () => window.removeEventListener('educalizando:tracking', listener);
   }, [metrics, pathname]);
@@ -37,6 +50,8 @@ export default function PlatformAnalytics() {
     browser[`ga-disable-${PLATFORM_GA4_ID}`] = choice !== 'accepted';
     try { localStorage.setItem(PLATFORM_CONSENT_KEY, choice); } catch { /* Never interrupt a visit. */ }
     metrics.consent(choice); setConsent(choice); setPreferences(false);
+    if (choice === 'rejected') clearConversionSession();
+    window.dispatchEvent(new Event('educalizando:metrics-consent'));
   }
 
   useEffect(() => {
@@ -58,7 +73,7 @@ export default function PlatformAnalytics() {
     </>}
     {showBanner ? <section aria-label="Preferências de métricas da Educalizando" className="fixed inset-x-3 bottom-3 z-[101] mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl">
       <p className="text-sm font-black text-slate-900">Você permite medir sua visita?</p>
-      <p className="mt-1 text-xs leading-6 text-slate-600">Com sua permissão, a Educalizando usa Google Analytics para entender visitas, campanhas e compras confirmadas. Não enviamos nome, e-mail ou documentos. Sua escolha não impede a compra. <a href="/privacidade#metricas" className="font-bold underline">Saiba mais</a>.</p>
+      <p className="mt-1 text-xs leading-6 text-slate-600">Com sua permissão, a Educalizando usa Google Analytics e métricas internas para entender visitas, carrinhos, campanhas e compras confirmadas. Não enviamos nome, e-mail ou documentos. Sua escolha não impede a compra. <a href="/privacidade#metricas" className="font-bold underline">Saiba mais</a>.</p>
       <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => choose('accepted')} className="min-h-11 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">Aceitar métricas</button><button onClick={() => choose('rejected')} className="min-h-11 rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-800">Recusar métricas</button></div>
     </section> : publicPage && <button onClick={() => setPreferences(true)} className="fixed bottom-2 left-2 z-40 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm">Preferências de métricas</button>}
   </>;

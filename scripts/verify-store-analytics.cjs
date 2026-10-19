@@ -77,6 +77,7 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/store/Stor
   localStorage: { getItem: () => { throw Error('storage disabled'); }, setItem: () => { throw Error('storage disabled'); } },
   require: name => ({ react: hooks, 'next/script': { __esModule: true, default: 'mock-script' },
     '@/lib/store-analytics-events': exportsObject, '@/lib/store-webhook-contract': { captureStoreAttribution: () => {}, readStoreAttribution: () => ({}) },
+    '@/lib/conversion-client': { recordConversion: () => {} },
   })[name] || require(name) });
 function render(props) { cursor = 0; effects = []; const tree = componentExports.default(props); effects.forEach(fn => fn()); return tree; }
 function nodes(tree) { return React.Children.toArray(tree?.props?.children).flatMap(child => typeof child === 'object' ? [child, ...nodes(child)] : []); }
