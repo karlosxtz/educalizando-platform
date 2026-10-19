@@ -10,7 +10,7 @@ const render=async()=>{renders++;return new Response('<html>public</html>',{head
 const first=await fetchPublicPage(request(),ctx,render,cache);assert.equal(first.headers.get('X-Educalizando-Page-Cache'),'MISS');assert.ok((await first.text()).includes('public'));
 await Promise.all(tasks.splice(0));
 const second=await fetchPublicPage(request(),ctx,render,cache);assert.equal(second.headers.get('X-Educalizando-Page-Cache'),'HIT');assert.equal(renders,1);assert.match(second.headers.get('Cache-Control'),/max-age=0/);
-for(const path of ['/admin','/dashboard','/login','/cliente','/aluno','/api/produtos','/loja/test/checkout','/?q=private','/buscar?q=test'])assert.equal(publicPageCacheKey(request(path)),null,path);
+for(const path of ['/admin','/dashboard','/login','/cliente','/aluno','/api/produtos','/loja/test/checkout','/?q=private','/buscar?q=test','/videos?q=test','/marketplace-de-materiais-pedagogicos?pagina=2'])assert.equal(publicPageCacheKey(request(path)),null,path);
 for(const headers of [{Cookie:'session=one'},{Authorization:'Bearer test'},{RSC:'1'},{'Next-Router-Prefetch':'1'},{'Next-Router-State-Tree':'state'},{'Accept':'text/x-component'},{Range:'bytes=0-100'},{'Cache-Control':'no-cache'}]) {
  assert.equal(publicPageCacheKey(request('/',{headers})),null);await fetchPublicPage(request('/',{headers}),ctx,render,cache);
 }
@@ -59,7 +59,7 @@ await Promise.all(tasks.splice(0));
 assert.equal((await fetchPublicPage(request(transitionPath),ctx,render,cache,freshRevision,time)).headers.get('X-Educalizando-Page-Cache'),'HIT');
 console.log('PASS: transição após edição não prolonga HTML stale do ISR no cache de borda.');
 // Existing editorial landings use public RLS data and the same catalogue revision.
-for (const path of ['/materiais-didaticos','/recursos-pedagogicos','/atividades-alfabetizacao','/educacao-infantil','/planos-de-aula-bncc','/atividades-para-imprimir','/jogos-pedagogicos','/atividades-ensino-fundamental']) {
+for (const path of ['/marketplace-de-materiais-pedagogicos','/videos','/materiais-didaticos','/recursos-pedagogicos','/atividades-alfabetizacao','/educacao-infantil','/planos-de-aula-bncc','/atividades-para-imprimir','/jogos-pedagogicos','/atividades-ensino-fundamental']) {
  const start = renders;
  await fetchPublicPage(request(path),ctx,render,cache,'editorial-v1'); await Promise.all(tasks.splice(0));
  assert.equal((await fetchPublicPage(request(path),ctx,render,cache,'editorial-v1')).headers.get('X-Educalizando-Page-Cache'),'HIT');

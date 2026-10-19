@@ -30,6 +30,7 @@ export default function HomepageMarketplace({ banners, products, stores, kits, m
   const offers = products.filter(product => !product.is_free && Number(product.preco_original || 0) > Number(product.preco || 0)).slice(0, 4);
   return <main className="home-marketplace flex-1 pb-8">
     <HomeIntroduction products={featured} />
+    <section className="home-layout py-5"><div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-violet-200 bg-violet-50 p-5"><div><h2 className="text-lg font-bold text-violet-950">Ideias que você pode ver em ação</h2><p className="mt-1 text-sm text-slate-600">Explore as vitrines e conheça as demonstrações dos criadores.</p></div><div className="flex flex-wrap gap-3"><Link href="/marketplace-de-materiais-pedagogicos" className="home-secondary">Explorar marketplace</Link><Link href="/videos" className="home-primary">Vídeos de professores</Link></div></div></section>
     <HomeDiscoveryBanners freeProduct={freeProducts[0]} offer={offers[0]} />
     <section className="home-layout py-8 sm:py-10" aria-labelledby="home-categorias">
       <SectionHeading id="home-categorias" eyebrow="Um bom ponto de partida" title="O que sua turma vai descobrir?" href="/buscar" label="Todas as categorias" />

@@ -1,3 +1,4 @@
+import { readDiscoveryProducts } from '@/lib/discovery-catalog';
 import type { MetadataRoute } from 'next';
 import { readCatalogSitemapFields } from '@/lib/catalog-sitemap';
 import { SCHOOL_CALENDAR_EVENTS } from '@/lib/school-calendar';
@@ -14,9 +15,11 @@ const PUBLIC_SITEMAP_PATHS = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const catalog = await readCatalogSitemapFields();
+  const [catalog, discovery, videos] = await Promise.all([readCatalogSitemapFields(), readDiscoveryProducts(false, "", "", 1), readDiscoveryProducts(true, "", "", 1)]);
   const staticPaths = [
     ...PUBLIC_SITEMAP_PATHS,
+    ...(!discovery.unavailable && discovery.total ? ['/marketplace-de-materiais-pedagogicos'] : []),
+    ...(!videos.unavailable && videos.products.length ? ['/videos'] : []),
     ...Object.keys(seoLandings).map(slug => '/' + slug),
     ...SCHOOL_CALENDAR_EVENTS.map(event => '/calendario/' + event.slug),
     ...glossaryTerms.map(term => '/glossario/' + term.slug),

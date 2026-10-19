@@ -53,6 +53,8 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Compradores</h3>
             <ul className="space-y-3">
+              <li><Link href="/marketplace-de-materiais-pedagogicos" className="text-sm text-slate-600 hover:text-blue-600">Marketplace de materiais pedagógicos</Link></li>
+              <li><Link href="/videos" className="text-sm text-slate-600 hover:text-blue-600">Vídeos de professores</Link></li>
               <li><Link href="/buscar" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Explorar Categorias</Link></li>
               <li><Link href="/lojas" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
               <li><Link href="/atividades-por-ano" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>

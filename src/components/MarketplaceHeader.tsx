@@ -194,7 +194,8 @@ function MarketplaceHeaderInner() {
             </div>
 
             <nav className="flex items-center gap-5" aria-label="Mais formas de explorar">
-              <Link href="/materiais-gratis" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Materiais gratuitos</Link>
+              <Link href="/marketplace-de-materiais-pedagogicos" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Marketplace</Link>
+              <Link href="/videos" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Vídeos</Link>
               <Link href="/calendario" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Calendário escolar</Link>
               <Link href="/cadastro/produtor" className="rounded-lg bg-[#eef1e9] px-3 py-2 text-sm font-semibold text-[#355548] hover:bg-[#e3eada]">Quero vender</Link>
             </nav>
@@ -216,7 +217,7 @@ function MarketplaceHeaderInner() {
                   <button type="button" onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }} aria-label="Fechar menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><X className="h-5 w-5" /></button>
                 </div>
                 <nav className="grid gap-1 py-3" aria-label="Links principais">
-                  {[['/','Início'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/buscar?categoria=combo','Combos'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+                  {[['/','Início'],['/marketplace-de-materiais-pedagogicos','Marketplace de materiais pedagógicos'],['/videos','Vídeos de professores'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/buscar?categoria=combo','Combos'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
                 </nav>
                 <div className="border-t border-slate-100 pt-3">
                   <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Categorias rápidas</p>
