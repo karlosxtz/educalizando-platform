@@ -106,6 +106,12 @@ Verificações da versão final desta preparação: teste de acesso de revisão,
 
 Compatibilidade de sessão: o painel utiliza também Supabase JS com sessão local e `instagramFetch` envia o Bearer às APIs existentes. A entrada de revisão usa esse mesmo cliente e uma consulta autenticada de elegibilidade; não depende de cookies SSR para funcionar após o cadastro. O endpoint reutiliza `getRequestUser`, incluindo validação de segundo fator. Não retorna nome, e-mail, IDs ou tokens. Sessões não confirmadas, outros usuários e falhas recebem acesso negado; respostas têm `private, no-store` e `Vary: Authorization, Cookie`. Não há consulta periódica. A expiração fecha novas entradas/checagens da interface, não revoga a autorização OAuth existente do titular no Instagram.
 
+### Ativação e teste em produção
+
+Após autorização expressa do titular, `INSTAGRAM_REVIEW_ENABLED` foi alterada para `true`, mantendo o e-mail único e o prazo configurados. A versão de código `c30c8a8c` (commit `b90cb2d`) apresentou status Pronto na Cloudflare. Na sessão real da loja de revisão, o estúdio abriu, selecionou o produto publicado e gerou a prévia. O fluxo Conectar Instagram chegou à tela oficial de consentimento de `@educalizando_brasil`; o vínculo desta loja aguarda confirmação específica do titular. Nenhuma publicação foi enviada e a análise da Meta permanece não submetida. A exclusão de outras contas está coberta pelos testes de elegibilidade; não houve troca de sessão de outro criador para teste real.
+
+O titular autorizou especificamente o vínculo dessa loja a `@educalizando_brasil`. O retorno oficial exibiu `conexao=conectada` e o painel confirmou o perfil, a conexão privada da loja, a arte gerada e a ação Revisar e publicar. As instruções do revisor foram atualizadas para refletir o acesso e a conexão efetivamente testados. Nenhuma publicação foi enviada. Permanecem pendentes a senha no campo privado, gravação real, revisão dos países adicionais de processamento/suporte e consentimentos finais. Captura de confirmação armazenada localmente em `.cloudflare/meta-review-instagram-connected.png`, ignorada pelo Git.
+
 ## Verificação local e arquivos
 
 - `npm run lint`: exit 0, zero erros e 17 avisos existentes.
