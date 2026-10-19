@@ -1,0 +1,47 @@
+const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');const ts=require('typescript');
+function load(file,mocks={},globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:name=>name==='server-only'?{}:mocks[name]||require(name),Request,Response,Headers,URL,AbortSignal,console,...globals});return exports;}
+const search=load('src/lib/search-matching.ts');
+const discovery=load('src/lib/pedagogical-discovery.ts',{'./search-matching':search});
+const uuid=load('src/lib/conversion-events.ts');
+const comparison=load('src/lib/material-comparison.ts',{'./conversion-events':uuid});
+const health=load('src/lib/material-health.ts');const teaching=load('src/lib/teaching-article.ts');const guidance=load('src/lib/conversion-guidance.ts');
+const user='11111111-1111-4111-8111-111111111111',store='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333',other='44444444-4444-4444-8444-444444444444';
+const product={id,store_id:store,status:'publicado',titulo:'Leitura no 1º ano',descricao:'Português e leitura para turmas do primeiro ano.',age_range:'6 a 8 anos',tipo:'pdf',page_count:20,preco:8,preco_plr:30,is_plr:true,capa_url:'https://arquivos.educalizando.com.br/public-images/test.webp'};
+const criteria={goal:'Estou trabalhando leitura no 1º ano',stage:'',age:'7',subject:'Português'};
+assert(discovery.pedagogicalMatch(product,criteria));
+assert.equal(discovery.pedagogicalMatch({...product,status:'rascunho'},criteria),null);
+assert.equal(discovery.pedagogicalMatch({...product,age_range:null},criteria),null);
+assert.equal(discovery.pedagogicalMatch(product,{...criteria,age:'12'}),null);
+assert.equal(discovery.pedagogicalMatch(product,{...criteria,subject:'Matemática'}),null);
+assert.equal(discovery.pedagogicalMatch({...product,titulo:'Leitura',descricao:'Português'},criteria),null,'Never infer a missing grade');
+assert.equal(comparison.parseComparison(`${id}:standard,${id}:standard,${other}:plr,${user}:standard,${store}:standard`).length,3);
+assert.equal(comparison.parseComparison('bad:standard,'+id+':unknown').length,0);
+const plr=Object.fromEntries(comparison.comparisonFacts(product,'plr'));assert(!plr['Páginas'].includes('20'));assert.equal(plr['Preço'],'R$\u00a030,00');
+for(const value of ['http://127.0.0.1/a','https://evil.test/image','https://arquivos.educalizando.com.br/private-materials/file','https://arquivos.educalizando.com.br/public-images/a?token=secret','https://arquivos.educalizando.com.br:8443/public-images/a'])assert.equal(health.healthCoverUrl(value),null);
+assert.equal(health.materialHealthIssues(product,{state:'unverified',bytes:null}).some(issue=>issue.level==='error'),false);
+assert(health.materialHealthIssues(product,{state:'ok',bytes:900000}).some(issue=>issue.text.includes('mais leve')));
+assert.throws(()=>teaching.teachingArticleSection({goal:'curto',steps:'curto',adaptations:''}));
+const article=teaching.teachingArticleSection({goal:'Objetivo escrito pelo criador para esta turma.',steps:'Passos escritos pelo criador com preparação e aplicação real em sala de aula.',adaptations:'',product:{title:'Material real',slug:'material-real'}});
+assert(article.includes('https://www.educalizando.com.br/produto/material-real'));
+assert.equal(teaching.articleProductReferences('https://evil.test/produto/abc https://www.educalizando.com.br/produto/plr?licenca=plr').length,0);
+assert.equal(teaching.articleProductReferences(article)[0],'material-real');
+assert.equal(guidance.conversionGuidance({views:3,carts:0,checkouts:0,purchases:0}),null);
+assert(guidance.conversionGuidance({productId:id,views:15,carts:0,checkouts:0,purchases:0}).action.includes('hipótese'));
+function database(results){const calls=[];return {calls,from(table){const call={table,filters:[]};calls.push(call);const q={};for(const method of ['select','eq','is','order','limit','in','range'])q[method]=(...args)=>{call.filters.push([method,...args]);return q;};const result=()=>results[table]||{data:[],error:null};q.maybeSingle=()=>Promise.resolve(result());q.then=(resolve,reject)=>Promise.resolve(result()).then(resolve,reject);return q;}};}
+(async()=>{
+ let fetchCalls=0;const never=async()=>{fetchCalls++;throw Error('must not fetch');};await health.probePublicCover('https://evil.test/image',never);assert.equal(fetchCalls,0);
+ const head=async(_url,options)=>{assert.equal(options.method,'HEAD');assert.equal(options.redirect,'manual');return new Response(null,{status:302,headers:{location:'http://127.0.0.1/private'}});};assert.equal((await health.probePublicCover(product.capa_url,head)).state,'unverified');
+ assert.equal((await health.probePublicCover(product.capa_url,async()=>new Response(null,{status:404}))).state,'broken');
+ assert.equal((await health.probePublicCover(product.capa_url,async()=>{throw Error('timeout');})).state,'unverified');
+ let currentUser=null;let probes=0;
+ const db=database({stores:{data:null,error:null}});
+ const route=load('src/app/api/dashboard/material-health/route.ts',{'@/lib/api-auth':{getRequestUser:async()=>currentUser},'@/lib/supabase':{supabaseAdmin:db},'@/lib/conversion-events':uuid,'@/lib/request-rate-limit':{consumeRequestRateLimit:async()=>({allowed:true})},'@/lib/material-health':{...health,probePublicCover:async()=>{probes++;return {state:'ok',bytes:100};}}});
+ const request=new Request(`https://www.educalizando.com.br/api/dashboard/material-health?storeId=${store}`);
+ assert.equal((await route.GET(request)).status,401);assert.equal(db.calls.length,0);currentUser={id:user};assert.equal((await route.GET(request)).status,403);assert.equal(probes,0);assert(db.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='creator_id'&&f[2]===user));
+ const reviewDb=database({orders:{data:[{id:'order',store_id:store,items:[{product_id:id},{product_id:other}]}],error:null},reviews:{data:[],error:null},products:{data:[{id,store_id:store,stores:{creator_id:other}},{id:other,store_id:other,stores:{creator_id:other}}],error:null}});
+ const reviewRoute=load('src/app/api/customer/review-opportunities/route.ts',{'@/lib/api-auth':{getRequestUser:async()=>({id:user})},'@/lib/supabase':{supabaseAdmin:reviewDb}});
+ const response=await reviewRoute.GET(request);const body=await response.json();assert.deepEqual(body.productIds,[id]);
+ assert(reviewDb.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='status'&&f[2]==='paid'));assert(reviewDb.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='student_id'&&f[2]===user));
+ const fields=fs.readFileSync('src/lib/pedagogical-catalog.ts','utf8').match(/PEDAGOGICAL_FIELDS='([^']+)'/)[1];assert(!/arquivo_url|delivery_files|plr_license_url/.test(fields));assert(fields.includes('stores!products_store_id_fkey'));
+ console.log('PASS six improvements: evidence-based matching, unknown ages/grades excluded, comparison limit and PLR isolation, safe HEAD without SSRF/redirects, tenant ownership, verified buyer prompts, original article links and cautious conversion guidance.');
+})().catch(error=>{console.error(error);process.exitCode=1;});
