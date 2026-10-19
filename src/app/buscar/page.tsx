@@ -95,7 +95,7 @@ export default async function BuscarPage({
   const topStores = count === 0 ? await getTopMarketplaceStores(4) : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="search-results-page min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       <MarketplaceHeader />
 
       <main className="flex-1">
@@ -125,9 +125,7 @@ export default async function BuscarPage({
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             
             {/* Sidebar Esquerda (Filtros) */}
-            <div className="w-full min-w-0 lg:w-64 lg:shrink-0">
-              <SearchSidebar disciplines={disciplines} />
-            </div>
+            <SearchSidebar disciplines={disciplines} />
 
             {/* Conteúdo Principal (Resultados) */}
             <div className="min-w-0 flex-1 w-full">

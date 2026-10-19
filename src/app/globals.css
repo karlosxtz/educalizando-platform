@@ -75,6 +75,23 @@ html {
   overflow-x: clip;
 }
 
+@media (min-width: 64rem) {
+  /* overflow:hidden creates a non-scrolling ancestor and prevents viewport sticky. */
+  html:has(.search-results-page),
+  body:has(.search-results-page) {
+    overflow-x: clip;
+  }
+
+  .search-filter-sidebar {
+    position: sticky;
+    top: var(--search-filter-top, 11rem);
+  }
+
+  .search-filter-panel {
+    max-height: calc(100dvh - var(--search-filter-top, 11rem) - 1rem);
+  }
+}
+
 /* Custom Utilities for Clean White Theme */
 .glass-panel {
   background: #ffffff;

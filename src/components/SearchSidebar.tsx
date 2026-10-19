@@ -14,6 +14,7 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
   const router = useRouter();
   const params = useSearchParams();
   const dialog = useRef<HTMLDialogElement>(null);
+  const sidebar = useRef<HTMLElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const previousOverflow = useRef('');
   const id = useId();
@@ -22,6 +23,17 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
   const [pending, startTransition] = useTransition();
   const count = keys.filter(key => params.has(key)).length;
   const close = () => dialog.current?.close();
+  useEffect(() => {
+    const element = sidebar.current;
+    const header = element?.closest('.search-results-page')?.querySelector('header');
+    if (!element || !header || typeof ResizeObserver === 'undefined') return;
+    // Account for the responsive header and the optional cart summary above it.
+    const measure = () => element.style.setProperty('--search-filter-top', `${Math.ceil(header.getBoundingClientRect().height) + 16}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (!open) return;
     previousOverflow.current = document.body.style.overflow;
@@ -50,7 +62,8 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
       const changes = Object.fromEntries(keys.map(key => [key, String(data.get(key) || '') || null]));
       startTransition(() => router.push(searchHref(params.toString(), changes), { scroll: false }));
       if (mobile) close();
-    }} className="space-y-4">
+    }} className={mobile ? 'space-y-4' : 'flex min-h-0 flex-col gap-4'}>
+      <div className={mobile ? 'space-y-4' : 'min-h-0 space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]'}>
       {groups.map(group => <label key={group.key} className="block text-sm font-semibold text-slate-700">
         {group.label}
         {'kind' in group ? <input name={group.key} defaultValue={values.get(group.key) || ''} placeholder={group.placeholder} className="mt-2 block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-blue-600" /> : <select name={group.key} defaultValue={values.get(group.key) || ''} className="mt-2 block min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-base focus-visible:outline-2 focus-visible:outline-blue-600">
@@ -60,7 +73,8 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
         </select>}
       </label>)}
       <p className="text-xs leading-5 text-slate-600">Disciplina considera as habilidades BNCC cadastradas. Em PLR, Grátis/Pago filtra o produto final; a licença possui seu próprio valor.</p>
-      <div className="grid gap-2 pb-2">
+      </div>
+      <div className={`grid shrink-0 gap-2 pb-2 ${mobile ? '' : 'border-t border-slate-100 pt-3'}`}>
         <button disabled={pending} className="min-h-11 rounded-xl bg-blue-600 px-3 py-3 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60">{pending ? 'Atualizando…' : 'Aplicar filtros'}</button>
         <button type="button" disabled={pending} onClick={() => {
           startTransition(() => router.push(searchHref(params.toString(), Object.fromEntries(keys.map(key => [key, null]))), { scroll: false }));
@@ -70,7 +84,7 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
     </form>;
   };
 
-  return <aside className="w-full min-w-0 lg:w-64">
+  return <aside ref={sidebar} className="search-filter-sidebar w-full min-w-0 lg:w-64 lg:shrink-0">
     <button ref={trigger} type="button" aria-disabled={pending} aria-expanded={open} aria-controls={id} onClick={() => {
       if (pending) return;
       setDraft(params.toString());
@@ -80,7 +94,7 @@ export default function SearchSidebar({ disciplines = [] }: { disciplines?: Disc
       <span className="flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" /> Filtros{count > 0 ? ' (' + count + ')' : ''}</span><span>{pending ? 'Atualizando…' : 'Abrir'}</span>
     </button>
     <p role="status" className="sr-only">{pending ? 'Atualizando resultados. Aguarde.' : ''}</p>
-    <div className="hidden rounded-2xl border border-slate-200 bg-white p-5 lg:block"><h2 className="mb-4 text-lg font-bold">Filtrar materiais</h2>{form(false)}</div>
+    <div className="search-filter-panel hidden rounded-2xl border border-slate-200 bg-white p-5 lg:flex lg:flex-col"><h2 className="mb-4 shrink-0 text-lg font-bold">Filtrar materiais</h2>{form(false)}</div>
     <dialog ref={dialog} id={id} aria-labelledby={id + '-title'} onCancel={event => { event.preventDefault(); close(); }} onClose={() => {
       setOpen(false);
       trigger.current?.focus();
