@@ -77,7 +77,7 @@ Validação desta continuação: `npm run lint` e build Vinext/Wrangler com `nod
 
 ## Preparação técnica da conta dedicada
 
-O titular criou a loja **Revisão Meta Educalizando** e informou seu e-mail comercial como conta de teste. A sessão dessa loja apareceu no painel autenticado, com zero materiais publicados. Nenhuma senha foi lida ou solicitada pelo chat.
+O titular criou a loja **Revisão Meta Educalizando** e informou seu e-mail comercial como conta de teste. Após o cadastro feito pelo titular, o painel confirmou um produto publicado: **Material didatico 2027 META**, formato PDF, com capa. Nenhuma senha foi lida ou solicitada pelo chat.
 
 Foi preparado acesso temporário ao estúdio no endereço existente `/dashboard/instagram`. Ele usa a autenticação de servidor já existente (inclusive a verificação de segundo fator), exige e-mail confirmado e corresponde exatamente ao e-mail configurado no servidor. Não usa e-mail, loja ou papel passados por query string, nem amplia as permissões de APIs. O estúdio continua resolvendo somente a loja e os produtos do usuário autenticado pelos controles existentes.
 
@@ -97,16 +97,20 @@ Arquivos desta preparação:
 | --- | --- |
 | `src/lib/instagram-review-access.ts` | Validar configuração de teste e prazo, somente no servidor |
 | `src/app/dashboard/instagram/page.tsx` | Abrir o estúdio para a conta de revisão autenticada, preservando o aviso para as demais |
+| `src/components/creator/InstagramReviewGate.tsx` | Consultar a elegibilidade com a sessão real do painel, cancelar ao desmontar e preservar o aviso em falhas |
+| `src/app/api/creator/instagram/review-access/route.ts` | Validar identidade no servidor por Bearer ou cookie, retornando somente um booleano privado e sem cache |
 | `scripts/verify-instagram-review-access.cjs` | Testar configuração ausente, inválida, vencida, normalização, sessão ausente, outro usuário, e-mail não confirmado e falha de autenticação |
 | Este relatório | Registrar configuração efetiva, escopo e pendências |
 
 Verificações da versão final desta preparação: teste de acesso de revisão, regressão `verify-instagram-publishing.cjs`, lint (zero erros, 17 avisos existentes), `typecheck:vinext` e build de produção Vinext/Wrangler com `--dry-run` aprovados. Não foram alterados RLS, dados de criadores, preços, checkout, Asaas, webhooks ou o fluxo OAuth.
 
+Compatibilidade de sessão: o painel utiliza também Supabase JS com sessão local e `instagramFetch` envia o Bearer às APIs existentes. A entrada de revisão usa esse mesmo cliente e uma consulta autenticada de elegibilidade; não depende de cookies SSR para funcionar após o cadastro. O endpoint reutiliza `getRequestUser`, incluindo validação de segundo fator. Não retorna nome, e-mail, IDs ou tokens. Sessões não confirmadas, outros usuários e falhas recebem acesso negado; respostas têm `private, no-store` e `Vary: Authorization, Cookie`. Não há consulta periódica. A expiração fecha novas entradas/checagens da interface, não revoga a autorização OAuth existente do titular no Instagram.
+
 ## Verificação local e arquivos
 
 - `npm run lint`: exit 0, zero erros e 17 avisos existentes.
 - `node scripts/deploy-cloudflare.mjs --dry-run`: exit 0, build de produção Vinext e empacotamento Wrangler concluídos. Não houve deploy.
-- Nenhum código de aplicação ou dado cadastrado de criador foi alterado.
-- Este arquivo: registro das mudanças efetivamente salvas, impedimentos e próximos passos.
+- Código de acesso restrito alterado conforme a tabela acima; nenhum dado cadastrado de criador foi alterado pelo agente.
+- Este arquivo: registro das mudanças efetivamente salvas, impedimentos e próximos passos. As verificações foram repetidas após a adaptação da sessão Bearer, todas com exit 0.
 - `.cloudflare/educalizando-meta-icon-transparent-1024.png`: arquivo técnico local usado no upload da marca; diretório ignorado, não incluído no Git. A tentativa anterior com fundo branco também permanece local nesse diretório.
 - O diretório `output/` já estava não rastreado antes da tarefa e não foi incluído.
