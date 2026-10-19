@@ -11,7 +11,7 @@ import { getActiveBanners } from '@/lib/banners-service';
 import { getPublicMarketplaceKits } from '@/lib/marketplace-kit-service';
 import { getSchoolCalendarTagsForMonth } from '@/lib/school-calendar';
 import { absoluteUrl,serializeJsonLd,SITE_URL } from '@/lib/seo';
-import { getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
+import { getAllFreeProducts,getAllPublicMarketplaceProducts,getAllPublicStores } from '@/lib/store-service';
 import { pageMetadata } from '@/lib/page-seo';
 import { homepageKit, homepageProduct, homepageStore } from '@/lib/homepage-presentation';
 
@@ -35,14 +35,15 @@ async function loadPublicSection<T>(name: string, loader: () => Promise<T[]>): P
 export function generateMetadata() { return pageMetadata('/'); }
 
 async function HomeCatalog() {
-  const [products, banners, stores, kits] = await Promise.all([
-    loadPublicSection('produtos', () => getAllPublicMarketplaceProducts(100, 'cards')),
+  const [products, banners, stores, kits, freeProducts] = await Promise.all([
+    loadPublicSection('produtos', () => getAllPublicMarketplaceProducts(1000, 'cards')),
     loadPublicSection('banners', getActiveBanners),
     loadPublicSection('lojas', getAllPublicStores),
     loadPublicSection('kits', () => getPublicMarketplaceKits(8)),
+    loadPublicSection('gratuitos', () => getAllFreeProducts('cards')),
   ]);
 
-  return <HomepageMarketplace banners={banners} products={products.map(homepageProduct)} stores={stores.map(homepageStore)} kits={kits.map(homepageKit)} monthlyTags={getSchoolCalendarTagsForMonth()} />;
+  return <HomepageMarketplace banners={banners} products={products.map(homepageProduct)} freeProducts={freeProducts.map(homepageProduct)} stores={stores.map(homepageStore)} kits={kits.map(homepageKit)} monthlyTags={getSchoolCalendarTagsForMonth()} />;
 }
 
 export default function Home() {

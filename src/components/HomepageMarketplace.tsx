@@ -1,11 +1,10 @@
-import HomeDiscoveryBanners from '@/components/HomeDiscoveryBanners';
+import HomeRotatingHighlights from '@/components/HomeRotatingHighlights';
 import CatalogImage from '@/components/ui/CatalogImage';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import MarketplaceKitCard from '@/components/MarketplaceKitCard';
 import ProductCard from '@/components/ProductCard';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import UpcomingCalendarDates from '@/components/UpcomingCalendarDates';
-import { HomeIntroduction } from '@/components/HomeBrandContent';
 import type { MainBanner } from '@/lib/banners-service';
 import type { MarketplaceKit } from '@/lib/marketplace-kit-service';
 import type { Product, Store as StoreData } from '@/lib/types';
@@ -20,18 +19,17 @@ const categories = [
   { href: '/jogos-pedagogicos', label: 'Jogos pedagógicos', description: 'Ideias para aprender jogando', icon: Puzzle, color: 'bg-[#f1edf7] text-[#70578d]' },
 ];
 
-export default function HomepageMarketplace({ banners, products, stores, kits, monthlyTags }: {
+export default function HomepageMarketplace({ banners, products, freeProducts: allFreeProducts = [], stores, kits, monthlyTags }: {
   banners: MainBanner[]; products: MarketplaceProduct[]; stores: StoreData[];
-  kits: MarketplaceKit[]; monthlyTags: readonly string[];
+  kits: MarketplaceKit[]; monthlyTags: readonly string[]; freeProducts?: MarketplaceProduct[];
 }) {
   const featured = products.slice(0, 4);
-  const freeProducts = products.filter(product => product.is_free || Number(product.preco) === 0).slice(0, 4);
+  const freeProducts = [...new Map([...allFreeProducts, ...products.filter(product => product.is_free || Number(product.preco) === 0)].map(product => [product.id, product])).values()];
   const plrProducts = products.filter(product => product.is_plr && Number(product.preco_plr || 0) > 0 && product.has_plr_delivery).slice(0, 4);
   const offers = products.filter(product => !product.is_free && Number(product.preco_original || 0) > Number(product.preco || 0)).slice(0, 4);
   return <main className="home-marketplace flex-1 pb-8">
-    <HomeIntroduction products={featured} />
+    <HomeRotatingHighlights products={products} freeProducts={freeProducts} />
     <section className="home-layout py-5"><div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-violet-200 bg-violet-50 p-5"><div><h2 className="text-lg font-bold text-violet-950">Ideias que você pode ver em ação</h2><p className="mt-1 text-sm text-slate-600">Explore as vitrines e conheça as demonstrações dos criadores.</p></div><div className="flex flex-wrap gap-3"><Link href="/marketplace-de-materiais-pedagogicos" className="home-secondary">Explorar marketplace</Link><Link href="/videos" className="home-primary">Vídeos de professores</Link></div></div></section>
-    <HomeDiscoveryBanners freeProduct={freeProducts[0]} offer={offers[0]} />
     <section className="home-layout py-8 sm:py-10" aria-labelledby="home-categorias">
       <SectionHeading id="home-categorias" eyebrow="Um bom ponto de partida" title="O que sua turma vai descobrir?" href="/buscar" label="Todas as categorias" />
       <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">{categories.map(category => <Link key={category.href} href={category.href} className="home-category group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5">

@@ -334,7 +334,7 @@ export async function getPlrMarketplaceProducts(): Promise<(Product & { store?: 
 // BRINDES (PRODUTOS GRATUITOS)
 // ============================================================================
 
-export async function getAllFreeProducts(): Promise<(Product & { store?: Store })[]> {
+export async function getAllFreeProducts(view: 'complete' | 'cards' = 'complete'): Promise<(Product & { store?: Store })[]> {
   const isRealSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xyzcompany')
@@ -345,7 +345,7 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
       const { data, error } = await supabase
         .from('products')
         .select(`
-          *,
+          ${view === 'cards' ? 'id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at' : '*'},
           store:stores (
             id, nome_loja, slug, logo_url
           )
@@ -356,7 +356,7 @@ export async function getAllFreeProducts(): Promise<(Product & { store?: Store }
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data as (Product & { store?: Store })[];
+        return data as unknown as (Product & { store?: Store })[];
       }
     } catch (err) {
       console.error('[getAllFreeProducts] Erro:', err);
