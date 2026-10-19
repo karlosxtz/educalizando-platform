@@ -51,6 +51,7 @@ export default async function BuscarPage({
     { key: 'filter', value: filter, label: filter === 'plr' ? 'Licença PLR' : filter },
     { key: 'data', value: data, label: data },
   ].filter(item => item.value);
+  const filterChips = activeFilters.filter(item => item.key !== 'q');
 
   // Realiza a busca no service
   const productResult = isComboMarketplace
@@ -76,11 +77,11 @@ export default async function BuscarPage({
     pageSubtitle = 'Resgate materiais digitais gratuitos e acesse-os pela sua área de cliente.';
   } else if (q) {
     pageTitle = `Resultados para: "${q}"`;
-    pageSubtitle = `Encontramos ${count} material(is) relacionado(s) à sua busca.`;
+    pageSubtitle = count === 1 ? '1 material encontrado para sua busca.' : `${count} materiais encontrados para sua busca.`;
   } else if (categoria) {
     const catName = INITIAL_GLOBAL_CATEGORIES.find(c => c.slug === categoria)?.nome || categoria;
     pageTitle = `Explorando: ${catName}`;
-    pageSubtitle = `Encontramos ${count} material(is) nesta categoria.`;
+    pageSubtitle = count === 1 ? '1 material nesta categoria.' : `${count} materiais nesta categoria.`;
   }
   if (sort === 'popular' && !q && !categoria && !isPlrMarketplace) {
     pageTitle = 'Materiais mais acessados';
@@ -101,42 +102,36 @@ export default async function BuscarPage({
       <main className="flex-1">
         {/* Cabeçalho de Resultados */}
         <div className="bg-white border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-            <h1 className="break-words [overflow-wrap:anywhere] text-2xl md:text-4xl font-black text-slate-900 mb-2 tracking-tight">
+          <div className="max-w-7xl mx-auto grid gap-3 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,28rem)] lg:items-center lg:gap-6 lg:px-8">
+            <div className="min-w-0">
+            <h1 className="break-words [overflow-wrap:anywhere] text-xl sm:text-2xl font-black text-slate-900 mb-1 tracking-tight">
               {pageTitle}
             </h1>
             <p className="text-slate-500 font-medium text-sm md:text-base">
               {pageSubtitle}
             </p>
+            </div>
             <SearchQuery />
-            <SearchDiscovery />
           </div>
         </div>
 
         {/* Layout com Sidebar e Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <details className="mb-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Explorar datas e campanhas</summary><div className="grid grid-cols-1 gap-2 pt-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            {SCHOOL_CALENDAR_TAGS.map((tag) => {
-              const artwork = getSchoolCalendarArtworkForTag(tag);
-              const isActive = data === tag;
-              return <Link key={tag} href={searchHref(query, { data: isActive ? null : tag })} aria-current={isActive ? 'page' : undefined} className={`group relative flex min-h-12 min-w-0 items-center overflow-hidden rounded-xl border px-3 py-2 text-left text-xs font-black shadow-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md'}`}><Image src={artwork.src} alt="" fill sizes="(min-width: 1024px) 16rem, (min-width: 640px) 33vw, 100vw" className={`object-cover object-right opacity-20 transition duration-300 group-hover:scale-105 ${isActive ? 'opacity-25' : ''}`} /><span aria-hidden="true" className={`absolute inset-0 ${isActive ? 'bg-blue-700/55' : 'bg-gradient-to-r from-white via-white/90 to-white/20'}`} /><span className="relative min-w-0 break-words">{tag}</span></Link>;
-            })}
-          </div></details>
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
             
             {/* Sidebar Esquerda (Filtros) */}
             <SearchSidebar disciplines={disciplines} />
 
             {/* Conteúdo Principal (Resultados) */}
             <div className="min-w-0 flex-1 w-full">
-              {activeFilters.length > 0 && <nav aria-label="Filtros ativos" className="mb-5 flex flex-wrap items-center gap-2">
-                {activeFilters.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex max-w-full min-h-11 items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 focus-visible:outline-2 focus-visible:outline-blue-600"><span className="min-w-0 [overflow-wrap:anywhere]">{item.label}</span><span aria-hidden="true">×</span></Link>)}
+              {filterChips.length > 0 && <nav aria-label="Filtros ativos" className="mb-3 flex flex-wrap items-center gap-2">
+                {filterChips.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex max-w-full min-h-11 items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 focus-visible:outline-2 focus-visible:outline-blue-600"><span className="min-w-0 [overflow-wrap:anywhere]">{item.label}</span><span aria-hidden="true">×</span></Link>)}
                 <Link href="/buscar" className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-blue-700 underline">Limpar tudo</Link>
               </nav>}
               
               {/* Barra de Ordenação */}
               {(
-                <div className="flex flex-wrap items-center justify-between bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm gap-4">
+                <div className="flex flex-wrap items-center justify-between bg-white border border-slate-200 rounded-xl p-3 mb-4 shadow-sm gap-3">
                   <div>
                     <span className="text-sm font-bold text-slate-600">
                       {count} {count === 1 ? 'resultado' : 'resultados'}
@@ -211,6 +206,15 @@ export default async function BuscarPage({
 
             </div>
           </div>
+
+          <SearchDiscovery />
+          <details className="mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Explorar datas e campanhas</summary><div className="grid grid-cols-1 gap-2 pt-2 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {SCHOOL_CALENDAR_TAGS.map((tag) => {
+              const artwork = getSchoolCalendarArtworkForTag(tag);
+              const isActive = data === tag;
+              return <Link key={tag} href={searchHref(query, { data: isActive ? null : tag })} aria-current={isActive ? 'page' : undefined} className={`group relative flex min-h-12 min-w-0 items-center overflow-hidden rounded-xl border px-3 py-2 text-left text-xs font-black shadow-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md'}`}><Image src={artwork.src} alt="" fill sizes="(min-width: 1024px) 16rem, (min-width: 640px) 33vw, 100vw" className={`object-cover object-right opacity-20 transition duration-300 group-hover:scale-105 ${isActive ? 'opacity-25' : ''}`} /><span aria-hidden="true" className={`absolute inset-0 ${isActive ? 'bg-blue-700/55' : 'bg-gradient-to-r from-white via-white/90 to-white/20'}`} /><span className="relative min-w-0 break-words">{tag}</span></Link>;
+            })}
+          </div></details>
         </div>
       </main>
 
