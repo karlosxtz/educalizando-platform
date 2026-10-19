@@ -16,6 +16,7 @@ import FileUploadMultiple from '@/components/dashboard/FileUploadMultiple';
 import { productCompleteness } from '@/lib/product-completeness';
 
 
+import ProductVideoFields from '@/components/dashboard/ProductVideoFields';
 import ProductWizardStepOne from './ProductWizardStepOne';
 import ProductWizardStepThree from './ProductWizardStepThree';
 
@@ -98,7 +99,7 @@ export default function ProductWizardView({ state }: { state: any }) {
         <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-lg p-5 sm:p-10 space-y-8">
           <ProductWizardStepOne state={state} />
           {/* STEP 2: Product Cover Upload */}
-          {currentStep === 2 && (
+          {currentStep === 2 && <> <ProductVideoFields url={state.presentationVideoUrl} onChange={state.setPresentationVideoUrl} asCover={state.videoAsCover} onCoverChange={state.setVideoAsCover} cover={galleryUrls[0]} />
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -126,8 +127,7 @@ export default function ProductWizardView({ state }: { state: any }) {
                 maxItems={10}
                 cropCover={true}
               />
-            </motion.div>
-          )}
+            </motion.div></>}
 
           <ProductWizardStepThree state={state} />
           {/* STEP 4: Review & Publish */}

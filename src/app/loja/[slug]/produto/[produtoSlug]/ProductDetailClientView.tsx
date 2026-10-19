@@ -1,5 +1,7 @@
 'use client';
 
+import PresentationVideoPlayer from '@/components/PresentationVideoPlayer';
+import { productPresentationVideo } from '@/lib/presentation-video';
 import CatalogImage from '@/components/ui/CatalogImage';
 import { catalogImageUrl } from '@/lib/catalog-image-url';
 import ProductDescriptionContent from '@/components/store/ProductDescriptionContent';
@@ -15,7 +17,7 @@ import { getAuthenticatedUserRole } from '@/lib/student-service';
 import { supabase } from '@/lib/supabase';
 import { BnccSkill,Category,CouponValidationResult,EducationLevel,Product,ProductType,Review,Store } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
-import { AnimatePresence,motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, Clock3, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, Heart, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Printer, Search, Share2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, UserCheck, UserX, Video, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter,useSearchParams } from 'next/navigation';
@@ -83,14 +85,12 @@ export default function ProductDetailClientView({
   // Derive gallery images
   const galleryImages = [...new Set([product.capa_url, ...(product.images || []).map(image => image.url)]
     .map(catalogImageUrl).filter((url): url is string => Boolean(url)))];
+  const publicVideo = productPresentationVideo(product);
   const galleryMedia = [
     ...galleryImages.map((url) => ({ type: 'image' as const, url })),
-    ...(product.instagram_video_url ? [{ type: 'instagram' as const, url: product.instagram_video_url }] : []),
+    ...(publicVideo ? [{ type: 'presentation' as const, url: publicVideo.url }] : []),
   ];
   const activeMedia = galleryMedia[activeImageIndex];
-  const instagramEmbedUrl = activeMedia?.type === 'instagram'
-    ? activeMedia.url.replace(/\/(reels?|p|tv)\/([^/?#]+).*$/i, '/$1/$2/embed/captioned/')
-    : null;
   const hasConfiguredDelivery = Boolean(isPlrPurchase ? product.has_plr_delivery : product.has_original_delivery);
 
   useEffect(() => {
@@ -457,10 +457,7 @@ export default function ProductDetailClientView({
                       alt={`Prévia ${activeImageIndex + 1} de ${product.titulo}`}
                       loading="eager" fetchPriority={activeImageIndex === 0 ? 'high' : 'auto'}
                       width={600} height={800} className="w-full h-full object-contain"
-                    /> : <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full bg-slate-950">
-                      <iframe src={instagramEmbedUrl || activeMedia.url} title={`Vídeo do Instagram: ${product.titulo}`} className="h-full w-full border-0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy" />
-                      <a href={store.instagram || activeMedia.url} target="_blank" rel="noopener noreferrer" className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-2 text-xs font-black text-white shadow-lg"><Camera className="h-4 w-4 text-pink-400" /> Ver no Instagram</a>
-                    </motion.div>}
+                    /> : <PresentationVideoPlayer key={activeMedia.url} url={activeMedia.url} title={product.titulo} className="h-full w-full bg-slate-950"><CatalogImage thumbnail={false} src={product.capa_url || ''} alt={`Capa de ${product.titulo}`} className="h-full w-full object-contain" /></PresentationVideoPlayer>}
                   </AnimatePresence>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-semibold p-8 text-center">

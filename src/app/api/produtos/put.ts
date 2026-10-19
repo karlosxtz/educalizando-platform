@@ -1,3 +1,4 @@
+import { presentationVideo } from '@/lib/presentation-video';
 import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -34,7 +35,7 @@ export async function PUT(request: Request) {
     // Validar propriedade do produto
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('store_id,status,is_plr,preco,preco_original,is_free,preco_plr,has_plr_delivery,titulo,descricao,capa_url,category_id,education_level_id,color_mode,import_source,import_incomplete,import_price_confirmed')
+      .select('store_id,status,is_plr,preco,preco_original,is_free,preco_plr,has_plr_delivery,titulo,descricao,capa_url,category_id,education_level_id,color_mode,import_source,import_incomplete,import_price_confirmed,presentation_video_url,instagram_video_url,video_as_cover')
       .eq('id', id)
       .maybeSingle();
     if (product) {
@@ -161,6 +162,16 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'Use o link público de um post ou Reel do Instagram.' }, { status: 400 });
       }
       cleanedUpdates.instagram_video_url = instagramVideoUrl;
+    }
+    if ('presentation_video_url' in cleanedUpdates || 'video_as_cover' in cleanedUpdates) {
+      const rawVideo = 'presentation_video_url' in cleanedUpdates ? cleanedUpdates.presentation_video_url : product.presentation_video_url;
+      const parsedVideo = presentationVideo(rawVideo);
+      const asCover = 'video_as_cover' in cleanedUpdates ? cleanedUpdates.video_as_cover : product.video_as_cover;
+      const legacy = 'instagram_video_url' in cleanedUpdates ? cleanedUpdates.instagram_video_url : product.instagram_video_url;
+      if ((rawVideo != null && (typeof rawVideo !== 'string' || rawVideo.trim()) && !parsedVideo) || (asCover != null && typeof asCover !== 'boolean') || (asCover && !parsedVideo && !presentationVideo(legacy))) {
+        return NextResponse.json({ error: 'Confira o link público do YouTube/Instagram e a opção de capa em vídeo.' }, { status: 400 });
+      }
+      if ('presentation_video_url' in cleanedUpdates) cleanedUpdates.presentation_video_url = parsedVideo?.url || null;
     }
     if ('is_free' in cleanedUpdates && cleanedUpdates.is_free) {
       cleanedUpdates.is_free = Boolean(cleanedUpdates.is_free);

@@ -95,6 +95,11 @@ export default function PrivacidadePage() {
               </div>
             </section>
 
+            <section id="videos-publicos" className="space-y-4 scroll-mt-6">
+              <h2 className="text-xl font-black text-slate-900">Demonstrações públicas em vídeo</h2>
+              <p>Os criadores podem associar links públicos do YouTube e Instagram aos materiais. As capas em imagem continuam sendo servidas pela estrutura de arquivos da Educalizando. O player externo é carregado quando o visitante clica para assistir ou, nas capas do YouTube que permitem prévia, após uma interação intencional com o mouse. Preferências de movimento reduzido desativam essa prévia automática.</p>
+              <p>Ao carregar o player, seu navegador se conecta diretamente ao provedor, que pode receber informações técnicas como endereço IP, navegador e interação com o vídeo e aplicar suas próprias regras de cookies, login e privacidade. O YouTube utiliza o domínio de incorporação com privacidade aprimorada. Esses players são independentes da conexão de publicação do Instagram e da autorização de métricas da Educalizando.</p>
+            </section>
             <section id="instagram" className="space-y-4 scroll-mt-6">
               <h2 className="text-xl font-black text-slate-900">Integração opcional com Instagram</h2>
               <p>Quando a integração estiver ativada e você autorizar a conexão, a Educalizando tratará o identificador, o nome de usuário, o tipo da conta e a credencial de autorização do Instagram. A credencial é armazenada de forma cifrada no servidor e não é exibida a outros criadores. Não solicitamos sua senha do Instagram.</p>

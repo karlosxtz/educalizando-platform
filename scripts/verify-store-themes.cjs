@@ -26,7 +26,7 @@ const store = { id: 'store-test', slug: 'loja-teste', nome_loja: 'Loja de teste'
 const product = { id: 'product-test', titulo: 'Material de teste', slug: 'material-teste', preco: 12, tipo: 'pdf', descricao: 'Descrição de teste', capa_url: null, store_id: store.id, listing_mode: 'standard', created_at: '2026-10-18', review_count: 0 };
 const additions = [];
 const cardModule = load('src/components/store/themes/StorefrontProductCard.tsx', {
-  '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/components/store/ProductEducationBadges': { default: () => null },
+  '@/components/store/StoreVideoCover': { default: ({product}) => React.createElement('img', {src:product.capa_url,alt:product.titulo}) }, '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/components/store/ProductEducationBadges': { default: () => null },
   '@/components/store/CartContext': { useCart: () => ({ addToCart: item => additions.push(item) }) }, '@/lib/product-description': description, './StorefrontTheme.module.css': css,
 });
 assert.equal(cardModule.storefrontProductHref(store, { ...product, listing_mode: 'plr' }), '/loja/loja-teste/produto/material-teste?licenca=plr');
@@ -46,9 +46,9 @@ const free = cardModule.default({ store, product: { ...product, preco: 0, is_fre
 assert.equal(walk(free, node => node.type === 'button'), null);
 const props = { store, products: [product], filteredProducts: [product], categories: [], educationLevels: [], kits: [], clubs: [], selectedCategory: 'all', selectedEducation: 'all', selectedCollection: 'all', searchFilter: '', setSearchFilter() {}, setSelectedCategory() {}, setSelectedEducation() {}, setSelectedCollection() {} };
 const hero = load('src/components/store/themes/StorefrontHero.tsx', {
-  '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/lib/social-links': { normalizeExternalUrl: () => null }, '@/lib/whatsapp': { getStoreWhatsAppUrl: () => '' }, './StorefrontTheme.module.css': css,
+  '@/components/store/StoreVideoCover': { default: ({product}) => React.createElement('img', {src:product.capa_url,alt:product.titulo}) }, '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/lib/social-links': { normalizeExternalUrl: () => null }, '@/lib/whatsapp': { getStoreWhatsAppUrl: () => '' }, './StorefrontTheme.module.css': css,
 }).default;
-const extras = load('src/components/store/themes/StorefrontExtras.tsx', { '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/lib/product-description': description, './StorefrontProductCard': cardModule, './StorefrontTheme.module.css': css }).default;
+const extras = load('src/components/store/themes/StorefrontExtras.tsx', { '@/components/store/StoreVideoCover': { default: ({product}) => React.createElement('img', {src:product.capa_url,alt:product.titulo}) }, '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/lib/product-description': description, './StorefrontProductCard': cardModule, './StorefrontTheme.module.css': css }).default;
 const storefront = load('src/components/store/themes/StorefrontTheme.tsx', {
   '@/components/OnDemandLink': { default: Link }, '@/components/store/CartContext': { useCart: () => ({ itemCount: 0, setIsOpen() {} }) }, '@/lib/store-themes': theme,
   '@/components/store/StoreCatalogControls': { default: () => React.createElement('input', { 'aria-label': 'Buscar material' }) }, '@/components/store/StoreCatalogMoreButton': { default: () => null },

@@ -4,7 +4,7 @@ const editableFields = new Set([
   'plr_descricao', 'preco_plr', 'plr_license_url', 'delivery_files', 'plr_delivery_files',
   'allow_affiliates', 'affiliate_commission_rate', 'order_bump_id', 'capa_url',
   'arquivo_url', 'arquivo_nome', 'page_count', 'age_range', 'format_details', 'color_mode',
-  'confirm_import_price', 'preview_url', 'instagram_video_url', 'status', 'store_id',
+  'confirm_import_price', 'preview_url', 'instagram_video_url', 'presentation_video_url', 'video_as_cover', 'status', 'store_id',
   'category_id', 'category_ids', 'education_level_id', 'education_level_ids',
   'seasonal_tags', 'tags', 'gallery_urls', 'bncc_skill_ids',
 ]);

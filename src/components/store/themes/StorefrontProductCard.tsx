@@ -1,6 +1,6 @@
 'use client';
 import Link from '@/components/OnDemandLink';
-import CatalogImage from '@/components/ui/CatalogImage';
+import StoreVideoCover from '@/components/store/StoreVideoCover';
 import ProductEducationBadges from '@/components/store/ProductEducationBadges';
 import { useCart } from '@/components/store/CartContext';
 import { ArrowUpRight, BookOpen, ShoppingBag, Star } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function StorefrontProductCard({ store, product, categories, leve
   const category = categories.find(item => item.id === product.category_id)?.nome;
   return <article className={styles.card} data-product-id={product.id} data-offer={plr ? 'plr' : 'standard'}>
     <Link href={href} className={styles.cover} aria-label={'Ver ' + product.titulo}>
-      {product.capa_url ? <CatalogImage src={product.capa_url} alt={product.titulo} width={600} height={750} /> : <BookOpen aria-hidden="true" />}
+      {product.capa_url ? <StoreVideoCover product={product} className="h-full w-full object-contain" /> : <BookOpen aria-hidden="true" />}
       <span className={styles.format}>{plr ? 'Licença PLR' : product.tipo}</span>
     </Link>
     <div className={styles.cardBody}>

@@ -1,3 +1,4 @@
+import { presentationVideo } from '@/lib/presentation-video';
 import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       color_mode = null,
       preview_url = null,
       instagram_video_url = null,
+      presentation_video_url = null, video_as_cover = false,
       seasonal_tags = [],
       tags = [],
       bncc_skill_ids
@@ -96,6 +98,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Use o link público de um post ou Reel do Instagram.' }, { status: 400 });
     }
 
+    const publicVideo = presentationVideo(presentation_video_url);
+    if ((presentation_video_url != null && (typeof presentation_video_url !== 'string' || presentation_video_url.trim()) && !publicVideo) || typeof video_as_cover !== 'boolean' || (video_as_cover && !publicVideo && !normalizedInstagramVideoUrl)) {
+      return NextResponse.json({ error: 'Use um vídeo público válido do YouTube ou Instagram antes de ativar a capa em vídeo.' }, { status: 400 });
+    }
     const normalizedPageCount = page_count === null || page_count === '' ? null : Number(page_count);
     if (normalizedPageCount !== null && (!Number.isInteger(normalizedPageCount) || normalizedPageCount < 1)) {
       return NextResponse.json({ error: 'O número de páginas deve ser um número inteiro maior que zero.' }, { status: 400 });
@@ -199,6 +205,7 @@ export async function POST(request: Request) {
       color_mode,
       preview_url: normalizedPreviewUrl,
       instagram_video_url: normalizedInstagramVideoUrl,
+      presentation_video_url: publicVideo?.url || null, video_as_cover,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
       tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
       created_at: new Date().toISOString()
@@ -262,6 +269,7 @@ export async function POST(request: Request) {
         color_mode,
         preview_url: normalizedPreviewUrl,
         instagram_video_url: normalizedInstagramVideoUrl,
+      presentation_video_url: publicVideo?.url || null, video_as_cover,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
         tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
         created_at: new Date().toISOString()

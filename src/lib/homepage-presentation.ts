@@ -13,6 +13,7 @@ export function homepageProduct(product: Product & { store?: Store }): Product &
     is_free: product.is_free, is_plr: product.is_plr,
     preco_plr: product.preco_plr, has_plr_delivery: product.has_plr_delivery,
     seasonal_tags: product.seasonal_tags,
+    presentation_video_url: product.presentation_video_url, instagram_video_url: product.instagram_video_url, video_as_cover: product.video_as_cover,
     category: product.category, education_level: product.education_level,
     store: product.store ? homepageStore(product.store) : undefined,
     descricao: null, arquivo_url: null,

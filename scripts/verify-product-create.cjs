@@ -20,6 +20,7 @@ const db={from(table){
 }};
 const delivery=load('src/lib/product-delivery-files.ts',{});
 const mocks={
+ '@/lib/presentation-video':load('src/lib/presentation-video.ts',{}),
  '@/lib/public-cache-invalidation':{invalidatePublicCatalog:async()=>true},
  '@/lib/api-auth':{getRequestUser:async()=>({id:'creator'})},'@/lib/supabase':{supabaseAdmin:db},
  'next/server':{NextResponse:Response,after:fn=>pending.push(fn)},'next/cache':{revalidatePath(){}},
@@ -90,6 +91,14 @@ async function submit(){return route.POST(new Request('https://www.educalizando.
  const publish=()=>invalidUpdate({status:'publicado',delivery_files:[{url:payload.arquivo_url,name:'test.pdf'}]});
  assert.equal((await publish()).status,500);assert.equal(rows.get(id).status,'rascunho','An edit must not publish before its delivery writes succeed');
  failFiles=false;assert.equal((await publish()).status,200);assert.equal(rows.get(id).status,'publicado');
+ const priceBefore=rows.get(id).preco;
+ assert.equal((await invalidUpdate({presentation_video_url:'https://youtu.be/M7lc1UVf-VE?si=tracking',video_as_cover:true})).status,200);
+ assert.equal(rows.get(id).presentation_video_url,'https://www.youtube.com/watch?v=M7lc1UVf-VE');
+ assert.equal(rows.get(id).video_as_cover,true);assert.equal(rows.get(id).preco,priceBefore);
+ assert.equal((await invalidUpdate({presentation_video_url:'https://youtube.com.attacker.test/watch?v=M7lc1UVf-VE'})).status,400);
+ assert.equal((await invalidUpdate({video_as_cover:'true'})).status,400);
+ assert.equal((await invalidUpdate({presentation_video_url:null,video_as_cover:false})).status,200);
+ assert.equal(rows.get(id).presentation_video_url,null);assert.equal(rows.get(id).video_as_cover,false);
  const saved=rows.get(id);rows.set(id,{...saved,store_id:'foreign-store'});
  assert.equal((await submit()).status,500);assert.equal(rows.get(id).store_id,'foreign-store','Idempotency cannot overwrite another store');
  let complete=true;

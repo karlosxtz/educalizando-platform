@@ -23,7 +23,7 @@ import { ProductType } from '@/lib/types';
 
 // The wizard owns state and persistence; this component only renders one visual step.
 export default function ProductWizardStepOne({ state }: { state: any }) {
-  const { bnccSkillsMaster, currentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, aiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, plrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, categoryOptions, educationOptions } = state;
+  const { bnccSkillsMaster, currentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, aiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, plrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, categoryOptions, educationOptions } = state;
   return <>
           {/* STEP 1: Basic Information & Categorization */}
           {currentStep === 1 && (
@@ -153,11 +153,7 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
 
                 <AgeRangePicker value={ageRange} onChange={setAgeRange} />
 
-                <div className="rounded-2xl border border-pink-100 bg-pink-50/60 p-4">
-                  <label className="text-xs font-bold uppercase tracking-wider text-pink-800 block mb-1.5">Vídeo do Instagram na galeria</label>
-                  <input type="url" value={instagramVideoUrl} onChange={(event) => setInstagramVideoUrl(event.target.value)} placeholder="https://www.instagram.com/reel/..." className="w-full px-4 py-3 bg-white border border-pink-200 focus:border-pink-500 rounded-xl text-slate-900 text-sm font-medium focus:outline-none" />
-                  <p className="mt-2 text-[11px] text-pink-800">Cole o link público de um Reel ou post. Ele aparecerá junto das fotos do material com acesso ao Instagram da loja.</p>
-                </div>
+
 
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

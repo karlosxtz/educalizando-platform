@@ -131,6 +131,8 @@ export interface Product {
   preview_url?: string | null;
   /** Link público de um Reel/post do Instagram exibido na galeria do produto. */
   instagram_video_url?: string | null;
+  presentation_video_url?: string | null;
+  video_as_cover?: boolean;
   status: ProductStatus;
   category_id?: string | null;
   /** Até cinco categorias/temas; category_id mantém a principal. */

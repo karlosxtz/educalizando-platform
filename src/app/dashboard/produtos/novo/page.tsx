@@ -1,4 +1,5 @@
 'use client';
+import { presentationVideo } from '@/lib/presentation-video';
 
 import { readApiJson } from '@/lib/api-response';
 import { aiFetch } from '@/lib/ai-client';
@@ -49,7 +50,8 @@ function ProductWizardContent() {
   const [formatDetails, setFormatDetails] = useState('');
   const [colorMode, setColorMode] = useState<ProductColorMode | ''>('');
   const [previewUrl, setPreviewUrl] = useState('');
-  const [instagramVideoUrl, setInstagramVideoUrl] = useState('');
+  const [presentationVideoUrl, setPresentationVideoUrl] = useState('');
+  const [videoAsCover, setVideoAsCover] = useState(false);
   const [preco, setPreco] = useState<string>('');
   const [precoOriginal, setPrecoOriginal] = useState<string>('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
@@ -135,7 +137,7 @@ function ProductWizardContent() {
             setFormatDetails(existing.format_details || '');
             setColorMode(existing.color_mode || '');
             setPreviewUrl(existing.preview_url || '');
-            setInstagramVideoUrl(existing.instagram_video_url || '');
+            setPresentationVideoUrl(existing.presentation_video_url || existing.instagram_video_url || ''); setVideoAsCover(Boolean(existing.video_as_cover));
             setPreco(existing.preco.toString().replace('.', ','));
             setPrecoOriginal(existing.preco_original ? existing.preco_original.toString().replace('.', ',') : '');
             
@@ -210,7 +212,7 @@ function ProductWizardContent() {
               ? source.galleryUrls
               : source.coverUrl ? [source.coverUrl] : []);
             setPreviewUrl(source.previewUrl || '');
-            setInstagramVideoUrl(source.instagramVideoUrl || '');
+            setPresentationVideoUrl(source.instagramVideoUrl || '');
             setSeasonalTags(Array.isArray(source.seasonalTags) ? source.seasonalTags : []);
             setProductTags(normalizeProductTags(Array.isArray(source.tags) ? source.tags : []));
             setTipo(source.tipo || 'pdf');
@@ -407,6 +409,7 @@ function ProductWizardContent() {
       return;
     }
 
+    if ((presentationVideoUrl.trim() && !presentationVideo(presentationVideoUrl)) || (videoAsCover && !presentationVideo(presentationVideoUrl))) { setErrorMsg('Confira o link público de apresentação antes de salvar.'); setCurrentStep(2); return; }
     setSaving(true);
     setErrorMsg(null);
 
@@ -440,7 +443,8 @@ function ProductWizardContent() {
           format_details: formatDetails.trim() || null,
           ...(colorMode ? { color_mode: colorMode } : {}),
           preview_url: previewUrl.trim() || null,
-          instagram_video_url: instagramVideoUrl.trim() || null,
+          instagram_video_url: presentationVideo(presentationVideoUrl)?.provider === 'instagram' ? presentationVideo(presentationVideoUrl)?.url || null : null,
+          presentation_video_url: presentationVideo(presentationVideoUrl)?.url || null, video_as_cover: videoAsCover,
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
@@ -478,7 +482,8 @@ function ProductWizardContent() {
           format_details: formatDetails.trim() || null,
           color_mode: colorMode as ProductColorMode,
           preview_url: previewUrl.trim() || null,
-          instagram_video_url: instagramVideoUrl.trim() || null,
+          instagram_video_url: presentationVideo(presentationVideoUrl)?.provider === 'instagram' ? presentationVideo(presentationVideoUrl)?.url || null : null,
+          presentation_video_url: presentationVideo(presentationVideoUrl)?.url || null, video_as_cover: videoAsCover,
           preco: numericPrice,
           preco_original: numericOriginalPrice,
           capa_url: computedCapaUrl,
@@ -528,7 +533,7 @@ function ProductWizardContent() {
     );
   }
 
-  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, instagramVideoUrl, setInstagramVideoUrl, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, status, setStatus, isImportedWoo, confirmImportPrice, setConfirmImportPrice, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
+  return <ProductWizardView state={{ router, searchParams, editId, plrProductId, suggestedTheme, suggestedTitle, loading, setLoading, saving, setSaving, store, setStore, categories, setCategories, educationLevels, setEducationLevels, bnccSkillsMaster, setBnccSkillsMaster, errorMsg, setErrorMsg, currentStep, setCurrentStep, titulo, setTitulo, descricao, setDescricao, tipo, setTipo, pageCount, setPageCount, ageRange, setAgeRange, formatDetails, setFormatDetails, colorMode, setColorMode, previewUrl, setPreviewUrl, presentationVideoUrl, setPresentationVideoUrl, videoAsCover, setVideoAsCover, preco, setPreco, precoOriginal, setPrecoOriginal, galleryUrls, setGalleryUrls, deliveryMethod, setDeliveryMethod, arquivoUrl, setArquivoUrl, arquivoNome, setArquivoNome, driveLinkDraft, setDriveLinkDraft, deliveryFiles, setDeliveryFiles, status, setStatus, isImportedWoo, confirmImportPrice, setConfirmImportPrice, categoryIds, setCategoryIds, educationLevelIds, setEducationLevelIds, seasonalTags, setSeasonalTags, productTags, setProductTags, aiConfigured, setAiConfigured, aiGenerating, setAiGenerating, isSeasonalPickerOpen, setIsSeasonalPickerOpen, seasonalTagSearch, setSeasonalTagSearch, seasonalSuggestions, selectedBnccSkills, setSelectedBnccSkills, usesBncc, setUsesBncc, bnccSearch, setBnccSearch, bnccStage, setBnccStage, bnccSubject, setBnccSubject, isFree, setIsFree, isPlr, setIsPlr, plrDescricao, setPlrDescricao, precoPlr, setPrecoPlr, plrLicenseUrl, setPlrLicenseUrl, plrDeliveryFiles, setPlrDeliveryFiles, plrDeliveryMethod, setPlrDeliveryMethod, plrSourceTitle, setPlrSourceTitle, allowAffiliates, setAllowAffiliates, affiliateCommissionRate, setAffiliateCommissionRate, orderBumpId, setOrderBumpId, availableProducts, setAvailableProducts, formatOptions, bnccSubjects, filteredBnccSkills, handleOptimizeAll, handleNextStep, handlePrevStep, handleSaveProduct, categoryOptions, educationOptions }} />;
 }
 
 export default function FullScreenProductWizardPage() {

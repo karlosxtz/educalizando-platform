@@ -1,6 +1,7 @@
 'use client';
 
 import CatalogImage from '@/components/ui/CatalogImage';
+import StoreVideoCover from '@/components/store/StoreVideoCover';
 
 import { useCart } from '@/components/store/CartContext';
 import StoreCatalogControls from '@/components/store/StoreCatalogControls';
@@ -464,11 +465,7 @@ export default function ThemeMinimalist(props: StoreThemeProps) {
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
                       <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 relative shadow-inner">
                         {prod.capa_url ? (
-                          <CatalogImage
-                            src={prod.capa_url}
-                            alt={prod.titulo}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                          <StoreVideoCover product={prod} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold p-4 text-center">
                             Material Didático Digital

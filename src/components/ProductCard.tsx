@@ -1,5 +1,7 @@
 'use client';
 import { normalizePublicAssetUrl } from '@/lib/public-links';
+import PresentationVideoPlayer from '@/components/PresentationVideoPlayer';
+import { productPresentationVideo } from '@/lib/presentation-video';
 import CatalogCover from '@/components/CatalogCover';
 import CatalogImage from '@/components/ui/CatalogImage';
 
@@ -20,6 +22,7 @@ const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: '
 const materialLabel = (tipo: Product['tipo']) => tipo.toUpperCase();
 
 export default function ProductCard({ product, purchaseMode = 'standard', presentation = 'default', priority = false }: ProductCardProps) {
+  const publicVideo = productPresentationVideo(product);
   const compact = presentation === 'campaign';
   const showcase = presentation === 'showcase' || compact;
   const router = useRouter();
@@ -58,7 +61,7 @@ export default function ProductCard({ product, purchaseMode = 'standard', presen
     router.push(`/loja/${storeSlug}/checkout?${checkoutParams.toString()}`);
   };
 
-  return <article className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-md sm:rounded-2xl`}>
+  const cover = (
     <Link prefetch={false} href={productLink} aria-label={`Abrir detalhes de ${itemTitle}`} className={`relative block w-full overflow-hidden bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600 ${compact ? 'h-40 sm:h-44' : 'aspect-square'}`}>
       <CatalogCover value={product.capa_url} title={itemTitle} priority={priority} className={`h-full w-full ${showcase ? "object-contain" : "object-cover sm:object-contain"} transition-transform duration-300 group-hover:scale-[1.03]`} />
       <div className="absolute left-2 top-2 flex max-w-[calc(100%-1rem)] flex-wrap gap-1.5">
@@ -67,6 +70,9 @@ export default function ProductCard({ product, purchaseMode = 'standard', presen
         {hasDiscount && <><span className="inline-flex items-center rounded-full bg-blue-700 px-2 py-1 text-[10px] font-black text-white shadow-sm sm:hidden">-{discountPercent}%</span><span className="hidden items-center gap-1 rounded-full bg-orange-600 px-2 py-1 text-[11px] font-bold text-white shadow-sm sm:inline-flex"><Tag aria-hidden="true" className="h-3 w-3" />Oferta{discountPercent > 0 ? ` · ${discountPercent}%` : ''}</span></>}
       </div>
     </Link>
+  );
+  return <article className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-md sm:rounded-2xl`}>
+    {publicVideo && product.video_as_cover ? <PresentationVideoPlayer url={publicVideo.url} title={itemTitle} hoverPreview className="w-full">{cover}</PresentationVideoPlayer> : cover}
     <div className={`flex min-h-0 flex-1 flex-col ${compact ? "p-4" : showcase ? "p-5" : "p-2 sm:p-4"}`}>
       <Link prefetch={false} href={productLink} className="min-w-0 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><h3 title={itemTitle} className={`min-h-[2.7em] break-words font-bold text-slate-900 transition-colors group-hover:text-blue-700 ${compact ? "text-sm leading-snug" : showcase ? "text-base leading-snug" : "text-[12px] leading-[1.35] line-clamp-2 sm:text-base sm:leading-snug"}`}>{itemTitle}</h3></Link>
       <div className={`mt-2 min-h-6 flex-wrap gap-1.5 ${showcase ? "flex" : "hidden sm:flex"}`}>

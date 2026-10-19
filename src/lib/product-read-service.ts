@@ -384,7 +384,7 @@ export async function getAllPublicMarketplaceProducts(limit: number = 50, view: 
       const { data, error } = await supabase
         .from('products')
         .select(`
-          ${view === 'cards' ? 'id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,seasonal_tags' : '*'},
+          ${view === 'cards' ? 'id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,seasonal_tags,category_id,presentation_video_url,instagram_video_url,video_as_cover' : '*'},
           store:stores (
             id, nome_loja, slug, logo_url
           )
