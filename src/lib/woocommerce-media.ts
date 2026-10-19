@@ -79,6 +79,18 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
   return { url: isImage ? platformPublicImageUrl(bucket, key) : platformPublicMediaUrl(bucket, key), contentType, size: body.byteLength };
 }
 
+/** Import public images only; delivery files are deliberately excluded. */
+export async function mirrorPlatformImportImage(input:string,storeId:string,productId:string,index:number) {
+  const media=await download(input,/^image\/(jpeg|png|webp|gif|avif)$/,MAX_IMAGE_BYTES);
+  const bucket=resolveBucket('product-covers');
+  let body:Uint8Array=media.body;let optimized=false;
+  if(media.contentType!=='image/gif'){try{body=await optimizeProductImage(media.body);optimized=true;}catch{/* Keep the supported original if runtime cannot transform. */}}
+  const contentType=optimized?'image/webp':media.contentType;
+  const key=`uploads/platform-imports/${storeId}/${productId}/${index}-${stableName(media.finalUrl)}.${optimized?'webp':extension(contentType,media.finalUrl)}`;
+  await uploadObject({bucket,key,body,contentType});
+  return platformPublicImageUrl(bucket,key);
+}
+
 export async function mirrorWooDelivery(input: string, name: string, integrationId: string, wooProductId: number, index: number) {
   const file = await download(input, /^(application\/(pdf|zip|x-zip-compressed|octet-stream)|image\/|text\/plain)/, MAX_DELIVERY_BYTES);
   const bucket = resolveBucket('product-files');
