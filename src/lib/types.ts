@@ -280,6 +280,7 @@ export interface Review {
   store_id: string;
   nota: number;
   comentario?: string | null;
+  verified_purchase?: boolean;
   student_name?: string; // We can enrich this for display
   avatar_url?: string | null;
   created_at: string;

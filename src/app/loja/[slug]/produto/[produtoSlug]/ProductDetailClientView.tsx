@@ -14,16 +14,17 @@ import { validateCouponCode } from '@/lib/coupon-service';
 import { addRecentView } from '@/lib/recent-views';
 import { incrementProductViews } from '@/lib/store-service';
 import { getAuthenticatedUserRole } from '@/lib/student-service';
-import { supabase } from '@/lib/supabase';
 import { BnccSkill,Category,CouponValidationResult,EducationLevel,Product,ProductType,Review,Store } from '@/lib/types';
 import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 import { AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, Clock3, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, Heart, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Printer, Search, Share2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, UserCheck, UserX, Video, X, Zap } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, Camera, CheckCircle2, Clock3, ExternalLink, Eye, FileText, GraduationCap, Grid2X2, HelpCircle, Layers, Library, Loader2, Lock, MessageCircle, Play, Printer, Search, Share2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, Ticket, Video, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 
 import ProductCard from '@/components/ProductCard';
+import FavoriteProductButton from '@/components/FavoriteProductButton';
+import StoreFollowControl from '@/components/StoreFollowControl';
 import ProductQuickSpecs from '@/components/ProductQuickSpecs';
 import { ProductCreatorBlockModal, ProductMobilePurchaseBar } from '@/components/ProductPurchaseOverlays';
 
@@ -72,8 +73,6 @@ export default function ProductDetailClientView({
   // Reviews State
   const [reviews, setReviews] = useState<Review[]>([]);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [shareFeedback, setShareFeedback] = useState('');
 
   // Gallery State
@@ -152,60 +151,6 @@ export default function ProductDetailClientView({
   const productPath = context === 'marketplace'
     ? `/produto/${product.slug || product.id}`
     : `/loja/${store.slug}/produto/${product.slug || product.id}`;
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadFavorite() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !active) return;
-
-      const { data } = await supabase
-        .from('product_favorites')
-        .select('product_id')
-        .eq('user_id', user.id)
-        .eq('product_id', product.id)
-        .maybeSingle();
-
-      if (active) setIsFavorite(Boolean(data));
-    }
-
-    void loadFavorite();
-    return () => { active = false; };
-  }, [product.id]);
-
-  const handleToggleFavorite = async () => {
-    if (favoriteLoading) return;
-    setFavoriteLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push(`/cliente/login?returnTo=${encodeURIComponent(productPath)}&action=favorite`);
-        return;
-      }
-
-      if (isFavorite) {
-        const { error } = await supabase
-          .from('product_favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', product.id);
-        if (error) throw error;
-        setIsFavorite(false);
-      } else {
-        const { error } = await supabase
-          .from('product_favorites')
-          .insert({ user_id: user.id, product_id: product.id });
-        if (error && error.code !== '23505') throw error;
-        setIsFavorite(true);
-      }
-    } catch {
-      setPurchaseError('Não foi possível atualizar seus favoritos agora. Tente novamente.');
-    } finally {
-      setFavoriteLoading(false);
-    }
-  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -413,17 +358,8 @@ export default function ProductDetailClientView({
       {/* Main Page Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-40 lg:pb-12">
         <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={handleToggleFavorite}
-            disabled={favoriteLoading}
-            aria-pressed={isFavorite}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-bold shadow-sm transition-all disabled:opacity-60 ${isFavorite ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-200 hover:text-rose-700'}`}
-          >
-            {favoriteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />}
-            {isFavorite ? 'Favoritado' : 'Favoritar'}
-          </button>
-          {isFavorite && <Link href="/cliente/favoritos" className="inline-flex min-h-11 items-center rounded-full px-2 text-xs font-black text-rose-700 hover:underline">Ver favoritos</Link>}
+          <FavoriteProductButton productId={product.id} title={product.titulo} />
+          <StoreFollowControl storeId={store.id} storeName={store.nome_loja} />
           <button
             type="button"
             onClick={handleShare}
@@ -731,6 +667,8 @@ export default function ProductDetailClientView({
                 <p className="text-xs text-slate-500 font-medium mt-2">Valor da modalidade selecionada.</p>
               </div>
 
+              <ProductQuickSpecs {...{ product, educationLevel, hasConfiguredDelivery, getTipoIcon }} plr={Boolean(isPlrPurchase)} />
+
               {/* Primary Call to Action Buttons */}
               <div className="flex flex-col gap-3">
                 {isFreeProduct && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-900">Este brinde é liberado para clientes que já fizeram uma compra paga nesta mesma loja.</p>}
@@ -833,7 +771,7 @@ export default function ProductDetailClientView({
                 )}
               </div>
 
-              <ProductQuickSpecs {...{ product, educationLevel, hasConfiguredDelivery, getTipoIcon }} />
+
             </div>
           </div>
         </div>

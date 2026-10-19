@@ -1,6 +1,6 @@
 'use client';
 
-import { submitProductReview } from '@/app/actions/review-actions';
+import { customerApi } from '@/lib/customer-api';
 import { AnimatePresence,motion } from 'framer-motion';
 import { Loader2,Star,X } from 'lucide-react';
 import { useEffect,useState } from 'react';
@@ -22,7 +22,7 @@ export default function StudentReviewModal({
   onClose,
   productId,
   storeId,
-  studentId,
+  studentId: _studentId,
   initialRating = 0,
   initialComment = '',
   onSuccess
@@ -47,13 +47,13 @@ export default function StudentReviewModal({
 
     setIsSubmitting(true);
     
-    const result = await submitProductReview({
-      productId,
-      storeId,
-      studentId,
-      nota: rating,
-      comentario: comment.trim()
-    });
+    let result;
+    try {
+      result = await customerApi('/api/customer/product-reviews', { method: 'POST', body: JSON.stringify({ productId, storeId, nota: rating, comentario: comment.trim() }) });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível salvar sua avaliação.');
+      setIsSubmitting(false); return;
+    }
 
     setIsSubmitting(false);
 
@@ -83,7 +83,7 @@ export default function StudentReviewModal({
                   Sua opinião ajuda outros clientes. Conte-nos o que achou!
                 </p>
               </div>
-              <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+              <button aria-label="Fechar avaliação" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -94,6 +94,8 @@ export default function StudentReviewModal({
                   <button
                     key={star}
                     type="button"
+                    aria-label={`${star} ${star === 1 ? 'estrela' : 'estrelas'}`}
+                    aria-pressed={rating === star}
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}

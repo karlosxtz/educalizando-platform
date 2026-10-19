@@ -193,9 +193,9 @@ export default function ProductReviewsSection({
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-extrabold text-slate-900 text-sm">{review.student_name}</h4>
-                        <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                        {review.verified_purchase && <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
                           <ShieldCheck className="w-3 h-3 text-emerald-600" /> Compra Verificada
-                        </span>
+                        </span>}
                       </div>
                       <span className="text-[11px] text-slate-400 font-medium">{formattedDate}</span>
                     </div>

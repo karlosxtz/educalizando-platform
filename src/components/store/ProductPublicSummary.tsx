@@ -5,6 +5,7 @@ import ProductDescriptionContent from './ProductDescriptionContent';
 import { productCoverImageUrl, productPublicImageUrls } from '@/lib/seo';
 import CampaignAttribution from '@/components/CampaignAttribution';
 import { Suspense } from 'react';
+import ProductQuickSpecs from '@/components/ProductQuickSpecs';
 
 export default function ProductPublicSummary({ product, store, plr = false }: { product: Product; store: Store; plr?: boolean }) {
   const license = plr && product.is_plr;
@@ -31,6 +32,7 @@ export default function ProductPublicSummary({ product, store, plr = false }: { 
         {Number(product.review_count) > 0 && <p className="text-sm text-slate-700">Avaliação: {product.average_rating}/5 · {product.review_count} avaliações</p>}
         <p className="text-sm font-bold text-slate-600">{license ? 'Versão PLR' : 'Material digital'}{!license && product.format_details ? ` · ${product.format_details}` : ''}</p>
         <p className="text-2xl font-bold text-blue-900">{price != null && Number.isFinite(Number(price)) ? Number(price) === 0 ? 'Gratuito' : Number(price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Consulte as opções de compra'}</p>
+        <ProductQuickSpecs product={product} plr={Boolean(license)} hasConfiguredDelivery={Boolean(license ? product.has_plr_delivery : product.has_original_delivery)} />
         <Link href={checkout} className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-blue-900 px-6 py-3 font-bold text-white">Comprar este material</Link>
         <h2 className="text-xl font-bold">Sobre este material</h2>
         <ProductDescriptionContent value={description || ''} />
