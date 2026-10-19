@@ -134,3 +134,9 @@ Para trabalhos antigos que já salvaram uma URL com `page` e `limit`, somente um
 A conclusão de uma última página curta usa a contagem acumulada de IDs distintos quando a próxima URL era apenas inferida. Só encerra a continuação inferida quando o total exato foi atingido, sem fazer uma requisição fictícia à página seguinte. Totais excedidos, trocas de loja e IDs repetidos continuam pausando a importação.
 
 Arquivos adicionais desta correção: `src/lib/saber-export-contract.ts` (não acrescentar tamanho de página e identificar continuação inferida), `src/lib/saber-import-job.ts` (última página/total), `scripts/verify-saber-job.cjs` (conclusão da última página), além dos testes/transporte e deste relatório. A validação local inclui rejeição de `limit`, fallback limitado e recusa preservada. A retomada real após esta publicação ainda precisa confirmar a causa.
+
+### Validação real após a retirada do parâmetro
+
+A Cloudflare confirmou `dfbd449` ativo, versão `604fd7c2`. Ao retomar a mesma importação pela interface, sem cancelar ou criar outro trabalho, a contagem passou de cinco para **dez produtos recebidos** e continuou processando. Em uma observação seguinte havia **15 recebidos e dez importados**, sem mensagem de falha, confirmando também a terceira página. Isso confirma que a retirada do `limit` indevidamente acrescentado destravou a transição real que retornava HTTP 400. Ainda não representa a conclusão dos 281 itens.
+
+Foi corrigida também a asserção de tipo dos registros selecionados pelo DTO da API: a seleção dinâmica do PostgREST não infere a estrutura, embora a lista de colunas seja definida no servidor. Typecheck terminou com código zero, e a transpilação confirmou que a correção da asserção emite JavaScript idêntico ao já validado no build de produção. A asserção não muda a consulta nem os dados retornados.

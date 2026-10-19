@@ -18,7 +18,7 @@ async function creator(request:Request) {
 export async function GET(request:Request) {
   try {const store=await creator(request);if(!store)return json({error:'Entre com a conta do criador.'},401);
     const {data,error}=await db.from('platform_product_imports').select(jobReadColumns).eq('store_id',store.id).order('created_at',{ascending:false}).limit(5);
-    if(error){if(['42P01','PGRST205'].includes(error.code))return json({available:false,jobs:[],store});return json({error:saberImportStorageMessage(error)},503);}return json({available:true,jobs:(data || []).map(job=>jobView(job as SaberJob)),store});
+    if(error){if(['42P01','PGRST205'].includes(error.code))return json({available:false,jobs:[],store});return json({error:saberImportStorageMessage(error)},503);}return json({available:true,jobs:(data || []).map(job=>jobView(job as unknown as SaberJob)),store});
   }catch{return json({error:'Não foi possível carregar as importações.'},503);}
 }
 export async function POST(request:Request) {
@@ -61,7 +61,7 @@ export async function POST(request:Request) {
         const result=await db.from('platform_product_imports').update({asset_cursor:job.asset_cursor+1,status:'running',last_error:null,issues:[...job.issues,{product:item.title,message:'Uma imagem foi ignorada por escolha do criador; envie-a pelo cadastro do produto.'}].slice(-100),updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id).eq('status','paused');if(result.error)throw new Error('Não foi possível continuar sem a imagem.');
       }else return json({error:'Ação inválida.'},400);
     }
-    const {data:latest,error:latestError}=await db.from('platform_product_imports').select(jobReadColumns).eq('id',job.id).eq('store_id',store.id).single();if(latestError)throw new Error('Não foi possível consultar o progresso.');return json({job:jobView(latest as SaberJob)});
+    const {data:latest,error:latestError}=await db.from('platform_product_imports').select(jobReadColumns).eq('id',job.id).eq('store_id',store.id).single();if(latestError)throw new Error('Não foi possível consultar o progresso.');return json({job:jobView(latest as unknown as SaberJob)});
   }catch(error){
     const message=error instanceof Error?error.message:'';
     const safe=/^(A API|A Saber|A exportação|A estrutura|As tabelas|A loja|A página|A paginação|Cole uma|Já existe|Ative a|Não foi possível|O servidor|O endereço|O total)/.test(message)?message.replace(/sbr_live_\w+/gi,'[chave]').replace(/https?:\/\/\S+/g,'[endereço]').slice(0,300):'Não foi possível concluir. Nenhuma credencial foi registrada. Confira a conexão e tente novamente.';
