@@ -165,7 +165,7 @@ function ProductWizardContent() {
             }
 
             setStatus(existing.status === 'rascunho' ? 'rascunho' : 'publicado');
-            setIsImportedWoo(existing.import_source === 'woocommerce' && Boolean(existing.import_incomplete));
+            setIsImportedWoo(Boolean(existing.import_incomplete));
             setConfirmImportPrice(Boolean(existing.import_price_confirmed));
             setCategoryIds((existing.category_ids?.length ? existing.category_ids : existing.category_id ? [existing.category_id] : []).slice(0, 5));
             setEducationLevelIds((existing.education_level_ids?.length ? existing.education_level_ids : existing.education_level_id ? [existing.education_level_id] : []).slice(0, 5));

@@ -205,6 +205,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
     { label: 'Webhooks e Integrações', href: '/dashboard/webhooks', icon: Webhook, badge: 'NOVO' },
     { label: 'WhatsApp da Loja', href: '/dashboard/whatsapp-loja', icon: MessageCircle, badge: 'PREMIUM' },
     { label: 'WooCommerce', href: '/dashboard/woocommerce', icon: CloudCog, badge: 'NOVO' },
+    { label: 'Importar de outra plataforma', href: '/dashboard/importar-plataforma', icon: CloudCog, badge: 'NOVO' },
     {
       label: 'Minhas Afiliações',
       href: '/dashboard/gerenciar-afiliacoes',
@@ -234,7 +235,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
   const NAV_GROUPS = [
     { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
-    { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce'] },
+    { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce', '/dashboard/importar-plataforma'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
     { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/instagram', '/dashboard/pinterest', '/dashboard/blog', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
