@@ -9,13 +9,29 @@ assert.match(storageErrors.saberImportStorageMessage({code:'42501'}),/permissõe
 assert.doesNotMatch(storageErrors.saberImportStorageMessage({code:'08006',message:'credential: must not leak'}),/migration|credential/);
 assert.doesNotMatch(storageErrors.saberImportStorageMessage({code:'malicious-secret-code'}),/malicious-secret/);
 const fixture={seller:{id:'seller-a',name:'Loja fixture'},products:[{id:'product-a',seller_id:'seller-a',name:'Material de teste local',price:'6,90',regular_price:'9,00',description:'<p>Descrição real da origem.</p><script>bad()</script>',images:[{url:'https://public.example.test/cover.webp'}],categories:[{name:'Alfabetização'}],downloads:[{url:'https://private.example.test/file.pdf'}],customers:[{email:'fixture@example.test'}]}],pagination:{current_page:1,last_page:2,total:2}};
-const parsed=contract.parseSaberExport(fixture);assert.equal(parsed.owner,'seller-a');assert.equal(parsed.products[0].price,6.9);assert.equal(parsed.products[0].originalPrice,9);assert.equal(parsed.nextUrl,contract.SABER_EXPORT_URL+'?page=2');assert(!JSON.stringify(parsed).includes('private.example'));assert(!JSON.stringify(parsed).includes('fixture@example'));assert(!parsed.products[0].description.includes('bad()'));
+const parsed=contract.parseSaberExport(fixture);assert.equal(parsed.owner,'seller-a');assert.equal(parsed.products[0].price,6.9);assert.equal(parsed.products[0].originalPrice,9);assert.equal(parsed.nextUrl,contract.SABER_EXPORT_URL+'?page=2&limit=1');assert(!JSON.stringify(parsed).includes('private.example'));assert(!JSON.stringify(parsed).includes('fixture@example'));assert(!parsed.products[0].description.includes('bad()'));
 assert.equal(contract.parseSaberExport({...fixture,products:[{...fixture.products[0],sale_price:''}]}).products[0].price,6.9);
 assert.equal(contract.parseSaberExport({...fixture,products:[{...fixture.products[0],price:undefined,regular_price:undefined}]}).products[0].priceKnown,false);
 assert.throws(()=>contract.parseSaberExport({...fixture,products:[{...fixture.products[0],seller_id:'other-store'}]}),/lojas diferentes/);
 assert.throws(()=>contract.parseSaberExport({...fixture,products:[fixture.products[0],fixture.products[0]]}),/repetidos/);
 assert.throws(()=>contract.parseSaberExport({products:[{id:'a',name:'Sem identidade'}]}),/identificar a loja/);
 assert.throws(()=>contract.parseSaberExport({html:'wrong'}),/lista de produtos/);
+// Reproduce a catalogue of 281 items whose first response contains only five.
+const pageFixture=(page,extra={})=>({seller:{id:'seller-a'},products:Array.from({length:Math.min(5,281-(page-1)*5)},(_,index)=>({id:'catalog-'+((page-1)*5+index),title:'Pagination fixture',price_cents:690})),total:281,...extra});
+let nextCatalog=contract.SABER_EXPORT_URL,receivedIds=new Set(),pageNumber=1;
+while(nextCatalog){const page=contract.parseSaberExport(pageFixture(pageNumber),nextCatalog);for(const product of page.products){assert(!receivedIds.has(product.id));receivedIds.add(product.id);assert.equal(product.price,6.9);assert(product.priceKnown);}nextCatalog=page.nextUrl;pageNumber++;assert(pageNumber<=58);}
+assert.equal(receivedIds.size,281);assert.equal(pageNumber,58);
+const camel=contract.parseSaberExport(pageFixture(1,{total:undefined,pagination:{currentPage:1,totalPages:57,perPage:5,totalProducts:281}}));
+assert.equal(camel.total,281);assert.equal(camel.nextUrl,contract.SABER_EXPORT_URL+'?page=2&perPage=5');
+const numericNext=contract.parseSaberExport(pageFixture(1,{pagination:{page:1,nextPage:2,limit:5}}));assert.equal(new URL(numericNext.nextUrl).searchParams.get('page'),'2');
+const offsetPage=contract.parseSaberExport(pageFixture(1,{pagination:{offset:0,limit:5}}));assert.equal(new URL(offsetPage.nextUrl).searchParams.get('offset'),'5');
+const cursorPage=contract.parseSaberExport(pageFixture(1,{nextCursor:'opaque-next',hasMore:true}));assert.equal(new URL(cursorPage.nextUrl).searchParams.get('cursor'),'opaque-next');
+assert.equal(contract.parseSaberExport(pageFixture(1,{hasMore:false})).nextUrl,null);
+assert.throws(()=>contract.parseSaberExport(pageFixture(1),contract.SABER_EXPORT_URL+'?cursor=opaque-current&limit=5'),/cursor/);
+for(const [field,raw,price] of [['priceCents',690,6.9],['price_in_cents','1290',12.9],['priceInCents',0,0],['preco_centavos',790,7.9],['salePrice','6,90',6.9]]){
+  const result=contract.parseSaberExport({...fixture,products:[{id:'price-fixture',title:'Price fixture',[field]:raw}]}).products[0];assert.equal(result.price,price);assert(result.priceKnown);
+}
+assert.equal(contract.parseSaberExport({...fixture,products:[{id:'invalid-cents',title:'Invalid cents fixture',price_cents:'6.90'}]}).products[0].priceKnown,false);
 for(const next of ['https://evil.test/api/public/sync/seller-products','http://saberdidatico.com.br/api/public/sync/seller-products','https://saberdidatico.com.br/api/public/products','?token=secret','?seller_id=other','https://secret@saberdidatico.com.br/api/public/sync/seller-products'])assert.throws(()=>contract.saberNextUrl(next));
 let network=[],networkMode='ok';
 const fakeToken='sbr_live_'+'0'.repeat(64);

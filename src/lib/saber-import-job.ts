@@ -30,7 +30,19 @@ export async function processSaberJob(job:SaberJob,token:string) {
   try {
     if(job.cursor>=job.queue.length){
       if(!job.next_url){
-        if(job.source_total!==null && job.discovered!==job.source_total)throw new Error('O total informado pela API não corresponde aos produtos recebidos. A importação não foi marcada como completa.');
+        if(job.source_total!==null && job.discovered!==job.source_total){
+          // Recover jobs persisted before the pagination adapter recognised this export.
+          // Re-read the last confirmed page; never reset counters or overwrite its products.
+          const lastUrl=job.visited_urls.at(-1) || SABER_EXPORT_URL;
+          const recovered=await readSaberExport(token,lastUrl);
+          if(recovered.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
+          if(recovered.total!==null && recovered.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
+          const samePage=recovered.products.length===job.queue.length && recovered.products.every((item,index)=>item.id===job.queue[index].id);
+          if(samePage && recovered.nextUrl && !job.visited_urls.includes(recovered.nextUrl)){
+            await receipt({next_url:recovered.nextUrl,last_error:null});return {progressed:true};
+          }
+          throw new Error('O total informado pela API não corresponde aos produtos recebidos. A exportação não forneceu uma próxima página válida; nenhum produto concluído foi perdido.');
+        }
         await receipt({status:'completed',queue:[],current_product:null});return {completed:true};
       }
       if(job.visited_urls.includes(job.next_url))throw new Error('A API repetiu uma página. A importação foi pausada para evitar repetição.');

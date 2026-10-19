@@ -77,3 +77,17 @@ O número de produtos recebidos é conferido com o total informado pela API ante
 | `ops/IMPORTACAO-SABER-TOKEN-2026-10-19.md` | Uso, limitações, evidências e inventário de alterações. |
 | `supabase/migrations/20261019060000_repair_platform_import_seen_ids.sql` | Completar instalações sem a coluna de detecção de repetição. |
 | `src/lib/saber-import-errors.ts` | Diferenciar falhas de esquema, permissão e indisponibilidade sem expor detalhes SQL. |
+
+## Correção da paginação: cinco recebidos de 281 informados
+
+A captura enviada pelo usuário mostra cinco produtos recebidos e importados, total da API de 281 e pausa por divergência de total. O JSON bruto autenticado dessa exportação não estava disponível nesta sessão; a validação da correção contra essa loja real ainda depende da retomada pelo criador.
+
+O adaptador anterior reconhecia somente alguns nomes de metadados de paginação. Agora aceita `currentPage`, `totalPages`, `perPage`, `nextPage`, `nextCursor`, totais no objeto `data` e paginação por offset. Quando a API fornece apenas lista parcial e total, tenta continuação por página numerada com tamanho explícito. Se a origem ignorar a paginação e repetir produtos, a importação continua sendo pausada; o total não é reduzido e a proteção não é removida.
+
+Uma importação antiga que esgotou a fila e não armazenou continuação pode recuperar a próxima URL ao reler a última página confirmada. A identidade da loja, o total e a lista ordenada de IDs devem corresponder. Os produtos concluídos, recibos, contadores e IDs não são reiniciados nem sobrescritos. O criador usa **Continuar importação** com a mesma chave, sem cancelar ou iniciar outro trabalho.
+
+A leitura de preços passa a reconhecer aliases explícitos de centavos (`price_cents`, `priceCents`, `priceInCents`, entre outros) e preços decimais em camelCase. A unidade não é inferida pela magnitude do valor. Ausência ou formato inválido continua exigindo revisão. Preços e avisos dos cinco produtos já concluídos não são alterados retroativamente; devem ser conferidos antes de publicar.
+
+Regressões locais: catálogo sintético com 281 IDs distintos em 57 páginas de cinco itens (última com um), camelCase, offset, cursor, centavos, proteção contra cursor sem continuação, recuperação de trabalho antigo e recusa de troca de loja. Isso não é uma confirmação de 281 produtos realmente transferidos.
+
+Arquivos desta correção: `src/lib/saber-export-contract.ts` (paginação e preços), `src/lib/saber-import-job.ts` (recuperação preservando progresso), `scripts/verify-saber-import.cjs` e `scripts/verify-saber-job.cjs` (regressões), e este relatório. Sem migration, alteração de RLS, checkout ou webhooks.

@@ -29,6 +29,19 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   sourcePage={...sourcePage,total:2,nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
   const duplicate=await create('destination-c');const live=tables.platform_product_imports.find(row=>row.id===duplicate.id);live.cursor=1;await jobs.processSaberJob(current(duplicate.id),'fixture-token');assert.equal(current(duplicate.id).status,'paused');assert(current(duplicate.id).last_error.includes('repetiu produtos'));
   sourcePage={...sourcePage,nextUrl:null};const mismatch=await create('destination-d');tables.platform_product_imports.find(row=>row.id===mismatch.id).cursor=1;await jobs.processSaberJob(current(mismatch.id),'fixture-token');assert.equal(current(mismatch.id).status,'paused');assert(current(mismatch.id).last_error.includes('total informado'));
+  // Existing job with a missing next URL resumes without resetting its finished items.
+  sourcePage={...sourcePage,total:2,nextUrl:null};const recover=await create('destination-recover');
+  const recoveryLive=tables.platform_product_imports.find(row=>row.id===recover.id);recoveryLive.cursor=1;recoveryLive.imported=1;
+  sourcePage={...sourcePage,nextUrl:contract.SABER_EXPORT_URL+'?page=2&limit=1'};
+  const productCount=tables.products.length;
+  await jobs.processSaberJob(current(recover.id),'fixture-token');assert.equal(current(recover.id).next_url,sourcePage.nextUrl);assert.equal(current(recover.id).imported,1);assert.equal(tables.products.length,productCount);
+  sourcePage={...sourcePage,products:[{...item,id:'b'}],nextUrl:null};
+  await jobs.processSaberJob(current(recover.id),'fixture-token');assert.equal(current(recover.id).discovered,2);assert.equal(current(recover.id).cursor,0);assert.equal(current(recover.id).queue[0].id,'b');
+  // A different page/seller cannot be used to repair the continuation.
+  sourcePage={...sourcePage,products:[item],nextUrl:null};const changed=await create('destination-changed');tables.platform_product_imports.find(row=>row.id===changed.id).cursor=1;
+  sourcePage={...sourcePage,owner:'different-seller',nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
+  await jobs.processSaberJob(current(changed.id),'fixture-token');assert.equal(current(changed.id).status,'paused');assert.match(current(changed.id).last_error,/loja de origem mudou/);
+  sourcePage={...sourcePage,owner:'origin-a'};
   insertFailure={code:'42703',message:'must not leak imported payload'};await assert.rejects(()=>create(),error=>error.message.includes('seen_ids')&&!error.message.includes('must not leak'));
   insertFailure={code:'08006',message:'must not leak credentials'};await assert.rejects(()=>create(),error=>!error.message.includes('migration')&&!error.message.includes('credentials'));
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');
