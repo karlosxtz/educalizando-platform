@@ -3,6 +3,7 @@ import { supabaseAdmin as db } from './supabase';
 import { readSaberExport, saberImportId } from './saber-export-client';
 import { SABER_EXPORT_URL, type SaberItem } from './saber-export-contract';
 import { mirrorPlatformImportImage } from './woocommerce-media';
+import { saberImportStorageMessage } from './saber-import-errors';
 
 export const saberJobColumns='id,source_label,status,source_total,discovered,imported,skipped,cursor,asset_cursor,issues,last_error,created_at,updated_at';
 export type SaberJob={id:string;store_id:string;source_owner:string;source_label:string;token_fingerprint:string;status:string;queue:SaberItem[];cursor:number;next_url:string|null;visited_urls:string[];seen_ids:string[];source_total:number|null;discovered:number;imported:number;skipped:number;current_product:string|null;asset_cursor:number;issues:{product:string;message:string}[];lease_token:string;lease_until:string|null};
@@ -13,7 +14,7 @@ export async function createSaberJob(storeId:string,token:string,fingerprint:str
   if(page.owner!==expectedOwner)throw new Error('A loja não corresponde à prévia aprovada. Teste a chave novamente.');
   const {data,error}=await db.from('platform_product_imports').insert({store_id:storeId,token_fingerprint:fingerprint,source_owner:page.owner,source_label:page.label,queue:page.products,next_url:page.nextUrl,visited_urls:[SABER_EXPORT_URL],seen_ids:page.products.map(item=>item.id),source_total:page.total,discovered:page.products.length,status:'running'}).select(saberJobColumns).single();
   if(error?.code==='23505')throw new Error('Já existe uma importação em andamento ou pausada. Retome ou cancele antes de iniciar outra.');
-  if(error)throw new Error('Ative a migration de importação antes de iniciar.');
+  if(error)throw new Error(saberImportStorageMessage(error));
   return data;
 }
 export async function processSaberJob(job:SaberJob,token:string) {

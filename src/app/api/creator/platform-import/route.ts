@@ -3,6 +3,7 @@ import { supabaseAdmin as db } from '@/lib/supabase';
 import { saberFingerprint, saberToken, readSaberExport } from '@/lib/saber-export-client';
 import { createSaberJob, processSaberJob, saberJobColumns, type SaberJob } from '@/lib/saber-import-job';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
+import { saberImportStorageMessage } from '@/lib/saber-import-errors';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Robots-Tag':'noindex'}});
 const uuid=(input:unknown):input is string=>typeof input==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input);
 async function creator(request:Request) {
@@ -12,7 +13,7 @@ async function creator(request:Request) {
 export async function GET(request:Request) {
   try {const store=await creator(request);if(!store)return json({error:'Entre com a conta do criador.'},401);
     const {data,error}=await db.from('platform_product_imports').select(saberJobColumns).eq('store_id',store.id).order('created_at',{ascending:false}).limit(5);
-    if(error)return json({available:false,jobs:[],store});return json({available:true,jobs:data || [],store});
+    if(error){if(['42P01','PGRST205'].includes(error.code))return json({available:false,jobs:[],store});return json({error:saberImportStorageMessage(error)},503);}return json({available:true,jobs:data || [],store});
   }catch{return json({error:'Não foi possível carregar as importações.'},503);}
 }
 export async function POST(request:Request) {
@@ -49,7 +50,7 @@ export async function POST(request:Request) {
     const {data:latest,error:latestError}=await db.from('platform_product_imports').select(saberJobColumns).eq('id',job.id).eq('store_id',store.id).single();if(latestError)throw new Error('Não foi possível consultar o progresso.');return json({job:latest});
   }catch(error){
     const message=error instanceof Error?error.message:'';
-    const safe=/^(A API|A Saber|A exportação|A loja|A página|A paginação|Cole uma|Já existe|Ative a|Não foi possível|O endereço|O total)/.test(message)?message.replace(/sbr_live_\w+/gi,'[chave]').replace(/https?:\/\/\S+/g,'[endereço]').slice(0,300):'Não foi possível concluir. Nenhuma credencial foi registrada. Confira a conexão e tente novamente.';
+    const safe=/^(A API|A Saber|A exportação|A estrutura|As tabelas|A loja|A página|A paginação|Cole uma|Já existe|Ative a|Não foi possível|O servidor|O endereço|O total)/.test(message)?message.replace(/sbr_live_\w+/gi,'[chave]').replace(/https?:\/\/\S+/g,'[endereço]').slice(0,300):'Não foi possível concluir. Nenhuma credencial foi registrada. Confira a conexão e tente novamente.';
     return json({error:safe},400);
   }
 }

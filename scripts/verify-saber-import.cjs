@@ -1,6 +1,13 @@
 const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript'),assert=require('node:assert/strict');
 function load(file,mocks={},globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:name=>Object.hasOwn(mocks,name)?mocks[name]:require(name),URL,URLSearchParams,Response,Request,AbortSignal,TextDecoder,Uint8Array,console,crypto:require('node:crypto').webcrypto,...globals});return exports;}
 const contract=load('src/lib/saber-export-contract.ts',{'./product-description':load('src/lib/product-description.ts'),'./presentation-video':load('src/lib/presentation-video.ts')});
+const storageErrors=load('src/lib/saber-import-errors.ts');
+assert.match(storageErrors.saberImportStorageMessage({code:'42703'}),/seen_ids/);
+assert.match(storageErrors.saberImportStorageMessage({code:'PGRST204'}),/estrutura/);
+assert.match(storageErrors.saberImportStorageMessage({code:'42P01'}),/tabelas/);
+assert.match(storageErrors.saberImportStorageMessage({code:'42501'}),/permissões/);
+assert.doesNotMatch(storageErrors.saberImportStorageMessage({code:'08006',message:'credential: must not leak'}),/migration|credential/);
+assert.doesNotMatch(storageErrors.saberImportStorageMessage({code:'malicious-secret-code'}),/malicious-secret/);
 const fixture={seller:{id:'seller-a',name:'Loja fixture'},products:[{id:'product-a',seller_id:'seller-a',name:'Material de teste local',price:'6,90',regular_price:'9,00',description:'<p>Descrição real da origem.</p><script>bad()</script>',images:[{url:'https://public.example.test/cover.webp'}],categories:[{name:'Alfabetização'}],downloads:[{url:'https://private.example.test/file.pdf'}],customers:[{email:'fixture@example.test'}]}],pagination:{current_page:1,last_page:2,total:2}};
 const parsed=contract.parseSaberExport(fixture);assert.equal(parsed.owner,'seller-a');assert.equal(parsed.products[0].price,6.9);assert.equal(parsed.products[0].originalPrice,9);assert.equal(parsed.nextUrl,contract.SABER_EXPORT_URL+'?page=2');assert(!JSON.stringify(parsed).includes('private.example'));assert(!JSON.stringify(parsed).includes('fixture@example'));assert(!parsed.products[0].description.includes('bad()'));
 assert.equal(contract.parseSaberExport({...fixture,products:[{...fixture.products[0],sale_price:''}]}).products[0].price,6.9);

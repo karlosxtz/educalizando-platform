@@ -2,7 +2,13 @@
 
 ## Estado de validação
 
-Implementação da Educalizando preparada com testes simulados de contrato, gravação, imagens e isolamento. **Não houve teste autenticado real na Saber Didático.** A consulta sem credencial ao endereço exibido pelo usuário respondeu `401 {"error":"unauthorized"}`. Não foi encontrada documentação pública do contrato. O uso de `Authorization: Bearer` e os formatos normalizados precisam ser confirmados com uma chave válida no painel. Não afirmar que a exportação completa de uma loja real já foi validada.
+Implementação da Educalizando preparada com testes simulados de contrato, gravação, imagens e isolamento. O usuário confirmou posteriormente que o teste autenticado no painel retornou a loja e a prévia dos produtos. Isso valida a conexão inicial relatada pelo usuário, mas não prova a conclusão de uma importação inteira. A consulta sem credencial ao endereço exibido pelo usuário respondeu `401 {"error":"unauthorized"}`. Não foi encontrada documentação pública do contrato.
+
+### Correção de instalação
+
+Após a prévia válida, o início falhou com a mensagem genérica de migration. A inspeção de esquema por consulta sem acesso a linhas confirmou `42703` apenas para `seen_ids`; as demais colunas consultadas retornaram a recusa de leitura esperada `42501`. A função de imagens existia e também recusava acesso público. Foi adicionada a migration idempotente `20261019060000_repair_platform_import_seen_ids.sql`. O usuário confirmou sua execução e nova verificação confirmou a presença da coluna, mantendo a proteção de acesso. Nenhum produto foi criado ou alterado pelo agente nessa verificação.
+
+A mensagem genérica foi substituída por diagnóstico por código: coluna ausente, tabela ausente, permissão/configuração do servidor ou indisponibilidade. Detalhes e valores do erro SQL nunca são expostos. Falha de permissão na listagem passa a responder indisponibilidade, em vez de afirmar que as tabelas não foram ativadas. A criação do processo ganhou teste de regressão para coluna ausente e erro de conexão.
 
 A chave exibida na imagem enviada pelo usuário não foi copiada, usada, armazenada nem inserida em commits. Recomendada revogação e geração de outra. Não foi alterado nenhum dado na plataforma de origem ou criado produto real para testes.
 
@@ -48,7 +54,7 @@ O número de produtos recebidos é conferido com o total informado pela API ante
 - `verify-saber-job.cjs`: criação de rascunho, cópia de imagem, recibo, conclusão, reimportação sem duplicar, preservação de produto revisado, colisão de loja, repetição de página e total divergente.
 - `verify-saber-import-api.cjs`: autenticação, vínculo de destino pela sessão, prévia sem criação, recusa de outra origem HTTP, proteção contra acesso à importação de outra loja, respostas privadas e ausência do token nas respostas.
 - Lint, typecheck, testes de uploads/entrega e os 16 testes da integração WooCommerce passaram. Build real Vinext/Wrangler executado antes da publicação.
-- Revisão visual interativa indisponível: navegador desativado nas configurações do Work. Não há validação autenticada da API rival até o criador usar o botão de teste com uma chave válida.
+- Revisão visual interativa indisponível: navegador desativado nas configurações do Work. Após executar a correção da coluna `seen_ids`, o usuário confirmou que a importação iniciou e está avançando. A conclusão de um catálogo real ainda não foi confirmada.
 
 ## Arquivos alterados
 
@@ -69,3 +75,5 @@ O número de produtos recebidos é conferido com o total informado pela API ante
 | `scripts/verify-saber-job.cjs` | Testes de gravação, retomada e preservação de produtos. |
 | `scripts/verify-saber-import-api.cjs` | Testes de autorização e isolamento na API. |
 | `ops/IMPORTACAO-SABER-TOKEN-2026-10-19.md` | Uso, limitações, evidências e inventário de alterações. |
+| `supabase/migrations/20261019060000_repair_platform_import_seen_ids.sql` | Completar instalações sem a coluna de detecção de repetição. |
+| `src/lib/saber-import-errors.ts` | Diferenciar falhas de esquema, permissão e indisponibilidade sem expor detalhes SQL. |
