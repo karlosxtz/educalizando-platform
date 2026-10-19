@@ -13,8 +13,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect,useState } from 'react';
 
+import PurchasedMaterialFinder from '@/components/aluno/PurchasedMaterialFinder';
+import type { Purchase } from '@/lib/types';
 import StudentHeader from '@/components/aluno/StudentHeader';
-import { getCurrentStudentSession,getStudentStoresGrouped,GroupedStudentStore } from '@/lib/student-service';
+import { getCurrentStudentSession,getStudentPurchases,GroupedStudentStore } from '@/lib/student-service';
 
 export default function StudentDashboardStoresPage() {
   const router = useRouter();
@@ -22,6 +24,7 @@ export default function StudentDashboardStoresPage() {
   const [loading, setLoading] = useState(true);
   const [studentSession, setStudentSession] = useState<{ id: string; email: string; fullName: string; avatarUrl?: string } | null>(null);
   const [groupedStores, setGroupedStores] = useState<GroupedStudentStore[]>([]);
+  const [purchases,setPurchases] = useState<Purchase[]>([]);
   const [search, setSearch] = useState('');
   const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const visibleStores = groupedStores.filter(({ store }) => normalize(store.nome_loja).includes(normalize(search.trim())));
@@ -36,7 +39,11 @@ export default function StudentDashboardStoresPage() {
         }
         setStudentSession(session);
 
-        const stores = await getStudentStoresGrouped(session.id);
+        const purchased = await getStudentPurchases(session.id);
+        setPurchases(purchased);
+        const grouped = new Map<string,GroupedStudentStore>();
+        for(const purchase of purchased){if(!purchase.store)continue;const entry=grouped.get(purchase.store.id);if(entry)entry.purchasesCount++;else grouped.set(purchase.store.id,{store:purchase.store,purchasesCount:1});}
+        const stores = [...grouped.values()];
         const exclusiveResponse = await fetch('/api/aluno/materiais-exclusivos', { cache: 'no-store' });
         const exclusivePayload = await exclusiveResponse.json().catch(() => ({}));
         const merged = new Map(stores.map((entry) => [entry.store.id, entry]));
@@ -99,6 +106,7 @@ export default function StudentDashboardStoresPage() {
           </div>
         </div>
 
+        {studentSession && <PurchasedMaterialFinder purchases={purchases} userId={studentSession.id}/>}
         {groupedStores.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5">
           <label htmlFor="purchase-store-search" className="block text-sm font-bold text-slate-800">Buscar por loja</label>
           <input id="purchase-store-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Digite o nome da loja" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:ring-2 focus:ring-blue-100" />
