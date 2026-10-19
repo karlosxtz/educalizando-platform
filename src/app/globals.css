@@ -349,3 +349,25 @@ html {
 @media (min-width: 64rem) {
   body:has(.marketplace-header) { overflow-x: clip; }
 }
+
+/* Campaign-led home: photography from the real catalog, clear purchase contrast. */
+.home-introduction { background: radial-gradient(ellipse at 85% 15%, #7754b6 0, transparent 52%), linear-gradient(120deg, #093b6c, #244779 55%, #523d89); border-bottom: 0; }
+.home-introduction .home-eyebrow { color: #d3e8ff; }
+.home-introduction .home-primary { background: #ffd887; border-color: #ffd887; color: #183348; box-shadow: 0 6px 20px #00162e25; }
+.home-introduction .home-primary:hover { background: #ffe5b2; }
+.home-introduction .home-secondary { background: transparent; border-color: #ffffff70; color: #fff; }
+.home-introduction .home-secondary:hover { background: #ffffff15; }
+.home-introduction .home-primary:focus-visible, .home-introduction .home-secondary:focus-visible { outline-color: white; }
+.home-public { background: #f2f5fc; }
+.home-marketplace > section:nth-of-type(3n+2) { background-color: #eaf0fa; border-radius: 1.5rem; }
+.home-marketplace .home-category { background: linear-gradient(135deg, white, #f2effb); border-color: #dedfed; }
+.marketplace-product-page { background: linear-gradient(145deg, #eef3ff, #f9f4ff 50%, #eff7f5); }
+.marketplace-product-page main > .grid > div:first-child > div:first-of-type { scroll-margin-top: 150px; }
+.marketplace-product-page main { padding-top: 1.5rem; }
+.marketplace-product-page main > .grid > div:first-child > .bg-white { border-color: #dce5f5; }
+.marketplace-product-page main > .grid > div:last-child > div { border: 1px solid #d9e5f4; box-shadow: 0 12px 45px #123b6b12; }
+.marketplace-product-page button.bg-gradient-to-r { background-image: none; background-color: #093b6c; }
+@media (max-width: 639px) {
+  .home-introduction .home-material-board { padding: .75rem; }
+  .home-introduction .home-material-board img { height: 230px; }
+}

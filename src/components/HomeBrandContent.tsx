@@ -10,23 +10,21 @@ export function HomeIntroduction({ products = [] }: { products?: HeroMaterial[] 
   return <section className="home-introduction" aria-labelledby="home-title">
     <div className="home-layout grid items-center gap-8 py-9 sm:py-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-14 lg:py-10">
       <div>
-        <p className="home-eyebrow">Encontros que viram boas aulas</p>
-        <h1 id="home-title" className="mt-4 max-w-2xl text-[2.35rem] font-bold leading-[1.08] tracking-[-.045em] text-[#12344a] sm:text-5xl lg:text-[3.6rem]">Materiais didáticos.<br /><span className="text-[#537c6b]">Mais ideias para<br className="hidden sm:block" /> a sua próxima aula.</span></h1>
-        <p className="mt-5 max-w-lg text-base leading-7 text-slate-600">Na Educalizando, você encontra atividades, jogos e recursos digitais de lojas de educadores. Escolha o que combina com a sua turma.</p>
+        <p className="home-eyebrow">Ideias que ganham vida na sua sala</p>
+        <h1 id="home-title" className="mt-4 max-w-2xl text-[2.35rem] font-bold leading-[1.08] tracking-[-.045em] text-white sm:text-5xl lg:text-[3.6rem]">Materiais didáticos.<br /><span className="text-[#ffe3a6]">Mais vida para<br className="hidden sm:block" /> cada aula.</span></h1>
+        <p className="mt-5 max-w-lg text-base leading-7 text-blue-100">Na Educalizando, você encontra atividades, jogos e recursos digitais de lojas de educadores. Escolha o que combina com a sua turma.</p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Link href="/materiais-didaticos" className="home-primary">Explorar materiais <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
           <Link href="/materiais-gratis" className="home-secondary">Conhecer os gratuitos</Link>
         </div>
-        <p className="mt-5 flex items-center gap-2 text-xs leading-5 text-slate-500"><Download aria-hidden="true" className="h-4 w-4 shrink-0" />Materiais digitais. Confira o formato e a licença em cada produto.</p>
+        <p className="mt-5 flex items-center gap-2 text-xs leading-5 text-blue-100"><Download aria-hidden="true" className="h-4 w-4 shrink-0" />Materiais digitais. Confira o formato e a licença em cada produto.</p>
       </div>
-      <div className="home-material-board relative rounded-[2rem] border border-[#e4e8df] bg-[#eef1e9] p-5 sm:p-7">
-        <div className="mb-5 flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.12em] text-[#53705b]">Da criatividade para a sala de aula</p><BookOpen aria-hidden="true" className="h-5 w-5 shrink-0 text-[#53705b]" /></div>
-        {covers.length > 0 ? <div className="grid grid-cols-2 items-center gap-3 sm:gap-4">
-          {covers.map((product, index) => <Link key={product.id} href={`/produto/${product.slug || product.id}`} className={`home-cover-link overflow-hidden rounded-2xl bg-white p-2 shadow-[0_8px_24px_#263b2f12] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#093b6c] ${index === 0 ? 'row-span-2 -rotate-3' : index === 1 ? 'rotate-2' : '-rotate-1'}`} aria-label={`Conhecer ${product.titulo}`}>
-            <CatalogCover value={product.capa_url} title={product.titulo} priority={index === 0} className={`w-full rounded-xl object-contain ${index === 0 ? 'aspect-[3/4]' : 'aspect-[3/2]'}`} />
-          </Link>)}
-        </div> : <div className="flex min-h-64 flex-col justify-center rounded-2xl bg-white/70 p-7"><BookOpen aria-hidden="true" className="h-12 w-12 text-[#537c6b]" /><p className="mt-5 text-2xl font-semibold leading-tight text-[#12344a]">Ideias para ensinar.<br />Espaço para criar.</p><Link href="/lojas" className="mt-6 text-sm font-semibold text-[#093b6c]">Descubra as lojas →</Link></div>}
-        <div className="mt-5 flex items-center justify-between gap-3 text-xs text-[#53705b]"><span>Conheça quem cria cada material</span><Link href="/lojas" className="inline-flex min-h-11 items-center gap-1 font-bold text-[#12344a]">Visitar lojas <ArrowUpRight aria-hidden="true" className="h-4 w-4" /></Link></div>
+      <div className="home-material-board relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 p-4 sm:p-5">
+        {covers[0] ? <Link href={`/produto/${covers[0].slug || covers[0].id}`} className="group relative block overflow-hidden rounded-[1.5rem] bg-[#f6f0ff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label={`Conhecer ${covers[0].titulo}`}>
+          <CatalogCover value={covers[0].capa_url} title={covers[0].titulo} priority className="h-[310px] w-full object-contain p-3 sm:h-[360px]" />
+          <div className="flex items-center justify-between gap-4 bg-white p-4 sm:p-5"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-violet-700">Descoberta no catálogo</p><p className="mt-1 line-clamp-2 text-sm font-bold leading-5 text-[#12344a]">{covers[0].titulo}</p></div><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#093b6c] text-white transition group-hover:bg-violet-700"><ArrowRight aria-hidden="true" className="h-5 w-5" /></span></div>
+          <span className="absolute left-4 top-4 rounded-full bg-[#093b6c] px-3 py-2 text-xs font-bold text-white shadow-md">Conheça este material</span>
+        </Link> : <div className="flex min-h-64 flex-col justify-center p-7 text-white"><BookOpen aria-hidden="true" className="h-12 w-12" /><p className="mt-5 text-2xl font-semibold">Ideias para ensinar. Espaço para criar.</p><Link href="/lojas" className="mt-6 text-sm font-bold underline">Descubra as lojas →</Link></div>}
       </div>
     </div>
   </section>;

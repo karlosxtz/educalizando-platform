@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const ts = require('typescript');
 function load(file, mocks = {}) {
   const exports = {};
-  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText,
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText,
     { exports, require: name => mocks[name] || require(name), URL, Set });
   return exports;
 }
@@ -23,7 +23,7 @@ const original='https://arquivos.educalizando.com.br/public-images/uploads/creat
 const { catalogThumbnailUrl, catalogImageUrl } = load('src/lib/catalog-image-url.ts', {
   './public-links': { normalizePublicAssetUrl: value => value },
   './public-image-url': load('src/lib/public-image-url.ts'),
-  './minio-preview-manifest.json': { default: { '/public-images/uploads/creator/logo.png': 'a'.repeat(32) } },
+  './minio-preview-manifest.json': { __esModule: true, default: { '/public-images/uploads/creator/logo.png': 'a'.repeat(32) } },
 });
 assert.equal(catalogImageUrl(original), original, 'Original resolver remains unchanged');
 assert.equal(catalogThumbnailUrl(original), 'https://arquivos.educalizando.com.br/public-images/uploads/previews/v1/'+ 'a'.repeat(32)+'.webp');
@@ -45,3 +45,28 @@ const maintenance=fs.readFileSync('scripts/optimize-minio-previews.mjs','utf8');
 assert(maintenance.includes('PutObjectCommand') && !maintenance.includes('DeleteObjectCommand'));
 assert(maintenance.includes('const key = `uploads/previews/v1/${hash}.webp`'));
 console.log('PASS MinIO: previews verificados, originais e arquivos privados preservados, cache sem busting, imagens fora da dobra lazy e compressão por finalidade.');
+
+const React = require('react');
+let imageState = [false, false], imageCursor = 0;
+const CatalogImage = load('src/components/ui/CatalogImage.tsx', {
+  react: { ...React, useState(initial) { const index = imageCursor++; if (imageState[index] === undefined) imageState[index] = initial; return [imageState[index], value => { imageState[index] = value; }]; } },
+  'next/image': { __esModule: true, default: props => React.createElement('img', props) },
+  '@/lib/catalog-image-url': { catalogImageUrl: value => value, catalogThumbnailUrl: () => 'https://arquivos.educalizando.com.br/public-images/verified-preview.webp' },
+}).default;
+const imageProps = { src: original, alt: 'Capa real', loading: 'eager' };
+function imageAttempt() {
+  imageCursor = 0;
+  const root = CatalogImage(imageProps);
+  return root.type(root.props);
+}
+let attempt = imageAttempt();
+assert.equal(attempt.props.src, 'https://arquivos.educalizando.com.br/public-images/verified-preview.webp');
+assert.equal(attempt.props.loading, 'eager');
+attempt.props.onError();
+attempt = imageAttempt();
+assert.equal(attempt.props.src, original, 'Failed previews must fall back to the exact original');
+attempt.props.onError();
+attempt = imageAttempt();
+assert.equal(attempt.type, 'div');
+assert.equal(attempt.props.role, 'img', 'A failed original must render an accessible state instead of a broken image');
+console.log('PASS shared image fallback: eager priority retained, exact original retry, accessible final state without a loop.');

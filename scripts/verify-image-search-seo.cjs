@@ -57,7 +57,7 @@ async function main() {
   const Summary = load('src/components/store/ProductPublicSummary.tsx', {
     'next/link': { __esModule: true, default: ({ children, href }) => React.createElement('a', { href }, children) },
     '@/lib/seo': seo, '@/lib/product-description': load('src/lib/product-description.ts'),
-    '@/components/CampaignAttribution': { __esModule: true, default: () => null },
+    './ProductDescriptionContent': load('src/components/store/ProductDescriptionContent.tsx', { '@/lib/product-description-sections': load('src/lib/product-description-sections.ts', { './product-description': load('src/lib/product-description.ts') }) }), '@/components/ui/CatalogImage': { __esModule: true, default: ({thumbnail: _thumbnail, ...props}) => React.createElement('img', props) }, '@/components/CampaignAttribution': { __esModule: true, default: () => null },
   }).default;
   const store = { slug: 'real', nome_loja: 'Real' };
   const html = renderToStaticMarkup(React.createElement(Summary, { product, store }));

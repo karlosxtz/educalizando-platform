@@ -1,6 +1,7 @@
 'use client';
 
 import CatalogImage from '@/components/ui/CatalogImage';
+import { catalogImageUrl } from '@/lib/catalog-image-url';
 import ProductDescriptionContent from '@/components/store/ProductDescriptionContent';
 
 import { getProductReviewsWithNames } from '@/app/actions/review-actions';
@@ -76,20 +77,12 @@ export default function ProductDetailClientView({
   // Gallery State
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showMobileCategories, setShowMobileCategories] = useState(false);
-  const [failedImageUrls, setFailedImageUrls] = useState<string[]>([]);
   const creatorBlockReturnFocus = useRef<HTMLElement | null>(null);
   const creatorBlockCloseButton = useRef<HTMLButtonElement | null>(null);
 
   // Derive gallery images
-  const galleryImages: string[] = [];
-  if (product.capa_url) galleryImages.push(product.capa_url);
-  if (product.images && product.images.length > 0) {
-    product.images.forEach(img => {
-      if (img.url !== product.capa_url) {
-        galleryImages.push(img.url);
-      }
-    });
-  }
+  const galleryImages = [...new Set([product.capa_url, ...(product.images || []).map(image => image.url)]
+    .map(catalogImageUrl).filter((url): url is string => Boolean(url)))];
   const galleryMedia = [
     ...galleryImages.map((url) => ({ type: 'image' as const, url })),
     ...(product.instagram_video_url ? [{ type: 'instagram' as const, url: product.instagram_video_url }] : []),
@@ -130,7 +123,7 @@ export default function ProductDetailClientView({
     fetchReviews();
   }, [product.id, product, store]);
 
-  const primaryColor = store.cor_primaria || '#2563eb';
+  const primaryColor = context === 'marketplace' ? '#093b6c' : store.cor_primaria || '#2563eb';
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return;
@@ -361,7 +354,7 @@ export default function ProductDetailClientView({
 
   return (
     <div 
-      className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white"
+      className={`${context === 'marketplace' ? 'marketplace-product-page' : ''} min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white`}
       style={{ '--store-primary': primaryColor } as React.CSSProperties}
     >
       {/* Mobile marketplace header: one short navigation instead of stacked bars */}
@@ -443,7 +436,7 @@ export default function ProductDetailClientView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: Content */}
-          <div className="min-w-0 lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
+          <div className="min-w-0 lg:col-span-7 xl:col-span-7 space-y-6 sm:space-y-8">
             <div className="lg:hidden space-y-2">
               <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><Link href="/" className="hover:text-blue-600">Início</Link><span>›</span><Link href={`/loja/${store.slug}`} className="hover:text-blue-600 truncate max-w-[110px]">{store.nome_loja}</Link><span>›</span><span className="truncate">Material</span></div>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{isPlrPurchase ? 'Licença PLR para revenda' : 'Material digital'}</p>
@@ -456,22 +449,14 @@ export default function ProductDetailClientView({
                 <h2 className="text-sm font-extrabold text-slate-900">Conheça o material</h2>
                 {galleryMedia.length > 0 && <span className="text-xs text-slate-500" aria-live="polite">Prévia {activeImageIndex + 1} de {galleryMedia.length}</span>}
               </div>
-              <div className="aspect-[3/4] max-w-md mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
+              <div className="aspect-square max-w-xl mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
                 {activeMedia ? (
                   <AnimatePresence mode="wait">
-                    {activeMedia.type === 'image' ? <motion.img
-                      key={activeImageIndex}
-                      src={activeMedia.url}
+                    {activeMedia.type === 'image' ? <CatalogImage
+                      key={activeMedia.url} thumbnail={false} src={activeMedia.url}
                       alt={`Prévia ${activeImageIndex + 1} de ${product.titulo}`}
-                      loading={activeImageIndex === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={activeImageIndex === 0 ? 'high' : 'auto'} width={600} height={800}
-                      decoding="async"
-                      initial={activeImageIndex === 0 ? false : { opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="w-full h-full object-contain"
-                      onError={() => setFailedImageUrls((urls) => urls.includes(activeMedia.url) ? urls : [...urls, activeMedia.url])}
+                      loading="eager" fetchPriority={activeImageIndex === 0 ? 'high' : 'auto'}
+                      width={600} height={800} className="w-full h-full object-contain"
                     /> : <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full bg-slate-950">
                       <iframe src={instagramEmbedUrl || activeMedia.url} title={`Vídeo do Instagram: ${product.titulo}`} className="h-full w-full border-0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" loading="lazy" />
                       <a href={store.instagram || activeMedia.url} target="_blank" rel="noopener noreferrer" className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-2 text-xs font-black text-white shadow-lg"><Camera className="h-4 w-4 text-pink-400" /> Ver no Instagram</a>
@@ -482,16 +467,11 @@ export default function ProductDetailClientView({
                     Material Didático Digital
                   </div>
                 )}
-                {activeMedia?.type === 'image' && failedImageUrls.includes(activeMedia.url) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-100 p-8 text-center text-sm font-semibold text-slate-500">
-                    A imagem de prévia não pôde ser carregada.
-                  </div>
-                )}
               </div>
 
               {/* Gallery Thumbnails */}
               {galleryMedia.length > 1 && (
-                <div className="flex flex-wrap justify-center gap-2 pb-2 px-2" aria-label="Prévias do material">
+                <div className="flex gap-2 overflow-x-auto pb-2 px-2 [scrollbar-width:thin]" aria-label="Prévias do material">
                   {galleryMedia.map((media, idx) => (
                     <button
                       key={idx}
@@ -548,6 +528,7 @@ export default function ProductDetailClientView({
               </div>
             </section>
 
+            <button type="button" onClick={handleStartCheckout} disabled={isBuying} className="lg:hidden flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#093b6c] px-5 font-bold text-white disabled:opacity-60"><ShoppingBag className="h-5 w-5" />{isBuying ? 'Preparando sua compra…' : isFreeProduct ? 'Resgatar material gratuito' : 'Comprar este material'}</button>
             {/* Premium product details */}
             <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="product-details-title">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
@@ -671,7 +652,7 @@ export default function ProductDetailClientView({
           </div>
 
           {/* RIGHT COLUMN: Buy Action Card */}
-          <div className="hidden min-w-0 lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
+          <div className="hidden min-w-0 lg:block lg:col-span-5 xl:col-span-5 lg:sticky lg:top-40">
             <div className="bg-white shadow-[0_10px_40px_rgb(0,0,0,0.06)] rounded-3xl p-6 sm:p-8 flex flex-col space-y-6">
               
               {/* Product Header (Mobile & Desktop in Sidebar) */}
@@ -753,6 +734,43 @@ export default function ProductDetailClientView({
                 <p className="text-xs text-slate-500 font-medium mt-2">Valor da modalidade selecionada.</p>
               </div>
 
+              {/* Primary Call to Action Buttons */}
+              <div className="flex flex-col gap-3">
+                {isFreeProduct && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-900">Este brinde é liberado para clientes que já fizeram uma compra paga nesta mesma loja.</p>}
+                <button
+                  type="button"
+                  onClick={handleStartCheckout}
+                  disabled={isBuying}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-500 font-black text-base text-white shadow-lg shadow-blue-900/15 hover:brightness-105 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[52px]"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {isBuying ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
+                      <span className="tracking-wide">{isFreeProduct ? 'Resgatar Grátis' : 'Comprar agora'}</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddOnly}
+                  disabled={isBuying}
+                  className="w-full py-4 rounded-2xl border-2 bg-white font-bold text-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[50px]"
+                  style={{ borderColor: primaryColor, color: primaryColor }}
+                >
+                  {isBuying ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>{isFreeProduct ? 'Liberar Material' : 'Adicionar ao Carrinho'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               <PurchaseLicenseSummary isPlr={!!isPlrPurchase} />
 
               <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-lime-50 p-4 text-slate-800">
@@ -818,43 +836,6 @@ export default function ProductDetailClientView({
                 )}
               </div>
 
-              {/* Primary Call to Action Buttons */}
-              <div className="flex flex-col gap-3">
-                {isFreeProduct && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-900">Este brinde é liberado para clientes que já fizeram uma compra paga nesta mesma loja.</p>}
-                <button
-                  type="button"
-                  onClick={handleStartCheckout}
-                  disabled={isBuying}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-500 font-black text-base text-white shadow-xl shadow-emerald-200 hover:brightness-105 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[52px]"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {isBuying ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5 fill-transparent group-hover:animate-pulse" />
-                      <span className="tracking-wide">{isFreeProduct ? 'Resgatar Grátis' : 'Comprar agora no Pix'}</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddOnly}
-                  disabled={isBuying}
-                  className="w-full py-4 rounded-2xl border-2 bg-white font-bold text-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-2 group min-h-[50px]"
-                  style={{ borderColor: primaryColor, color: primaryColor }}
-                >
-                  {isBuying ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-4 h-4" />
-                      <span>{isFreeProduct ? 'Liberar Material' : 'Adicionar ao Carrinho'}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
               <ProductQuickSpecs {...{ product, educationLevel, hasConfiguredDelivery, getTipoIcon }} />
             </div>
           </div>
@@ -871,7 +852,7 @@ export default function ProductDetailClientView({
             
             <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map(p => (
-                <ProductCard key={p.id} product={{ ...p, store }} />
+                <ProductCard key={p.id} product={{ ...p, store }} priority />
               ))}
             </div>
           </div>

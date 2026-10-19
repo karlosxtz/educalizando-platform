@@ -18,6 +18,7 @@ const brand = load('src/components/HomeBrandContent.tsx', { 'next/link': link, '
 const blank = { __esModule: true, default: () => null };
 const marketplace = load('src/components/HomepageMarketplace.tsx', {
   'next/link': link, '@/components/HomeBrandContent': brand,
+  '@/components/HomeDiscoveryBanners': load('src/components/HomeDiscoveryBanners.tsx', { 'next/link': link, '@/components/CatalogCover': cover }),
   '@/components/ui/CatalogImage': blank, '@/components/MainBannersCarousel': blank,
   '@/components/MarketplaceKitCard': blank, '@/components/RecentlyViewed': blank,
   '@/components/UpcomingCalendarDates': blank,
@@ -41,4 +42,3 @@ const renderedFaq = renderToStaticMarkup(React.createElement(brand.HomeFaq));
 assert.match(renderedFaq, /Como acessar\?/);
 assert.match(renderedFaq, /Após a confirmação do pagamento\./);
 console.log('PASS home: one H1, real product links, unique store navigation, factual FAQ and usable empty state.');
-

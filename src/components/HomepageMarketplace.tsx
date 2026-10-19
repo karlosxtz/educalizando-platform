@@ -1,3 +1,4 @@
+import HomeDiscoveryBanners from '@/components/HomeDiscoveryBanners';
 import CatalogImage from '@/components/ui/CatalogImage';
 import MainBannersCarousel from '@/components/MainBannersCarousel';
 import MarketplaceKitCard from '@/components/MarketplaceKitCard';
@@ -29,6 +30,7 @@ export default function HomepageMarketplace({ banners, products, stores, kits, m
   const offers = products.filter(product => !product.is_free && Number(product.preco_original || 0) > Number(product.preco || 0)).slice(0, 4);
   return <main className="home-marketplace flex-1 pb-8">
     <HomeIntroduction products={featured} />
+    <HomeDiscoveryBanners freeProduct={freeProducts[0]} offer={offers[0]} />
     <section className="home-layout py-8 sm:py-10" aria-labelledby="home-categorias">
       <SectionHeading id="home-categorias" eyebrow="Um bom ponto de partida" title="O que sua turma vai descobrir?" href="/buscar" label="Todas as categorias" />
       <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">{categories.map(category => <Link key={category.href} href={category.href} className="home-category group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5">
