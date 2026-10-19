@@ -1,9 +1,19 @@
 import Link from 'next/link';
 import { ArrowLeft, Clock3, ShieldCheck } from 'lucide-react';
+import InstagramWorkspace from '@/components/creator/InstagramWorkspace';
+import { getRequestUser } from '@/lib/api-auth';
+import { instagramReviewEmail } from '@/lib/instagram-review-access';
+import { SITE_URL } from '@/lib/seo';
 
-// The studio is preserved in InstagramWorkspace; restore its entry point after
-// Meta approves access for creators outside the app's test roles.
-export default function InstagramPage() {
+export const dynamic = 'force-dynamic';
+
+// All other creators keep the review notice until general access is approved.
+export default async function InstagramPage() {
+  const reviewEmail = instagramReviewEmail();
+  if (reviewEmail) {
+    const user = await getRequestUser(new Request(SITE_URL + '/dashboard/instagram')).catch(() => null);
+    if (user?.email_confirmed_at && user.email?.toLowerCase() === reviewEmail) return <InstagramWorkspace />;
+  }
   return <section aria-labelledby="instagram-review-title" className="mx-auto max-w-4xl overflow-hidden rounded-[28px] border border-rose-200 bg-white shadow-sm">
     <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-orange-400 via-pink-500 to-violet-600" />
     <div className="bg-gradient-to-br from-orange-50 via-pink-50 to-violet-50 px-6 py-10 sm:px-10 sm:py-14">
