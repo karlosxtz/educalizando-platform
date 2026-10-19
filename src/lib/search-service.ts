@@ -317,7 +317,7 @@ export async function searchProducts(filters: SearchFilters): Promise<SearchResu
 }
 
 // Busca rápida e leve exclusiva para o Auto-complete
-export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'>[]> {
+export async function quickSearch(query: string): Promise<Pick<Product, 'id' | 'titulo'>[]> {
   if (!query || query.trim().length < 2) return [];
 
   const isRealSupabase = Boolean(
@@ -336,7 +336,7 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
       }
 
       if (!error && data) {
-        return data as Pick<Product, 'titulo'>[];
+        return data as Pick<Product, 'id' | 'titulo'>[];
       }
     } catch (err) {
       console.error('[quickSearch] Exceção na chamada Supabase:', err);
@@ -344,10 +344,10 @@ export async function quickSearch(query: string): Promise<Pick<Product, 'titulo'
   }
 
   // Fallback Local
-  const all = await getAllPublicMarketplaceProducts(100);
+  const all = await getAllPublicMarketplaceProducts(500, 'cards');
   return all
     .filter((product) => searchMatchScore(product, query) > 0)
     .sort((a, b) => searchMatchScore(b, query) - searchMatchScore(a, query))
     .slice(0, 5)
-    .map(p => ({ titulo: p.titulo }));
+    .map(p => ({ id: p.id, titulo: p.titulo }));
 }

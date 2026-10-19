@@ -1,111 +1,48 @@
 'use client';
-
 import { useDebounce } from '@/hooks/use-debounce';
 import { quickSearch } from '@/lib/search-service';
-import { Loader2,Search } from 'lucide-react';
+import { discoverySuggestions, type SearchSuggestion } from '@/lib/search-suggestions';
+import { addSearchHistory } from '@/lib/search-history';
+import { Loader2, Search, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect,useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
+const cache = new Map<string, { at: number; values: SearchSuggestion[] }>();
 export default function SearchBar() {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  
-  const debouncedQuery = useDebounce(query, 400);
-  const router = useRouter();
-
+  const [result, setResult] = useState<{ query: string; values: SearchSuggestion[] }>({ query: '', values: [] });
+  const [busy, setBusy] = useState(false); const [open, setOpen] = useState(false); const [active, setActive] = useState(-1);
+  const debounced = useDebounce(query.trim(), 350); const router = useRouter(); const id = useId();
+  const suggestions = result.query === query.trim() ? result.values : discoverySuggestions(query);
+  const visible = open && query.trim().length >= 2;
   useEffect(() => {
-    let active = true;
-
-    async function fetchSuggestions() {
-      if (debouncedQuery.trim().length >= 2) {
-        setIsSearching(true);
-        try {
-          const results = await quickSearch(debouncedQuery);
-          if (active) {
-            setSuggestions(results);
-          }
-        } catch (err) {
-          console.error('[SearchBar] Erro ao buscar sugestões:', err);
-        } finally {
-          if (active) {
-            setIsSearching(false);
-          }
-        }
-      } else {
-        setSuggestions([]);
-      }
-    }
-    
-    fetchSuggestions();
-
-    return () => {
-      active = false;
-    };
-  }, [debouncedQuery]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      setSuggestions([]); // close dropdown
-      const encodedQuery = encodeURIComponent(query.trim());
-      router.push(`/buscar?q=${encodedQuery}`);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSearch} className="relative group w-full">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        {isSearching ? (
-           <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
-        ) : (
-           <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-        )}
-      </div>
-      <input
-        type="search"
-        aria-label="Buscar materiais didáticos"
-        enterKeyHint="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="block w-full pl-11 pr-6 sm:pr-24 py-3 sm:py-3.5 bg-slate-100/50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
-        placeholder="Busque por atividade, tema ou material"
-      />
-      <button 
-        type="submit"
-        className="absolute inset-y-1.5 right-1.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-full transition-colors hidden sm:block shadow-sm"
-      >
-        Buscar
-      </button>
-
-      {/* Auto-complete Dropdown */}
-      {(suggestions.length > 0 || (query.trim().length >= 2 && debouncedQuery === query && !isSearching && suggestions.length === 0)) && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
-          {suggestions.length > 0 ? (
-            <ul className="max-h-80 overflow-y-auto">
-              {suggestions.map((item, index) => (
-                <li key={index} className="border-b border-slate-100 last:border-0">
-                  <Link 
-                    href={`/buscar?q=${encodeURIComponent(item.titulo)}`} 
-                    onClick={() => {
-                      setQuery(item.titulo);
-                      setSuggestions([]);
-                    }}
-                    className="block px-4 py-3 hover:bg-slate-50 transition-colors"
-                  >
-                    <span className="text-sm font-medium text-slate-800 line-clamp-1">{item.titulo}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="p-4 text-sm text-slate-500 text-center">
-              Nenhum resultado encontrado para "{query}".
-            </div>
-          )}
-        </div>
-      )}
-    </form>
-  );
+    let alive = true;
+    if (debounced.length < 2) { setBusy(false); return; }
+    const cached = cache.get(debounced.toLocaleLowerCase('pt-BR'));
+    if (cached && Date.now() - cached.at < 60000) { setResult({ query: debounced, values: cached.values }); setBusy(false); return; }
+    setBusy(true);
+    void quickSearch(debounced).then(products => {
+      const values: SearchSuggestion[] = [...discoverySuggestions(debounced), ...products.filter(product => typeof product.id === 'string').map(product => ({ label: product.titulo, href: `/produto/${encodeURIComponent(product.id)}`, kind: 'Material' as const }))].slice(0, 8);
+      if (cache.size >= 30) cache.delete(cache.keys().next().value!);
+      cache.set(debounced.toLocaleLowerCase('pt-BR'), { at: Date.now(), values });
+      if (alive) setResult({ query: debounced, values });
+    }).catch(() => { if (alive) setResult({ query: debounced, values: discoverySuggestions(debounced) }); }).finally(() => { if (alive) setBusy(false); });
+    return () => { alive = false; };
+  }, [debounced]);
+  function choose(href: string) { addSearchHistory(query.trim()); setOpen(false); setActive(-1); router.push(href); }
+  return <form role="search" aria-label="Busca global de materiais" className="relative w-full" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false); }} onSubmit={event => { event.preventDefault(); if (query.trim()) choose(`/buscar?q=${encodeURIComponent(query.trim())}`); }}>
+    <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">{busy ? <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin text-blue-600" /> : <Search aria-hidden="true" className="h-5 w-5 text-slate-400" />}</div>
+    <input type="search" role="combobox" aria-label="Buscar materiais didáticos" aria-autocomplete="list" aria-expanded={visible} aria-controls={visible ? id : undefined} aria-activedescendant={visible && active >= 0 && suggestions[active] ? `${id}-${active}` : undefined} autoComplete="off" enterKeyHint="search" maxLength={120} value={query} onFocus={() => setOpen(true)} onChange={event => { setQuery(event.target.value); setOpen(true); setActive(-1); }} onKeyDown={event => {
+      if (event.key === 'Escape') { setOpen(false); setActive(-1); }
+      if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && suggestions.length) { event.preventDefault(); setOpen(true); setActive(index => event.key === 'ArrowDown' ? (index + 1) % suggestions.length : (index <= 0 ? suggestions.length - 1 : index - 1)); }
+      if (event.key === 'Enter' && visible && active >= 0 && suggestions[active]) { event.preventDefault(); choose(suggestions[active].href); }
+    }} placeholder="Busque por atividade, tema ou material" className="block min-h-12 w-full rounded-full border border-transparent bg-slate-100/50 py-3 pl-11 pr-20 text-sm font-medium text-slate-900 shadow-inner outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 sm:pr-24" />
+    <button type="submit" className="absolute inset-y-1.5 right-1.5 rounded-full bg-blue-700 px-3 text-xs font-bold text-white hover:bg-blue-800 sm:px-4 sm:text-sm">Buscar</button>
+    {visible && <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+      <p role="status" className="sr-only">{busy ? 'Buscando sugestões' : `${suggestions.length} sugestões. Use as setas para escolher e Enter para abrir.`}</p>
+      <ul id={id} role="listbox" aria-label="Sugestões de busca" className="max-h-80 overflow-y-auto">{suggestions.map((item, index) => <li role="presentation" key={item.kind + item.href}><Link prefetch={false} id={`${id}-${index}`} role="option" aria-selected={active === index} href={item.href} onMouseEnter={() => setActive(index)} onClick={() => { addSearchHistory(query.trim()); setOpen(false); setActive(-1); }} className={`flex min-h-12 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 focus:bg-blue-50 ${active === index ? 'bg-blue-50' : 'hover:bg-slate-50'}`}><span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-900">{item.label}</span><span className="text-[11px] text-slate-500">{item.kind}</span></span><ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0 text-blue-700" /></Link></li>)}</ul>
+      <Link prefetch={false} href={`/buscar?q=${encodeURIComponent(query.trim())}`} onClick={() => { addSearchHistory(query.trim()); setOpen(false); }} className="flex min-h-12 items-center gap-2 bg-slate-50 px-4 text-sm font-bold text-blue-900"><Search aria-hidden="true" className="h-4 w-4" />Ver resultados para “{query.trim()}”</Link>
+    </div>}
+  </form>;
 }

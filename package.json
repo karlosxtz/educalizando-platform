@@ -14,6 +14,7 @@
     "test:store-themes": "node scripts/verify-store-themes.cjs",
     "test:product-growth": "node scripts/verify-product-growth.cjs",
     "test:store-analytics": "node scripts/verify-store-analytics.cjs",
+    "test:buyer-growth": "node scripts/verify-buyer-growth.cjs",
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
