@@ -198,6 +198,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
     { label: 'Métricas e Anúncios', href: '/dashboard/metricas-anuncios', icon: ChartNoAxesCombined, badge: 'NOVO' },
     { label: 'Instagram · Story e Feed', href: '/dashboard/instagram', icon: Instagram, badge: 'NOVO' },
     { label: 'Pinterest · Divulgação', href: '/dashboard/pinterest', icon: ImagePlus, badge: 'NOVO' },
+    { label: 'Blog do criador', href: '/dashboard/blog', icon: Library, badge: 'NOVO' },
     { label: 'Calendário de oportunidades', href: '/dashboard/oportunidades', icon: CalendarDays, badge: 'NOVO' },
     { label: 'Buscas sem resultado', href: '/dashboard/buscas-sem-resultado', icon: SearchX, badge: 'NOVO' },
     { label: 'Recuperar compras', href: '/dashboard/carrinhos', icon: ShoppingCart, badge: 'NOVO' },
@@ -235,7 +236,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
     { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
-    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/instagram', '/dashboard/pinterest', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
+    { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/instagram', '/dashboard/pinterest', '/dashboard/blog', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },
   ].map((group) => ({ ...group, items: NAV_ITEMS.filter((item) => group.hrefs.includes(item.href)) }));
 

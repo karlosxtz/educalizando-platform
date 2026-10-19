@@ -1,28 +1,24 @@
-
 import CatalogImage from '@/components/ui/CatalogImage';
+import BlogArticleBody from '@/components/blog/BlogArticleBody';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
 import { getPublishedBlogPostBySlug } from '@/lib/blog-service';
-import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL, socialMetadata } from '@/lib/seo';
-import { Metadata } from 'next';
+import { DEFAULT_SOCIAL_IMAGE,serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-interface BlogPostPageProps { params: Promise<{ slug: string }> }
-
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const post = await getPublishedBlogPostBySlug((await params).slug);
-  if (!post) notFound();
-  const title = post.seo_title || `${post.title} | Blog Educalizando`;
-  const description = post.seo_description || post.excerpt || `Leia ${post.title} no blog da Educalizando.`;
-  const url = `${SITE_URL}/blog/${post.slug}`;
-  const image = post.cover_url || DEFAULT_SOCIAL_IMAGE;
-  return socialMetadata({ title, description, url, type: 'article', image, imageAlt: `Capa do guia: ${post.title}` });
+export const revalidate=3600;
+interface Props {params:Promise<{slug:string}>}
+export async function generateMetadata({params}:Props):Promise<Metadata> {
+  const post=await getPublishedBlogPostBySlug((await params).slug);if(!post)notFound();
+  return socialMetadata({title:post.seo_title || `${post.title} | Blog Educalizando`,description:post.seo_description || post.excerpt,url:SITE_URL+'/blog/'+post.slug,type:'article',image:post.cover_url || DEFAULT_SOCIAL_IMAGE,imageAlt:'Capa: '+post.title});
 }
-
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = await getPublishedBlogPostBySlug((await params).slug);
-  if (!post) notFound();
-  const url = `https://www.educalizando.com.br/blog/${post.slug}`;
-  return <div className="flex min-h-screen flex-col bg-slate-50"><MarketplaceHeader /><main className="flex-1"><article className="mx-auto max-w-3xl px-4 py-7 sm:px-6 sm:py-14"><Link href="/blog" className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">← Voltar aos guias</Link><p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-blue-600">Guia Educalizando</p><h1 className="mt-3 break-words text-3xl font-black leading-tight text-slate-900 sm:text-5xl">{post.title}</h1><p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">{post.excerpt}</p>{post.cover_url && <CatalogImage src={post.cover_url} alt={`Capa do guia: ${post.title}`} width={1200} height={630} fetchPriority="high" decoding="async" className="mt-7 aspect-[1.9/1] w-full rounded-2xl object-cover" />}{post.published_at && <p className="mt-5 text-sm text-slate-500">Publicado em {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(post.published_at))}</p>}<div className="mt-8 break-words whitespace-pre-line text-base leading-8 text-slate-700">{post.content}</div></article><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({ '@context': 'https://schema.org', '@type': 'BlogPosting', '@id': url + '#article', headline: post.title, description: post.excerpt, author: { '@type': 'Organization', name: 'Educalizando', url: SITE_URL }, publisher: { '@id': SITE_URL + '/#organization', '@type': 'Organization', name: 'Educalizando', logo: { '@type': 'ImageObject', url: SITE_URL + '/branding/logo-educalizando.png?v=3' } }, ...(post.updated_at ? { dateModified: post.updated_at } : {}), ...(post.published_at ? { datePublished: post.published_at } : {}), mainEntityOfPage: url, ...(post.cover_url ? { image: post.cover_url } : {}) }) }} /></main><Footer /></div>;
+export default async function BlogPostPage({params}:Props) {
+  const post=await getPublishedBlogPostBySlug((await params).slug);if(!post)notFound();
+  const url=SITE_URL+'/blog/'+post.slug;
+  const author=post.store?{'@type':'Organization',name:post.store.nome_loja,url:SITE_URL+'/loja/'+post.store.slug}:{'@type':'Organization',name:'Educalizando',url:SITE_URL};
+  return <div className="min-h-screen bg-[#f5f4fc]"><MarketplaceHeader/><main className="home-layout py-7 sm:py-12"><article className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-5 sm:p-9"><nav aria-label="Caminho do artigo" className="flex flex-wrap gap-2 text-xs text-slate-500"><Link href="/">Início</Link><span>/</span><Link href="/blog" className="font-bold text-violet-800">Blog</Link><span>/</span><span className="break-words">{post.title}</span></nav><p className="mt-7 text-xs font-bold uppercase tracking-widest text-violet-700">{post.topic || 'Guia Educalizando'}</p><h1 className="mt-3 break-words text-3xl font-bold leading-tight text-slate-950 sm:text-5xl">{post.title}</h1><p className="mt-5 text-lg leading-8 text-slate-600">{post.excerpt}</p><div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-100 pb-5 text-sm">{post.store?<Link href={'/loja/'+post.store.slug} className="font-bold text-violet-800">Por {post.store.nome_loja}</Link>:<span className="font-bold text-violet-800">Equipe Educalizando</span>}{post.published_at && <time dateTime={post.published_at} className="text-xs text-slate-500">{new Intl.DateTimeFormat('pt-BR',{dateStyle:'long',timeZone:'America/Sao_Paulo'}).format(new Date(post.published_at))}</time>}</div>{post.cover_url && <CatalogImage src={post.cover_url} alt={'Capa: '+post.title} width={1200} height={720} fetchPriority="high" className="mt-7 max-h-[550px] w-full rounded-2xl bg-slate-50 object-contain"/>}<div className="mt-8"><BlogArticleBody content={post.content}/></div>{post.store && <aside className="mt-10 rounded-2xl border border-violet-100 bg-violet-50 p-5"><p className="text-xs font-bold uppercase tracking-widest text-violet-700">Conheça quem compartilhou esta ideia</p><h2 className="mt-2 text-xl font-bold text-slate-950">{post.store.nome_loja}</h2><p className="mt-2 text-sm leading-7 text-slate-600">Visite a vitrine do criador para conhecer os materiais disponíveis e conferir as condições de cada recurso.</p><Link href={'/loja/'+post.store.slug} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-violet-700 px-4 text-sm font-bold text-white">Conhecer a loja →</Link></aside>}<Link href="/blog" className="mt-8 inline-flex min-h-11 items-center text-sm font-bold text-violet-800">← Mais ideias no blog</Link></article>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd({'@context':'https://schema.org','@graph':[{'@type':'BlogPosting','@id':url+'#article',headline:post.title,description:post.excerpt,author,publisher:{'@type':'Organization',name:'Educalizando',url:SITE_URL,logo:{'@type':'ImageObject',url:SITE_URL+'/branding/logo-educalizando-icon-512.png'}},dateModified:post.updated_at,...(post.published_at?{datePublished:post.published_at}:{}),mainEntityOfPage:url,...(post.cover_url?{image:post.cover_url}:{})},{'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Início',item:SITE_URL},{'@type':'ListItem',position:2,name:'Blog',item:SITE_URL+'/blog'},{'@type':'ListItem',position:3,name:post.title,item:url}]}]})}}/>
+  </main><Footer/></div>;
 }

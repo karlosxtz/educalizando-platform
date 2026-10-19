@@ -1,59 +1,33 @@
-
 import CatalogImage from '@/components/ui/CatalogImage';
 import Footer from '@/components/Footer';
 import MarketplaceHeader from '@/components/MarketplaceHeader';
-import { getPublishedBlogPosts } from '@/lib/blog-service';
+import { BLOG_PAGE_SIZE, getPublicBlogPage } from '@/lib/blog-service';
+import { BLOG_TOPICS } from '@/lib/creator-blog-input';
 import { serializeJsonLd,SITE_URL,socialMetadata } from '@/lib/seo';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { ArrowRight, PenLine, Search } from 'lucide-react';
 import Link from 'next/link';
 
-const blogTitle = 'Blog Educalizando | Ideias e Guias Pedagógicos';
-const blogDescription = 'Guias pedagógicos, ideias de atividades e estratégias para educadores aproveitarem melhor seus materiais didáticos.';
-
-export const metadata: Metadata = {
-  title: blogTitle,
-  description: blogDescription,
-  alternates: { canonical: 'https://www.educalizando.com.br/blog' },
-  ...socialMetadata({ title: blogTitle, description: blogDescription, url: '/blog' }),
-};
-
-export default async function BlogPage() {
-  const posts = await getPublishedBlogPosts();
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      { '@type': 'CollectionPage', name: blogTitle, description: blogDescription, url: `${SITE_URL}/blog` },
-      { '@type': 'BreadcrumbList', itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
-        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-      ] },
-      ...(posts.length ? [{ '@type': 'ItemList', name: 'Guias pedagógicos', itemListElement: posts.slice(0, 24).map((post, index) => ({ '@type': 'ListItem', position: index + 1, name: post.title, url: `${SITE_URL}/blog/${post.slug}` })) }] : []),
-    ],
-  };
-  return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
-      <MarketplaceHeader />
-      <main className="flex-1">
-        <section className="border-b bg-gradient-to-br from-blue-700 to-indigo-800 px-4 py-10 text-center text-white sm:py-20">
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-blue-100">Conteúdo para educadores</p>
-          <h1 className="mx-auto max-w-3xl text-3xl font-black sm:text-5xl">Ideias que transformam a sua aula</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-blue-100 sm:text-lg">Guias pedagógicos, inspirações e orientações práticas para professores, famílias e criadores.</p>
-        </section>
-        <section className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-14">
-          {posts.length ? (
-            <div className="grid grid-cols-1 gap-4 min-[390px]:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-              {posts.map((post) => (
-                <article key={post.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-                  {post.cover_url && <CatalogImage src={post.cover_url} alt={`Capa do guia: ${post.title}`} width={640} height={352} loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover" />}
-                  <div className="flex h-full flex-col p-4 sm:p-5"><p className="text-xs font-bold text-blue-600">Guia Educalizando</p><h2 className="mt-2 text-lg font-black leading-snug text-slate-900 sm:text-xl">{post.title}</h2><p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{post.excerpt}</p><Link href={`/blog/${post.slug}`} className="mt-5 inline-flex min-h-11 items-center self-start rounded-lg px-1 text-sm font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">Ler guia<span className="sr-only">: {post.title}</span> →</Link></div>
-                </article>
-              ))}
-            </div>
-          ) : <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10" role="status" aria-live="polite"><h2 className="text-xl font-black text-slate-900">Ainda não há guias publicados</h2><p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">Quando novos conteúdos forem publicados, eles aparecerão aqui.</p><Link href="/" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">Voltar ao marketplace</Link></div>}
-        </section>
-      </main>
-      <Footer />
-    </div>
-  );
+export const revalidate=3600;
+type Props={searchParams:Promise<Record<string,string|string[]|undefined>>};
+function filters(params:Record<string,string|string[]|undefined>) {
+  return {q:typeof params.q==='string'?params.q.trim().slice(0,100):'',topic:typeof params.tema==='string' && (BLOG_TOPICS as readonly string[]).includes(params.tema)?params.tema:'',page:Math.max(1,Math.min(10000,Number.parseInt(String(params.pagina || '1'),10)||1))};
+}
+function href(q:string,topic:string,page=1) {const params=new URLSearchParams();if(q)params.set('q',q);if(topic)params.set('tema',topic);if(page>1)params.set('pagina',String(page));return '/blog'+(params.size?'?'+params.toString():'');}
+export async function generateMetadata({searchParams}:Props):Promise<Metadata> {
+  const {q,topic,page}=filters(await searchParams);
+  return {...socialMetadata({title:'Blog Educalizando | Dicas e Ideias de Educadores',description:'Dicas pedagógicas, experiências em sala e ideias práticas compartilhadas por educadores e criadores. Conheça quem ensina e os materiais das suas lojas.',url:'/blog'}),robots:{index:!q && !topic && page===1,follow:true}};
+}
+export default async function BlogPage({searchParams}:Props) {
+  const {q,topic,page}=filters(await searchParams);
+  const {posts,total,unavailable}=await getPublicBlogPage(q,topic,page);
+  return <div className="min-h-screen bg-[#f5f4fc] text-slate-900"><MarketplaceHeader/><main>
+    <section className="border-b border-violet-100 bg-gradient-to-br from-indigo-950 via-violet-900 to-indigo-700 text-white"><div className="home-layout py-10 sm:py-16"><p className="text-xs font-bold uppercase tracking-[.2em] text-violet-200">Blog Educalizando · Vozes de quem ensina</p><div className="mt-4 flex flex-wrap items-end justify-between gap-6"><div className="max-w-2xl"><h1 className="text-3xl font-bold leading-tight sm:text-5xl">Ideias compartilhadas.<br/>Novas possibilidades na aula.</h1><p className="mt-5 text-sm leading-7 text-violet-100 sm:text-base">Dicas pedagógicas, experiências e inspirações de educadores. Descubra propostas, conheça os criadores e encontre ideias para a sua turma.</p></div><Link href="/dashboard/blog" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900"><PenLine className="h-4 w-4"/>Escrever um artigo</Link></div><form action="/blog" role="search" className="mt-8 flex max-w-2xl gap-2"><label className="sr-only" htmlFor="blog-query">Buscar no blog</label><input id="blog-query" name="q" defaultValue={q} maxLength={100} placeholder="Qual ideia você está procurando?" type="search" className="min-h-12 min-w-0 flex-1 rounded-xl bg-white px-4 text-sm text-slate-900"/>{topic && <input type="hidden" name="tema" value={topic}/>}<button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-violet-200 px-4 font-bold text-violet-950"><Search className="h-4 w-4"/><span className="hidden sm:inline">Buscar</span><span className="sr-only sm:hidden">Buscar</span></button></form></div></section>
+    <section className="home-layout py-8 sm:py-12" aria-label="Artigos publicados"><nav aria-label="Temas do blog" className="mb-6 flex gap-2 overflow-x-auto pb-3 [scrollbar-width:thin]">{['',...BLOG_TOPICS].map(item=><Link key={item} href={href(q,item)} aria-current={topic===item?'page':undefined} className={`inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-xs font-bold ${topic===item?'border-violet-700 bg-violet-700 text-white':'border-slate-200 bg-white text-slate-700'}`}>{item || 'Todos os temas'}</Link>)}</nav><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-slate-600">{total} {total===1?'artigo publicado':'artigos publicados'}{q && <> para <strong>{q}</strong></>}</p>{(q||topic) && <Link href="/blog" className="min-h-11 py-3 text-sm font-bold text-violet-800">Limpar filtros</Link>}</div>
+      {posts.length?<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{posts.map(post=><article key={post.id} className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"><Link href={'/blog/'+post.slug} aria-label={'Ler '+post.title}>{post.cover_url?<CatalogImage src={post.cover_url} alt={'Capa: '+post.title} width={720} height={405} loading="lazy" className="aspect-video w-full object-cover"/>:<div className="flex aspect-video items-center justify-center bg-gradient-to-br from-indigo-100 to-violet-100 text-violet-600"><PenLine className="h-12 w-12"/></div>}</Link><div className="flex flex-1 flex-col p-5 sm:p-6"><span className="self-start rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-800">{post.topic || 'Guia Educalizando'}</span><h2 className="mt-4 break-words text-xl font-bold leading-snug"><Link href={'/blog/'+post.slug} className="hover:text-violet-800">{post.title}</Link></h2><p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{post.excerpt}</p><div className="mt-auto pt-5">{post.store?<Link href={'/loja/'+post.store.slug} className="text-sm font-semibold text-indigo-800">Por {post.store.nome_loja}</Link>:<p className="text-sm font-semibold text-indigo-800">Equipe Educalizando</p>}{post.published_at && <time dateTime={post.published_at} className="mt-2 block text-xs text-slate-500">{new Intl.DateTimeFormat('pt-BR',{dateStyle:'long',timeZone:'America/Sao_Paulo'}).format(new Date(post.published_at))}</time>}<Link href={'/blog/'+post.slug} className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-violet-800">Ler artigo <ArrowRight className="h-4 w-4"/></Link></div></div></article>)}</div>:<div role="status" className="rounded-3xl border border-dashed border-violet-200 bg-white p-8 text-center"><h2 className="text-xl font-bold">{unavailable?'Não foi possível carregar os artigos agora':q||topic?'Nenhum artigo para esta busca':'Novas ideias vão aparecer por aqui'}</h2><p className="mt-3 text-sm leading-7 text-slate-600">{unavailable?'Tente novamente em instantes.':q||topic?'Experimente outro tema ou limpe os filtros.':'Os educadores já podem compartilhar suas dicas e experiências no blog.'}</p></div>}
+      <nav aria-label="Páginas do blog" className="mt-9 flex items-center justify-center gap-5">{page>1 && <Link href={href(q,topic,page-1)} className="home-secondary">Anterior</Link>}<span className="text-sm text-slate-600">Página {page} de {Math.max(1,Math.ceil(total/BLOG_PAGE_SIZE))}</span>{page*BLOG_PAGE_SIZE<total && <Link href={href(q,topic,page+1)} className="home-secondary">Próxima</Link>}</nav>
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-violet-900 to-indigo-800 p-7 text-white sm:p-9"><div><h2 className="text-2xl font-bold">Sua experiência pode inspirar outro educador.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-indigo-100">É criador? Compartilhe uma dica útil, mostre como aplica seus materiais e ajude os leitores a conhecerem sua loja.</p></div><Link href="/dashboard/blog" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900"><PenLine className="h-4 w-4"/>Escrever no blog</Link></div>
+    </section>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd({'@context':'https://schema.org','@type':'CollectionPage',name:'Blog Educalizando',url:SITE_URL+'/blog',mainEntity:{'@type':'ItemList',itemListElement:posts.map((post,i)=>({'@type':'ListItem',position:(page-1)*BLOG_PAGE_SIZE+i+1,name:post.title,url:SITE_URL+'/blog/'+post.slug}))}})}}/>
+  </main><Footer/></div>;
 }
