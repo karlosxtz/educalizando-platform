@@ -9,6 +9,19 @@ export const saberJobColumns='id,source_label,status,source_total,discovered,imp
 export type SaberJob={id:string;store_id:string;source_owner:string;source_label:string;token_fingerprint:string;status:string;queue:SaberItem[];cursor:number;next_url:string|null;visited_urls:string[];seen_ids:string[];source_total:number|null;discovered:number;imported:number;skipped:number;current_product:string|null;asset_cursor:number;issues:{product:string;message:string}[];lease_token:string;lease_until:string|null};
 const check=(result:{error:unknown})=>{if(result.error)throw new Error('Não foi possível gravar esta etapa. Retome para tentar novamente.');};
 const normalize=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+async function fillMissingImportedPrice(job:SaberJob,item:SaberItem,mappedId?:string) {
+  if(!item.priceKnown)return false;
+  const productId=saberImportId(job.store_id,job.source_owner,item.id);
+  if(!mappedId){
+    const result=await db.from('platform_product_import_receipts').select('product_id').eq('store_id',job.store_id).eq('provider','saberdidatico').eq('source_owner',job.source_owner).eq('source_id',item.id).maybeSingle();check(result);
+    mappedId=result.data?.product_id;
+  }
+  if(mappedId!==productId)return false;
+  // Only the zero placeholder of an unreviewed imported draft may be filled.
+  // Prices entered by the creator, reviewed drafts and published products are preserved.
+  const result=await db.from('products').update({preco:item.price,preco_original:item.originalPrice,is_free:item.price===0,import_price_confirmed:true,updated_at:new Date().toISOString()}).eq('id',productId).eq('store_id',job.store_id).eq('status','rascunho').eq('import_incomplete',true).eq('import_price_confirmed',false).eq('preco',0).eq('is_free',false).is('preco_original',null).select('id').maybeSingle();check(result);
+  return !!result.data;
+}
 export async function createSaberJob(storeId:string,token:string,fingerprint:string,expectedOwner:string) {
   const page=await readSaberExport(token);
   if(page.owner!==expectedOwner)throw new Error('A loja não corresponde à prévia aprovada. Teste a chave novamente.');
@@ -28,6 +41,18 @@ export async function processSaberJob(job:SaberJob,token:string) {
   if(readError)throw new Error('Não foi possível consultar a etapa reservada. Aguarde para retomar.');
   job=fresh as SaberJob;
   try {
+    if(job.queue.length && job.queue.some(item=>item.adapterVersion!==2)){
+      const page=await readSaberExport(token,job.visited_urls.at(-1) || SABER_EXPORT_URL);
+      if(page.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
+      if(job.source_total!==null && page.total!==null && page.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
+      if(page.products.length!==job.queue.length || page.products.some((item,index)=>item.id!==job.queue[index].id))throw new Error('A página de origem mudou. A importação foi pausada para preservar os produtos concluídos.');
+      const filledTitles=new Set<string>();
+      for(const [index,item] of page.products.slice(0,job.cursor).entries()){
+        if(await fillMissingImportedPrice(job,item) && job.queue.filter(other=>other.title===job.queue[index].title).length===1)filledTitles.add(job.queue[index].title);
+      }
+      const issues=job.issues.filter(issue=>!(filledTitles.has(issue.product) && issue.message.startsWith('Preço não disponível:')));
+      await receipt({queue:page.products,next_url:page.nextUrl || job.next_url,issues,last_error:null});return {progressed:true};
+    }
     if(job.cursor>=job.queue.length){
       if(!job.next_url){
         if(job.source_total!==null && job.discovered!==job.source_total){
@@ -58,7 +83,7 @@ export async function processSaberJob(job:SaberJob,token:string) {
     if(item.owner!==job.source_owner)throw new Error('Produto fora da loja autorizada.');
     const productId=saberImportId(job.store_id,job.source_owner,item.id);
     const {data:mapped,error:mapError}=await db.from('platform_product_import_receipts').select('product_id').eq('store_id',job.store_id).eq('provider','saberdidatico').eq('source_owner',job.source_owner).eq('source_id',item.id).maybeSingle();check({error:mapError});
-    if(mapped){await receipt({cursor:job.cursor+1,skipped:job.skipped+1,current_product:null,asset_cursor:0});return {progressed:true};}
+    if(mapped){await fillMissingImportedPrice(job,item,mapped.product_id);await receipt({cursor:job.cursor+1,skipped:job.skipped+1,current_product:null,asset_cursor:0});return {progressed:true};}
     const {data:product,error:productError}=await db.from('products').select('id,store_id,status,import_incomplete').eq('id',productId).maybeSingle();check({error:productError});
     if(product && (product.store_id!==job.store_id || product.status!=='rascunho' || !product.import_incomplete))throw new Error('O produto já foi revisado ou alterado. Não será sobrescrito pela importação.');
     if(!product){
@@ -71,7 +96,7 @@ export async function processSaberJob(job:SaberJob,token:string) {
       }
       const levelIds=(levelResult.data || []).filter(level=>item.levels.some(name=>normalize(name)===normalize(level.nome)||normalize(name)===normalize(level.slug))).map(level=>level.id).slice(0,5);
       const tags=[...new Set([...item.tags,...item.categories,...item.levels])].slice(0,30);
-      check(await db.from('products').insert({id:productId,store_id:job.store_id,titulo:item.title,slug:(normalize(item.title).slice(0,80)||'material')+'-'+productId,descricao:item.description || null,tipo:item.type,preco:item.price,preco_original:item.originalPrice,is_free:item.priceKnown && item.price===0,capa_url:null,status:'rascunho',import_incomplete:true,import_price_confirmed:item.priceKnown,category_id:categoryIds[0]||null,category_ids:categoryIds,education_level_id:levelIds[0]||null,education_level_ids:levelIds,tags,presentation_video_url:item.video,video_as_cover:false,page_count:item.pageCount,age_range:item.ageRange,format_details:item.formatDetails,color_mode:item.colorMode,created_at:now,updated_at:now}));
+      check(await db.from('products').insert({id:productId,store_id:job.store_id,titulo:item.title,slug:(normalize(item.title).slice(0,80)||'material')+'-'+productId,descricao:item.description || null,tipo:item.type,preco:item.price,preco_original:item.originalPrice,is_free:item.priceKnown && item.price===0,capa_url:null,status:'rascunho',import_incomplete:true,import_price_confirmed:item.priceKnown,category_id:categoryIds[0]||null,category_ids:categoryIds,education_level_id:levelIds[0]||null,education_level_ids:levelIds,tags,seasonal_tags:(item.seasonalTags || []).slice(0,30),presentation_video_url:item.video,video_as_cover:item.videoAsCover===true,page_count:item.pageCount,age_range:item.ageRange,format_details:item.formatDetails,color_mode:item.colorMode,created_at:now,updated_at:now}));
       await receipt({current_product:productId,asset_cursor:0});return {progressed:true};
     }
     if(!job.current_product){await receipt({current_product:productId});return {progressed:true};}

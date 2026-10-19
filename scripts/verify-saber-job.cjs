@@ -1,13 +1,13 @@
 const fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm'),assert=require('node:assert/strict');
 function load(file,mocks){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:key=>Object.hasOwn(mocks,key)?mocks[key]:require(key),crypto:require('node:crypto').webcrypto,URL,URLSearchParams,TextDecoder,Uint8Array,AbortSignal,Response});return exports;}
-const contract=load('src/lib/saber-export-contract.ts',{'./product-description':load('src/lib/product-description.ts',{}),'./presentation-video':load('src/lib/presentation-video.ts',{})});
+const contract=load('src/lib/saber-export-contract.ts',{'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts',{}),'./presentation-video':load('src/lib/presentation-video.ts',{})});
 const client=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract});
 const item=contract.parseSaberExport({seller:{id:'origin-a'},products:[{id:'a',title:'Local test material',price:7,description:'Description from authorised export',images:['https://source.example.test/cover.png'],categories:[]}],total:1}).products[0];
 const tables={platform_product_imports:[],platform_product_import_receipts:[],products:[],categories:[],education_levels:[]};
 let sourcePage={owner:'origin-a',label:'Local fixture store',products:[item],total:1,nextUrl:null},mirrorCalls=0,insertFailure=null;
 const db={from:table=>{
   assert(Object.hasOwn(tables,table));const where=[];let action='read',values,single=false,leasePredicate=false;
-  const query={select(){return query;},eq(key,value){where.push([key,value]);return query;},order(){return query;},limit(){return query;},single(){single=true;return query;},maybeSingle(){single=true;return query;},or(value){leasePredicate=value.includes('lease_until.');return query;},insert(input){action='insert';values=input;return query;},update(input){action='update';values=input;return query;},
+  const query={select(){return query;},eq(key,value){where.push([key,value]);return query;},is(key,value){where.push([key,value]);return query;},order(){return query;},limit(){return query;},single(){single=true;return query;},maybeSingle(){single=true;return query;},or(value){leasePredicate=value.includes('lease_until.');return query;},insert(input){action='insert';values=input;return query;},update(input){action='update';values=input;return query;},
     then(resolve){if(action==='insert' && table==='platform_product_imports' && insertFailure)return Promise.resolve({data:null,error:insertFailure}).then(resolve);let rows=tables[table].filter(row=>where.every(([key,value])=>row[key]===value)&&(!leasePredicate || !row.lease_until || Date.parse(row.lease_until)<Date.now()));
       if(action==='insert'){rows=[{...values}];if(table==='platform_product_imports')rows[0]={id:crypto.randomUUID(),cursor:0,imported:0,skipped:0,current_product:null,asset_cursor:0,issues:[],lease_token:null,lease_until:null,...rows[0]};tables[table].push(...rows);}
       if(action==='update')rows.forEach(row=>Object.assign(row,values));
@@ -42,6 +42,19 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   sourcePage={...sourcePage,owner:'different-seller',nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
   await jobs.processSaberJob(current(changed.id),'fixture-token');assert.equal(current(changed.id).status,'paused');assert.match(current(changed.id).last_error,/loja de origem mudou/);
   sourcePage={...sourcePage,owner:'origin-a'};
+  // Backfill old missing-price placeholders, preserving manual edits and publication.
+  async function legacyPriceCase(store,override={}){
+    sourcePage={owner:'origin-a',label:'Fixture',products:[{...item,price:12.9,priceKnown:true}],total:1,nextUrl:null};
+    const legacy=await create(store),live=tables.platform_product_imports.find(row=>row.id===legacy.id);
+    live.queue[0]={...live.queue[0],adapterVersion:undefined,price:0,priceKnown:false};live.cursor=1;live.imported=1;live.issues=[{product:item.title,message:'Preço não disponível: confirme o valor antes de publicar.'}];
+    const product={id:client.saberImportId(store,'origin-a',item.id),store_id:store,status:'rascunho',import_incomplete:true,import_price_confirmed:false,preco:0,preco_original:null,is_free:false,...override};tables.products.push(product);
+    tables.platform_product_import_receipts.push({store_id:store,provider:'saberdidatico',source_owner:'origin-a',source_id:item.id,product_id:product.id});
+    await jobs.processSaberJob(current(legacy.id),'fixture-token');assert.equal(current(legacy.id).imported,1);assert.equal(current(legacy.id).cursor,1);return {product,job:current(legacy.id)};
+  }
+  let legacy=await legacyPriceCase('destination-old-price');assert.equal(legacy.product.preco,12.9);assert.equal(legacy.product.import_price_confirmed,true);assert.equal(legacy.job.issues.length,0);
+  legacy=await legacyPriceCase('destination-manual-price',{preco:8});assert.equal(legacy.product.preco,8);
+  legacy=await legacyPriceCase('destination-published-price',{status:'publicado'});assert.equal(legacy.product.preco,0);
+  legacy=await legacyPriceCase('destination-confirmed-price',{import_price_confirmed:true});assert.equal(legacy.product.preco,0);
   insertFailure={code:'42703',message:'must not leak imported payload'};await assert.rejects(()=>create(),error=>error.message.includes('seen_ids')&&!error.message.includes('must not leak'));
   insertFailure={code:'08006',message:'must not leak credentials'};await assert.rejects(()=>create(),error=>!error.message.includes('migration')&&!error.message.includes('credentials'));
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

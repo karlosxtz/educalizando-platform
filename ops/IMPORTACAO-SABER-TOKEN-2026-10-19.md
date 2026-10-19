@@ -91,3 +91,26 @@ A leitura de preços passa a reconhecer aliases explícitos de centavos (`price_
 Regressões locais: catálogo sintético com 281 IDs distintos em 57 páginas de cinco itens (última com um), camelCase, offset, cursor, centavos, proteção contra cursor sem continuação, recuperação de trabalho antigo e recusa de troca de loja. Isso não é uma confirmação de 281 produtos realmente transferidos.
 
 Arquivos desta correção: `src/lib/saber-export-contract.ts` (paginação e preços), `src/lib/saber-import-job.ts` (recuperação preservando progresso), `scripts/verify-saber-import.cjs` e `scripts/verify-saber-job.cjs` (regressões), e este relatório. Sem migration, alteração de RLS, checkout ou webhooks.
+
+## Ampliação do preenchimento e recuperação de preços pendentes
+
+A pedido do usuário, o adaptador passa a reconhecer mais aliases de campos do produto e preços agrupados em `pricing`/`precos`, em reais ou com unidade explícita de centavos. Valores de moeda estrangeira e objetos `amount` sem unidade reconhecida permanecem pendentes, sem conversão presumida. O formato exato de preço da exportação real da loja relatada ainda precisa ser confirmado na prévia autenticada.
+
+Agora são reconhecidos também nomes camelCase de capa, galeria, descrição, título, nível, vídeo, vídeo como capa, quantidade de páginas, faixa etária, formato, cor e tipo, além de temas sazonais. Somente dados compatíveis com o cadastro são gravados. Não são copiados clientes, avaliações, vendas, credenciais, arquivos privados pagos, propriedade de outra loja ou regras comerciais da plataforma de origem. As capacidades da Educalizando (por exemplo, até cinco categorias e trinta tags) continuam valendo.
+
+Esta ampliação substitui a limitação anterior sobre preços já concluídos: ao atualizar uma fila antiga com os mesmos IDs na mesma ordem e a mesma loja/total, o importador pode preencher os preços ainda ausentes dos itens concluídos dessa página. Exige recibo da mesma origem, ID determinístico, loja de destino correta, rascunho, `import_incomplete=true`, preço zero, `import_price_confirmed=false`, `is_free=false` e preço original nulo. Assim não altera um preço manual, um preço confirmado, um produto gratuito definido pelo criador ou um produto publicado. Recibos e contadores não são reiniciados. Uma nova passagem pelo catálogo também pode preencher esses mesmos placeholders, sem duplicar produtos.
+
+A prévia inclui uma seção de informações dos campos e, quando algum preço não for reconhecido, mostra apenas nomes e tipos de campos de preço enviados pela origem, com botão de copiar para suporte. Não inclui valores brutos, tokens ou dados pessoais. Isso permite confirmar um formato não documentado sem pedir a chave no chat.
+
+| Arquivo desta ampliação | Motivo |
+| --- | --- |
+| `src/lib/saber-product-price.ts` | Preços com unidade explícita, aliases, moedas e diagnóstico sem valores. |
+| `src/lib/saber-export-contract.ts` | Normalização ampliada de metadados e versão do adaptador na fila JSON existente. |
+| `src/lib/saber-import-job.ts` | Atualização de fila antiga e preenchimento condicional de preços pendentes. |
+| `src/app/api/creator/platform-import/route.ts` | Campos de diagnóstico sanitizados na prévia privada. |
+| `src/app/dashboard/importar-plataforma/page.tsx` | Orientação sobre os campos importados e cópia segura do diagnóstico. |
+| `scripts/verify-saber-import.cjs` | Casos de preço agrupado, moeda/unidade ambígua, metadados e privacidade. |
+| `scripts/verify-saber-job.cjs` | Recuperação de preço, preservação de edições e de produtos confirmados/publicados. |
+| Este relatório | Comportamento, escopo e limitações verificadas. |
+
+Sem nova migration e sem alteração de RLS, checkout, Asaas, webhooks ou regras de publicação. Os testes são locais; ainda não representam confirmação de todos os valores da loja real.

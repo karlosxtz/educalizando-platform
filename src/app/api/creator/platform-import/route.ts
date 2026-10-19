@@ -25,7 +25,7 @@ export async function POST(request:Request) {
     let body:Record<string,unknown>;try{const parsed=JSON.parse(raw);if(!parsed || typeof parsed!=='object' || Array.isArray(parsed))throw new Error();body=parsed;}catch{return json({error:'Solicitação inválida.'},400);}
     if(body.action==='preview') {
       const token=saberToken(body.token),page=await readSaberExport(token);
-      return json({preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length})),warnings:[...new Set(page.products.flatMap(item=>item.warnings))]}});
+      return json({preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length})),priceFields:page.priceFields || [],warnings:[...new Set(page.products.flatMap(item=>item.warnings))]}});
     }
     if(body.action==='create') {
       const token=saberToken(body.token);if(typeof body.expectedOwner!=='string' || !body.expectedOwner)return json({error:'Confira a loja na prévia antes de importar.'},400);

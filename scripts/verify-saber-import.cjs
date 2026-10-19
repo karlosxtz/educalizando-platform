@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript'),assert=require('node:assert/strict');
 function load(file,mocks={},globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:name=>Object.hasOwn(mocks,name)?mocks[name]:require(name),URL,URLSearchParams,Response,Request,AbortSignal,TextDecoder,Uint8Array,console,crypto:require('node:crypto').webcrypto,...globals});return exports;}
-const contract=load('src/lib/saber-export-contract.ts',{'./product-description':load('src/lib/product-description.ts'),'./presentation-video':load('src/lib/presentation-video.ts')});
+const contract=load('src/lib/saber-export-contract.ts',{'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts'),'./presentation-video':load('src/lib/presentation-video.ts')});
 const storageErrors=load('src/lib/saber-import-errors.ts');
 assert.match(storageErrors.saberImportStorageMessage({code:'42703'}),/seen_ids/);
 assert.match(storageErrors.saberImportStorageMessage({code:'PGRST204'}),/estrutura/);
@@ -32,6 +32,17 @@ for(const [field,raw,price] of [['priceCents',690,6.9],['price_in_cents','1290',
   const result=contract.parseSaberExport({...fixture,products:[{id:'price-fixture',title:'Price fixture',[field]:raw}]}).products[0];assert.equal(result.price,price);assert(result.priceKnown);
 }
 assert.equal(contract.parseSaberExport({...fixture,products:[{id:'invalid-cents',title:'Invalid cents fixture',price_cents:'6.90'}]}).products[0].priceKnown,false);
+const prices=load('src/lib/saber-product-price.ts');
+assert.equal(prices.saberProductPrice({pricing:{price:'12,90'}}),12.9);
+assert.equal(prices.saberProductPrice({price:{amount:1290,unit:'cents',currency:'BRL'}}),12.9);
+assert.equal(prices.saberProductPrice({price:{amount:12.9,unit:'reais',currency:'BRL'}}),12.9);
+assert.equal(prices.saberProductPrice({price:{amount:1290,currency:'BRL'}}),null);
+assert.equal(prices.saberProductPrice({pricing:{price:7,currency:'USD'}}),null);
+assert.equal(prices.saberProductPrice({priceCents:690,originalPriceCents:990},true),9.9);
+const diagnostic=JSON.stringify(prices.saberPriceFields({price_cents:690,pricing:{amount:690,unit:'cents',token:'private-secret'},customer:{price:'private-personal'},secret_price:'private-secret'}));
+assert(diagnostic.includes('price_cents: number'));assert(!diagnostic.includes('690'));assert(!diagnostic.includes('private-'));assert(!diagnostic.includes('customer'));assert(!diagnostic.includes('secret_price'));
+const rich=contract.parseSaberExport({seller:{id:'seller-a'},products:[{id:'rich',productName:'Rich fixture',shortDescription:'Useful description',pricing:{price:6.9},coverUrl:'https://public.example.test/rich.jpg',imageUrls:['https://public.example.test/detail.jpg'],category:{name:'Math'},educationLevel:{name:'Elementary'},seasonalTags:['Holiday'],videoUrl:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',videoAsCover:true,pageCount:12,ageRange:'6–8',formatDetails:'A4',colorMode:'colorido',productType:'video'}]}).products[0];
+assert.equal(rich.price,6.9);assert.equal(rich.images.length,2);assert.equal(rich.categories[0],'Math');assert.equal(rich.levels[0],'Elementary');assert.equal(rich.type,'video');assert.equal(rich.pageCount,12);assert.equal(rich.videoAsCover,true);assert.equal(rich.adapterVersion,2);
 for(const next of ['https://evil.test/api/public/sync/seller-products','http://saberdidatico.com.br/api/public/sync/seller-products','https://saberdidatico.com.br/api/public/products','?token=secret','?seller_id=other','https://secret@saberdidatico.com.br/api/public/sync/seller-products'])assert.throws(()=>contract.saberNextUrl(next));
 let network=[],networkMode='ok';
 const fakeToken='sbr_live_'+'0'.repeat(64);
