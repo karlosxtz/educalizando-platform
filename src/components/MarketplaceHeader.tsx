@@ -10,6 +10,7 @@ import Link from '@/components/OnDemandLink';
 import { useSearchParams } from 'next/navigation';
 import { Suspense,useEffect,useRef,useState } from 'react';
 import CategoryDropdown from './CategoryDropdown';
+import ComparisonTray from '@/components/ComparisonTray';
 import SearchBar from './SearchBar';
 
 export default function MarketplaceHeader() {
@@ -84,7 +85,7 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="marketplace-header w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100">
+    <><ComparisonTray/><header className="marketplace-header w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100">
       <Suspense fallback={null}><HeaderQueryState onChange={setQuery} /></Suspense>
       {cartItemsCount > 0 && (
         <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
@@ -197,7 +198,7 @@ function MarketplaceHeaderInner() {
 
             <nav className="flex items-center gap-5" aria-label="Mais formas de explorar">
               <Link href="/marketplace-de-materiais-pedagogicos" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Marketplace</Link>
-              <Link href="/videos" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Vídeos</Link>
+              <Link href="/encontrar-material" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Por objetivo</Link><Link href="/videos" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Vídeos</Link>
               <Link href="/calendario" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Calendário escolar</Link>
               <Link href="/cadastro/produtor" className="rounded-lg bg-[#eef1e9] px-3 py-2 text-sm font-semibold text-[#355548] hover:bg-[#e3eada]">Quero vender</Link>
             </nav>
@@ -219,7 +220,7 @@ function MarketplaceHeaderInner() {
                   <button type="button" onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }} aria-label="Fechar menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><X className="h-5 w-5" /></button>
                 </div>
                 <nav className="grid gap-1 py-3" aria-label="Links principais">
-                  {[['/','Início'],['/marketplace-de-materiais-pedagogicos','Marketplace de materiais pedagógicos'],['/videos','Vídeos de professores'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/buscar?categoria=combo','Combos'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
+                  {[['/','Início'],['/marketplace-de-materiais-pedagogicos','Marketplace de materiais pedagógicos'],['/encontrar-material','Encontrar por objetivo'],['/comparar','Comparar materiais'],['/videos','Vídeos de professores'],['/lojas','Lojas'],['/ofertas','Ofertas'],['/buscar?categoria=combo','Combos'],['/materiais-gratis','Materiais gratuitos'],['/cadastro/produtor','Vender na Educalizando'],['/afiliados','Afiliados']].map(([href,label]) => <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600">{label}</Link>)}
                 </nav>
                 <div className="border-t border-slate-100 pt-3">
                   <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Categorias rápidas</p>
@@ -230,6 +231,6 @@ function MarketplaceHeaderInner() {
      </div>
         </div>
       </div>
-    </header>
+    </header></>
   );
 }

@@ -23,6 +23,7 @@ import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useRef,useState } from 'react';
 
 import ProductCard from '@/components/ProductCard';
+import CompareProductButton from '@/components/CompareProductButton';
 import FavoriteProductButton from '@/components/FavoriteProductButton';
 import StoreFollowControl from '@/components/StoreFollowControl';
 import ProductQuickSpecs from '@/components/ProductQuickSpecs';
@@ -358,7 +359,7 @@ export default function ProductDetailClientView({
       {/* Main Page Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-40 lg:pb-12">
         <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
-          <FavoriteProductButton productId={product.id} title={product.titulo} />
+          <FavoriteProductButton productId={product.id} title={product.titulo} /><CompareProductButton productId={product.id} mode={isPlrPurchase ? 'plr' : 'standard'} />
           <StoreFollowControl storeId={store.id} storeName={store.nome_loja} />
           <button
             type="button"

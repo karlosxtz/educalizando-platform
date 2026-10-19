@@ -96,7 +96,7 @@ export default function PrivacidadePage() {
               </div>
             </section>
 
-            <section className="space-y-4"><h2 className="text-xl font-black text-slate-900">Favoritos e lojas seguidas</h2><p>Quando você salva um material ou segue uma loja, vinculamos essa escolha à sua conta para disponibilizá-la na sua área. As novidades de lojas seguidas são opcionais, ativadas por você e exibidas dentro da plataforma. Essa opção não autoriza envio automático de e-mail ou WhatsApp. Você pode desfavoritar materiais, deixar de seguir lojas ou desativar as novidades na área de favoritos.</p></section>
+            <section className="space-y-4"><h2 className="text-xl font-black text-slate-900">Favoritos e lojas seguidas</h2><p>O comparador armazena no seu navegador somente os identificadores dos materiais e a modalidade escolhida, para manter a seleção de até três itens; você pode limpar essa seleção na própria barra de comparação. Convites de avaliação aparecem na área do comprador e podem ser ocultados neste navegador, sem envio de e-mail ou WhatsApp por esse recurso. Quando você salva um material ou segue uma loja, vinculamos essa escolha à sua conta para disponibilizá-la na sua área. As novidades de lojas seguidas são opcionais, ativadas por você e exibidas dentro da plataforma. Essa opção não autoriza envio automático de e-mail ou WhatsApp. Você pode desfavoritar materiais, deixar de seguir lojas ou desativar as novidades na área de favoritos.</p></section>
 
             <section id="videos-publicos" className="space-y-4 scroll-mt-6">
               <h2 className="text-xl font-black text-slate-900">Demonstrações públicas em vídeo</h2>

@@ -3,6 +3,7 @@ import { normalizePublicAssetUrl } from '@/lib/public-links';
 import PresentationVideoPlayer from '@/components/PresentationVideoPlayer';
 import { productPresentationVideo } from '@/lib/presentation-video';
 import CatalogCover from '@/components/CatalogCover';
+import CompareProductButton from '@/components/CompareProductButton';
 import FavoriteProductButton from '@/components/FavoriteProductButton';
 import CatalogImage from '@/components/ui/CatalogImage';
 
@@ -90,6 +91,7 @@ export default function ProductCard({ product, purchaseMode = 'standard', presen
         <button onClick={handleAdd} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" title={isFree ? 'Ver material gratuito' : 'Adicionar ao carrinho'} aria-label={isFree ? `Ver material gratuito: ${itemTitle}` : `Adicionar ao carrinho: ${itemTitle}`}><ShoppingBag aria-hidden="true" className="h-4 w-4" /></button>
         <button onClick={handleBuy} aria-label={isFree ? `Resgatar material: ${itemTitle}` : `Comprar ${isPlrMode ? 'licença PLR de ' : ''}${itemTitle}`} className="inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-xl bg-blue-700 px-3 text-xs font-bold text-white transition-colors hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">{isFree ? <Gift aria-hidden="true" className="h-4 w-4" /> : <Zap aria-hidden="true" className="h-4 w-4" />}<span className="truncate">{isFree ? 'Resgatar' : isPlrMode ? 'Comprar PLR' : 'Comprar'}</span></button>
       </div>
+      <CompareProductButton productId={product.id} mode={isPlrMode ? 'plr' : 'standard'} />
     </div>
   </article>;
 }
