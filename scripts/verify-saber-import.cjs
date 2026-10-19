@@ -46,12 +46,24 @@ assert.equal(rich.price,6.9);assert.equal(rich.images.length,2);assert.equal(ric
 for(const next of ['https://evil.test/api/public/sync/seller-products','http://saberdidatico.com.br/api/public/sync/seller-products','https://saberdidatico.com.br/api/public/products','?token=secret','?seller_id=other','https://secret@saberdidatico.com.br/api/public/sync/seller-products'])assert.throws(()=>contract.saberNextUrl(next));
 let network=[],networkMode='ok';
 const fakeToken='sbr_live_'+'0'.repeat(64);
-const client=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract},{fetch:async(url,options)=>{network.push({url,options});if(networkMode==='redirect')return new Response('',{status:302,headers:{location:'https://evil.test'}});if(networkMode==='refused')return Response.json({error:fakeToken},{status:401});return Response.json(fixture);}});
+const client=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract},{setTimeout:callback=>callback(),fetch:async(url,options)=>{network.push({url,options});if(networkMode==='redirect')return new Response('',{status:302,headers:{location:'https://evil.test'}});if(networkMode==='refused')return Response.json({error:fakeToken},{status:401});return Response.json(fixture);}});
 assert.equal(client.saberImportId('destination-a','seller-a','product-a'),client.saberImportId('destination-a','seller-a','product-a'));assert.notEqual(client.saberImportId('destination-b','seller-a','product-a'),client.saberImportId('destination-a','seller-a','product-a'));assert.notEqual(client.saberImportId('destination-a','seller-b','product-a'),client.saberImportId('destination-a','seller-a','product-a'));
 (async()=>{
   await client.readSaberExport(fakeToken);assert.equal(network[0].url,contract.SABER_EXPORT_URL);assert.equal(network[0].options.headers.Authorization,'Bearer '+fakeToken);assert.equal(network[0].options.redirect,'manual');assert(!network[0].url.includes(fakeToken));
   networkMode='redirect';await assert.rejects(()=>client.readSaberExport(fakeToken),/não foi encaminhada/);assert.equal(network.length,2);
-  networkMode='refused';await assert.rejects(()=>client.readSaberExport(fakeToken),error=>!error.message.includes(fakeToken)&&error.message.includes('não autorizou'));
+  networkMode='refused';await assert.rejects(()=>client.readSaberExport(fakeToken),error=>!error.message.includes(fakeToken)&&error.message.includes('HTTP 401'));
+  let attempts=0,mode='flaky',delays=[];
+  const resilient=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract},{setTimeout:(callback,delay)=>{delays.push(delay);callback();},fetch:async()=>{
+    attempts++;
+    if(mode==='flaky')return attempts===1?Response.json({error:fakeToken},{status:503}):Response.json(fixture);
+    if(mode==='bad-page')return Response.json({error:fakeToken},{status:400});
+    if(mode==='rate')return Response.json({error:fakeToken},{status:429,headers:{'retry-after':'60'}});
+    throw new Error('network failure '+fakeToken);
+  }});
+  await resilient.readSaberExport(fakeToken);assert.equal(attempts,2);assert.equal(delays.length,1);
+  mode='bad-page';attempts=0;await assert.rejects(()=>resilient.readSaberExport(fakeToken,contract.SABER_EXPORT_URL+'?page=2&limit=5'),error=>error.message.includes('HTTP 400') && error.message.includes('continuação') && !error.message.includes(fakeToken));assert.equal(attempts,1);
+  mode='rate';attempts=0;await assert.rejects(()=>resilient.readSaberExport(fakeToken),/HTTP 429/);assert.equal(attempts,1);
+  mode='network';attempts=0;await assert.rejects(()=>resilient.readSaberExport(fakeToken),error=>error.message.includes('três tentativas') && !error.message.includes(fakeToken));assert.equal(attempts,3);
   const sql=fs.readFileSync('supabase/migrations/20261019050000_create_platform_product_imports.sql','utf8');assert(sql.includes('REVOKE ALL'));assert(!sql.includes('token_encrypted'));assert(!/ALTER TABLE public\.products/.test(sql));
   const guard=fs.readFileSync('supabase/migrations/20261019051000_platform_import_image_transaction.sql','utf8');assert(guard.includes("status='rascunho' AND import_incomplete=true FOR UPDATE"));assert(guard.includes('lease_token=p_lease'));assert(guard.includes('FROM PUBLIC,anon,authenticated'));
   const worker=fs.readFileSync('src/lib/saber-import-job.ts','utf8');assert(worker.includes("status:'rascunho',import_incomplete:true"));assert(!worker.includes("from('product_deliveries')"));assert(!worker.includes("from('product_delivery_files')"));assert(worker.includes('seen.has(item.id)'));assert(worker.includes('job.discovered!==job.source_total'));assert(worker.includes(".eq('store_id',job.store_id).eq('lease_token',lease)"));

@@ -114,3 +114,13 @@ A prévia inclui uma seção de informações dos campos e, quando algum preço 
 | Este relatório | Comportamento, escopo e limitações verificadas. |
 
 Sem nova migration e sem alteração de RLS, checkout, Asaas, webhooks ou regras de publicação. Os testes são locais; ainda não representam confirmação de todos os valores da loja real.
+
+## Diagnóstico da falha HTTP na continuação
+
+O usuário confirmou preços corretos na prévia, mas uma consulta posterior continuou pausando aos cinco produtos. Pelo navegador autenticado foi possível reproduzir cinco recebidos/importados de 281, com a mensagem genérica de resposta malsucedida. A versão anterior foi confirmada em produção na Cloudflare; a causa HTTP exata ainda precisava ser observada.
+
+O transporte passa a informar o status HTTP e a etapa (primeira página ou continuação), sem copiar corpo de erro, URL, valores de cursor ou token. Erros transitórios de rede, 408/425/429/500/502/503/504 têm no máximo três tentativas, com espera curta e respeito a Retry-After maior que dois segundos. Autorização, redirecionamento e rejeição de parâmetros não são repetidos automaticamente. Destino fixo e proteção de redirecionamento são preservados.
+
+A prévia agora testa também a transição para a próxima página, verificando loja, repetição de produtos e página vazia incompatível com o total. Uma falha de continuação fica visível e impede a confirmação pela interface. O botão de ignorar imagem só aparece quando existe uma imagem pendente na etapa pausada e a reserva expirou; falhas na consulta do catálogo não exibem esse botão. A fila e as informações internas necessárias para calcular esse estado ficam somente no servidor.
+
+Arquivos desta etapa: `src/lib/saber-export-client.ts` (transporte/HTTP), `src/app/api/creator/platform-import/route.ts` (prévia e DTO), `src/app/dashboard/importar-plataforma/page.tsx` (erro de continuação e botão condicional), `scripts/verify-saber-import.cjs` (repetição limitada e privacidade), `scripts/verify-saber-import-api.cjs` (prévia de duas páginas e estado seguro de imagem), e este relatório. O tratamento de erros não é, por si só, confirmação de que o catálogo real foi concluído.
