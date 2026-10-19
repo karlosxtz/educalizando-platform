@@ -10,6 +10,9 @@ export function saberImportId(storeId:string,owner:string,id:string) {
   const hash=createHash('sha256').update(JSON.stringify(['educalizando:saber:v1',storeId,owner,id])).digest('hex');
   return `${hash.slice(0,8)}-${hash.slice(8,12)}-5${hash.slice(13,16)}-a${hash.slice(17,20)}-${hash.slice(20,32)}`;
 }
+class ExportHttpError extends Error {
+  constructor(public status:number,message:string){super(message);}
+}
 async function exportResponse(token:string,endpoint:string) {
   const key=saberToken(token),url=new URL(endpoint);
   const stage=url.search?'a continuação do catálogo':'a primeira página';
@@ -33,13 +36,21 @@ async function exportResponse(token:string,endpoint:string) {
     }
     const parameters=[...url.searchParams.keys()].join(', ');
     const reason=response.status===429?'A origem limitou as consultas; aguarde antes de continuar.':[400,404,405,422].includes(response.status)?'A origem recusou a consulta; a paginação precisa ser conferida.':'A origem apresentou uma falha ao responder.';
-    throw new Error(`A exportação retornou HTTP ${response.status} ao consultar ${stage}${parameters?' (parâmetros: '+parameters+')':''}. ${reason}`);
+    throw new ExportHttpError(response.status,`A exportação retornou HTTP ${response.status} ao consultar ${stage}${parameters?' (parâmetros: '+parameters+')':''}. ${reason}`);
   }
   throw new Error('A exportação não respondeu. O progresso foi preservado.');
 }
 export async function readSaberExport(token:string,url=SABER_EXPORT_URL) {
-  const endpoint=saberNextUrl(url);
-  const response=await exportResponse(token,endpoint);
+  let endpoint=saberNextUrl(url),response:Response;
+  try {response=await exportResponse(token,endpoint);}
+  catch(error){
+    const candidate=new URL(endpoint);
+    // Repair old inferred next URLs that appended a page-size parameter the API rejects.
+    // One bounded fallback, same authenticated endpoint; never retry authorization failures.
+    if(!(error instanceof ExportHttpError) || ![400,422].includes(error.status) || !candidate.searchParams.has('page') || !candidate.searchParams.has('limit'))throw error;
+    candidate.searchParams.delete('limit');endpoint=saberNextUrl(candidate.toString());
+    response=await exportResponse(token,endpoint);
+  }
   if(!(response.headers.get('content-type') || '').includes('application/json'))throw new Error('O endereço de exportação não retornou JSON. A integração precisa ser validada.');
   const max=20*1024*1024;
   if(Number(response.headers.get('content-length'))>max)throw new Error('A página exportada é muito grande. A API precisa fornecer paginação.');

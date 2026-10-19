@@ -55,6 +55,11 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   legacy=await legacyPriceCase('destination-manual-price',{preco:8});assert.equal(legacy.product.preco,8);
   legacy=await legacyPriceCase('destination-published-price',{status:'publicado'});assert.equal(legacy.product.preco,0);
   legacy=await legacyPriceCase('destination-confirmed-price',{import_price_confirmed:true});assert.equal(legacy.product.preco,0);
+  sourcePage={owner:'origin-a',label:'Fixture',products:[item],total:2,nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
+  const finalPage=await create('destination-final-page');tables.platform_product_imports.find(row=>row.id===finalPage.id).cursor=1;
+  sourcePage={...sourcePage,products:[{...item,id:'last-page-item',images:[]}],nextUrl:contract.SABER_EXPORT_URL+'?page=3',inferredNext:true};
+  await jobs.processSaberJob(current(finalPage.id),'fixture-token');assert.equal(current(finalPage.id).discovered,2);assert.equal(current(finalPage.id).next_url,null);
+  for(let step=0;step<4 && current(finalPage.id).status==='running';step++)await jobs.processSaberJob(current(finalPage.id),'fixture-token');assert.equal(current(finalPage.id).status,'completed');
   insertFailure={code:'42703',message:'must not leak imported payload'};await assert.rejects(()=>create(),error=>error.message.includes('seen_ids')&&!error.message.includes('must not leak'));
   insertFailure={code:'08006',message:'must not leak credentials'};await assert.rejects(()=>create(),error=>!error.message.includes('migration')&&!error.message.includes('credentials'));
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

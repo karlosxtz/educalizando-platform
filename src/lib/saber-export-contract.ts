@@ -66,17 +66,18 @@ export function parseSaberExport(payload:unknown,currentUrl=SABER_EXPORT_URL) {
   let nextUrl=typeof nextLink==='string' && nextLink && integer(nextLink)===null?saberNextUrl(nextLink):null;
   if(!nextUrl && (typeof cursor==='string'||typeof cursor==='number') && text(cursor)){url.searchParams.set('cursor',text(cursor));nextUrl=saberNextUrl(url.toString());}
   const nextPage=integer(nextLink);
-  if(!nextUrl && nextPage!==null && nextPage>page){url.searchParams.set('page',String(nextPage));if(size>0)url.searchParams.set(sizeKey,String(size));nextUrl=saberNextUrl(url.toString());}
+  if(!nextUrl && nextPage!==null && nextPage>page){url.searchParams.set('page',String(nextPage));nextUrl=saberNextUrl(url.toString());}
   // Some exports return only five products by default plus total, without a next URL.
   // Use numbered pages; the job still rejects ignored pagination, repeats and total mismatches.
   const more=last!==null?last>page:total!==null && size>0?(offset!==null?offset+products.length:page*size)<total:hasMore===true;
+  let inferredNext=false;
   if(!nextUrl && hasMore!==false && products.length && page>0 && more){
     if(url.searchParams.has('cursor') || url.searchParams.has('after'))throw new Error('A API informou mais produtos, mas não forneceu a continuação do cursor.');
     if(offset!==null)url.searchParams.set('offset',String(offset+products.length));
     else url.searchParams.set('page',String(page+1));
-    if(size>0)url.searchParams.set(sizeKey,String(size));
     nextUrl=saberNextUrl(url.toString());
+    inferredNext=true;
   }
   if(hasMore===true && !nextUrl)throw new Error('A API informou mais produtos, mas não forneceu uma continuação reconhecida.');
-  return {owner,label:text(value(seller,'name','nome','store_name','nome_loja','username')) || 'Loja autorizada pelo token',products,nextUrl,total,priceFields:[...new Set(list.slice(0,5).flatMap(saberPriceFields))].slice(0,40)};
+  return {owner,label:text(value(seller,'name','nome','store_name','nome_loja','username')) || 'Loja autorizada pelo token',products,nextUrl,inferredNext,total,priceFields:[...new Set(list.slice(0,5).flatMap(saberPriceFields))].slice(0,40)};
 }

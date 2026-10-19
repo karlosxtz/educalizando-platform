@@ -124,3 +124,13 @@ O transporte passa a informar o status HTTP e a etapa (primeira página ou conti
 A prévia agora testa também a transição para a próxima página, verificando loja, repetição de produtos e página vazia incompatível com o total. Uma falha de continuação fica visível e impede a confirmação pela interface. O botão de ignorar imagem só aparece quando existe uma imagem pendente na etapa pausada e a reserva expirou; falhas na consulta do catálogo não exibem esse botão. A fila e as informações internas necessárias para calcular esse estado ficam somente no servidor.
 
 Arquivos desta etapa: `src/lib/saber-export-client.ts` (transporte/HTTP), `src/app/api/creator/platform-import/route.ts` (prévia e DTO), `src/app/dashboard/importar-plataforma/page.tsx` (erro de continuação e botão condicional), `scripts/verify-saber-import.cjs` (repetição limitada e privacidade), `scripts/verify-saber-import-api.cjs` (prévia de duas páginas e estado seguro de imagem), e este relatório. O tratamento de erros não é, por si só, confirmação de que o catálogo real foi concluído.
+
+### Resposta observada e correção do parâmetro acrescentado
+
+Depois da publicação do diagnóstico, a retomada real mostrou **HTTP 400 na continuação, parâmetros `page, limit`**. A montagem de URLs inferidas estava acrescentando `limit` a partir do tamanho da lista, sem esse parâmetro ter sido solicitado pelo servidor. Essa inferência foi removida: links explícitos mantêm seus parâmetros, mas a adaptação não inventa um tamanho de página na requisição.
+
+Para trabalhos antigos que já salvaram uma URL com `page` e `limit`, somente um HTTP 400/422 permite uma única tentativa alternativa no mesmo endpoint, com a mesma chave, removendo `limit`. Não tenta outros hosts, não ignora falhas de autorização e não registra o corpo do erro. Se a alternativa também falhar, o código HTTP continua visível.
+
+A conclusão de uma última página curta usa a contagem acumulada de IDs distintos quando a próxima URL era apenas inferida. Só encerra a continuação inferida quando o total exato foi atingido, sem fazer uma requisição fictícia à página seguinte. Totais excedidos, trocas de loja e IDs repetidos continuam pausando a importação.
+
+Arquivos adicionais desta correção: `src/lib/saber-export-contract.ts` (não acrescentar tamanho de página e identificar continuação inferida), `src/lib/saber-import-job.ts` (última página/total), `scripts/verify-saber-job.cjs` (conclusão da última página), além dos testes/transporte e deste relatório. A validação local inclui rejeição de `limit`, fallback limitado e recusa preservada. A retomada real após esta publicação ainda precisa confirmar a causa.
