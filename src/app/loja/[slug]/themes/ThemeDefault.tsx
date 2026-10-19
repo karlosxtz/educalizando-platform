@@ -1,4 +1,6 @@
 'use client';
+import StoreFollowControl from '@/components/StoreFollowControl';
+import FavoriteProductButton from '@/components/FavoriteProductButton';
 
 import CatalogImage from '@/components/ui/CatalogImage';
 import StoreVideoCover from '@/components/store/StoreVideoCover';
@@ -302,6 +304,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                 </div>
               </div>
 
+              <StoreFollowControl storeId={store.id} storeName={store.nome_loja} />
               {store.descricao && (
                 <p className="text-sm text-slate-600 max-w-3xl leading-relaxed font-medium break-words">
                   {store.descricao}
@@ -629,8 +632,9 @@ export default function ThemeDefault(props: StoreThemeProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.4 }}
                   key={`${prod.id}-${prod.listing_mode || 'standard'}`}
-                  className="min-w-0 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
+                  className="relative min-w-0 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
                 >
+                  <div className="absolute right-6 top-6 z-20"><FavoriteProductButton productId={prod.id} title={prod.titulo} compact /></div>
                   <div className="min-w-0 flex-1 p-4 sm:p-5 flex flex-col justify-between space-y-4">
                     <div className="space-y-3">
                       {/* Product Cover with Fixed 3:4 Aspect Ratio & object-cover */}
@@ -649,7 +653,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
                           {getTipoIcon(prod.tipo)}
                           <span>{prod.tipo}</span>
                         </span>
-                        {prod.listing_mode === 'plr' && <span className="absolute top-2.5 right-2.5 bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-md">Licença PLR</span>}
+                        {prod.listing_mode === 'plr' && <span className="absolute bottom-2.5 right-2.5 bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase shadow-md">Licença PLR</span>}
                       </Link>
 
                       {/* Category & Education Level Badges */}

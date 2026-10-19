@@ -1,6 +1,7 @@
 'use client';
 import Link from '@/components/OnDemandLink';
 import StoreVideoCover from '@/components/store/StoreVideoCover';
+import FavoriteProductButton from '@/components/FavoriteProductButton';
 import ProductEducationBadges from '@/components/store/ProductEducationBadges';
 import { useCart } from '@/components/store/CartContext';
 import { ArrowUpRight, BookOpen, ShoppingBag, Star } from 'lucide-react';
@@ -18,7 +19,8 @@ export default function StorefrontProductCard({ store, product, categories, leve
   const free = !plr && (product.is_free || Number(product.preco) === 0);
   const validPrice = Number.isFinite(Number(product.preco)) && Number(product.preco) >= 0;
   const category = categories.find(item => item.id === product.category_id)?.nome;
-  return <article className={styles.card} data-product-id={product.id} data-offer={plr ? 'plr' : 'standard'}>
+  return <article className={styles.card + ' relative'} data-product-id={product.id} data-offer={plr ? 'plr' : 'standard'}>
+    <div className="absolute right-2 top-2 z-20"><FavoriteProductButton productId={product.id} title={product.titulo} compact /></div>
     <Link href={href} className={styles.cover} aria-label={'Ver ' + product.titulo}>
       {product.capa_url ? <StoreVideoCover product={product} className="h-full w-full object-contain" /> : <BookOpen aria-hidden="true" />}
       <span className={styles.format}>{plr ? 'Licença PLR' : product.tipo}</span>

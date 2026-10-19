@@ -5,7 +5,7 @@ import { PUBLIC_BRAND_LOGO } from '@/lib/brand-assets';
 
 import { useCart } from '@/components/store/CartContext';
 import { supabase } from '@/lib/supabase';
-import { Menu,ShoppingCart,UserRound,X } from 'lucide-react';
+import { Heart,Menu,ShoppingCart,UserRound,X } from 'lucide-react';
 import Link from '@/components/OnDemandLink';
 import { useSearchParams } from 'next/navigation';
 import { Suspense,useEffect,useRef,useState } from 'react';
@@ -110,6 +110,7 @@ function MarketplaceHeaderInner() {
             </Link>
             
             <div className="flex md:hidden items-center gap-1">
+              <Link href="/cliente/favoritos" aria-label="Meus favoritos, lojas e novidades" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-rose-600 hover:bg-rose-50"><Heart className="h-5 w-5" /></Link>
               <button
                 ref={mobileMenuButtonRef}
                 type="button"
@@ -146,6 +147,7 @@ function MarketplaceHeaderInner() {
 
           {/* Direita: Ações do Usuário */}
           <div className="hidden md:flex items-center gap-3">
+            <Link href="/cliente/favoritos" aria-label="Meus favoritos, lojas e novidades" title="Meus favoritos e lojas" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-rose-600 hover:bg-rose-50"><Heart className="h-5 w-5" /></Link>
             {accountAreaHref ? (
               <Link href={accountAreaHref} className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-full transition-all shadow-md shadow-blue-500/20">
                 Acessar minha área

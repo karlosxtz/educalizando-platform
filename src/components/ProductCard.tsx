@@ -3,6 +3,7 @@ import { normalizePublicAssetUrl } from '@/lib/public-links';
 import PresentationVideoPlayer from '@/components/PresentationVideoPlayer';
 import { productPresentationVideo } from '@/lib/presentation-video';
 import CatalogCover from '@/components/CatalogCover';
+import FavoriteProductButton from '@/components/FavoriteProductButton';
 import CatalogImage from '@/components/ui/CatalogImage';
 
 import { useCart } from '@/components/store/CartContext';
@@ -71,7 +72,8 @@ export default function ProductCard({ product, purchaseMode = 'standard', presen
       </div>
     </Link>
   );
-  return <article className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-md sm:rounded-2xl`}>
+  return <article className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-md sm:rounded-2xl`}>
+    <div className="absolute right-2 top-2 z-20"><FavoriteProductButton productId={product.id} title={itemTitle} compact /></div>
     {publicVideo && product.video_as_cover ? <PresentationVideoPlayer url={publicVideo.url} title={itemTitle} hoverPreview className="w-full">{cover}</PresentationVideoPlayer> : cover}
     <div className={`flex min-h-0 flex-1 flex-col ${compact ? "p-4" : showcase ? "p-5" : "p-2 sm:p-4"}`}>
       <Link prefetch={false} href={productLink} className="min-w-0 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><h3 title={itemTitle} className={`min-h-[2.7em] break-words font-bold text-slate-900 transition-colors group-hover:text-blue-700 ${compact ? "text-sm leading-snug" : showcase ? "text-base leading-snug" : "text-[12px] leading-[1.35] line-clamp-2 sm:text-base sm:leading-snug"}`}>{itemTitle}</h3></Link>

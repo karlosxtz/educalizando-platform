@@ -7,6 +7,7 @@ import { getStoreWhatsAppUrl } from '@/lib/whatsapp';
 import type { Store } from '@/lib/types';
 import type { NewStoreThemeId } from '@/lib/store-themes';
 import styles from './StorefrontTheme.module.css';
+import StoreFollowControl from '@/components/StoreFollowControl';
 
 export default function StorefrontHero({ store, theme }: { store: Store; theme: NewStoreThemeId }) {
   const visual = <div className={styles.heroVisual}>{store.banner_url ? <CatalogImage thumbnail={false} src={store.banner_url} alt={'Banner de ' + store.nome_loja} width={1200} height={500} loading="eager" fetchPriority="high" className={styles.heroImage} /> : <BookOpen aria-hidden="true" />}</div>;
@@ -18,6 +19,7 @@ export default function StorefrontHero({ store, theme }: { store: Store; theme: 
       {store.welcome_message && <p className={styles.welcome}>{store.welcome_message}</p>}
       {store.descricao && <p className={styles.description}>{store.descricao}</p>}
       <a href="#catalogo-materiais" className={styles.cta}>Explorar materiais<ArrowDown aria-hidden="true" className="h-4 w-4" /></a>
+      <StoreFollowControl storeId={store.id} storeName={store.nome_loja} />
       <nav aria-label="Contatos da loja" className={styles.socials}>
         {(['instagram', 'youtube', 'tiktok', 'facebook', 'website'] as StoreSocialPlatform[]).map(platform => {
           const href = normalizeExternalUrl(store[platform], platform);
