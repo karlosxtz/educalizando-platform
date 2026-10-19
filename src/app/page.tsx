@@ -1,4 +1,5 @@
-export const revalidate = 3600;
+// The Worker caches healthy public HTML. Avoid ISR persisting a transient empty catalogue.
+export const revalidate = 0;
 
 import Footer from '@/components/Footer';
 import { HomeFaq } from '@/components/HomeBrandContent';

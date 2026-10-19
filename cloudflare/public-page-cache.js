@@ -46,7 +46,18 @@ function uncachedPublic(response) {
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
-export async function fetchPublicPage(request, ctx, render, cache = globalThis.caches?.default, revision = 'initial', now = Date.now) {
+export async function fetchPublicPage(request, ctx, renderPage, cache = globalThis.caches?.default, revision = 'initial', now = Date.now) {
+  const render = async () => {
+    const response = await renderPage();
+    if (new URL(request.url).pathname !== '/' || !canCachePublicPage(response)) return response;
+    const html = await response.clone().text();
+    if (!html.includes('data-home-catalog-state="unavailable"')) return response;
+    const headers = new Headers(response.headers);
+    headers.delete('X-Educalizando-Public-Document');
+    headers.set('X-Educalizando-Catalog-State', 'unavailable');
+    for (const name of ['Cache-Control', 'CDN-Cache-Control', 'Cloudflare-CDN-Cache-Control']) headers.set(name, 'no-store');
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  };
   // KV tags and the revision propagate independently across regions. Do not
   // promote an ISR response to a fresh 1h edge entry during that transition.
   const changedAt = Number(/^([0-9]+):/.exec(revision || '')?.[1]);

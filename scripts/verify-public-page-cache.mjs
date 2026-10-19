@@ -69,3 +69,17 @@ for (const path of ['/marketplace-de-materiais-pedagogicos','/videos','/materiai
  assert.notEqual(publicPageCacheKey(request(path),'before').url,publicPageCacheKey(request(path),'after').url);
 }
 console.log('PASS: oito páginas editoriais usam cache com revisão do catálogo; sessões e filtros continuam fora.');
+
+// A transient empty catalogue must neither enter edge cache nor prevent recovery.
+const failedRevision = 'catalogue-failure';
+const sizeBeforeFailure = entries.size;
+const unavailableHome = await fetchPublicPage(request(),ctx,async()=>new Response('<main data-home-catalog-state="unavailable">temporary</main>',{headers:{'Content-Type':'text/html','X-Educalizando-Public-Document':'1'}}),cache,failedRevision);
+assert.equal(unavailableHome.headers.get('Cache-Control'),'no-store');
+assert.equal(unavailableHome.headers.get('X-Educalizando-Catalog-State'),'unavailable');
+await Promise.all(tasks.splice(0));
+assert.equal(entries.size,sizeBeforeFailure);
+const recoveredHome=await fetchPublicPage(request(),ctx,render,cache,failedRevision);
+assert.equal(recoveredHome.headers.get('X-Educalizando-Page-Cache'),'MISS');
+await Promise.all(tasks.splice(0));
+assert.equal((await fetchPublicPage(request(),ctx,render,cache,failedRevision)).headers.get('X-Educalizando-Page-Cache'),'HIT');
+console.log('PASS: home sem catálogo não é armazenada; próxima resposta saudável recupera o cache normalmente.');

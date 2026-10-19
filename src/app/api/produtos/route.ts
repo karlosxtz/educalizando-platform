@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
   const { data: product } = await supabaseAdmin
     .from('products')
-    .select('*, images:product_images(*), bncc_skills:product_bncc_skills(bncc_skill_id), store:stores!inner(creator_id)')
+    .select('*, images:product_images(*), bncc_skills:product_bncc_skills(bncc_skill_id), store:stores!products_store_id_fkey!inner(creator_id)')
     .eq('id', id)
     .eq('store.creator_id', user.id)
     .maybeSingle();

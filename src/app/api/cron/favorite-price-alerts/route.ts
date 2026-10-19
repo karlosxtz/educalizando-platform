@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   let sent = 0;
   let skipped = 0;
   for (const favorite of favorites || []) {
-    const { data: product } = await supabaseAdmin.from('products').select('titulo, slug, preco, status, stores!inner(slug)').eq('id', favorite.product_id).maybeSingle();
+    const { data: product } = await supabaseAdmin.from('products').select('titulo, slug, preco, status, stores!products_store_id_fkey!inner(slug)').eq('id', favorite.product_id).maybeSingle();
     const currentPrice = Number(product?.preco || 0);
     const oldPrice = Number(favorite.price_when_favorited || 0);
     if (!product || product.status !== 'publicado' || currentPrice >= oldPrice) { skipped++; continue; }

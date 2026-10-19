@@ -12,7 +12,7 @@ export function discoveryFilters(params: Record<string, string | string[] | unde
 }
 export const readDiscoveryProducts = cache(async (videosOnly: boolean, q: string, category: string, page: number) => {
   try {
-    let query = supabase.from('products').select('id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,category_id,instagram_video_url,presentation_video_url,video_as_cover,store:stores(id,nome_loja,slug,logo_url)', { count: 'exact' })
+    let query = supabase.from('products').select('id,store_id,titulo,slug,tipo,preco,preco_original,is_free,is_plr,preco_plr,has_plr_delivery,capa_url,status,created_at,category_id,instagram_video_url,presentation_video_url,video_as_cover,store:stores!products_store_id_fkey(id,nome_loja,slug,logo_url)', { count: 'exact' })
       .eq('status', 'publicado').is('excluido_em', null);
     if (videosOnly) query = query.or('presentation_video_url.not.is.null,instagram_video_url.not.is.null');
     if (q) query = query.ilike('titulo', `%${q.replace(/[%_]/g, ' ')}%`);

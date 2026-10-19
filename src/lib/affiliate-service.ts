@@ -72,7 +72,7 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
   // 2. Fetch all public products for those stores OR specific products
   let query = supabase
     .from('products')
-    .select('*, store:stores(nome_loja, slug, id, logo_url), category:categories(id, nome)')
+    .select('*, store:stores!products_store_id_fkey(nome_loja, slug, id, logo_url), category:categories(id, nome)')
     .eq('status', 'publicado')
     .is('excluido_em', null);
 
@@ -102,7 +102,7 @@ export async function getAffiliateApprovedProducts(affiliateUserId: string): Pro
 export async function getAvailableMarketplaceProducts(): Promise<any[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('*, store:stores(nome_loja, logo_url)')
+    .select('*, store:stores!products_store_id_fkey(nome_loja, logo_url)')
     .eq('status', 'publicado')
     .is('excluido_em', null)
     .eq('allow_affiliates', true)

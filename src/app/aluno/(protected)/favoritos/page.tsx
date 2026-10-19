@@ -36,7 +36,7 @@ export default function StudentFavoritesPage() {
 
         const { data, error: queryError } = await supabase
           .from('product_favorites')
-          .select('product_id, price_alerts_enabled, price_when_favorited, products(*, store:stores(*))')
+          .select('product_id, price_alerts_enabled, price_when_favorited, products(*, store:stores!products_store_id_fkey(*))')
           .eq('user_id', session.id)
           .order('created_at', { ascending: false });
 

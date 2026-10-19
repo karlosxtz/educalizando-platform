@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   if (enabled.length) {
     const since = new Date(Date.now() - 30 * 86400000).toISOString();
     const result = await supabaseAdmin.from('products')
-      .select('id,store_id,titulo,slug,capa_url,preco,is_free,tipo,created_at,store:stores(id,nome_loja,slug,logo_url)')
+      .select('id,store_id,titulo,slug,capa_url,preco,is_free,tipo,created_at,store:stores!products_store_id_fkey(id,nome_loja,slug,logo_url)')
       .in('store_id', enabled.map(row => row.store_id)).eq('status', 'publicado').is('excluido_em', null)
       .gte('created_at', since).order('created_at', { ascending: false }).limit(100);
     if (result.error) return json({ error: 'Não foi possível carregar as novidades agora.' }, 503);

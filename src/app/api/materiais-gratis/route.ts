@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
-      .select('*, store:stores(*)')
+      .select('*, store:stores!products_store_id_fkey(*)')
       .in('store_id', storeIds)
       .eq('status', 'publicado')
       .is('excluido_em', null)

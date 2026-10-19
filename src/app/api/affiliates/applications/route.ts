@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('id, titulo, store_id, status, excluido_em, allow_affiliates, stores!inner(creator_id, affiliate_program_enabled)')
+      .select('id, titulo, store_id, status, excluido_em, allow_affiliates, stores!products_store_id_fkey!inner(creator_id, affiliate_program_enabled)')
       .eq('id', productId)
       .eq('store_id', storeId)
       .maybeSingle();

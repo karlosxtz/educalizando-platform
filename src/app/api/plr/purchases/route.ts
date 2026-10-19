@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const productIds = [...new Set((orderItems || []).map(item => item.product_id).filter(Boolean))];
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
-      .select('id, titulo, descricao, tipo, page_count, age_range, format_details, capa_url, has_plr_delivery, stores(nome_loja)')
+      .select('id, titulo, descricao, tipo, page_count, age_range, format_details, capa_url, has_plr_delivery, stores!products_store_id_fkey(nome_loja)')
       .in('id', productIds);
     if (productsError) throw productsError;
 

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
     const { data: products, error } = await supabaseAdmin
       .from('products')
-      .select('*, store:stores(nome_loja, slug)')
+      .select('*, store:stores!products_store_id_fkey(nome_loja, slug)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

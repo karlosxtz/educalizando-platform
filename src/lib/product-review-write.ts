@@ -34,7 +34,7 @@ export async function writeVerifiedProductReview(currentUser: User, params: {
 
     const { data: product } = await supabaseAdmin
       .from('products')
-      .select('id, store_id, stores!inner(creator_id)')
+      .select('id, store_id, stores!products_store_id_fkey!inner(creator_id)')
       .eq('id', params.productId)
       .maybeSingle();
     if (!product || product.store_id !== params.storeId) {

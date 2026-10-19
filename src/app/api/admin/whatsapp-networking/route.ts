@@ -51,7 +51,7 @@ function readablePhone(phone: string | null) {
 async function getCreatorRecipients(): Promise<CreatorRecipient[]> {
   const { data: stores, error } = await supabaseAdmin
     .from('stores')
-    .select('id, creator_id, nome_loja, slug, whatsapp, logo_url, banner_url, created_at, products(count)')
+    .select('id, creator_id, nome_loja, slug, whatsapp, logo_url, banner_url, created_at, products!products_store_id_fkey(count)')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
 
