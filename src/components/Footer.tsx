@@ -9,11 +9,11 @@ import NewsletterForm from './NewsletterForm';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-50 text-slate-700 border-t border-slate-200 pt-12 pb-6 mt-auto">
+    <footer className="bg-[#f5f6f2] text-slate-700 border-t border-slate-200 pt-12 pb-6 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Estrutura de 4 Colunas (Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-6">
           
           {/* Coluna 1: Marca */}
           <div className="space-y-6">
@@ -52,7 +52,7 @@ export default function Footer() {
           {/* Coluna 2: Para Compradores */}
           <div>
             <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Compradores</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/buscar" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Explorar Categorias</Link></li>
               <li><Link href="/lojas" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Encontrar Lojas</Link></li>
               <li><Link href="/atividades-por-ano" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Atividades por Ano e BNCC</Link></li>
@@ -71,7 +71,7 @@ export default function Footer() {
           {/* Coluna 3: Para Vendedores */}
           <div>
             <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Para Vendedores</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/cadastro/produtor" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Comece a Vender</Link></li>
               <li><Link href="/painel" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Painel do Vendedor</Link></li>
               <li><Link href="/afiliados" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Área do Afiliado</Link></li>
@@ -81,7 +81,7 @@ export default function Footer() {
           {/* Coluna 4: Suporte e Contato */}
           <div>
             <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Suporte e Contato</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/ajuda" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Central de Ajuda</Link></li>
               <li><Link href="/glossario" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Glossário Pedagógico</Link></li>
               <li><Link href="/sobre" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Sobre o Educalizando</Link></li>

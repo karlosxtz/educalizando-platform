@@ -38,10 +38,10 @@ function MarketplaceHeaderInner() {
   const currentSort = searchParams?.get('sort');
   const currentFilter = searchParams?.get('filter');
   const quickCategories = [
-    { href: '/buscar?sort=popular', label: '🔥 Mais Vendidos', active: currentSort === 'popular' },
-    { href: '/buscar?categoria=ensino-fundamental', label: '🎒 Ensino Fundamental', active: currentCategoria === 'ensino-fundamental' },
-    { href: '/buscar?categoria=jogos', label: '🧩 Recursos Lúdicos', active: currentCategoria === 'jogos' },
-    { href: '/buscar?filter=plr', label: '💼 Revenda Autorizada', active: currentFilter === 'plr' },
+    { href: '/buscar?sort=popular', label: 'Mais vendidos', active: currentSort === 'popular' },
+    { href: '/buscar?categoria=ensino-fundamental', label: 'Ensino fundamental', active: currentCategoria === 'ensino-fundamental' },
+    { href: '/buscar?categoria=jogos', label: 'Jogos e recursos', active: currentCategoria === 'jogos' },
+    { href: '/buscar?filter=plr', label: 'Revenda autorizada', active: currentFilter === 'plr' },
   ];
 
   useEffect(() => {
@@ -84,7 +84,7 @@ function MarketplaceHeaderInner() {
 
   const cartItemsCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100 transition-all">
+    <header className="marketplace-header w-full sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-100">
       <Suspense fallback={null}><HeaderQueryState onChange={setQuery} /></Suspense>
       {cartItemsCount > 0 && (
         <Link href="/carrinho" className="flex min-h-8 items-center justify-center gap-1.5 bg-emerald-600 px-3 py-1 text-center text-[11px] font-bold text-white sm:text-xs">
@@ -193,10 +193,11 @@ function MarketplaceHeaderInner() {
               </Link>
             </div>
 
-            {/* Direita: Pills Elegantes */}
-            <div className="flex items-center gap-2">
-              {quickCategories.map((category) => <Link key={category.href} href={category.href} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${category.active ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{category.label}</Link>)}
-            </div>
+            <nav className="flex items-center gap-5" aria-label="Mais formas de explorar">
+              <Link href="/materiais-gratis" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Materiais gratuitos</Link>
+              <Link href="/calendario" className="text-sm font-semibold text-slate-600 hover:text-blue-700">Calendário escolar</Link>
+              <Link href="/cadastro/produtor" className="rounded-lg bg-[#eef1e9] px-3 py-2 text-sm font-semibold text-[#355548] hover:bg-[#e3eada]">Quero vender</Link>
+            </nav>
             
           </div>
 
@@ -223,12 +224,7 @@ function MarketplaceHeaderInner() {
                 </div>
               </div>
             )}
-            <nav className="marketplace-category-rail relative h-[60px] overflow-hidden py-2" aria-label="Categorias em destaque">
-              <div className="marketplace-category-track flex w-max items-center gap-2 pr-2">
-                {[...quickCategories, ...quickCategories].map((category, index) => <Link key={`${category.href}-${index}`} href={category.href} tabIndex={index >= quickCategories.length ? -1 : undefined} aria-hidden={index >= quickCategories.length} aria-current={category.active ? 'page' : undefined} className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${category.active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'}`}>{category.label}</Link>)}
-              </div>
-            </nav>
-          </div>
+     </div>
         </div>
       </div>
     </header>

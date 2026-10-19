@@ -64,11 +64,13 @@ export default function SearchBar() {
         )}
       </div>
       <input
-        type="text"
+        type="search"
+        aria-label="Buscar materiais didáticos"
+        enterKeyHint="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="block w-full pl-11 pr-6 py-3 sm:py-3.5 bg-slate-100/50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
-        placeholder="O que você procura hoje? (Atividades, apostilas, jogos...)"
+        className="block w-full pl-11 pr-6 sm:pr-24 py-3 sm:py-3.5 bg-slate-100/50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-full leading-5 text-slate-900 placeholder-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium shadow-inner"
+        placeholder="Busque por atividade, tema ou material"
       />
       <button 
         type="submit"

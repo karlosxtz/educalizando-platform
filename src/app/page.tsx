@@ -1,7 +1,7 @@
 export const revalidate = 3600;
 
 import Footer from '@/components/Footer';
-import { HomeIntroduction, HomeFaq } from '@/components/HomeBrandContent';
+import { HomeFaq } from '@/components/HomeBrandContent';
 import { HOME_FAQ } from '@/lib/home-content';
 import HomeCatalogSkeleton from '@/components/HomeCatalogSkeleton';
 import { Suspense } from 'react';
@@ -83,7 +83,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 selection:bg-violet-700 selection:text-white">
+    <div className="flex min-h-screen flex-col home-public bg-[#fcfcf9] font-sans text-slate-900 selection:bg-violet-700 selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({
@@ -91,7 +91,7 @@ export default function Home() {
         mainEntity: HOME_FAQ.map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })),
       }) }} />
       <MarketplaceHeader />
-      <HomeIntroduction />
+
       <Suspense fallback={<HomeCatalogSkeleton />}><HomeCatalog /></Suspense>
       <HomeFaq />
       <Footer />

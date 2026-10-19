@@ -23,26 +23,26 @@ export default async function LojasPage() {
   const listedStores = stores;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#fcfcf9] flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       <MarketplaceHeader />
 
       <main className="flex-1 pt-4 sm:pt-8">
         {/* Cabeçalho da Página */}
-        <section className="bg-slate-50 py-8 sm:py-12 border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
-              Nossos Produtores Parceiros
+        <section className="bg-[#f6f5ee] py-8 sm:py-12 border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-4 tracking-tight">
+              Encontre sua próxima loja favorita
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
-              Conheça os educadores que criam os melhores materiais da plataforma.
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl">
+              Explore as vitrines dos criadores, conheça suas propostas e encontre materiais que combinam com a sua turma.
             </p>
           </div>
         </section>
 
         {/* Grid de Lojas */}
-        <section className="py-6 sm:py-12 bg-slate-50">
+        <section className="py-6 sm:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 min-[390px]:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {listedStores.map((store: Store) => (
                 <div key={store.id} className="min-w-0 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group hover:-translate-y-1">
                   
