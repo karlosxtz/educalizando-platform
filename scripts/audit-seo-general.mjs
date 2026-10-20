@@ -11,13 +11,17 @@ const attr=(html,tag,key,value,target)=> {
 async function get(url) { const response=await fetch(url,{signal:AbortSignal.timeout(45000)});return {response,text:await response.text()}; }
 const root=await get(origin+'/sitemap.xml');
 if(root.response.status!==200)throw new Error('Sitemap index indisponível');
-const sitemaps=[...root.text.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>decode(m[1]));
 const urls=new Set();
-for(const sitemap of sitemaps) {
-  if(!sitemap.startsWith(origin+'/'))throw new Error('Sitemap externo inesperado');
-  const data=await get(sitemap);if(!data.response.ok)throw new Error('Sitemap '+data.response.status+': '+sitemap);
-  for(const item of data.text.matchAll(/<loc>([^<]+)<\/loc>/g)) if(decode(item[1]).startsWith(origin+'/')) urls.add(decode(item[1]));
-}
+const locations=text=>[...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>decode(match[1]));
+if (/<sitemapindex\b/.test(root.text)) {
+  for(const sitemap of locations(root.text)) {
+    if(new URL(sitemap).origin!==origin)throw new Error('Sitemap externo inesperado');
+    const data=await get(sitemap);if(!data.response.ok)throw new Error('Sitemap '+data.response.status+': '+sitemap);
+    for(const url of locations(data.text))if(new URL(url).origin===origin)urls.add(url);
+  }
+} else if (/<urlset\b/.test(root.text)) {
+  for(const url of locations(root.text))if(new URL(url).origin===origin)urls.add(url);
+} else throw new Error('Formato do sitemap não reconhecido');
 for(const path of ['/','/buscar','/atividades-alfabetizacao','/educacao-infantil','/jogos-pedagogicos','/recursos-pedagogicos','/materiais-didaticos','/planos-de-aula-bncc','/calendario','/blog','/buscar?q=leitura','/buscar?categoria=alfabetizacao&page=2','/login','/seguranca','/carrinho','/offline'])urls.add(origin+path);
 const results=[],queue=[...urls];let cursor=0;
 const flatten=schema=>Array.isArray(schema)?schema.flatMap(flatten):schema?.['@graph']?schema['@graph'].flatMap(flatten):[schema];
@@ -60,6 +64,6 @@ for(const url of ['http://educalizando.com.br/','https://educalizando.com.br/','
   redirects.push({url,status:r.status,location:r.headers.get('location')});
 }
 const report={checkedAt:new Date().toISOString(),checked:results.length,failures:results.filter(r=>r.errors.length),warnings:results.filter(r=>r.warnings.length),redirects,robots:robots.text,results};
-writeFileSync('seo-audit-general-report.json',JSON.stringify(report,null,2));
+writeFileSync(process.env.SEO_AUDIT_OUTPUT || 'seo-audit-general-report.json',JSON.stringify(report,null,2));
 console.log(JSON.stringify({checked:report.checked,failures:report.failures.map(r=>({url:r.url,errors:r.errors})),warnings:report.warnings.length,redirects},null,2));
 // No ranking score or Rich Results certification is inferred from this audit.

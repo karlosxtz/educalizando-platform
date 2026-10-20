@@ -30,6 +30,20 @@ config.headers().then(rules => {
   console.log('PASS production CSP: consented Google tag and collection allowed; arbitrary hosts and eval remain blocked.');
 });
 for (const path of ['/', '/produto/material-real', '/loja/loja-real', '/categorias/historia', '/materiais-didaticos']) assert(isMetricsPage(path));
+for (const path of ['/ofertas', '/calendario', '/calendario/dia-da-arvore', '/glossario', '/glossario/alfabetizacao', '/atividades-por-ano', '/encontrar-material', '/comparar', '/kit/776a7499-2e18-45be-842f-55faf28ef4ef']) {
+  assert(isMetricsPage(path), `Página pública elegível: ${path}`);
+  const sent = [];
+  const publicMetrics = createPlatformMetrics(() => ({ gtag: (...args) => sent.push(args) }));
+  publicMetrics.page(path, ''); publicMetrics.ready(); assert.equal(sent.length, 0, 'Não medir sem consentimento');
+  publicMetrics.consent('accepted'); publicMetrics.page(path, '');
+  assert.equal(sent.length, 1); assert.equal(sent[0][1], 'page_view');
+  assert.equal(sent[0][2].page_location, 'https://www.educalizando.com.br' + path);
+  publicMetrics.consent('rejected'); publicMetrics.page('/', ''); assert.equal(sent.length, 1);
+}
+for (const path of ['/encontrar-material', '/comparar']) {
+  const safe = metricsPageContext(path, '', '?objetivo=informacao_privada&itens=id-privado&email=privado@example.test&token=chave-privada');
+  assert(!JSON.stringify(safe).includes('privad'));
+}
 for (const path of ['/admin', '/dashboard', '/aluno', '/api/catalog', '/login', '/busca?q=email', '/loja/loja-real/checkout', '/produto/real?email=private']) assert(!isMetricsPage(path));
 assert(isPurchaseConfirmation('/loja/loja-real/checkout/sucesso/order-123'));
 assert(!isMetricsPage('/loja/loja-real/checkout/sucesso/order-123'));

@@ -9,8 +9,8 @@ export type MetricsConsent = 'accepted' | 'rejected' | null;
 
 /** An allowlist avoids measuring private routes, order IDs and arbitrary search URLs. */
 export function isMetricsPage(path: string) {
-  return /^\/(?:buscar|videos|marketplace-de-materiais-pedagogicos|lojas|materiais-didaticos|materiais-gratis|atividades-alfabetizacao|educacao-infantil|atividades-para-imprimir|jogos-pedagogicos|atividades-ensino-fundamental|planos-de-aula-bncc|recursos-pedagogicos)?\/?$/.test(path)
-    || /^\/(?:produto|categorias|atividades-por-ano)\/[a-z0-9-]+\/?$/.test(path)
+  return /^\/(?:buscar|videos|marketplace-de-materiais-pedagogicos|lojas|materiais-didaticos|materiais-gratis|atividades-alfabetizacao|educacao-infantil|atividades-para-imprimir|jogos-pedagogicos|atividades-ensino-fundamental|planos-de-aula-bncc|recursos-pedagogicos|ofertas|calendario|glossario|atividades-por-ano|encontrar-material|comparar)?\/?$/.test(path)
+    || /^\/(?:produto|kit|categorias|atividades-por-ano|calendario|glossario)\/[a-z0-9-]+\/?$/.test(path)
     || /^\/blog(?:\/[a-z0-9-]+)?\/?$/.test(path)
     || /^\/loja\/[a-z0-9-]+(?:\/produto\/[a-z0-9-]+)?\/?$/.test(path);
 }
