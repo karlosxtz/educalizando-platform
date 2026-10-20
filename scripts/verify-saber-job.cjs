@@ -81,6 +81,32 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   const beforeRestart=tables.products.length;
   await jobs.restartSaberDeliveries(current(failedFile.id),'fixture-token');assert.equal(current(failedFile.id).status,'running');assert.equal(current(failedFile.id).cursor,0);assert.equal(tables.products.length,beforeRestart);
   await assert.rejects(()=>jobs.restartSaberDeliveries(current(failedFile.id),'fixture-token'),/pausada/);
+  // A draft edited before its completion receipt must not block the next item.
+  sourcePage={owner:'origin-a',label:'Fixture',products:[{...item,id:'edited-before-receipt',images:[],deliveries:[{name:'Original.pdf',url:'https://files.example.org/original.pdf'}]},{...item,id:'next-after-edited',images:[],deliveries:[]}],total:2,nextUrl:null};
+  const editedJob=await create('destination-edited-during-import');
+  await jobs.processSaberJob(current(editedJob.id),'fixture-token');
+  const editedProduct=tables.products.find(row=>row.store_id==='destination-edited-during-import');
+  editedProduct.status='publicado';editedProduct.import_incomplete=false;editedProduct.titulo='Título definido pelo criador';
+  const editedSnapshot=structuredClone(editedProduct), downloadsBefore=fileDownloads;
+  assert(!tables.platform_product_import_receipts.some(row=>row.product_id===editedProduct.id));
+  await jobs.processSaberJob(current(editedJob.id),'fixture-token');
+  assert.equal(current(editedJob.id).status,'running');assert.equal(current(editedJob.id).cursor,1);assert.equal(current(editedJob.id).skipped,1);
+  assert.equal(current(editedJob.id).current_product,null);assert.equal(current(editedJob.id).asset_cursor,0);assert.equal(current(editedJob.id).last_error,null);
+  assert(current(editedJob.id).issues.some(issue=>issue.message.includes('preservado sem sobrescrever')));
+  assert.deepEqual(structuredClone(editedProduct),editedSnapshot);assert.equal(fileDownloads,downloadsBefore);
+  for(let step=0;step<5&&current(editedJob.id).status==='running';step++)await jobs.processSaberJob(current(editedJob.id),'fixture-token');
+  assert.equal(current(editedJob.id).status,'completed');assert.equal(current(editedJob.id).imported,1);assert.equal(current(editedJob.id).skipped,1);
+  assert.equal(tables.products.filter(row=>row.store_id==='destination-edited-during-import').length,2);
+  assert.deepEqual(structuredClone(editedProduct),editedSnapshot);
+  // The same protection applies to a reviewed draft, even without a receipt.
+  sourcePage={...sourcePage,products:[{...item,id:'reviewed-draft',images:[]}],total:1};
+  const reviewedDraftJob=await create('destination-reviewed-draft');
+  await jobs.processSaberJob(current(reviewedDraftJob.id),'fixture-token');
+  const reviewedDraft=tables.products.find(row=>row.store_id==='destination-reviewed-draft');reviewedDraft.import_incomplete=false;
+  const reviewedSnapshot=structuredClone(reviewedDraft);
+  await jobs.processSaberJob(current(reviewedDraftJob.id),'fixture-token');
+  assert.equal(current(reviewedDraftJob.id).status,'running');assert.equal(current(reviewedDraftJob.id).skipped,1);assert.deepEqual(structuredClone(reviewedDraft),reviewedSnapshot);
+  sourcePage={...sourcePage,products:[{...item,deliveries:[{name:'Material.pdf',url:'https://files.example.org/material.pdf'}]}]};
   migrationReady=false;await assert.rejects(()=>create('destination-missing-migration'),/Ative/);
   console.log('PASS file import: sequential private deliveries, external-link notice, repeat/backfill without duplicate products, reviewed preservation, download failure and manual-delivery conflict pause, missing migration gate.');
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

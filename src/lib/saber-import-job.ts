@@ -109,8 +109,11 @@ export async function processSaberJob(job:SaberJob,token:string) {
     }
     const {data:product,error:productError}=await db.from('products').select('id,store_id,status,import_incomplete').eq('id',productId).maybeSingle();check({error:productError});
     if(product && (product.store_id!==job.store_id || product.status!=='rascunho' || !product.import_incomplete)){
-      if(mapped && product.store_id===job.store_id){await receipt({cursor:job.cursor+1,skipped:job.skipped+1,current_product:null,asset_cursor:0,issues:[...job.issues,{product:item.title,message:'Produto já revisado: as entregas existentes foram preservadas. Confira seus arquivos pelo cadastro.'}].slice(-100)});return {progressed:true};}
-      throw new Error('O produto já foi revisado ou alterado. Não será sobrescrito pela importação.');
+      // A creator can review a draft before its last asset/receipt is committed.
+      // Its deterministic ID already binds it to this source item. Preserve the
+      // owned product and advance even when the final import receipt is absent.
+      if(product.store_id===job.store_id){await receipt({cursor:job.cursor+1,skipped:job.skipped+1,current_product:null,asset_cursor:0,last_error:null,issues:[...job.issues,{product:item.title,message:'Produto já revisado ou alterado: preservado sem sobrescrever. Confira as entregas no cadastro.'}].slice(-100)});return {progressed:true};}
+      throw new Error('O produto não pertence à loja autorizada e não será sobrescrito pela importação.');
     }
     if(!product){
       const [categoryResult,levelResult]=await Promise.all([db.from('categories').select('id,nome,slug,store_id').or('store_id.is.null,store_id.eq.'+job.store_id),db.from('education_levels').select('id,nome,slug')]);check(categoryResult);check(levelResult);
