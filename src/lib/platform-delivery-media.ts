@@ -2,7 +2,7 @@ import 'server-only';
 import { createHash } from 'node:crypto';
 import { isIP } from 'node:net';
 import { resolveRemoteAddresses } from './remote-addresses';
-import { resolveBucket, uploadObject } from './object-storage';
+import { resolveBucket, uploadObject, headObject } from './object-storage';
 import { MAX_DELIVERY_FILE_BYTES } from './product-delivery-files';
 import type { PlatformDelivery } from './platform-delivery-contract';
 
@@ -70,7 +70,18 @@ export async function mirrorPlatformDelivery(file: PlatformDelivery, storeId: st
     const bucket = resolveBucket('product-files');
     const digest = createHash('sha256').update(body).digest('hex').slice(0, 24);
     const key = `platform-imports/${storeId}/${productId}/deliveries/${index}-${digest}.${ext}`;
-    await uploadObject({ bucket, key, body, contentType });
+    // A prior attempt may have uploaded successfully before its DB commit.
+    // Reuse that same content-addressed object instead of creating a new version.
+    let exists = false;
+    try {
+      const saved = await headObject(bucket, key);
+      if (saved.ContentLength !== size) throw new Error('A entrega já armazenada tem tamanho incompatível. Revise o cadastro.');
+      exists = true;
+    } catch (error) {
+      const failure = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+      if (failure.$metadata?.httpStatusCode !== 404 && !['NotFound', 'NoSuchKey'].includes(failure.name || '')) throw new Error('A entrega armazenada não pôde ser verificada. Retome para tentar novamente.');
+    }
+    if (!exists) await uploadObject({ bucket, key, body, contentType });
     return { url: `minio://${bucket}/${key}`, name: file.name, size, mimeType: contentType, external: false };
   }
   throw new Error('A entrega não pôde ser baixada.');

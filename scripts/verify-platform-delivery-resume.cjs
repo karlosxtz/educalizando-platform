@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const exportsModule={};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/platform-delivery-resume.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exportsModule,require:key=>key==='server-only'?{}:require(key),Error,Promise});
+const url='minio://private-materials/platform-imports/store/product/deliveries/0-hash.pdf';
+const file={id:'file-a',product_id:'product',delivery_type:'original',file_url:url,order_index:0};
+const receipt={store_id:'store',product_id:'product',file_id:'file-a',target_url:url,delivery_index:0};
+let files=[file],receipts=[receipt],legacy=[{product_id:'product',arquivo_url:url}],unavailable=false;
+const db={from(table){const filters=[];let single=false;const query={select(){return query;},eq(key,value){filters.push([key,value]);return query;},limit(){return query;},maybeSingle(){single=true;return query;},then(resolve){const all=table==='product_delivery_files'?files:table==='platform_import_delivery_receipts'?receipts:legacy;const data=all.filter(row=>filters.every(([key,value])=>row[key]===value));return Promise.resolve({data:single?(data[0]||null):data,error:unavailable?{code:'offline'}:null}).then(resolve);}};return query;}};
+const check=(store='store',id='file-a',index=0)=>exportsModule.importedDeliveryPresent(db,store,'product',id,index);
+(async()=>{
+ assert.equal(await check(),true);
+ assert.equal(await check('store','file-b',1),false,'Only the missing next delivery should be copied');
+ await assert.rejects(()=>check('another-store'),/alteradas/,'Another store cannot reuse this delivery receipt');
+ await assert.rejects(()=>check('store','foreign-file'),/alteradas/);
+ files=[{...file,file_url:'https://creator.example.org/manual.pdf'}];await assert.rejects(()=>check(),/alteradas/);
+ files=[];await assert.rejects(()=>check(),/alteradas/,'A manually removed delivery is not silently re-created');
+ files=[file];legacy=[{product_id:'product',arquivo_url:'https://creator.example.org/manual'}];await assert.rejects(()=>check(),/alteradas/);
+ files=[];receipts=[];legacy=[];assert.equal(await check(),false);
+ unavailable=true;await assert.rejects(()=>check(),/conferir/,'A failed DB lookup never triggers a duplicate upload');
+ console.log('PASS delivery resume: tenant/product binding, committed-file reuse, missing-only import, preservation of manual replacements/deletions and fail-closed database checks.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

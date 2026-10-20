@@ -5,6 +5,7 @@ import { SABER_EXPORT_URL, type SaberItem } from './saber-export-contract';
 import { mirrorPlatformImportImage } from './woocommerce-media';
 import { saberImportStorageMessage } from './saber-import-errors';
 import { mirrorPlatformDelivery } from './platform-delivery-media';
+import { importedDeliveryPresent } from './platform-delivery-resume';
 
 export const saberJobColumns='id,source_label,status,source_total,discovered,imported,skipped,cursor,asset_cursor,issues,last_error,created_at,updated_at';
 export type SaberJob={id:string;store_id:string;source_owner:string;source_label:string;token_fingerprint:string;status:string;queue:SaberItem[];cursor:number;next_url:string|null;visited_urls:string[];seen_ids:string[];source_total:number|null;discovered:number;imported:number;skipped:number;current_product:string|null;asset_cursor:number;issues:{product:string;message:string}[];lease_token:string;lease_until:string|null};
@@ -135,8 +136,12 @@ export async function processSaberJob(job:SaberJob,token:string) {
     const deliveryIndex=job.asset_cursor-item.images.length;
     if(deliveryIndex<(item.deliveries?.length || 0)){
       if(!await platformDeliveryImportReady())throw new Error('Ative a atualização de importação de arquivos antes de continuar.');
+      const fileId=saberImportId(job.store_id,job.source_owner,item.id+':delivery:'+deliveryIndex);
+      if(await importedDeliveryPresent(db,job.store_id,productId,fileId,deliveryIndex)){
+        await receipt({asset_cursor:job.asset_cursor+1});return {progressed:true};
+      }
       const file=await mirrorPlatformDelivery(item.deliveries![deliveryIndex],job.store_id,productId,deliveryIndex);
-      const applied=await db.rpc('apply_platform_import_delivery',{p_job:job.id,p_store:job.store_id,p_lease:lease,p_product:productId,p_file_id:saberImportId(job.store_id,job.source_owner,item.id+':delivery:'+deliveryIndex),p_index:deliveryIndex,p_asset:file,p_probe:false});check(applied);
+      const applied=await db.rpc('apply_platform_import_delivery',{p_job:job.id,p_store:job.store_id,p_lease:lease,p_product:productId,p_file_id:fileId,p_index:deliveryIndex,p_asset:file,p_probe:false});check(applied);
       if(!applied.data)throw new Error('O produto ou suas entregas foram alterados. Os arquivos existentes foram preservados; revise o cadastro.');
       const issues=file.external?[...job.issues,{product:item.title,message:'Link de entrega importado. Confira na origem se os compradores poderão acessá-lo.'}].slice(-100):job.issues;
       await receipt({asset_cursor:job.asset_cursor+1,issues});return {progressed:true};
