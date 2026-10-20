@@ -27,6 +27,7 @@ import CompareProductButton from '@/components/CompareProductButton';
 import FavoriteProductButton from '@/components/FavoriteProductButton';
 import StoreFollowControl from '@/components/StoreFollowControl';
 import ProductQuickSpecs from '@/components/ProductQuickSpecs';
+import PurchaseRail from '@/components/store/PurchaseRail';
 import PrintingCalculator from '@/components/teaching/PrintingCalculator';
 import PlanningLink from '@/components/teaching/PlanningLink';
 import ProductQuestions from '@/components/teaching/ProductQuestions';
@@ -589,7 +590,7 @@ export default function ProductDetailClientView({
           </div>
 
           {/* RIGHT COLUMN: Buy Action Card */}
-          <div className="hidden min-w-0 lg:block lg:col-span-5 xl:col-span-5 lg:sticky lg:top-40">
+          <PurchaseRail className="hidden lg:block lg:col-span-5 xl:col-span-5">
             <div className="bg-white shadow-[0_10px_40px_rgb(0,0,0,0.06)] rounded-3xl p-6 sm:p-8 flex flex-col space-y-6">
               
               {/* Product Header (Mobile & Desktop in Sidebar) */}
@@ -777,7 +778,7 @@ export default function ProductDetailClientView({
 
 
             </div>
-          </div>
+          </PurchaseRail>
         </div>
 
         <section className="mt-8 space-y-4"><PlanningLink productId={product.id} plr={Boolean(isPlrPurchase)}/><PrintingCalculator key={product.id+String(isPlrPurchase)} pages={isPlrPurchase?null:product.page_count}/></section>

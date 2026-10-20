@@ -1,110 +1,19 @@
 'use client';
-
 import { signOutStudent } from '@/lib/student-service';
-import { BookOpen,Crown,FilePenLine,GraduationCap,Heart,LogOut } from 'lucide-react';
+import { BookOpen,BookmarkCheck,CalendarDays,Crown,FilePenLine,Gift,Heart,LogOut,UserRound } from 'lucide-react';
 import Link from '@/components/OnDemandLink';
-import { useRouter } from 'next/navigation';
-
-interface StudentHeaderProps {
-  studentName?: string;
-  studentEmail?: string;
-  studentAvatarUrl?: string;
-}
-
-export default function StudentHeader({
-  studentName = 'Cliente Educalizando',
-  studentEmail = 'cliente@educalizando.com',
-  studentAvatarUrl
-}: StudentHeaderProps) {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await signOutStudent();
-    router.push('/cliente/login');
-  };
-
-  return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        
-        {/* Brand & Badge */}
-        <Link href="/cliente/dashboard" className="flex items-center gap-3 group">
-          <img
-            src="/branding/logo-educalizando.png?v=3"
-            alt="Educalizando"
-            className="h-9 sm:h-10 w-auto object-contain"
-            style={{ width: 'auto', height: '38px' }}
-          />
-          <span className="hidden sm:inline-flex text-[10px] font-bold text-brand-teal uppercase tracking-widest bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full items-center gap-1">
-            <GraduationCap className="w-3 h-3 text-brand-teal" /> Área do Cliente
-          </span>
-        </Link>
-
-        {/* User Account & Actions */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/cliente/dashboard"
-            className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
-          >
-            <BookOpen className="w-4 h-4 text-brand-teal" />
-            <span>Meus Materiais</span>
-          </Link>
-          <Link href="/cliente/favoritos" className="hidden items-center gap-1.5 text-xs font-bold text-slate-600 transition-colors hover:text-rose-600 lg:flex">
-            <Heart className="h-4 w-4 text-rose-500" />
-            <span>Favoritos</span>
-          </Link>
-          <Link
-            href="/cliente/brindes"
-            className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5 bg-brand-teal/10 px-2 py-1.5 rounded-lg border border-brand-teal/20"
-          >
-            <span className="text-brand-teal">🎁</span>
-            <span className="text-brand-teal">Brindes</span>
-          </Link>
-          <Link href="/cliente/materiais-exclusivos" className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden md:flex items-center gap-1.5">
-            <FilePenLine className="w-4 h-4 text-violet-600" /><span>Materiais exclusivos</span>
-          </Link>
-          <Link href="/cliente/clubes" className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden md:flex items-center gap-1.5">
-            <Crown className="w-4 h-4 text-blue-700" /><span>Meus Clubes</span>
-          </Link>
-          <Link
-            href="/cliente/conta"
-            className="text-xs font-bold text-slate-600 hover:text-brand-navy transition-colors hidden sm:flex items-center gap-1.5"
-          >
-            <span>Minha Conta</span>
-          </Link>
-
-          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-
-          {/* Student Profile Pill */}
-          <Link href="/cliente/conta" className="flex items-center gap-2.5 group/profile cursor-pointer transition-opacity hover:opacity-80">
-            {studentAvatarUrl ? (
-              <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center shadow-xs border border-slate-200">
-                <img src={studentAvatarUrl} alt={studentName} className="w-full h-full object-cover" />
-              </div>
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-brand-navy text-white font-extrabold flex items-center justify-center text-xs shadow-xs">
-                {studentName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="hidden md:block text-left min-w-0">
-              <span className="text-xs font-bold text-slate-900 truncate block group-hover/profile:text-brand-teal transition-colors">{studentName}</span>
-              <span className="text-[10px] text-slate-400 truncate block">{studentEmail}</span>
-            </div>
-          </Link>
-
-          {/* Logout Action */}
-          <button
-            onClick={handleLogout}
-            className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center gap-1.5 text-xs font-bold"
-            title="Encerrar Sessão"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Sair</span>
-          </button>
-        </div>
-
-      </div>
-      <nav aria-label="Ferramentas do professor" className="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 py-2 text-xs font-bold text-blue-800 sm:px-6"><Link href="/cliente/dashboard" className="inline-flex min-h-11 shrink-0 items-center">Minha biblioteca</Link><Link href="/cliente/planejamento" className="inline-flex min-h-11 shrink-0 items-center">Planejamento de aulas</Link><Link href="/cliente/buscas-salvas" className="inline-flex min-h-11 shrink-0 items-center">Buscas salvas</Link><Link href="/cliente/favoritos" className="inline-flex min-h-11 shrink-0 items-center">Favoritos e lojas</Link></nav>
-    </header>
-  );
+import { usePathname,useRouter } from 'next/navigation';
+import c from '@/components/teaching/CommerceExperience.module.css';
+interface StudentHeaderProps{studentName?:string;studentEmail?:string;studentAvatarUrl?:string;}
+export default function StudentHeader({studentName='Cliente Educalizando',studentEmail='',studentAvatarUrl}:StudentHeaderProps){
+  const router=useRouter(),pathname=usePathname();
+  const normalized=(pathname||'').replace(/^\/aluno/,'/cliente');
+  const links=[{href:'/cliente/dashboard',label:'Minha biblioteca',icon:BookOpen},{href:'/cliente/planejamento',label:'Planejar aulas',icon:CalendarDays},{href:'/cliente/favoritos',label:'Favoritos e lojas',icon:Heart},{href:'/cliente/buscas-salvas',label:'Buscas salvas',icon:BookmarkCheck},{href:'/cliente/brindes',label:'Brindes',icon:Gift},{href:'/cliente/materiais-exclusivos',label:'Exclusivos',icon:FilePenLine},{href:'/cliente/clubes',label:'Meus clubes',icon:Crown},{href:'/cliente/conta',label:'Minha conta',icon:UserRound}];
+  async function logout(){await signOutStudent();router.push('/cliente/login');}
+  return <header className={c.customerHeader}>
+    <div className={c.customerTop}><Link href="/cliente/dashboard" className={c.brand}><img src="/branding/logo-educalizando.png?v=3" alt="Educalizando"/><span>Meu espaço de ensinar</span></Link>
+      <div className={c.account}><Link href="/cliente/conta" aria-label="Minha conta"><span className={c.avatar}>{studentAvatarUrl?<img src={studentAvatarUrl} alt=""/>:studentName.charAt(0).toUpperCase()}</span><span><strong>{studentName}</strong><small>{studentEmail}</small></span></Link><button type="button" onClick={()=>void logout()} title="Encerrar sessão" aria-label="Sair da conta"><LogOut size={16}/><span>Sair</span></button></div>
+    </div>
+    <nav aria-label="Área do cliente" className={c.customerNav}>{links.map(({href,label,icon:Icon})=><Link key={href} href={href} aria-current={normalized===href?'page':undefined}><Icon/>{label}</Link>)}</nav>
+  </header>;
 }

@@ -1,0 +1,8 @@
+.rail{min-width:0;align-self:start;--purchase-top:180px}
+.rail>div{border:1px solid #e1e8ee;border-radius:28px!important;box-shadow:0 14px 45px -30px #17395645!important}
+.rail h1{font-size:clamp(21px,1.8vw,29px);line-height:1.3}
+.rail input{min-width:0;max-width:100%}
+.rail button{white-space:normal;overflow-wrap:anywhere}
+@media(min-width:1024px){.rail{position:sticky;top:var(--purchase-top);max-height:calc(100dvh - var(--purchase-top) - 20px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#c4d0da transparent;border-radius:28px;padding:1px 5px 4px 1px;scroll-padding:16px}.rail>div{padding:24px!important}}
+@media(max-width:1023px){.rail{position:static;max-height:none;overflow:visible}}
+@media(prefers-reduced-motion:reduce){.rail *{scroll-behavior:auto!important}}

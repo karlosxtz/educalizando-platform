@@ -1,13 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { StudioHero,StudioEmpty,studioStyles as s } from '@/components/teaching/TeachingStudio';
+import c from '@/components/teaching/CommerceExperience.module.css';
 import {
-ArrowRight,
+ArrowRight,CalendarDays,Heart,Search,
 BookOpen,
 Loader2,
-ShieldCheck,
-Sparkles,
-Store as StoreIcon
+ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -73,139 +72,21 @@ export default function StudentDashboardStoresPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      {/* Student Navigation Header */}
-      <StudentHeader
-        studentName={studentSession?.fullName}
-        studentEmail={studentSession?.email}
-        studentAvatarUrl={studentSession?.avatarUrl}
-      />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Welcome & Section Title */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-brand-navy bg-slate-100 px-3 py-1 rounded-full border border-slate-200 inline-flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-teal" /> Área de Membros do Cliente
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Minhas compras
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-              Bem-vindo(a), <strong>{studentSession?.fullName}</strong>! Selecione abaixo a loja do criador para ver os seus materiais adquiridos naquela loja.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-brand-green font-bold bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-brand-green" /> Acesso Unificado
-            </span>
-          </div>
-        </div>
-
-        {studentSession && <PurchasedMaterialFinder purchases={purchases} userId={studentSession.id}/>}
-        {groupedStores.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5">
-          <label htmlFor="purchase-store-search" className="block text-sm font-bold text-slate-800">Buscar por loja</label>
-          <input id="purchase-store-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Digite o nome da loja" className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-4 text-base focus:ring-2 focus:ring-blue-100" />
-          <p className="mt-3 text-xs text-slate-500" role="status">{visibleStores.length} de {groupedStores.length} lojas</p>
-          {search && <button type="button" onClick={() => setSearch('')} className="min-h-11 text-sm font-bold text-blue-700">Limpar busca</button>}
-          {visibleStores.length === 0 && <p className="text-sm text-slate-600">Nenhuma loja encontrada. Tente outro nome ou limpe a busca.</p>}
-        </section>}
-        {/* Grouped Stores Grid */}
-        {groupedStores.length === 0 ? (
-          <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200 shadow-sm text-center max-w-lg mx-auto space-y-5 my-8">
-            <div className="w-20 h-20 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center mx-auto shadow-inner">
-              <StoreIcon className="w-10 h-10" />
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-xl font-black text-slate-900">
-                Você ainda não possui materiais em nenhuma loja
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
-                Quando você comprar uma apostila, e-book ou curso na Educalizando, a loja aparecerá automaticamente organizada nesta tela.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleStores.map(({ store, purchasesCount }) => {
-              const primaryColor = store.cor_primaria || '#2563eb';
-
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  key={store.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group flex flex-col justify-between"
-                  style={{ '--store-primary': primaryColor } as React.CSSProperties}
-                >
-                  <div className="p-6 space-y-5">
-                    
-                    {/* Store Header Banner / Logo Bar */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl p-1 bg-white border-2 border-slate-100 shadow-md flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                        {store.logo_url ? (
-                          <img src={store.logo_url} alt={store.nome_loja} className="w-full h-full rounded-xl object-cover" />
-                        ) : (
-                          <div 
-                            className="w-full h-full rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-inner"
-                            style={{ backgroundColor: primaryColor }}
-                          >
-                            {store.nome_loja.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-1 min-w-0">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                          Loja de Infoprodutos
-                        </span>
-                        <h3 className="font-black text-slate-900 text-lg group-hover:text-blue-600 transition-colors [overflow-wrap:anywhere]">
-                          {store.nome_loja}
-                        </h3>
-                        <span 
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-white shadow-xs"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <BookOpen className="w-3 h-3" />
-                          <span>{purchasesCount} {purchasesCount === 1 ? 'material' : 'materiais'}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {store.descricao && (
-                      <p className="text-xs text-slate-500 line-clamp-2 font-medium leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        {store.descricao}
-                      </p>
-                    )}
-
-                  </div>
-
-                  {/* Access Store Materials Action Footer */}
-                  <div className="p-5 pt-3 border-t border-slate-100 bg-slate-50/60 flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-xs text-slate-500 font-bold flex items-center gap-1">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" /> Acesso Seguro
-                    </span>
-
-                    <Link
-                      href={`/cliente/loja/${store.id}`}
-                      className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white shadow-md group-hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <span>Ver meus materiais</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
-  );
+  return <div className={`${c.surface} ${s.studio}`}>
+    <StudentHeader studentName={studentSession?.fullName} studentEmail={studentSession?.email} studentAvatarUrl={studentSession?.avatarUrl}/>
+    <main className={c.content}>
+      <StudioHero eyebrow="Seu espaço de ensinar" title="Seus materiais. Suas próximas boas aulas." description={`Olá${studentSession?.fullName?', '+studentSession.fullName.split(' ')[0]:''}! Encontre suas compras, organize suas ideias e continue descobrindo recursos para a sua turma.`} icon={BookOpen} tag="Tudo perto, quando precisar"/>
+      <nav aria-label="Atalhos da sua biblioteca" className={c.quickLinks}>
+        <Link href="/cliente/planejamento"><span className={s.icon}><CalendarDays/></span><div><strong>Prepare sua próxima aula</strong><p>Reúna ideias e materiais em um plano.</p></div><ArrowRight size={15} className="ml-auto text-slate-400"/></Link>
+        <Link href="/cliente/favoritos"><span className={`${s.icon} ${s.peach}`}><Heart/></span><div><strong>Suas ideias favoritas</strong><p>Volte aos materiais que você guardou.</p></div><ArrowRight size={15} className="ml-auto text-slate-400"/></Link>
+        <Link href="/encontrar-material"><span className={`${s.icon} ${s.mint}`}><Search/></span><div><strong>Encontre por objetivo</strong><p>Uma nova possibilidade para ensinar.</p></div><ArrowRight size={15} className="ml-auto text-slate-400"/></Link>
+      </nav>
+      {studentSession&&<PurchasedMaterialFinder purchases={purchases} userId={studentSession.id}/>}
+      <section className="mt-8" aria-label="Lojas das minhas compras">
+        <div className={s.sectionHeading}><div><h2>Minhas compras por loja</h2><p>Combos, materiais exclusivos e arquivos organizados com seus criadores.</p></div><span className={`${s.badge} ${s.badgeGreen}`}><ShieldCheck/>Na sua conta</span></div>
+        {groupedStores.length>0&&<div className={s.card+' mb-5'}><div className="flex flex-col gap-3 sm:flex-row sm:items-end"><label htmlFor="purchase-store-search" className={s.field+' min-w-0 flex-1'}>Encontrar uma loja<input id="purchase-store-search" type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome da loja em que você comprou" className={s.input}/></label>{search&&<button onClick={()=>setSearch('')} className={s.secondary}>Limpar busca</button>}<span role="status" className={s.note+' py-3'}>{visibleStores.length} de {groupedStores.length} lojas</span></div></div>}
+        {!groupedStores.length?<div className={s.help}><strong>Suas lojas aparecem aqui depois da primeira compra</strong>Quando o acesso estiver disponível, escolha a loja para abrir seus materiais. Você também pode explorar o catálogo e guardar ideias nos favoritos.</div>:!visibleStores.length?<div className={s.card}><StudioEmpty compact icon={Search} title="Não encontramos essa loja" description="Tente outro nome ou limpe a busca para ver todas as suas lojas."/></div>:<div className={c.storeGrid}>{visibleStores.map(({store,purchasesCount})=><article key={store.id} className={c.storeCard}><div className={c.storeBody}><div className="flex items-center gap-3">{store.logo_url?<img src={store.logo_url} alt="" className={c.storeLogo}/>:<span className={c.storeLogo}>{store.nome_loja.charAt(0).toUpperCase()}</span>}<div className="min-w-0"><span className={s.eyebrow+' !mb-1'}>Minha coleção</span><h3>{store.nome_loja}</h3></div></div>{store.descricao&&<p className="line-clamp-2">{store.descricao}</p>}</div><div className={c.storeFooter}><span className={s.badge}><BookOpen size={12}/>{purchasesCount} {purchasesCount===1?'acesso':'acessos'}</span><Link href={`/cliente/loja/${store.id}`} className={s.primary}>Ver meus materiais<ArrowRight/></Link></div></article>)}</div>}
+      </section>
+    </main>
+  </div>;
 }

@@ -1,4 +1,5 @@
 'use client';
+import PurchaseRail from '@/components/store/PurchaseRail';
 import { catalogImageUrl } from '@/lib/catalog-image-url';
 
 import { validateCouponCode } from '@/lib/coupon-service';
@@ -368,7 +369,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
           </div>
 
           {/* RIGHT COLUMN: Sticky Buy Card (5 Cols) */}
-          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24 space-y-6">
+          <PurchaseRail className="lg:col-span-5 xl:col-span-4 space-y-5">
             
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-xl space-y-6">
               
@@ -500,7 +501,7 @@ export default function KitDetailClientView({ store, kit, marketplaceView = fals
               </div>
             )}
 
-          </div>
+          </PurchaseRail>
 
         </div>
       </main>
