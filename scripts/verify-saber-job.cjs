@@ -107,6 +107,47 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   await jobs.processSaberJob(current(reviewedDraftJob.id),'fixture-token');
   assert.equal(current(reviewedDraftJob.id).status,'running');assert.equal(current(reviewedDraftJob.id).skipped,1);assert.deepEqual(structuredClone(reviewedDraft),reviewedSnapshot);
   sourcePage={...sourcePage,products:[{...item,deliveries:[{name:'Material.pdf',url:'https://files.example.org/material.pdf'}]}]};
+  // Partially overlapping pages must preserve unique counts and import every new item.
+  const plain={...item,images:[],deliveries:[]};
+  sourcePage={owner:'origin-a',label:'Fixture',products:[{...plain,id:'overlap-a'}],total:3,nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
+  const overlapJob=await create('destination-overlapping-pages');
+  for(let i=0;i<2;i++)await jobs.processSaberJob(current(overlapJob.id),'fixture-token');
+  sourcePage={...sourcePage,products:[{...plain,id:'overlap-a'},{...plain,id:'overlap-b'}],nextUrl:contract.SABER_EXPORT_URL+'?page=3'};
+  await jobs.processSaberJob(current(overlapJob.id),'fixture-token');
+  assert.equal(current(overlapJob.id).status,'running');assert.equal(current(overlapJob.id).discovered,2);
+  assert.deepEqual(current(overlapJob.id).queue.map(product=>product.id),['overlap-b']);
+  assert(current(overlapJob.id).issues.some(issue=>issue.message.includes('repetido(s)')));
+  for(let i=0;i<2;i++)await jobs.processSaberJob(current(overlapJob.id),'fixture-token');
+  sourcePage={...sourcePage,products:[{...plain,id:'overlap-b'},{...plain,id:'overlap-c'}],nextUrl:null};
+  await jobs.processSaberJob(current(overlapJob.id),'fixture-token');
+  for(let i=0;i<4&&current(overlapJob.id).status==='running';i++)await jobs.processSaberJob(current(overlapJob.id),'fixture-token');
+  assert.equal(current(overlapJob.id).status,'completed');assert.equal(current(overlapJob.id).discovered,3);assert.equal(current(overlapJob.id).imported,3);
+  assert.equal(tables.products.filter(product=>product.store_id==='destination-overlapping-pages').length,3);
+  assert.equal(new Set(current(overlapJob.id).seen_ids).size,3);
+  // One duplicate-only page with a genuinely new continuation can be crossed safely.
+  async function repeatedPageJob(store){
+    sourcePage={owner:'origin-a',label:'Fixture',products:[{...plain,id:'repeated-a'}],total:2,nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
+    const job=await create(store);for(let i=0;i<2;i++)await jobs.processSaberJob(current(job.id),'fixture-token');
+    sourcePage={...sourcePage,nextUrl:contract.SABER_EXPORT_URL+'?page=3'};
+    await jobs.processSaberJob(current(job.id),'fixture-token');
+    assert.equal(current(job.id).status,'running');assert.equal(current(job.id).queue.length,0);assert.equal(current(job.id).discovered,1);return job;
+  }
+  const repeatedForward=await repeatedPageJob('destination-duplicate-page-forward');
+  sourcePage={...sourcePage,products:[{...plain,id:'repeated-b'}],nextUrl:null};
+  await jobs.processSaberJob(current(repeatedForward.id),'fixture-token');
+  for(let i=0;i<4&&current(repeatedForward.id).status==='running';i++)await jobs.processSaberJob(current(repeatedForward.id),'fixture-token');
+  assert.equal(current(repeatedForward.id).status,'completed');assert.equal(current(repeatedForward.id).imported,2);
+  const stuck=await repeatedPageJob('destination-duplicate-page-loop');
+  sourcePage={...sourcePage,nextUrl:contract.SABER_EXPORT_URL+'?page=4'};
+  await jobs.processSaberJob(current(stuck.id),'fixture-token');
+  assert.equal(current(stuck.id).status,'paused');assert.match(current(stuck.id).last_error,/sem avançar/);assert.equal(current(stuck.id).discovered,1);
+  // A duplicate last page must not hide missing products behind a successful completion.
+  const missingAfterDuplicates=await repeatedPageJob('destination-duplicate-missing-total');
+  sourcePage={...sourcePage,nextUrl:null};
+  await jobs.processSaberJob(current(missingAfterDuplicates.id),'fixture-token');
+  await jobs.processSaberJob(current(missingAfterDuplicates.id),'fixture-token');
+  assert.equal(current(missingAfterDuplicates.id).status,'paused');assert.match(current(missingAfterDuplicates.id).last_error,/total informado/);
+  sourcePage={owner:'origin-a',label:'Fixture',products:[{...item,deliveries:[{name:'Material.pdf',url:'https://files.example.org/material.pdf'}]}],total:1,nextUrl:null};
   migrationReady=false;await assert.rejects(()=>create('destination-missing-migration'),/Ative/);
   console.log('PASS file import: sequential private deliveries, external-link notice, repeat/backfill without duplicate products, reviewed preservation, download failure and manual-delivery conflict pause, missing migration gate.');
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

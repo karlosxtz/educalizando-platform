@@ -90,13 +90,22 @@ export async function processSaberJob(job:SaberJob,token:string) {
       const page=await readSaberExport(token,job.next_url);
       if(page.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
       const seen=new Set(job.seen_ids || []);
-      if(page.products.some(item=>seen.has(item.id)))throw new Error('A API repetiu produtos entre páginas. A importação foi pausada para conferir a exportação.');
+      const unseen=page.products.filter(item=>!seen.has(item.id));
+      const repeated=page.products.length-unseen.length;
+      // Overlapping pages are safe: only unseen source IDs enter the queue.
+      // Permit one wholly overlapping page with a new continuation, but never
+      // follow endlessly changing URLs that keep returning the same products.
+      if(page.products.length && !unseen.length && page.nextUrl &&
+        (page.nextUrl===job.next_url || job.visited_urls.includes(page.nextUrl) || !job.queue.length)){
+        throw new Error('A API repetiu produtos sem avançar para materiais novos. O progresso foi preservado; confira a paginação da exportação.');
+      }
       if(!page.products.length && page.nextUrl)throw new Error('A API retornou uma página vazia com continuação. Confira a exportação.');
       if(job.source_total!==null && page.total!==null && page.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
-      const total=job.source_total ?? page.total,discovered=job.discovered+page.products.length;
+      const total=job.source_total ?? page.total,discovered=job.discovered+unseen.length;
       if(total!==null && discovered>total)throw new Error('A exportação retornou mais produtos que o total informado. A importação foi pausada para conferir a origem.');
       const nextUrl=page.inferredNext && total!==null && discovered===total?null:page.nextUrl;
-      await receipt({queue:page.products,cursor:0,next_url:nextUrl,visited_urls:[...job.visited_urls,job.next_url],seen_ids:[...(job.seen_ids || []),...page.products.map(item=>item.id)],source_total:total,discovered,current_product:null,asset_cursor:0});return {progressed:true};
+      const issues=repeated?[...job.issues,{product:'Exportação do catálogo',message:`${repeated} produto(s) repetido(s) entre páginas foram reconhecidos e não serão importados novamente.`}].slice(-100):job.issues;
+      await receipt({queue:unseen,cursor:0,next_url:nextUrl,visited_urls:[...job.visited_urls,job.next_url],seen_ids:[...seen,...unseen.map(item=>item.id)],source_total:total,discovered,current_product:null,asset_cursor:0,issues,last_error:null});return {progressed:true};
     }
     const item=job.queue[job.cursor];
     if(item.owner!==job.source_owner)throw new Error('Produto fora da loja autorizada.');

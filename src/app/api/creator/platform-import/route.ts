@@ -31,15 +31,18 @@ export async function POST(request:Request) {
     if(body.action==='preview') {
       const token=saberToken(body.token),page=await readSaberExport(token);
       let paginationError:string|null=null;
+      const paginationWarnings:string[]=[];
       if(page.nextUrl){
         try {
           const next=await readSaberExport(token,page.nextUrl);
           if(next.owner!==page.owner)throw new Error('A exportação retornou outra loja na próxima página.');
-          if(next.products.some(item=>page.products.some(previous=>previous.id===item.id)))throw new Error('A exportação repetiu produtos na próxima página; a paginação não foi aceita pela origem.');
+          const repeated=next.products.filter(item=>page.products.some(previous=>previous.id===item.id)).length;
+          if(repeated)paginationWarnings.push('A próxima página contém produtos repetidos. A importação reconhecerá esses itens e processará somente os materiais novos.');
+          if(next.products.length && repeated===next.products.length && next.nextUrl===page.nextUrl)throw new Error('A exportação repetiu a mesma página sem fornecer uma continuação nova.');
           if(!next.products.length && (next.nextUrl || page.total!==null && page.total>page.products.length))throw new Error('A exportação retornou a próxima página vazia antes de entregar o total informado.');
         } catch(error){const message=error instanceof Error?error.message:'';paginationError=/^(A API|A exportação|A loja|O endereço)/.test(message)?message.replace(/https?:\/\/\S+/g,'[endereço]').replace(/sbr_live_\w+/gi,'[chave]').slice(0,300):'A exportação não permitiu validar a próxima página. Nenhum produto foi cadastrado por este teste.';}
       }else if(page.total!==null && page.total>page.products.length)paginationError='A exportação informou um total maior, mas não disponibilizou continuação válida.';
-      return json({deliveryReady:await platformDeliveryImportReady(),preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),paginationError,products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length,deliveries:item.deliveries?.length || 0})),priceFields:page.priceFields || [],deliveryFields:page.deliveryFields || [],warnings:[...new Set(page.products.flatMap(item=>item.warnings))]}});
+      return json({deliveryReady:await platformDeliveryImportReady(),preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),paginationError,products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length,deliveries:item.deliveries?.length || 0})),priceFields:page.priceFields || [],deliveryFields:page.deliveryFields || [],warnings:[...new Set([...page.products.flatMap(item=>item.warnings),...paginationWarnings])]}});
     }
     if(body.action==='create') {
       const token=saberToken(body.token);if(typeof body.expectedOwner!=='string' || !body.expectedOwner)return json({error:'Confira a loja na prévia antes de importar.'},400);
