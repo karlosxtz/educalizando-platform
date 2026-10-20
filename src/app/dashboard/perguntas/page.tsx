@@ -1,16 +1,46 @@
 'use client';
 import { useCallback,useEffect,useState } from 'react';
+import { Check,EyeOff,MessageCircle,MessageSquareReply,Save,ShieldCheck } from 'lucide-react';
 import { customerApi } from '@/lib/customer-api';
+import { StudioHero,StudioEmpty,StudioNotice,StudioLoading,StudioToggle,studioStyles as s } from '@/components/teaching/TeachingStudio';
 type Row={id:string;question:string;answer:string|null;hidden:boolean;created_at:string;product:{id:string;titulo:string}|{id:string;titulo:string}[]};
 function QuestionEditor({row,refresh}:{row:Row;refresh:()=>Promise<void>}){
   const [answer,setAnswer]=useState(row.answer||''),[hidden,setHidden]=useState(row.hidden),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const product=Array.isArray(row.product)?row.product[0]:row.product;
   async function save(){setBusy(true);setError('');try{await customerApi('/api/creator/material-questions',{method:'PUT',body:JSON.stringify({id:row.id,answer:answer.trim()||null,hidden})});await refresh();}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar.');}finally{setBusy(false);}}
-  return <article className="rounded-2xl border bg-white p-5"><p className="text-xs font-bold text-blue-800">{product?.titulo} · {new Date(row.created_at).toLocaleDateString('pt-BR')}</p><h2 className="mt-2 break-words font-bold">{row.question}</h2><p className="mt-1 text-xs text-slate-500">{row.hidden?'Oculta':row.answer?'Respondida e pública':'Aguardando resposta'}</p><label className="mt-4 block text-sm font-bold">Sua resposta<textarea rows={4} maxLength={2000} value={answer} onChange={e=>setAnswer(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal"/></label><label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={hidden} onChange={e=>setHidden(e.target.checked)}/>Ocultar esta pergunta da página pública</label><button disabled={busy} onClick={()=>void save()} className="mt-4 min-h-11 rounded-xl bg-blue-800 px-4 text-sm font-bold text-white disabled:opacity-50">{busy?'Salvando…':'Salvar resposta e visibilidade'}</button>{error&&<p role="alert" className="mt-3 text-sm text-rose-800">{error}</p>}</article>;
+  return <article className={s.card}>
+    <div className={s.cardHeader}><div className="flex min-w-0 items-start gap-3"><span className={`${s.icon} ${s.blue}`}><MessageCircle/></span><div className="min-w-0"><p className="!mt-0 break-words !font-semibold !text-slate-700">{product?.titulo}</p><p>{new Date(row.created_at).toLocaleDateString('pt-BR')}</p></div></div><span className={`${s.badge} ${row.hidden?s.badgeNeutral:row.answer?s.badgeGreen:s.badgeAmber}`}>{row.hidden?<EyeOff/>:row.answer?<Check/>:<MessageCircle/>}{row.hidden?'Oculta':row.answer?'Respondida':'Aguardando você'}</span></div>
+    <div className={s.question}><span className={s.eyebrow}>Pergunta do comprador</span><p>{row.question}</p></div>
+    <label className={s.field}>Sua resposta<textarea rows={4} maxLength={2000} value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Responda com clareza sobre o que o material oferece e como ele pode ser usado." className={s.input}/><span className={s.fieldHint}>A resposta aparece junto da pergunta na página do material, se ela não estiver oculta.</span></label>
+    <hr className={s.divider}/>
+    <StudioToggle checked={hidden} onChange={setHidden} label="Ocultar da página pública" description="Use para perguntas com dados pessoais, conteúdo inadequado ou atendimento de pedido."/>
+    <div className={s.saveBar}><p>Sem resposta, a pergunta continua privada no seu painel.</p><button disabled={busy} onClick={()=>void save()} className={s.primary}><Save/>{busy?'Salvando…':'Salvar resposta'}</button></div>
+    {error&&<div className="mt-4"><StudioNotice>{error}</StudioNotice></div>}
+  </article>;
 }
 export default function Page(){
-  const [rows,setRows]=useState<Row[]>([]),[error,setError]=useState(''),[page,setPage]=useState(1),[total,setTotal]=useState(0),[ready,setReady]=useState(false);
+  const [rows,setRows]=useState<Row[]>([]),[error,setError]=useState(''),[page,setPage]=useState(1),[total,setTotal]=useState(0),[ready,setReady]=useState(false),[filter,setFilter]=useState<'all'|'pending'|'answered'|'hidden'>('all');
   const load=useCallback(async()=>{const data=await customerApi(`/api/creator/material-questions?page=${page}`);setRows(data.questions);setTotal(data.total);},[page]);
   useEffect(()=>{setReady(false);setError('');void load().catch(e=>setError(e.message)).finally(()=>setReady(true));},[load]);
-  return <main className="mx-auto max-w-5xl space-y-5 p-4 sm:p-8"><header className="rounded-3xl bg-gradient-to-br from-blue-950 to-blue-700 p-7 text-white"><h1 className="text-3xl font-black">Perguntas dos compradores</h1><p className="mt-3 text-blue-100">Uma boa resposta ajuda quem perguntou e todos os próximos visitantes. Apenas perguntas respondidas e não ocultas aparecem no material.</p></header>{error&&<p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-800">{error}</p>}{!ready&&<p role="status">Carregando perguntas…</p>}{ready&&!error&&!rows.length&&<p className="rounded-2xl border bg-white p-6 text-slate-600">Nenhuma pergunta nesta página. As dúvidas enviadas nas páginas dos seus produtos aparecerão aqui.</p>}{rows.map(row=><QuestionEditor key={row.id+row.answer+String(row.hidden)} row={row} refresh={load}/>)}{total>30&&<nav className="flex items-center gap-4"><button disabled={page===1} onClick={()=>setPage(p=>p-1)} className="min-h-11 rounded-xl border px-4 disabled:opacity-40">Anterior</button><span>Página {page} de {Math.ceil(total/30)}</span><button disabled={page*30>=total} onClick={()=>setPage(p=>p+1)} className="min-h-11 rounded-xl border px-4 disabled:opacity-40">Próxima</button></nav>}</main>;
+  const pending=rows.filter(r=>!r.answer&&!r.hidden).length;
+  const visible=rows.filter(r=>filter==='all'||filter==='pending'&&!r.answer&&!r.hidden||filter==='answered'&&r.answer&&!r.hidden||filter==='hidden'&&r.hidden);
+  return <main className={`${s.studio} ${s.creator}`}>
+    <StudioHero eyebrow="Conversa que traz confiança" title="Uma boa resposta aproxima a próxima compra." description="Ajude os professores a conhecer seus materiais. Responda uma vez e deixe a informação disponível para quem chegar depois." icon={MessageSquareReply} tag="Mais clareza para escolher"/>
+    {error&&<StudioNotice>{error}</StudioNotice>}
+    <div className={s.split}>
+      <section aria-label="Perguntas dos compradores">
+        <div className={s.sectionHeading}><div><h2>Sua caixa de perguntas</h2><p>{total} {total===1?'pergunta recebida':'perguntas recebidas'} · {pending} aguardando resposta nesta página.</p></div><span className={`${s.icon} ${s.blue}`}><MessageCircle/></span></div>
+        <div className={s.filterTabs} role="group" aria-label="Filtrar perguntas desta página">{([['all','Todas'],['pending','Para responder'],['answered','Respondidas'],['hidden','Ocultas']] as const).map(([value,label])=><button key={value} onClick={()=>setFilter(value)} aria-pressed={filter===value}>{label}</button>)}</div>
+        {!ready&&<StudioLoading>Organizando suas conversas…</StudioLoading>}
+        {ready&&!error&&!visible.length&&<div className={s.card}><StudioEmpty icon={MessageSquareReply} title={rows.length?'Tudo em ordem por aqui':'As boas conversas começam com uma dúvida'} description={rows.length?'Não há perguntas com esse filtro nesta página. Escolha outra opção para continuar.':'Quando alguém perguntar sobre um dos seus materiais, a conversa aparece aqui. Você responde pelo painel e ajuda outros professores a escolher.'}/></div>}
+        <div className={s.stack}>{visible.map(row=><QuestionEditor key={row.id+row.answer+String(row.hidden)} row={row} refresh={load}/>)}</div>
+        {total>30&&<nav aria-label="Páginas de perguntas" className={s.pagination}><button disabled={page===1} onClick={()=>setPage(p=>p-1)} className={s.secondary}>Anterior</button><span>Página {page} de {Math.ceil(total/30)}</span><button disabled={page*30>=total} onClick={()=>setPage(p=>p+1)} className={s.secondary}>Próxima</button></nav>}
+      </section>
+      <aside className={`${s.stack} ${s.sideSticky}`}>
+        <div className={`${s.card} ${s.cardTint}`}><span className={s.icon}><MessageSquareReply/></span><h2 className="mt-4 text-lg font-extrabold">Respostas que ajudam</h2><p className={s.note+' mt-2'}>Seja específico sobre o material. Uma resposta útil costuma esclarecer:</p><ul className="mt-4 space-y-3 text-xs text-slate-600">{['O que está incluído no arquivo.','Para qual turma ou objetivo foi pensado.','Como imprimir, montar ou aplicar.'].map(text=><li key={text} className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600"/>{text}</li>)}</ul></div>
+        <div className={s.help}><ShieldCheck className="mb-2 h-5 w-5"/><strong>Você decide o que aparece</strong>A pergunta só fica pública depois de respondida e se não estiver oculta. O e-mail do comprador não aparece na página do produto.</div>
+        <p className={s.note}>Os filtros organizam as perguntas da página atual. Para problemas de pagamento ou entrega, oriente o comprador a usar o atendimento da loja.</p>
+      </aside>
+    </div>
+  </main>;
 }

@@ -49,3 +49,24 @@ Resultado: lint completo aprovado (0 erros, 14 avisos preexistentes), typecheck 
 Conferência no navegador autenticado: enquetes e perguntas carregaram os estados vazios sem erro de banco; buscas salvas também carregaram corretamente. Na página real de “60 FICHAS DE LEITURA”, a calculadora exibiu 75 lados, 50 folhas e R$ 15,00 para 25 alunos, 3 páginas e R$ 0,20 por lado em frente e verso. O botão de planejamento abriu a área privada com esse material já selecionado. Sem transbordamento horizontal na largura observada de 862 px. Captura: `.cloudflare/teaching-planner-live.png`.
 
 Limite da conferência: o navegador foi desativado nas configurações do Work antes do teste de salvar/recarregar um plano e uma busca. Não foram criadas perguntas, votos ou enquetes fictícias na produção. As regras de gravação e propriedade foram verificadas pelos testes automatizados; não declarar gravação completa via interface como validada. Impressão/PDF e telas estreitas de celular ainda não foram conferidas visualmente.
+
+## Evolução visual das cinco ferramentas
+
+Reorganização da interface, mantendo endpoints, validações e persistência existentes. Sem migration adicional.
+
+Arquivos alterados e motivos:
+
+- `src/components/teaching/TeachingStudio.module.css` (novo): linguagem visual comum com tons suaves de verde e lilás, tipografia e espaços, botões arredondados, formulários com foco visível, colunas adaptáveis, estados vazios, redução de movimento e estilos de impressão. Regras limitadas aos componentes destas ferramentas.
+- `src/components/teaching/TeachingStudio.tsx` (novo): cabeçalho ilustrado com ícones locais, etapas, avisos, estados vazios e controle de preferência com checkbox acessível. Nenhum serviço de imagem externo ou geração paga por acesso.
+- `src/components/teaching/LessonPlanner.tsx`: organização por contexto, roteiro e materiais; lista lateral com plano ativo; navegação e ajuda sobre PDF e arquivos. Todos os campos e ações anteriores permanecem.
+- `src/app/aluno/(protected)/planejamento/page.tsx`: fundo e largura consistentes com o novo visual.
+- `src/app/aluno/(protected)/buscas-salvas/page.tsx`: filtros com rótulos compreensíveis, cartões de seleção, avisos opcionais com explicação e orientação para salvar a primeira busca.
+- `src/app/dashboard/enquetes/page.tsx`: formulário em três etapas, prévia local do texto e das opções antes de publicar, resumo baseado nos dados reais da lista e resultados melhor organizados. Prévia não envia conteúdo nem registra votos.
+- `src/app/dashboard/perguntas/page.tsx`: caixa de perguntas com filtros locais (todas, para responder, respondidas e ocultas), sinalização de visibilidade e orientações para responder. Filtros operam somente sobre a página carregada, explicitado na interface.
+- `src/components/teaching/PrintingCalculator.tsx`: painel expansível, campos orientados, preferência frente e verso e resumo do custo com detalhe sobre o cálculo. Mesma função de estimativa anterior.
+- `src/components/teaching/SaveSearchControl.tsx`: convite compacto para salvar a seleção, formulário expansível e explicação da preferência de novidades.
+- `src/components/teaching/ProductQuestions.tsx`: área de conversa no produto com respostas legíveis, formulário separado e orientações sobre privacidade.
+- `src/components/teaching/StorePolls.tsx`: apresentação das enquetes e resultados nos temas de loja, incluindo confirmação visual do voto registrado; nenhum total ilustrativo.
+- Este relatório: registro das mudanças e limitações da conferência.
+
+Validação: testes existentes de ferramentas, seis melhorias, crescimento do comprador e temas passaram. Lint completo: 0 erros e os mesmos 14 avisos preexistentes. Typecheck Vinext aprovado. Build de produção e Wrangler dry-run em `.cloudflare/teaching-premium-build.log`. Conferência visual no navegador indisponível porque o uso local está desativado no Work; não afirmar que houve inspeção visual ou teste de interações nesta reformulação.
