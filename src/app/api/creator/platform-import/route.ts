@@ -1,7 +1,7 @@
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin as db } from '@/lib/supabase';
 import { saberFingerprint, saberToken, readSaberExport } from '@/lib/saber-export-client';
-import { createSaberJob, processSaberJob, saberJobColumns, type SaberJob } from '@/lib/saber-import-job';
+import { createSaberJob, processSaberJob, restartSaberDeliveries, saberJobColumns, platformDeliveryImportReady, type SaberJob } from '@/lib/saber-import-job';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 import { saberImportStorageMessage } from '@/lib/saber-import-errors';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Robots-Tag':'noindex'}});
@@ -18,7 +18,7 @@ async function creator(request:Request) {
 export async function GET(request:Request) {
   try {const store=await creator(request);if(!store)return json({error:'Entre com a conta do criador.'},401);
     const {data,error}=await db.from('platform_product_imports').select(jobReadColumns).eq('store_id',store.id).order('created_at',{ascending:false}).limit(5);
-    if(error){if(['42P01','PGRST205'].includes(error.code))return json({available:false,jobs:[],store});return json({error:saberImportStorageMessage(error)},503);}return json({available:true,jobs:(data || []).map(job=>jobView(job as unknown as SaberJob)),store});
+    if(error){if(['42P01','PGRST205'].includes(error.code))return json({available:false,jobs:[],store});return json({error:saberImportStorageMessage(error)},503);}return json({available:true,deliveryReady:await platformDeliveryImportReady(),jobs:(data || []).map(job=>jobView(job as unknown as SaberJob)),store});
   }catch{return json({error:'Não foi possível carregar as importações.'},503);}
 }
 export async function POST(request:Request) {
@@ -39,7 +39,7 @@ export async function POST(request:Request) {
           if(!next.products.length && (next.nextUrl || page.total!==null && page.total>page.products.length))throw new Error('A exportação retornou a próxima página vazia antes de entregar o total informado.');
         } catch(error){const message=error instanceof Error?error.message:'';paginationError=/^(A API|A exportação|A loja|O endereço)/.test(message)?message.replace(/https?:\/\/\S+/g,'[endereço]').replace(/sbr_live_\w+/gi,'[chave]').slice(0,300):'A exportação não permitiu validar a próxima página. Nenhum produto foi cadastrado por este teste.';}
       }else if(page.total!==null && page.total>page.products.length)paginationError='A exportação informou um total maior, mas não disponibilizou continuação válida.';
-      return json({preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),paginationError,products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length})),priceFields:page.priceFields || [],deliveryFields:page.deliveryFields || [],warnings:[...new Set(page.products.flatMap(item=>item.warnings))]}});
+      return json({deliveryReady:await platformDeliveryImportReady(),preview:{owner:page.owner,label:page.label,total:page.total,received:page.products.length,hasMore:Boolean(page.nextUrl),paginationError,products:page.products.slice(0,8).map(item=>({title:item.title,price:item.priceKnown?item.price:null,images:item.images.length,deliveries:item.deliveries?.length || 0})),priceFields:page.priceFields || [],deliveryFields:page.deliveryFields || [],warnings:[...new Set(page.products.flatMap(item=>item.warnings))]}});
     }
     if(body.action==='create') {
       const token=saberToken(body.token);if(typeof body.expectedOwner!=='string' || !body.expectedOwner)return json({error:'Confira a loja na prévia antes de importar.'},400);
@@ -53,7 +53,8 @@ export async function POST(request:Request) {
       const result=await db.from('platform_product_imports').update({status:body.action==='pause'?'paused':'cancelled',updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id);if(result.error)throw new Error('Não foi possível atualizar a importação.');
     }else {
       const token=saberToken(body.token);if(saberFingerprint(token)!==job.token_fingerprint)return json({error:'Use a mesma chave desta importação. Se gerou outra, cancele e inicie novamente; os produtos concluídos não serão duplicados.'},409);
-      if(body.action==='step') {if(job.status==='running')await processSaberJob(job,token);}
+      if(body.action==='refresh-deliveries')await restartSaberDeliveries(job,token);
+      else if(body.action==='step') {if(job.status==='running')await processSaberJob(job,token);}
       else if(body.action==='resume') {
         const result=await db.from('platform_product_imports').update({status:'running',last_error:null,updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id);if(result.error)throw new Error('Não foi possível retomar.');
       }else if(body.action==='skip-image') {

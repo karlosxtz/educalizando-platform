@@ -11,7 +11,7 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/api/creator/platf
     '@/lib/saber-import-errors':{saberImportStorageMessage:error=>error.code==='42501'?'O servidor precisa verificar permissões.':'Não foi possível consultar o banco.'},
     '@/lib/request-rate-limit':{consumeRequestRateLimit:async()=>({allowed:true})},
     '@/lib/saber-export-client':{saberToken:value=>{assert.equal(value,token);return value;},saberFingerprint:()=> 'hash',readSaberExport:async(_token,url)=>{previewCalls++;if(paginationTest){if(url)throw new Error('A exportação retornou HTTP 500 ao consultar a continuação do catálogo.');return {owner:'source-a',label:'Local fixture',total:281,products:[{id:'p1',title:'Fixture',priceKnown:true,price:6.9,images:[],warnings:[]}],nextUrl:'https://saberdidatico.com.br/api/public/sync/seller-products?page=2'};}return {owner:'source-a',label:'Local fixture',total:0,products:[],nextUrl:null};}},
-    '@/lib/saber-import-job':{saberJobColumns:'id,status,source_label,cursor,asset_cursor',createSaberJob:async store=>{calledStore=store;return {id:'job'};}}
+    '@/lib/saber-import-job':{platformDeliveryImportReady:async()=>true,saberJobColumns:'id,status,source_label,cursor,asset_cursor',createSaberJob:async store=>{calledStore=store;return {id:'job'};}}
   })[key]
 });
 const request=(body,origin)=>new Request('https://www.educalizando.com.br/api/creator/platform-import',{method:'POST',headers:{'Content-Type':'application/json',...(origin?{origin}:{})},body:JSON.stringify(body)});
