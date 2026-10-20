@@ -122,6 +122,32 @@ export async function getObject(bucket: string, key: string) {
   return client().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 }
 
+/** Atomic create for content-addressed imports, including versioned buckets. */
+export async function uploadObjectIfAbsent({ bucket, key, body, contentType }: {
+  bucket: string;
+  key: string;
+  body: Uint8Array;
+  contentType: string;
+}) {
+  try {
+    await client().send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      CacheControl: 'private, no-store',
+      IfNoneMatch: '*',
+    }));
+    return true;
+  } catch (error) {
+    const failure = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+    // Only a confirmed failed precondition means that the same key exists.
+    // Permission, connection and unsupported-operation errors must still stop.
+    if (failure.$metadata?.httpStatusCode === 412) return false;
+    throw error;
+  }
+}
+
 export async function headObject(bucket: string, key: string) {
   return client().send(new HeadObjectCommand({ Bucket: bucket, Key: key }), { abortSignal: AbortSignal.timeout(10000) });
 }

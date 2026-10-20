@@ -6,9 +6,9 @@ const file={name:'Atividade.pdf',url:'https://source.example.org/file.pdf?signat
 assert.equal(contract.platformDeliveries([file,file]).length,1);
 for(const url of ['http://example.org/a.pdf','https://user:pass@example.org/a.pdf','javascript:alert(1)'])assert.throws(()=>contract.platformDeliveries([{...file,url}]));
 assert.throws(()=>contract.platformDeliveries(Array.from({length:101},()=>file)));
-const stored=new Map();let headUnavailable=false;
+const stored=new Map();let writeUnavailable=false;
 let uploads=[],calls=[],response=()=>new Response('%PDF-1.7\nfixture',{headers:{'content-type':'application/pdf'}}),addresses=[{address:'8.8.8.8'}];
-const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remote-addresses':{resolveRemoteAddresses:async()=>addresses},'./object-storage':{resolveBucket:kind=>{assert.equal(kind,'product-files');return 'private-materials';},headObject:async(bucket,key)=>{if(headUnavailable)throw Error('unavailable');if(!stored.has(bucket+'/'+key))throw Object.assign(Error('missing'),{name:'NotFound'});return {ContentLength:stored.get(bucket+'/'+key)};},uploadObject:async value=>{uploads.push(value);stored.set(value.bucket+'/'+value.key,value.body.byteLength);}},'./product-delivery-files':limits},{fetch:async(url,options)=>{calls.push({url:url.toString(),options});return response();}});
+const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remote-addresses':{resolveRemoteAddresses:async()=>addresses},'./object-storage':{resolveBucket:kind=>{assert.equal(kind,'product-files');return 'private-materials';},uploadObjectIfAbsent:async value=>{if(writeUnavailable)throw Error('unavailable');if(stored.has(value.bucket+'/'+value.key))return false;uploads.push(value);stored.set(value.bucket+'/'+value.key,value.body.byteLength);return true;}},'./product-delivery-files':limits},{fetch:async(url,options)=>{calls.push({url:url.toString(),options});return response();}});
 (async()=>{
  const result=await media.mirrorPlatformDelivery(file,'store-a','product-a',0);
  assert(result.url.startsWith('minio://private-materials/platform-imports/store-a/product-a/deliveries/0-'));assert.equal(result.mimeType,'application/pdf');
@@ -16,7 +16,7 @@ const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remot
  assert(calls.every(call=>!Object.keys(call.options.headers).some(key=>/authorization|cookie/i.test(key))));
  assert.equal((await media.mirrorPlatformDelivery(file,'store-a','product-a',0)).url,result.url,'Content-derived identifiers are stable for retries');
  assert.equal(uploads.length,1,'Retry reuses the existing object without creating a new storage version');
- headUnavailable=true;await assert.rejects(()=>media.mirrorPlatformDelivery(file,'store-a','product-a',0),/verificada/);assert.equal(uploads.length,1);headUnavailable=false;
+ writeUnavailable=true;await assert.rejects(()=>media.mirrorPlatformDelivery(file,'store-a','product-a',0),/salva com segurança/);assert.equal(uploads.length,1);writeUnavailable=false;
  const before=calls.length;
  const link=await media.mirrorPlatformDelivery({name:'Pasta',url:'https://drive.google.com/drive/folders/example'},'store-a','product-a',1);
  assert(link.external);assert.equal(calls.length,before,'Sharing links stay private delivery references, not public covers');
