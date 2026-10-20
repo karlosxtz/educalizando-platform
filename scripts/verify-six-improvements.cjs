@@ -9,6 +9,7 @@ const user='11111111-1111-4111-8111-111111111111',store='22222222-2222-4222-8222
 const product={id,store_id:store,status:'publicado',titulo:'Leitura no 1º ano',descricao:'Português e leitura para turmas do primeiro ano.',age_range:'6 a 8 anos',tipo:'pdf',page_count:20,preco:8,preco_plr:30,is_plr:true,capa_url:'https://arquivos.educalizando.com.br/public-images/test.webp'};
 const criteria={goal:'Estou trabalhando leitura no 1º ano',stage:'',age:'7',subject:'Português'};
 assert(discovery.pedagogicalMatch(product,criteria));
+assert(discovery.pedagogicalMatch({...product,age_range:'5 a 7'},criteria),'A numeric range in the age field remains explicit evidence without the word anos');
 assert.equal(discovery.pedagogicalMatch({...product,status:'rascunho'},criteria),null);
 assert.equal(discovery.pedagogicalMatch({...product,age_range:null},criteria),null);
 assert.equal(discovery.pedagogicalMatch(product,{...criteria,age:'12'}),null);
