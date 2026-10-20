@@ -174,7 +174,7 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   assert.equal(tables.products.filter(product=>product.store_id==='destination-growing').length,4);
   // Removal at the source also requires a fresh view, without deleting local materials.
   let shrunk=false;
-  sourceReader=url=>({owner:'origin-a',label:'Fixture',total:shrunk?1:3,products:shrunk?[{...plain,id:'keep-a'}]:[{...plain,id:'keep-a'},{...plain,id:'removed-at-source'}],nextUrl:shrunk?null:contract.SABER_EXPORT_URL+'?page=2'});
+  sourceReader=_url=>({owner:'origin-a',label:'Fixture',total:shrunk?1:3,products:shrunk?[{...plain,id:'keep-a'}]:[{...plain,id:'keep-a'},{...plain,id:'removed-at-source'}],nextUrl:shrunk?null:contract.SABER_EXPORT_URL+'?page=2'});
   const shrinkingJob=await create('destination-shrinking');
   for(let step=0;step<4;step++)await jobs.processSaberJob(current(shrinkingJob.id),'fixture-token');
   const savedBeforeShrink=structuredClone(tables.products.filter(product=>product.store_id==='destination-shrinking'));shrunk=true;
@@ -184,7 +184,7 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   assert.deepEqual(structuredClone(tables.products.filter(product=>product.store_id==='destination-shrinking')),savedBeforeShrink);
   // Repeated catalogue changes are bounded; no false completion or retry loop.
   let changingTotal=2;
-  sourceReader=url=>({owner:'origin-a',label:'Fixture',total:changingTotal,products:[{...plain,id:'unstable-a'}],nextUrl:contract.SABER_EXPORT_URL+'?page=2'});
+  sourceReader=_url=>({owner:'origin-a',label:'Fixture',total:changingTotal,products:[{...plain,id:'unstable-a'}],nextUrl:contract.SABER_EXPORT_URL+'?page=2'});
   const unstable=await create('destination-unstable');
   for(let step=0;step<2;step++)await jobs.processSaberJob(current(unstable.id),'fixture-token');
   changingTotal=3;await jobs.processSaberJob(current(unstable.id),'fixture-token');
