@@ -10,6 +10,7 @@ import type { StoreThemeProps } from '@/lib/types';
 import StorefrontHero from './StorefrontHero';
 import StorefrontProductCard from './StorefrontProductCard';
 import StorefrontExtras from './StorefrontExtras';
+import StorePolls from '@/components/teaching/StorePolls';
 import styles from './StorefrontTheme.module.css';
 
 export default function StorefrontTheme(props: StoreThemeProps & { theme: NewStoreThemeId }) {
@@ -32,6 +33,7 @@ export default function StorefrontTheme(props: StoreThemeProps & { theme: NewSto
         <StorefrontExtras store={store} kits={props.kits} clubs={props.clubs} />
       </main>
     </div>
+    <StorePolls storeId={store.id}/>
     <footer className={styles.footer}><span>{store.nome_loja}</span><Link href="/">Uma loja na Educalizando →</Link></footer>
   </div>;
 }

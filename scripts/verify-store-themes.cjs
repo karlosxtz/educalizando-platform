@@ -52,6 +52,7 @@ const hero = load('src/components/store/themes/StorefrontHero.tsx', {
 }).default;
 const extras = load('src/components/store/themes/StorefrontExtras.tsx', { '@/components/store/StoreVideoCover': { default: ({product}) => React.createElement('img', {src:product.capa_url,alt:product.titulo}) }, '@/components/OnDemandLink': { default: Link }, '@/components/ui/CatalogImage': { default: Image }, '@/lib/product-description': description, './StorefrontProductCard': cardModule, './StorefrontTheme.module.css': css }).default;
 const storefront = load('src/components/store/themes/StorefrontTheme.tsx', {
+  '@/components/teaching/StorePolls': { default: () => null },
   '@/components/OnDemandLink': { default: Link }, '@/components/store/CartContext': { useCart: () => ({ itemCount: 0, setIsOpen() {} }) }, '@/lib/store-themes': theme,
   '@/components/store/StoreCatalogControls': { default: () => React.createElement('input', { 'aria-label': 'Buscar material' }) }, '@/components/store/StoreCatalogMoreButton': { default: () => null },
   './StorefrontHero': { default: hero }, './StorefrontProductCard': cardModule, './StorefrontExtras': { default: extras }, './StorefrontTheme.module.css': css,

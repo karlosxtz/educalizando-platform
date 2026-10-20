@@ -5,6 +5,7 @@ import ProductCard from '@/components/ProductCard';
 import SearchSidebar from '@/components/SearchSidebar';
 import SearchSort from '@/components/SearchSort';
 import SearchDiscovery from '@/components/SearchDiscovery';
+import SaveSearchControl from '@/components/teaching/SaveSearchControl';
 import StoreCard from '@/components/StoreCard';
 import { INITIAL_EDUCATION_LEVELS,INITIAL_GLOBAL_CATEGORIES } from '@/lib/category-service';
 import { getDisciplines } from '@/lib/discipline-service';
@@ -124,6 +125,7 @@ export default async function BuscarPage({
 
             {/* Conteúdo Principal (Resultados) */}
             <div className="min-w-0 flex-1 w-full">
+              <SaveSearchControl key={query} query={query}/>
               {filterChips.length > 0 && <nav aria-label="Filtros ativos" className="mb-3 flex flex-wrap items-center gap-2">
                 {filterChips.map(item => <Link key={item.key} href={searchHref(query, { [item.key]: null })} aria-label={`Remover filtro: ${item.label}`} className="inline-flex max-w-full min-h-11 items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 focus-visible:outline-2 focus-visible:outline-blue-600"><span className="min-w-0 [overflow-wrap:anywhere]">{item.label}</span><span aria-hidden="true">×</span></Link>)}
                 <Link href="/buscar" className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-blue-700 underline">Limpar tudo</Link>

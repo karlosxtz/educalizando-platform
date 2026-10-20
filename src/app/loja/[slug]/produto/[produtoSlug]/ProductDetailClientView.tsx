@@ -27,6 +27,9 @@ import CompareProductButton from '@/components/CompareProductButton';
 import FavoriteProductButton from '@/components/FavoriteProductButton';
 import StoreFollowControl from '@/components/StoreFollowControl';
 import ProductQuickSpecs from '@/components/ProductQuickSpecs';
+import PrintingCalculator from '@/components/teaching/PrintingCalculator';
+import PlanningLink from '@/components/teaching/PlanningLink';
+import ProductQuestions from '@/components/teaching/ProductQuestions';
 import { ProductCreatorBlockModal, ProductMobilePurchaseBar } from '@/components/ProductPurchaseOverlays';
 
 const ProductReviewsSection = dynamic(() => import('@/components/ProductReviewsSection'), { loading: () => <div className="min-h-32 animate-pulse rounded-2xl bg-slate-100" aria-label="Carregando avaliações" /> });
@@ -776,6 +779,9 @@ export default function ProductDetailClientView({
             </div>
           </div>
         </div>
+
+        <section className="mt-8 space-y-4"><PlanningLink productId={product.id} plr={Boolean(isPlrPurchase)}/><PrintingCalculator key={product.id+String(isPlrPurchase)} pages={isPlrPurchase?null:product.page_count}/></section>
+        <ProductQuestions productId={product.id}/>
 
         {/* RELATED PRODUCTS SECTION */}
         {relatedProducts && relatedProducts.length > 0 && (

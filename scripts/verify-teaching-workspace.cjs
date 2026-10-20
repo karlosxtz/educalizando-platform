@@ -1,0 +1,42 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+function load(file,mocks={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:n=>n==='server-only'?{}:mocks[n]||require(n),Request,Response,Headers,URL,console,crypto:require('node:crypto').webcrypto});return exports;}
+const tools=load('src/lib/teaching-tools.ts');
+assert.equal(tools.printingEstimate(25,3,1,.2,false).sheets,75);
+assert.equal(tools.printingEstimate(25,3,1,.2,true).sheets,50,'Round sheets for each student, not across the class');
+assert.equal(tools.printingEstimate(25,3,1,.2,true).impressions,75);
+assert.equal(tools.printingEstimate(25,3,1,.2,true).total,15);
+for(const values of [[0,3,1,.2,false],[20,1.2,1,.2,false],[20,3,0,.2,false],[20,3,1,NaN,false],[20,3,1,-1,false]])assert.equal(tools.printingEstimate(...values),null);
+const user='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333';
+const plan={title:'Semana de leitura',class_name:'1º ano',subject:'Português',lesson_date:'2026-10-20',notes:'Anotações da professora',materials:[{id,title:'Leitura',plr:false,arquivo_url:'https://private'}]};
+assert.equal(tools.planInput(plan).materials[0].arquivo_url,undefined);
+assert.throws(()=>tools.planInput({...plan,lesson_date:'2026-02-31'}));
+assert.throws(()=>tools.planInput({...plan,materials:[...plan.materials,...plan.materials]}));
+assert.throws(()=>tools.pollInput({question:'Qual o próximo material?',options:['Leitura','leitura'],days:7}));
+assert.throws(()=>tools.pollInput({question:'Qual o próximo material?',options:['Leitura','Jogos'],days:31}));
+assert.equal(tools.pollInput({question:'Qual o próximo material?',options:['Leitura','Jogos'],days:7}).options.length,2);
+const filters=tools.savedFilters({q:'leitura',page:99,user_id:other,token:'private'});assert.deepEqual(Object.keys(filters),['q']);assert.throws(()=>tools.savedFilters({page:99}));
+function database(results={}){const calls=[];return {calls,from(table){const call={table,filters:[]};calls.push(call);const q={};for(const name of ['select','eq','is','not','order','limit','range','gte','gt','maybeSingle','single','delete','update','insert'])q[name]=(...args)=>{call.filters.push([name,...args]);return q;};q.then=(resolve)=>Promise.resolve(results[table]||{data:[],error:null,count:0}).then(resolve);return q;},rpc:async(name,args)=>{calls.push({name,args});return {data:[],error:null};}};}
+(async()=>{
+ let db=database({teaching_plans:{data:[],error:null,count:0}}),current={user:{id:user}},ctx={db,teachingContext:async()=>current,teachingBody:async r=>JSON.parse(await r.text()),teachingJson:(data,status=200)=>Response.json(data,{status}),assertDb:e=>{if(e)throw new Error('DB failure');},teachingFailure:()=>Response.json({error:'failed'},{status:503})};
+ const plans=load('src/app/api/customer/teaching-plans/route.ts',{'@/lib/teaching-api':ctx,'@/lib/teaching-tools':tools});
+ await plans.GET(new Request('https://www.educalizando.com.br/api/customer/teaching-plans'));
+ assert(db.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='user_id'&&f[2]===user));
+ db.calls.length=0;
+ await plans.PUT(new Request('https://www.educalizando.com.br/api/customer/teaching-plans',{method:'PUT',body:JSON.stringify({...plan,id,user_id:other})}));
+ assert(db.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='user_id'&&f[2]===user));
+ await plans.DELETE(new Request(`https://www.educalizando.com.br/api/customer/teaching-plans?id=${id}`));
+ assert(db.calls.at(-1).filters.some(f=>f[0]==='eq'&&f[1]==='user_id'&&f[2]===user));
+ current={response:Response.json({error:'login'},{status:401})};db.calls.length=0;assert.equal((await plans.GET(new Request('https://www.educalizando.com.br'))).status,401);assert.equal(db.calls.length,0);
+ const ownDb=database({material_questions:{data:null,error:null}});
+ const questions=load('src/app/api/creator/material-questions/route.ts',{'@/lib/teaching-api':{...ctx,db:ownDb,teachingContext:async()=>({user:{id:user},store:{id:other}})},'@/lib/teaching-tools':tools});
+ const res=await questions.PUT(new Request('https://www.educalizando.com.br',{method:'PUT',body:JSON.stringify({id,answer:'Resposta pública',hidden:false,store_id:id})}));
+ assert.equal(res.status,404);assert.equal(ownDb.calls.length,1);assert(ownDb.calls[0].filters.some(f=>f[0]==='eq'&&f[1]==='product.store_id'&&f[2]===other));
+ const publicDb=database({products:{data:{id},error:null},material_questions:{data:[],error:null}});
+ const publicQuestions=load('src/app/api/material-questions/route.ts',{'@/lib/teaching-api':{...ctx,db:publicDb},'@/lib/teaching-tools':tools});
+ await publicQuestions.GET(new Request(`https://www.educalizando.com.br/api/material-questions?product=${id}`));
+ const call=publicDb.calls.find(c=>c.table==='material_questions');assert(call.filters.some(f=>f[0]==='eq'&&f[1]==='hidden'&&f[2]===false));assert(call.filters.some(f=>f[0]==='not'&&f[1]==='answer'));assert(!call.filters.find(f=>f[0]==='select')[1].includes('user_id'));
+ const sql=fs.readFileSync('supabase/migrations/20261020010000_teaching_workspace.sql','utf8');assert(sql.includes('UNIQUE (poll_id,user_id)'));assert(sql.includes('FOR UPDATE'));assert(sql.includes('p.closes_at<=now()'));assert(sql.includes('creator_id=p_user'));assert(!/ALTER TABLE public\.(products|orders|stores|reviews)/.test(sql));
+ const pollRoute=fs.readFileSync('src/app/api/store-polls/route.ts','utf8');assert(pollRoute.includes('p_user:ctx.user.id'));assert(!pollRoute.includes("select('*')"));
+ const saved=fs.readFileSync('src/app/api/customer/saved-searches/route.ts','utf8');assert(!saved.includes('products:result.data'));assert(saved.includes("eq('user_id',ctx.user.id)"));assert(saved.includes('notifications_enabled'));
+ console.log('PASS teaching workspace: private plans, tenant-owned answers, answered-only public questions, bounded inputs, duplicate and closed-poll safeguards, no voter identity exposure, explicit saved-search consent, duplex rounding and no paid delivery in plans.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -200,6 +200,8 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
     { label: 'Rede de criadores · Instagram', href: '/dashboard/rede-instagram', icon: Users, badge: 'NOVO' },
     { label: 'Pinterest · Divulgação', href: '/dashboard/pinterest', icon: ImagePlus, badge: 'NOVO' },
     { label: 'Blog do criador', href: '/dashboard/blog', icon: Library, badge: 'NOVO' },
+    { label: 'Perguntas dos compradores', href: '/dashboard/perguntas', icon: MessagesSquare, badge: 'NOVO' },
+    { label: 'Enquetes da comunidade', href: '/dashboard/enquetes', icon: ChartNoAxesCombined, badge: 'NOVO' },
     { label: 'Calendário de oportunidades', href: '/dashboard/oportunidades', icon: CalendarDays, badge: 'NOVO' },
     { label: 'Buscas sem resultado', href: '/dashboard/buscas-sem-resultado', icon: SearchX, badge: 'NOVO' },
     { label: 'Recuperar compras', href: '/dashboard/carrinhos', icon: ShoppingCart, badge: 'NOVO' },
@@ -236,7 +238,7 @@ export default function Sidebar({ store, storeId }: SidebarProps) {
   const NAV_GROUPS = [
     { label: 'Visão geral', hrefs: ['/dashboard', '/dashboard/tutoriais'] },
     { label: 'Vender', hrefs: ['/dashboard/produtos', '/dashboard/materiais-exclusivos', '/dashboard/clube', '/dashboard/brindes', '/dashboard/kits', '/dashboard/plr', '/dashboard/plr/comprados'] },
-    { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/whatsapp-loja', '/dashboard/woocommerce', '/dashboard/importar-plataforma'] },
+    { label: 'Gerenciar loja', hrefs: ['/dashboard/loja', '/dashboard/categorias', '/dashboard/clientes', '/dashboard/atendimento', '/dashboard/perguntas', '/dashboard/enquetes', '/dashboard/whatsapp-loja', '/dashboard/woocommerce', '/dashboard/importar-plataforma'] },
     { label: 'Pedidos e financeiro', hrefs: ['/dashboard/pedidos', '/dashboard/financeiro'] },
     { label: 'Marketing e crescimento', hrefs: ['/dashboard/cupons', '/dashboard/gerenciar-afiliacoes', '/dashboard/indicacoes', '/dashboard/metricas-anuncios', '/dashboard/instagram', '/dashboard/rede-instagram', '/dashboard/pinterest', '/dashboard/blog', '/dashboard/oportunidades', '/dashboard/buscas-sem-resultado', '/dashboard/carrinhos', '/dashboard/webhooks', '/dashboard/ia'] },
     { label: 'Outros recursos', hrefs: ['/dashboard/ferramentas', '/dashboard/conta'] },

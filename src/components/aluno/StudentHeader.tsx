@@ -104,6 +104,7 @@ export default function StudentHeader({
         </div>
 
       </div>
+      <nav aria-label="Ferramentas do professor" className="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 py-2 text-xs font-bold text-blue-800 sm:px-6"><Link href="/cliente/dashboard" className="inline-flex min-h-11 shrink-0 items-center">Minha biblioteca</Link><Link href="/cliente/planejamento" className="inline-flex min-h-11 shrink-0 items-center">Planejamento de aulas</Link><Link href="/cliente/buscas-salvas" className="inline-flex min-h-11 shrink-0 items-center">Buscas salvas</Link><Link href="/cliente/favoritos" className="inline-flex min-h-11 shrink-0 items-center">Favoritos e lojas</Link></nav>
     </header>
   );
 }

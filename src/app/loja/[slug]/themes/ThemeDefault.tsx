@@ -1,4 +1,5 @@
 'use client';
+import StorePolls from '@/components/teaching/StorePolls';
 import StoreFollowControl from '@/components/StoreFollowControl';
 import FavoriteProductButton from '@/components/FavoriteProductButton';
 
@@ -851,6 +852,7 @@ export default function ThemeDefault(props: StoreThemeProps) {
         </a>
       )}
 
+      <StorePolls storeId={store.id}/>
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-slate-900 py-8 text-center text-xs text-slate-400 space-y-4 safe-padding-bottom">
         <div className="flex items-center justify-center gap-4">

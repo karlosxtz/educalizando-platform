@@ -1,0 +1,13 @@
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import { BookmarkPlus } from 'lucide-react';
+import { customerApi } from '@/lib/customer-api';
+import { SAVED_FILTER_KEYS } from '@/lib/teaching-tools';
+export default function SaveSearchControl({query}:{query:string}){
+  const params=new URLSearchParams(query),filters=Object.fromEntries(SAVED_FILTER_KEYS.map(key=>[key,params.get(key)]).filter((entry):entry is [string,string]=>Boolean(entry[1])));
+  const [open,setOpen]=useState(false),[name,setName]=useState((params.get('q')||'Minha seleção de materiais').slice(0,100)),[notifications,setNotifications]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+  async function save(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{await customerApi('/api/customer/saved-searches',{method:'POST',body:JSON.stringify({name,filters,notifications_enabled:notifications})});setMessage('Busca salva. Você pode consultá-la na sua área de buscas salvas.');setOpen(false);}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar.');}finally{setBusy(false);}}
+  if(!Object.keys(filters).length)return null;
+  return <div className="mb-4 rounded-2xl border border-blue-100 bg-white p-3 text-sm"><div className="flex flex-wrap items-center gap-4"><button onClick={()=>{setOpen(!open);setMessage('');}} aria-expanded={open} className="inline-flex min-h-11 items-center gap-2 font-bold text-blue-800"><BookmarkPlus className="h-4 w-4"/>Salvar esta busca</button><Link href="/cliente/buscas-salvas" className="font-semibold text-slate-600 underline">Minhas buscas salvas</Link></div>{open&&<form onSubmit={save} className="mt-3 space-y-3"><label className="block font-bold">Nome da busca<input required minLength={3} maxLength={100} value={name} onChange={e=>setName(e.target.value)} className="mt-1 min-h-11 w-full rounded-xl border px-3 font-normal"/></label><label className="flex items-start gap-2"><input className="mt-1" type="checkbox" checked={notifications} onChange={e=>setNotifications(e.target.checked)}/>Quero consultar avisos de materiais novos nesta busca, dentro da plataforma.</label><p className="text-xs text-slate-500">Seus filtros ficam salvos na sua conta. Não enviamos e-mail nem WhatsApp; você pode desativar os avisos quando quiser.</p><button disabled={busy} className="min-h-11 rounded-xl bg-blue-800 px-4 font-bold text-white disabled:opacity-50">{busy?'Salvando…':'Confirmar busca salva'}</button></form>}{error&&<p role="alert" className="mt-2 text-rose-800">{error}</p>}{message&&<p role="status" className="mt-2 text-emerald-800">{message}</p>}</div>;
+}
