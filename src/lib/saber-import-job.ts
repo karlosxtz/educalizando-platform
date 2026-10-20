@@ -56,11 +56,23 @@ export async function processSaberJob(job:SaberJob,token:string) {
   const {data:fresh,error:readError}=await db.from('platform_product_imports').select('*').eq('id',job.id).eq('store_id',job.store_id).eq('lease_token',lease).single();
   if(readError)throw new Error('Não foi possível consultar a etapa reservada. Aguarde para retomar.');
   job=fresh as SaberJob;
+  const currentPassUrls=job.visited_urls.slice(Math.max(0,job.visited_urls.lastIndexOf(SABER_EXPORT_URL)));
+  const reconcileCatalogue=async(reportedTotal:number|null=job.source_total)=>{
+    // At most one automatic fresh pass per explicit run. Repeated root URLs
+    // delimit passes while keeping the complete history made of real URLs.
+    if(job.visited_urls.filter(url=>url===SABER_EXPORT_URL).length>=2){
+      throw new Error('O catálogo da origem ainda está mudando ou o total informado não pôde ser conferido. O progresso foi preservado; aguarde e tente continuar.');
+    }
+    const first=await readSaberExport(token);
+    if(first.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
+    await receipt({queue:first.products,next_url:first.nextUrl,visited_urls:[...job.visited_urls,SABER_EXPORT_URL],seen_ids:first.products.map(item=>item.id),source_total:first.total ?? reportedTotal,discovered:first.products.length,cursor:0,asset_cursor:0,current_product:null,imported:0,skipped:0,last_error:null,issues:[...job.issues,{product:'Exportação do catálogo',message:'O catálogo da origem foi atualizado. Uma nova conferência começou automaticamente; os contadores representam esta passagem e os produtos e arquivos já gravados serão reaproveitados.'}].slice(-100)});
+    return {progressed:true};
+  };
   try {
     if(job.queue.length && job.queue.some(item=>item.adapterVersion!==3)){
       const page=await readSaberExport(token,job.visited_urls.at(-1) || SABER_EXPORT_URL);
       if(page.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
-      if(job.source_total!==null && page.total!==null && page.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
+      if(job.source_total!==null && page.total!==null && page.total!==job.source_total)return await reconcileCatalogue(page.total);
       if(page.products.length!==job.queue.length || page.products.some((item,index)=>item.id!==job.queue[index].id))throw new Error('A página de origem mudou. A importação foi pausada para preservar os produtos concluídos.');
       const filledTitles=new Set<string>();
       for(const [index,item] of page.products.slice(0,job.cursor).entries()){
@@ -77,18 +89,19 @@ export async function processSaberJob(job:SaberJob,token:string) {
           const lastUrl=job.visited_urls.at(-1) || SABER_EXPORT_URL;
           const recovered=await readSaberExport(token,lastUrl);
           if(recovered.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
-          if(recovered.total!==null && recovered.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
+          if(recovered.total!==null && recovered.total!==job.source_total)return await reconcileCatalogue(recovered.total);
           const samePage=recovered.products.length===job.queue.length && recovered.products.every((item,index)=>item.id===job.queue[index].id);
-          if(samePage && recovered.nextUrl && !job.visited_urls.includes(recovered.nextUrl)){
+          if(samePage && recovered.nextUrl && !currentPassUrls.includes(recovered.nextUrl)){
             await receipt({next_url:recovered.nextUrl,last_error:null});return {progressed:true};
           }
-          throw new Error('O total informado pela API não corresponde aos produtos recebidos. A exportação não forneceu uma próxima página válida; nenhum produto concluído foi perdido.');
+          return await reconcileCatalogue();
         }
         await receipt({status:'completed',queue:[],current_product:null});return {completed:true};
       }
-      if(job.visited_urls.includes(job.next_url))throw new Error('A API repetiu uma página. A importação foi pausada para evitar repetição.');
+      if(currentPassUrls.includes(job.next_url))throw new Error('A API repetiu uma página. A importação foi pausada para evitar repetição.');
       const page=await readSaberExport(token,job.next_url);
       if(page.owner!==job.source_owner)throw new Error('A loja de origem mudou durante a exportação. A importação foi bloqueada.');
+      if(job.source_total!==null && page.total!==null && page.total!==job.source_total)return await reconcileCatalogue(page.total);
       const seen=new Set(job.seen_ids || []);
       const unseen=page.products.filter(item=>!seen.has(item.id));
       const repeated=page.products.length-unseen.length;
@@ -96,13 +109,12 @@ export async function processSaberJob(job:SaberJob,token:string) {
       // Permit one wholly overlapping page with a new continuation, but never
       // follow endlessly changing URLs that keep returning the same products.
       if(page.products.length && !unseen.length && page.nextUrl &&
-        (page.nextUrl===job.next_url || job.visited_urls.includes(page.nextUrl) || !job.queue.length)){
+        (page.nextUrl===job.next_url || currentPassUrls.includes(page.nextUrl) || !job.queue.length)){
         throw new Error('A API repetiu produtos sem avançar para materiais novos. O progresso foi preservado; confira a paginação da exportação.');
       }
       if(!page.products.length && page.nextUrl)throw new Error('A API retornou uma página vazia com continuação. Confira a exportação.');
-      if(job.source_total!==null && page.total!==null && page.total!==job.source_total)throw new Error('O catálogo mudou durante a exportação. Confira e reinicie quando estiver estável.');
       const total=job.source_total ?? page.total,discovered=job.discovered+unseen.length;
-      if(total!==null && discovered>total)throw new Error('A exportação retornou mais produtos que o total informado. A importação foi pausada para conferir a origem.');
+      if(total!==null && discovered>total)return await reconcileCatalogue(total);
       const nextUrl=page.inferredNext && total!==null && discovered===total?null:page.nextUrl;
       const issues=repeated?[...job.issues,{product:'Exportação do catálogo',message:`${repeated} produto(s) repetido(s) entre páginas foram reconhecidos e não serão importados novamente.`}].slice(-100):job.issues;
       await receipt({queue:unseen,cursor:0,next_url:nextUrl,visited_urls:[...job.visited_urls,job.next_url],seen_ids:[...seen,...unseen.map(item=>item.id)],source_total:total,discovered,current_product:null,asset_cursor:0,issues,last_error:null});return {progressed:true};

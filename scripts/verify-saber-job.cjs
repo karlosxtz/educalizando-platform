@@ -3,6 +3,7 @@ function load(file,mocks){const exports={};vm.runInNewContext(ts.transpileModule
 const contract=load('src/lib/saber-export-contract.ts',{'./platform-delivery-contract':load('src/lib/platform-delivery-contract.ts',{}),'./platform-delivery-diagnostics':load('src/lib/platform-delivery-diagnostics.ts',{}),'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts',{}),'./presentation-video':load('src/lib/presentation-video.ts',{})});
 const client=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract});
 const item=contract.parseSaberExport({seller:{id:'origin-a'},products:[{id:'a',title:'Local test material',price:7,description:'Description from authorised export',images:['https://source.example.test/cover.png'],categories:[]}],total:1}).products[0];
+let sourceReader=null;
 let fileDownloads=0,deliveryCalls=0,deliveryAllowed=true,migrationReady=true,mirrorFailure=false;const delivered=new Map();
 const tables={platform_product_imports:[],platform_product_import_receipts:[],products:[],categories:[],education_levels:[]};
 let sourcePage={owner:'origin-a',label:'Local fixture store',products:[item],total:1,nextUrl:null},mirrorCalls=0,insertFailure=null;
@@ -16,7 +17,7 @@ const db={from:table=>{
     }
   };return query;
 },rpc:async(_name,args)=>{if(args.p_probe)return {data:migrationReady,error:null};if(_name==='apply_platform_import_delivery'){deliveryCalls++;const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');if(!deliveryAllowed)return {data:false,error:null};delivered.set(args.p_product+':'+args.p_index,args.p_asset);return {data:true,error:null};}const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');assert(product.import_incomplete);product.capa_url=args.p_url;return {data:true,error:null};}};
-const jobs=load('src/lib/saber-import-job.ts',{'server-only':{},'./supabase':{supabaseAdmin:db},'./saber-import-errors':load('src/lib/saber-import-errors.ts',{}),'./saber-export-client':{...client,readSaberExport:async()=>structuredClone(sourcePage)},'./saber-export-contract':contract,'./platform-delivery-resume':{importedDeliveryPresent:async(_db,_store,product,_id,index)=>delivered.has(product+':'+index)},'./platform-delivery-media':{mirrorPlatformDelivery:async(file,store,product,index)=>{fileDownloads++;if(mirrorFailure)throw Error('A entrega não pôde ser baixada.');return ({url:`minio://private-materials/platform-imports/${store}/${product}/deliveries/${index}-fixture.pdf`,name:file.name,size:20,mimeType:'application/pdf',external:file.url.includes('drive.google.com')});}},'./woocommerce-media':{mirrorPlatformImportImage:async()=>{mirrorCalls++;return 'https://arquivos.educalizando.com.br/public-images/fixture.webp';}}});
+const jobs=load('src/lib/saber-import-job.ts',{'server-only':{},'./supabase':{supabaseAdmin:db},'./saber-import-errors':load('src/lib/saber-import-errors.ts',{}),'./saber-export-client':{...client,readSaberExport:async(_token,url)=>structuredClone(sourceReader?sourceReader(url):sourcePage)},'./saber-export-contract':contract,'./platform-delivery-resume':{importedDeliveryPresent:async(_db,_store,product,_id,index)=>delivered.has(product+':'+index)},'./platform-delivery-media':{mirrorPlatformDelivery:async(file,store,product,index)=>{fileDownloads++;if(mirrorFailure)throw Error('A entrega não pôde ser baixada.');return ({url:`minio://private-materials/platform-imports/${store}/${product}/deliveries/${index}-fixture.pdf`,name:file.name,size:20,mimeType:'application/pdf',external:file.url.includes('drive.google.com')});}},'./woocommerce-media':{mirrorPlatformImportImage:async()=>{mirrorCalls++;return 'https://arquivos.educalizando.com.br/public-images/fixture.webp';}}});
 async function create(store='destination-a'){return jobs.createSaberJob(store,'fixture-token','fingerprint','origin-a');}
 const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.id===id));
 (async()=>{
@@ -29,7 +30,7 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   const foreign=await create('destination-b');tables.products.push({id:client.saberImportId('destination-b','origin-a','a'),store_id:'other-destination',status:'rascunho',import_incomplete:true});await jobs.processSaberJob(current(foreign.id),'fixture-token');assert.equal(current(foreign.id).status,'paused');assert.match(current(foreign.id).last_error,/não será sobrescrito/i);
   sourcePage={...sourcePage,total:2,nextUrl:contract.SABER_EXPORT_URL+'?page=2'};
   const duplicate=await create('destination-c');const live=tables.platform_product_imports.find(row=>row.id===duplicate.id);live.cursor=1;await jobs.processSaberJob(current(duplicate.id),'fixture-token');assert.equal(current(duplicate.id).status,'paused');assert(current(duplicate.id).last_error.includes('repetiu produtos'));
-  sourcePage={...sourcePage,nextUrl:null};const mismatch=await create('destination-d');tables.platform_product_imports.find(row=>row.id===mismatch.id).cursor=1;await jobs.processSaberJob(current(mismatch.id),'fixture-token');assert.equal(current(mismatch.id).status,'paused');assert(current(mismatch.id).last_error.includes('total informado'));
+  sourcePage={...sourcePage,nextUrl:null};const mismatch=await create('destination-d');tables.platform_product_imports.find(row=>row.id===mismatch.id).cursor=1;for(let i=0;i<7&&current(mismatch.id).status==='running';i++)await jobs.processSaberJob(current(mismatch.id),'fixture-token');assert.equal(current(mismatch.id).status,'paused');assert(current(mismatch.id).last_error.includes('total informado'));
   // Existing job with a missing next URL resumes without resetting its finished items.
   sourcePage={...sourcePage,total:2,nextUrl:null};const recover=await create('destination-recover');
   const recoveryLive=tables.platform_product_imports.find(row=>row.id===recover.id);recoveryLive.cursor=1;recoveryLive.imported=1;
@@ -146,8 +147,52 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   sourcePage={...sourcePage,nextUrl:null};
   await jobs.processSaberJob(current(missingAfterDuplicates.id),'fixture-token');
   await jobs.processSaberJob(current(missingAfterDuplicates.id),'fixture-token');
+  for(let i=0;i<8&&current(missingAfterDuplicates.id).status==='running';i++)await jobs.processSaberJob(current(missingAfterDuplicates.id),'fixture-token');
   assert.equal(current(missingAfterDuplicates.id).status,'paused');assert.match(current(missingAfterDuplicates.id).last_error,/total informado/);
   sourcePage={owner:'origin-a',label:'Fixture',products:[{...item,deliveries:[{name:'Material.pdf',url:'https://files.example.org/material.pdf'}]}],total:1,nextUrl:null};
+  // A growing catalogue starts one fresh pass, including a product inserted at the front.
+  const growingA={...plain,id:'growing-a',deliveries:[{name:'Material.pdf',url:'https://files.example.org/growing.pdf'}]};
+  const growingB={...plain,id:'growing-b'},growingC={...plain,id:'growing-c'},growingNew={...plain,id:'new-at-front'};
+  let catalogueChanged=false,rootReads=0;
+  sourceReader=url=>{
+    const page=Number(new URL(url || contract.SABER_EXPORT_URL).searchParams.get('page') || 1);
+    if(page===1)rootReads++;
+    return {owner:'origin-a',label:'Fixture',total:catalogueChanged?4:3,products:page===1?(catalogueChanged?[growingNew,growingA]:[growingA]):page===2?[growingB]:[growingC],nextUrl:page<3?contract.SABER_EXPORT_URL+'?page='+(page+1):null};
+  };
+  const growingJob=await create('destination-growing');
+  for(let step=0;step<6;step++)await jobs.processSaberJob(current(growingJob.id),'fixture-token');
+  assert.equal(current(growingJob.id).imported,2);const downloadsBeforeGrowth=fileDownloads;
+  catalogueChanged=true;
+  await jobs.processSaberJob(current(growingJob.id),'fixture-token');
+  assert.equal(current(growingJob.id).status,'running');assert.equal(current(growingJob.id).source_total,4);assert.equal(current(growingJob.id).discovered,2);
+  assert.equal(current(growingJob.id).visited_urls.filter(url=>url===contract.SABER_EXPORT_URL).length,2);
+  assert(current(growingJob.id).issues.some(issue=>issue.message.includes('nova conferência')));
+  for(let step=0;step<20&&current(growingJob.id).status==='running';step++)await jobs.processSaberJob(current(growingJob.id),'fixture-token');
+  assert.equal(current(growingJob.id).status,'completed');assert.equal(current(growingJob.id).discovered,4);
+  assert.equal(current(growingJob.id).imported,2);assert.equal(current(growingJob.id).skipped,2);assert.equal(rootReads,2);
+  assert.equal(fileDownloads,downloadsBeforeGrowth,'Rechecking must not download committed files again');
+  assert.equal(tables.products.filter(product=>product.store_id==='destination-growing').length,4);
+  // Removal at the source also requires a fresh view, without deleting local materials.
+  let shrunk=false;
+  sourceReader=url=>({owner:'origin-a',label:'Fixture',total:shrunk?1:3,products:shrunk?[{...plain,id:'keep-a'}]:[{...plain,id:'keep-a'},{...plain,id:'removed-at-source'}],nextUrl:shrunk?null:contract.SABER_EXPORT_URL+'?page=2'});
+  const shrinkingJob=await create('destination-shrinking');
+  for(let step=0;step<4;step++)await jobs.processSaberJob(current(shrinkingJob.id),'fixture-token');
+  const savedBeforeShrink=structuredClone(tables.products.filter(product=>product.store_id==='destination-shrinking'));shrunk=true;
+  await jobs.processSaberJob(current(shrinkingJob.id),'fixture-token');
+  for(let step=0;step<5&&current(shrinkingJob.id).status==='running';step++)await jobs.processSaberJob(current(shrinkingJob.id),'fixture-token');
+  assert.equal(current(shrinkingJob.id).status,'completed');assert.equal(current(shrinkingJob.id).source_total,1);assert.equal(current(shrinkingJob.id).discovered,1);
+  assert.deepEqual(structuredClone(tables.products.filter(product=>product.store_id==='destination-shrinking')),savedBeforeShrink);
+  // Repeated catalogue changes are bounded; no false completion or retry loop.
+  let changingTotal=2;
+  sourceReader=url=>({owner:'origin-a',label:'Fixture',total:changingTotal,products:[{...plain,id:'unstable-a'}],nextUrl:contract.SABER_EXPORT_URL+'?page=2'});
+  const unstable=await create('destination-unstable');
+  for(let step=0;step<2;step++)await jobs.processSaberJob(current(unstable.id),'fixture-token');
+  changingTotal=3;await jobs.processSaberJob(current(unstable.id),'fixture-token');
+  await jobs.processSaberJob(current(unstable.id),'fixture-token');
+  changingTotal=4;await jobs.processSaberJob(current(unstable.id),'fixture-token');
+  assert.equal(current(unstable.id).status,'paused');assert.match(current(unstable.id).last_error,/ainda está mudando/);
+  assert.equal(current(unstable.id).visited_urls.filter(url=>url===contract.SABER_EXPORT_URL).length,2);
+  sourceReader=null;
   migrationReady=false;await assert.rejects(()=>create('destination-missing-migration'),/Ative/);
   console.log('PASS file import: sequential private deliveries, external-link notice, repeat/backfill without duplicate products, reviewed preservation, download failure and manual-delivery conflict pause, missing migration gate.');
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

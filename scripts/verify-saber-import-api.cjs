@@ -2,11 +2,12 @@ const fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm'),asser
 let user={id:'creator-a'},calledStore,previewCalls=0,storageError=null,paginationTest=false;
 const token='sbr_live_'+'0'.repeat(64),storeId='10000000-0000-4000-8000-000000000001',foreignJob='20000000-0000-4000-8000-000000000001';
 const rows={stores:[{id:storeId,creator_id:'creator-a',nome_loja:'Local fixture'}],platform_product_imports:[{id:foreignJob,store_id:'foreign-store',token_fingerprint:'private-hash',queue:['private-payload']}]};
-const db={from:table=>{let selected='*',single=false;const where=[];const query={select(value){selected=value;return query;},eq(key,value){where.push([key,value]);return query;},order(){return query;},limit(){return query;},maybeSingle(){single=true;return query;},then(resolve){const data=rows[table].filter(row=>where.every(([key,value])=>row[key]===value)).map(row=>selected==='*'?row:Object.fromEntries(selected.split(',').map(key=>[key,row[key]])));return Promise.resolve({data:single?(data[0]||null):data,error:table==='platform_product_imports'?storageError:null}).then(resolve);}};return query;}};
+const db={from:table=>{let selected='*',single=false,patch=null;const where=[];const query={select(value){selected=value;return query;},eq(key,value){where.push([key,value]);return query;},order(){return query;},limit(){return query;},maybeSingle(){single=true;return query;},single(){single=true;return query;},update(value){patch=value;return query;},then(resolve){const data=rows[table].filter(row=>where.every(([key,value])=>row[key]===value)).map(row=>{if(patch)Object.assign(row,patch);return selected==='*'?row:Object.fromEntries(selected.split(',').map(key=>[key,row[key]]));});return Promise.resolve({data:single?(data[0]||null):data,error:table==='platform_product_imports'?storageError:null}).then(resolve);}};return query;}};
 const exported={};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/api/creator/platform-import/route.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{
   exports:exported,URL,Response,Error,
   require:key=>({
+    '@/lib/saber-export-contract':{SABER_EXPORT_URL:'https://saberdidatico.com.br/api/public/sync/seller-products'},
     '@/lib/api-auth':{getRequestUser:async()=>user},'@/lib/supabase':{supabaseAdmin:db},
     '@/lib/saber-import-errors':{saberImportStorageMessage:error=>error.code==='42501'?'O servidor precisa verificar permissões.':'Não foi possível consultar o banco.'},
     '@/lib/request-rate-limit':{consumeRequestRateLimit:async()=>({allowed:true})},
@@ -33,5 +34,14 @@ const request=(body,origin)=>new Request('https://www.educalizando.com.br/api/cr
   response=await exported.GET(new Request('https://www.educalizando.com.br/api/creator/platform-import'));let visible=await response.json();assert.equal(visible.jobs[0].can_skip_image,false);assert(!JSON.stringify(visible).includes('private-image-payload'));assert(!JSON.stringify(visible).includes('private-fingerprint'));
   rows.platform_product_imports[1].cursor=0;rows.platform_product_imports[1].current_product='own-product';
   response=await exported.GET(new Request('https://www.educalizando.com.br/api/creator/platform-import'));visible=await response.json();assert.equal(visible.jobs[0].can_skip_image,true);
+  const rootUrl='https://saberdidatico.com.br/api/public/sync/seller-products';
+  const resumedId='30000000-0000-4000-8000-000000000001';
+  const resumed={id:resumedId,store_id:storeId,status:'paused',cursor:1,asset_cursor:0,queue:[],lease_until:null,token_fingerprint:'hash',visited_urls:[rootUrl,rootUrl+'?page=2',rootUrl,rootUrl+'?page=2',rootUrl+'?page=3']};rows.platform_product_imports.push(resumed);
+  response=await exported.GET(new Request('https://www.educalizando.com.br/api/creator/platform-import'));let rechecked=await response.json();
+  assert.equal(rechecked.jobs.find(job=>job.id===resumedId).catalog_recheck,true);
+  assert(!JSON.stringify(rechecked).includes('visited_urls'));assert(!JSON.stringify(rechecked).includes(rootUrl));
+  response=await exported.POST(request({action:'resume',id:resumedId,token}));assert.equal(response.status,200);const resumedView=await response.json();
+  assert.equal(resumedView.job.status,'running');assert.equal(resumedView.job.catalog_recheck,false);
+  assert.deepEqual(Array.from(resumed.visited_urls),[rootUrl,rootUrl+'?page=2',rootUrl+'?page=3']);
   console.log('PASS Saber import API: authenticated owner binding, no caller-supplied destination, preview without imports, token not echoed, cross-origin rejection, foreign-job denial and private responses.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,15 +1,16 @@
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin as db } from '@/lib/supabase';
+import { SABER_EXPORT_URL } from '@/lib/saber-export-contract';
 import { saberFingerprint, saberToken, readSaberExport } from '@/lib/saber-export-client';
 import { createSaberJob, processSaberJob, restartSaberDeliveries, saberJobColumns, platformDeliveryImportReady, type SaberJob } from '@/lib/saber-import-job';
 import { consumeRequestRateLimit, rateLimitResponse } from '@/lib/request-rate-limit';
 import { saberImportStorageMessage } from '@/lib/saber-import-errors';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store','X-Robots-Tag':'noindex'}});
 const uuid=(input:unknown):input is string=>typeof input==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input);
-const jobReadColumns=saberJobColumns+',current_product,queue,lease_until';
+const jobReadColumns=saberJobColumns+',current_product,queue,lease_until,visited_urls';
 function jobView(job:SaberJob){
   const item=job.queue?.[job.cursor];
-  return {...Object.fromEntries(saberJobColumns.split(',').map(key=>[key,(job as unknown as Record<string,unknown>)[key]])),can_skip_image:job.status==='paused' && !!job.current_product && !!item && job.asset_cursor<item.images.length && (!job.lease_until || Date.parse(job.lease_until)<=Date.now())};
+  return {...Object.fromEntries(saberJobColumns.split(',').map(key=>[key,(job as unknown as Record<string,unknown>)[key]])),catalog_recheck:(job.visited_urls || []).filter(url=>url===SABER_EXPORT_URL).length>1,can_skip_image:job.status==='paused' && !!job.current_product && !!item && job.asset_cursor<item.images.length && (!job.lease_until || Date.parse(job.lease_until)<=Date.now())};
 }
 async function creator(request:Request) {
   const user=await getRequestUser(request);if(!user)return null;
@@ -59,7 +60,7 @@ export async function POST(request:Request) {
       if(body.action==='refresh-deliveries')await restartSaberDeliveries(job,token);
       else if(body.action==='step') {if(job.status==='running')await processSaberJob(job,token);}
       else if(body.action==='resume') {
-        const result=await db.from('platform_product_imports').update({status:'running',last_error:null,updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id);if(result.error)throw new Error('Não foi possível retomar.');
+        const result=await db.from('platform_product_imports').update({status:'running',last_error:null,visited_urls:job.visited_urls.slice(Math.max(0,job.visited_urls.lastIndexOf(SABER_EXPORT_URL))),updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id);if(result.error)throw new Error('Não foi possível retomar.');
       }else if(body.action==='skip-image') {
         const item=job.queue[job.cursor];if(job.status!=='paused' || !job.current_product || !item || job.asset_cursor>=item.images.length || (job.lease_until && Date.parse(job.lease_until)>Date.now()))return json({error:'Nenhuma imagem com falha disponível para pular.'},409);
         const result=await db.from('platform_product_imports').update({asset_cursor:job.asset_cursor+1,status:'running',last_error:null,issues:[...job.issues,{product:item.title,message:'Uma imagem foi ignorada por escolha do criador; envie-a pelo cadastro do produto.'}].slice(-100),updated_at:new Date().toISOString()}).eq('id',job.id).eq('store_id',store.id).eq('status','paused');if(result.error)throw new Error('Não foi possível continuar sem a imagem.');
