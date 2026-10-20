@@ -1,6 +1,7 @@
 import { normalizePublicAssetUrl } from './public-links';
 import { publicImageObjectUrl } from './public-image-url';
 import previewManifest from './minio-preview-manifest.json';
+import staticPreviewManifest from './catalog-preview-manifest.json';
 
 /** Public images only. Uploads and private delivery URLs retain their own paths. */
 export function catalogImageUrl(value: string | null | undefined): string | null {
@@ -21,6 +22,9 @@ export function catalogThumbnailUrl(value: string | null | undefined): string | 
   if (!original) return null;
   try {
     const url = new URL(original);
+    // Only explicitly generated public previews are served as static CDN assets.
+    const staticHash = !url.search && !url.hash && (staticPreviewManifest as Record<string, string>)[url.href];
+    if (staticHash && /^[a-f0-9]{32}$/.test(staticHash)) return `https://www.educalizando.com.br/images/catalog-previews/${staticHash}.webp`;
     if (url.origin !== 'https://arquivos.educalizando.com.br' || url.search) return original;
     const hash = (previewManifest as Record<string, string>)[decodeURIComponent(url.pathname)];
     return hash && /^[a-f0-9]{32}$/.test(hash)

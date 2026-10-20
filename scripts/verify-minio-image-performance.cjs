@@ -24,6 +24,7 @@ const { catalogThumbnailUrl, catalogImageUrl } = load('src/lib/catalog-image-url
   './public-links': { normalizePublicAssetUrl: value => value },
   './public-image-url': load('src/lib/public-image-url.ts'),
   './minio-preview-manifest.json': { __esModule: true, default: { '/public-images/uploads/creator/logo.png': 'a'.repeat(32) } },
+  './catalog-preview-manifest.json': { __esModule: true, default: {} },
 });
 assert.equal(catalogImageUrl(original), original, 'Original resolver remains unchanged');
 assert.equal(catalogThumbnailUrl(original), 'https://arquivos.educalizando.com.br/public-images/uploads/previews/v1/'+ 'a'.repeat(32)+'.webp');
