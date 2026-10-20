@@ -12,7 +12,7 @@ Para importações pausadas anteriores, **Completar arquivos desde o início** i
 
 ## Banco
 
-Migration `supabase/migrations/20261020150000_platform_import_deliveries.sql`: usuário confirmou execução sem erros. Cria apenas uma tabela privada de proveniência e uma função transacional restrita ao `service_role`. A função exige loja, produto, etapa, lease vigente e rascunho importado; verifica as entregas existentes antes de gravar. Não modifica políticas existentes, checkout, webhooks ou permissões dos compradores. O servidor verifica a presença da função antes de copiar arquivos.
+Migration `supabase/migrations/20261020150000_platform_import_deliveries.sql`: usuário confirmou execução sem erros. Cria apenas uma tabela privada de proveniência e uma função transacional restrita ao `service_role`. A função exige loja, produto, etapa, lease vigente e rascunho importado; verifica as entregas existentes antes de gravar. Não modifica políticas existentes, checkout, webhooks ou permissões dos compradores. O servidor verifica a presença da função antes de copiar arquivos. O usuário também confirmou execução do complemento `20261020151000_platform_delivery_catalog_relation.sql`, que retira a relação redundante com lojas da nova tabela para evitar novos caminhos ambíguos no catálogo. A propriedade continua sendo conferida contra o produto bloqueado na transação.
 
 ## Arquivos alterados e motivos
 
@@ -23,6 +23,7 @@ Migration `supabase/migrations/20261020150000_platform_import_deliveries.sql`: u
 - `src/app/api/creator/platform-import/route.ts`: capacidade de entrega, contagem sem URLs e ação autenticada para revisitar a importação pausada.
 - `src/app/dashboard/importar-plataforma/page.tsx`: instruções corretas, contagem dos materiais disponíveis, aviso de ativação e botão para completar importações antigas.
 - `supabase/migrations/20261020150000_platform_import_deliveries.sql`: proveniência privada e gravação transacional que preserva alterações manuais.
+- `supabase/migrations/20261020151000_platform_delivery_catalog_relation.sql`: remove somente a FK redundante da nova tabela; mantém a FK do produto, suas políticas e a validação da loja.
 - `scripts/verify-platform-deliveries.cjs`: arquivos privados, links, token não encaminhado, DNS/redirecionamento, HTML, PDF e limite de tamanho.
 - `scripts/verify-saber-import.cjs`: adaptador e diagnóstico compatíveis com a versão nova.
 - `scripts/verify-saber-job.cjs`: etapas de entrega, repetição, preservação, falhas, migration ausente e nova passagem sem duplicação.

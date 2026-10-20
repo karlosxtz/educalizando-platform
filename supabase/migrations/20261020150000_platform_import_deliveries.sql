@@ -1,13 +1,16 @@
 BEGIN;
 -- Private provenance for imported deliveries. No existing policy is changed.
 CREATE TABLE IF NOT EXISTS public.platform_import_delivery_receipts (
- store_id uuid NOT NULL REFERENCES public.stores(id),
+ store_id uuid NOT NULL,
  product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
  file_id uuid NOT NULL,
  delivery_index integer NOT NULL CHECK(delivery_index>=0 AND delivery_index<100),
  target_url text NOT NULL,
  PRIMARY KEY(product_id,delivery_index), UNIQUE(file_id)
 );
+-- Store ownership is checked against the locked product by the RPC. Avoid a
+-- second stores/products relationship in PostgREST's catalog graph.
+ALTER TABLE public.platform_import_delivery_receipts DROP CONSTRAINT IF EXISTS platform_import_delivery_receipts_store_id_fkey;
 ALTER TABLE public.platform_import_delivery_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.platform_import_delivery_receipts FROM PUBLIC,anon,authenticated;
 GRANT ALL ON public.platform_import_delivery_receipts TO service_role;
