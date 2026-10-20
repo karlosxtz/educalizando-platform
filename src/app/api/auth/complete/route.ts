@@ -2,6 +2,7 @@ import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { attributeCreatorReferral } from '@/lib/creator-referral-service';
 import { NextResponse } from 'next/server';
+import { resolveAccountArea } from '@/lib/account-area';
 
 export async function POST(request: Request) {
   const user = await getRequestUser(request);
@@ -28,5 +29,10 @@ export async function POST(request: Request) {
     }
   }
   const admin = Boolean(process.env.SUPERADMIN_EMAIL && user.email?.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase());
-  return NextResponse.json({ destination: admin ? '/admin' : metadata.role === 'creator' ? '/dashboard' : '/cliente/dashboard' });
+  try {
+    const area = await resolveAccountArea(user, supabaseAdmin);
+    return NextResponse.json({ destination: admin ? '/admin' : area === 'creator' ? '/dashboard' : '/cliente/dashboard' });
+  } catch {
+    return NextResponse.json({ error: 'Não foi possível verificar o tipo da sua conta.' }, { status: 503 });
+  }
 }

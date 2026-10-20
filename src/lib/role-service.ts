@@ -17,7 +17,7 @@ export interface UserRoles {
  * REGRAS DE IDENTIDADE (independentes entre si):
  * - isCreator: possui loja em `stores` com `creator_id = userId`
  * - isAffiliate: possui pelo menos 1 registro em `affiliates` com `user_id = userId` OU metadata `role=affiliate`
- * - isStudent: qualquer usuário autenticado
+ * - isStudent: usuário autenticado que não é criador
  * 
  * IMPORTANTE: isCreator NÃO implica isAffiliate. isAffiliate NÃO implica isCreator.
  */
@@ -35,13 +35,15 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
 
   try {
     // 1. Verificar se possui loja (criador)
-    const { data: storeData } = await supabase
+    const { data: storeData, error: storeError } = await supabase
       .from('stores')
       .select('*')
       .eq('creator_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    if (storeError) throw new Error('Não foi possível verificar o perfil da conta.');
 
     if (storeData) {
       result.isCreator = true;
@@ -52,9 +54,10 @@ export async function resolveUserRoles(userId: string): Promise<UserRoles> {
     const { data: authData } = await supabase.auth.getUser();
     const isAffiliateRole = authData?.user?.user_metadata?.role === 'affiliate' || authData?.user?.user_metadata?.is_affiliate === true;
 
-    // Qualquer usuário autenticado tem inerentemente o direito de ser aluno
+    // Uma sessão válida não transforma uma conta de criador em cliente.
     if (authData?.user) {
-      result.isStudent = true;
+      const metadata = authData.user.user_metadata || {};
+      result.isStudent = !result.isCreator && !['creator', 'seller', 'admin'].includes(metadata.role) && metadata.is_creator !== true;
     }
 
     // 3. Verificar se possui afiliações ativas no banco (afiliado estrutural)

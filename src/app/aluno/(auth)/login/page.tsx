@@ -287,7 +287,7 @@ function StudentLoginForm() {
 
         <div className="pt-3 border-t border-slate-100 text-center">
           <Link href="/login" className="text-[11px] text-slate-400 font-bold hover:text-slate-700 transition-colors">
-            É criador de conteúdo? Acesse o Painel do Criador
+            Entrar como criador → Painel do Criador
           </Link>
         </div>
       </motion.div>

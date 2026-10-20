@@ -1,6 +1,7 @@
 import { allowsLocalDevelopmentFallback,getSupabaseConfigurationError,isRealSupabaseConfigured,signOutUser,supabase } from './supabase';
 import { getStudentPurchases } from './student-purchase-service';
 import { Store } from './types';
+import { CREATOR_CUSTOMER_LOGIN_MESSAGE, resolveAccountArea } from './account-area';
 
 export interface StudentAuthSession {
   isAuthenticated: boolean;
@@ -62,25 +63,13 @@ export async function getAuthenticatedUserRole(): Promise<StudentAuthSession> {
       const { data } = await supabase.auth.getUser();
       if (data && data.user) {
         const userMetadata = data.user.user_metadata || {};
-        const rawRole = userMetadata.role || (userMetadata.is_creator ? 'creator' : 'student');
-        let role: 'student' | 'creator' = (rawRole === 'creator' || rawRole === 'seller' || rawRole === 'admin') ? 'creator' : 'student';
-
-        // O perfil pode ter sido criado antes da flag de papel existir. A loja
-        // vinculada ao usuário é a fonte de verdade adicional para bloquear
-        // uma conta de criador de comprar materiais de consumo final.
-        if (role !== 'creator') {
-          const { data: creatorStore } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('creator_id', data.user.id)
-            .limit(1)
-            .maybeSingle();
-          if (creatorStore) role = 'creator';
-        }
+        const role = await resolveAccountArea(data.user, supabase);
 
         // Sincronizar localmente no navegador
         if (typeof window !== 'undefined' && role === 'student') {
           localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
+        } else if (typeof window !== 'undefined') {
+          localStorage.removeItem('educalizando_student_session');
         }
 
         return {
@@ -240,6 +229,16 @@ export async function signInStudent({ email, password }: { email: string; passwo
       throw new Error(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message);
     }
 
+    try {
+      if (!data.user) throw new Error('Não foi possível validar sua conta.');
+      if (await resolveAccountArea(data.user, supabase) !== 'student') throw new Error(CREATOR_CUSTOMER_LOGIN_MESSAGE);
+    } catch (accountError) {
+      // A senha válida cria uma sessão no Auth antes da checagem de área.
+      // Desfazê-la impede que uma tentativa recusada deixe o usuário conectado.
+      await signOutUser();
+      throw accountError;
+    }
+
     if (typeof window !== 'undefined' && data.user) {
       localStorage.setItem('educalizando_student_session', JSON.stringify(data.user));
       
@@ -284,7 +283,7 @@ export async function signOutStudent() {
 // 5. Obter Sessão Atual do Aluno
 export async function getCurrentStudentSession() {
   const authSession = await getAuthenticatedUserRole();
-  if (authSession.isAuthenticated) {
+  if (authSession.isAuthenticated && authSession.role === 'student') {
     return {
       id: authSession.userId || 'student-demo',
       email: authSession.email || 'aluno@educalizando.com',
