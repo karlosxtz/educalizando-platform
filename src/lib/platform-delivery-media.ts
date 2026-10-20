@@ -44,14 +44,22 @@ export async function mirrorPlatformDelivery(file: PlatformDelivery, storeId: st
     const fileHint = /\.(pdf|zip|docx?|pptx?|xlsx?|png|jpe?g|webp)(?:$|[?#])/i.test(file.name) || /\.(pdf|zip|docx?|pptx?|xlsx?|png|jpe?g|webp)$/i.test(url.pathname);
     if (mime === 'text/html' && !fileHint) { await response.body.cancel(); return { url: url.toString(), name: file.name, size: null, mimeType: null, external: true }; }
     if (!/^(application\/(pdf|zip|x-zip-compressed|octet-stream|msword|vnd\.[a-z0-9.+-]+)|image\/(jpeg|png|webp)|text\/plain)$/.test(mime)) { await response.body.cancel(); throw new Error('A entrega retornou uma página ou um formato incompatível, em vez do arquivo.'); }
-    if (Number(response.headers.get('content-length')) > MAX_DELIVERY_FILE_BYTES) { await response.body.cancel(); throw new Error('A entrega ultrapassa o limite de 15 MB por arquivo. Envie esse material manualmente.'); }
-    const reader = response.body.getReader(), chunks: Uint8Array[] = []; let size = 0;
+    const declared = Number(response.headers.get('content-length'));
+    if (declared > MAX_DELIVERY_FILE_BYTES) { await response.body.cancel(); throw new Error('A entrega ultrapassa o limite de 50 MB por arquivo. Divida o arquivo ou disponibilize o material por link.'); }
+    const reader = response.body.getReader(); let size = 0;
+    // Keep a single destination buffer instead of retaining every chunk and
+    // then duplicating a complete 50 MB file in the Worker's memory.
+    let buffer = new Uint8Array(Number.isSafeInteger(declared) && declared > 0 ? declared : MAX_DELIVERY_FILE_BYTES);
     try {
-      while (true) { const { value, done } = await reader.read(); if (done) break; size += value.byteLength; if (size > MAX_DELIVERY_FILE_BYTES) throw new Error('A entrega ultrapassa o limite de 15 MB por arquivo. Envie esse material manualmente.'); chunks.push(value); }
+      while (true) {
+        const { value, done } = await reader.read(); if (done) break;
+        if (size + value.byteLength > MAX_DELIVERY_FILE_BYTES) throw new Error('A entrega ultrapassa o limite de 50 MB por arquivo. Divida o arquivo ou disponibilize o material por link.');
+        if (size + value.byteLength > buffer.byteLength) { const expanded = new Uint8Array(MAX_DELIVERY_FILE_BYTES); expanded.set(buffer.subarray(0, size)); buffer = expanded; }
+        buffer.set(value, size); size += value.byteLength;
+      }
     } finally { await reader.cancel().catch(() => {}); }
     if (!size) throw new Error('A entrega retornou um arquivo vazio.');
-    const body = new Uint8Array(size); let offset = 0;
-    for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
+    const body = buffer.subarray(0, size);
     const head = new TextDecoder().decode(body.subarray(0, 1024));
     if (/^\s*(<!doctype\s+html|<html|<script)/i.test(head)) throw new Error('A entrega retornou uma página de acesso em vez do arquivo.');
     const pdf = /%PDF-/.test(head), zip = body[0] === 80 && body[1] === 75;

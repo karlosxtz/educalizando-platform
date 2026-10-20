@@ -1,6 +1,6 @@
 import { ProductDeliveryFile } from '@/lib/types';
 
-export const MAX_DELIVERY_FILE_BYTES = 15 * 1024 * 1024;
+export const MAX_DELIVERY_FILE_BYTES = 50 * 1024 * 1024;
 
 export function normalizeDeliveryFiles(value: unknown): ProductDeliveryFile[] {
   if (!Array.isArray(value)) return [];
@@ -18,7 +18,7 @@ export function normalizeDeliveryFiles(value: unknown): ProductDeliveryFile[] {
 
 export function validateDeliveryFiles(files: ProductDeliveryFile[]) {
   const oversized = files.find((file) => typeof file.size === 'number' && file.size > MAX_DELIVERY_FILE_BYTES);
-  if (oversized) throw new Error(`O arquivo ${oversized.name} ultrapassa o limite de 15 MB.`);
+  if (oversized) throw new Error(`O arquivo ${oversized.name} ultrapassa o limite de 50 MB.`);
 }
 
 export function deliveryRows(productId: string, type: 'original' | 'plr', files: ProductDeliveryFile[]) {

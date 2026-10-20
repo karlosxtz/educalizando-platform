@@ -1,12 +1,13 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 function load(file,mocks={},globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:key=>mocks[key]||require(key),URL,Response,Request,Uint8Array,TextDecoder,AbortSignal,console,...globals});return exports;}
 const contract=load('src/lib/platform-delivery-contract.ts');
+const limits=load('src/lib/product-delivery-files.ts');assert.equal(limits.MAX_DELIVERY_FILE_BYTES,50*1024*1024);
 const file={name:'Atividade.pdf',url:'https://source.example.org/file.pdf?signature=private-test-value'};
 assert.equal(contract.platformDeliveries([file,file]).length,1);
 for(const url of ['http://example.org/a.pdf','https://user:pass@example.org/a.pdf','javascript:alert(1)'])assert.throws(()=>contract.platformDeliveries([{...file,url}]));
 assert.throws(()=>contract.platformDeliveries(Array.from({length:101},()=>file)));
 let uploads=[],calls=[],response=()=>new Response('%PDF-1.7\nfixture',{headers:{'content-type':'application/pdf'}}),addresses=[{address:'8.8.8.8'}];
-const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remote-addresses':{resolveRemoteAddresses:async()=>addresses},'./object-storage':{resolveBucket:kind=>{assert.equal(kind,'product-files');return 'private-materials';},uploadObject:async value=>uploads.push(value)},'./product-delivery-files':{MAX_DELIVERY_FILE_BYTES:15*1024*1024}},{fetch:async(url,options)=>{calls.push({url:url.toString(),options});return response();}});
+const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remote-addresses':{resolveRemoteAddresses:async()=>addresses},'./object-storage':{resolveBucket:kind=>{assert.equal(kind,'product-files');return 'private-materials';},uploadObject:async value=>uploads.push(value)},'./product-delivery-files':limits},{fetch:async(url,options)=>{calls.push({url:url.toString(),options});return response();}});
 (async()=>{
  const result=await media.mirrorPlatformDelivery(file,'store-a','product-a',0);
  assert(result.url.startsWith('minio://private-materials/platform-imports/store-a/product-a/deliveries/0-'));assert.equal(result.mimeType,'application/pdf');
@@ -24,10 +25,19 @@ const media=load('src/lib/platform-delivery-media.ts',{'server-only':{},'./remot
  response=()=>new Response(null,{status:302,headers:{location:'https://127.0.0.1/a.pdf'}});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/HTTPS público/);
  response=()=>new Response('<html>Login</html>',{headers:{'content-type':'application/octet-stream'}});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/página/);
  response=()=>new Response('not-pdf',{headers:{'content-type':'application/pdf'}});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/PDF válido/);
- response=()=>new Response('bytes',{headers:{'content-type':'application/pdf','content-length':String(15*1024*1024+1)}});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/15 MB/);
+ response=()=>new Response('bytes',{headers:{'content-type':'application/pdf','content-length':String(50*1024*1024+1)}});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/50 MB/);
  response=()=>new Response('no',{status:403});await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/não pôde ser baixada/);
- const sql=fs.readFileSync('supabase/migrations/20261020150000_platform_import_deliveries.sql','utf8');
+ uploads=[];
+ const large=new Uint8Array(50*1024*1024);large.set(new TextEncoder().encode('%PDF-1.7\n'));
+ response=()=>new Response(large,{headers:{'content-type':'application/pdf','content-length':String(large.byteLength)}});
+ const largeResult=await media.mirrorPlatformDelivery(file,'s','p',0);assert.equal(largeResult.size,50*1024*1024);assert.equal(uploads[0].body.byteLength,50*1024*1024);
+ limits.validateDeliveryFiles([{url:largeResult.url,name:'Grande.pdf',size:largeResult.size}]);
+ assert.throws(()=>limits.validateDeliveryFiles([{url:'test',name:'Grande.pdf',size:50*1024*1024+1}]),/50 MB/);
+ response=()=>new Response(new ReadableStream({start(controller){controller.enqueue(large);controller.enqueue(new Uint8Array(1));controller.close();}}),{headers:{'content-type':'application/pdf'}});
+ await assert.rejects(()=>media.mirrorPlatformDelivery(file,'s','p',0),/50 MB/);
+ const sql=fs.readFileSync('supabase/migrations/20261020160000_platform_import_50mb.sql','utf8');
  assert(sql.includes("status='rascunho' AND import_incomplete=true FOR UPDATE"));assert(sql.includes('r.target_url=f.file_url'));assert(sql.includes("lease_until>now()"));
+ assert(sql.includes('52428800'));assert(!sql.includes('15728640'));
  assert(sql.includes('FROM PUBLIC,anon,authenticated'));assert(!/CREATE POLICY|DROP POLICY/i.test(sql));
- console.log('PASS platform deliveries: confirmed files contract, private upload, stable retry, external links, token isolation, redirect/DNS SSRF guards, HTML rejection, PDF signature, 15 MB cap and transactional ownership/preservation contract.');
+ console.log('PASS platform deliveries: confirmed files contract, private upload, stable retry, external links, token isolation, redirect/DNS SSRF guards, HTML rejection, PDF signature, 50 MB cap and transactional ownership/preservation contract.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
