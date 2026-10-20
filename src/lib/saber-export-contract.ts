@@ -1,4 +1,5 @@
 import { readableProductDescription } from './product-description';
+import { platformDeliveryFields } from './platform-delivery-diagnostics';
 import { presentationVideo } from './presentation-video';
 import { saberProductPrice, saberPriceFields } from './saber-product-price';
 export const SABER_EXPORT_URL='https://saberdidatico.com.br/api/public/sync/seller-products';
@@ -79,5 +80,5 @@ export function parseSaberExport(payload:unknown,currentUrl=SABER_EXPORT_URL) {
     inferredNext=true;
   }
   if(hasMore===true && !nextUrl)throw new Error('A API informou mais produtos, mas não forneceu uma continuação reconhecida.');
-  return {owner,label:text(value(seller,'name','nome','store_name','nome_loja','username')) || 'Loja autorizada pelo token',products,nextUrl,inferredNext,total,priceFields:[...new Set(list.slice(0,5).flatMap(saberPriceFields))].slice(0,40)};
+  return {owner,label:text(value(seller,'name','nome','store_name','nome_loja','username')) || 'Loja autorizada pelo token',products,nextUrl,inferredNext,total,priceFields:[...new Set(list.slice(0,5).flatMap(saberPriceFields))].slice(0,40),deliveryFields:[...new Set(list.slice(0,5).flatMap(item=>platformDeliveryFields(row(item))))].slice(0,60)};
 }

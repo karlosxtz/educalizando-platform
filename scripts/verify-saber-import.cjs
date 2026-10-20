@@ -1,6 +1,9 @@
 const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript'),assert=require('node:assert/strict');
 function load(file,mocks={},globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:name=>Object.hasOwn(mocks,name)?mocks[name]:require(name),URL,URLSearchParams,Response,Request,AbortSignal,TextDecoder,Uint8Array,console,crypto:require('node:crypto').webcrypto,...globals});return exports;}
-const contract=load('src/lib/saber-export-contract.ts',{'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts'),'./presentation-video':load('src/lib/presentation-video.ts')});
+const deliveryDiagnostic=load('src/lib/platform-delivery-diagnostics.ts');
+const contract=load('src/lib/saber-export-contract.ts',{'./platform-delivery-diagnostics':deliveryDiagnostic,'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts'),'./presentation-video':load('src/lib/presentation-video.ts')});
+const deliverySchema=deliveryDiagnostic.platformDeliveryFields({downloads:[{url:'https://private.example.test/a.pdf?token=secret',name:'private-filename',token:'secret'}],file_url:'https://private.example.test/a.pdf',customers:[{email:'private@example.test'}],secret:'secret'}).join('\n');
+assert.match(deliverySchema,/downloads\[\]\.url: string/);assert.match(deliverySchema,/file_url: string/);assert.doesNotMatch(deliverySchema,/https:|private|secret|token|customers|email/);
 const storageErrors=load('src/lib/saber-import-errors.ts');
 assert.match(storageErrors.saberImportStorageMessage({code:'42703'}),/seen_ids/);
 assert.match(storageErrors.saberImportStorageMessage({code:'PGRST204'}),/estrutura/);
