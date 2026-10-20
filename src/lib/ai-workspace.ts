@@ -1,3 +1,4 @@
+import { MAX_PRODUCT_TAGS } from './product-tags';
 export type AiEditorialValues = { title: string; description: string; tags: string[]; themes: string[]; categoryId: string; educationLevelId: string; ageRange: string; formatDetails: string };
 export type AiWorkInput = { productId: string; target: 'product' | 'plr'; productTitle: string; sourceUpdatedAt?: string | null; values: AiEditorialValues; baseline: AiEditorialValues };
 export type AiWork = AiWorkInput & { id: string; at: number; kind: 'draft' | 'generated' | 'edited' | 'before-save' | 'saved' };
@@ -8,7 +9,7 @@ const text = (value: unknown, max: number) => typeof value === 'string' ? value.
 const list = (value: unknown, max: number) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, max).map(item => item.slice(0, 120)) : [];
 const values = (value: unknown): AiEditorialValues => {
   const row = value && typeof value === 'object' ? value as Record<string, unknown> : {};
-  return { title: text(row.title, 160), description: text(row.description, 8000), tags: list(row.tags, 10), themes: list(row.themes, 48), categoryId: text(row.categoryId, 80), educationLevelId: text(row.educationLevelId, 80), ageRange: text(row.ageRange, 120), formatDetails: text(row.formatDetails, 180) };
+  return { title: text(row.title, 160), description: text(row.description, 8000), tags: list(row.tags, MAX_PRODUCT_TAGS), themes: list(row.themes, 48), categoryId: text(row.categoryId, 80), educationLevelId: text(row.educationLevelId, 80), ageRange: text(row.ageRange, 120), formatDetails: text(row.formatDetails, 180) };
 };
 export function editorialFromProduct(product: Record<string, any>, target: 'product' | 'plr'): AiEditorialValues {
   return values({ title: product.titulo || '', description: target === 'plr' ? product.plr_descricao || '' : product.descricao || '', tags: product.tags || [], themes: product.seasonal_tags || [], categoryId: product.category_id || '', educationLevelId: product.education_level_id || '', ageRange: product.age_range || '', formatDetails: product.format_details || '' });

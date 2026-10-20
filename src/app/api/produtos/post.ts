@@ -1,4 +1,5 @@
 import { presentationVideo } from '@/lib/presentation-video';
+import { normalizeProductTags } from '@/lib/product-tags';
 import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
 import { getRequestUser } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -207,7 +208,7 @@ export async function POST(request: Request) {
       instagram_video_url: normalizedInstagramVideoUrl,
       presentation_video_url: publicVideo?.url || null, video_as_cover,
       seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
-      tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
+      tags: Array.isArray(tags) ? normalizeProductTags(tags.filter((tag) => typeof tag === 'string')) : [],
       created_at: new Date().toISOString()
     };
 
@@ -271,7 +272,7 @@ export async function POST(request: Request) {
         instagram_video_url: normalizedInstagramVideoUrl,
       presentation_video_url: publicVideo?.url || null, video_as_cover,
         seasonal_tags: Array.isArray(seasonal_tags) ? seasonal_tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 48) : [],
-        tags: Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string').map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20) : [],
+        tags: Array.isArray(tags) ? normalizeProductTags(tags.filter((tag) => typeof tag === 'string')) : [],
         created_at: new Date().toISOString()
       };
 

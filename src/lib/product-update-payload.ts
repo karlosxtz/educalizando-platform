@@ -1,3 +1,5 @@
+import { normalizeProductTags } from './product-tags';
+
 /** Only creator-editable fields may be written by the privileged API client. */
 const editableFields = new Set([
   'titulo', 'descricao', 'tipo', 'preco', 'preco_original', 'is_free', 'is_plr',
@@ -10,7 +12,9 @@ const editableFields = new Set([
 ]);
 
 export function editableProductUpdates(value: Record<string, unknown>): Record<string, any> {
-  return Object.fromEntries(Object.entries(value).filter(([key]) => editableFields.has(key)));
+  const updates = Object.fromEntries(Object.entries(value).filter(([key]) => editableFields.has(key)));
+  if ('tags' in updates) updates.tags = Array.isArray(updates.tags) ? normalizeProductTags(updates.tags.filter((tag): tag is string => typeof tag === 'string')) : [];
+  return updates;
 }
 
 export function validDeliveryInput(value: unknown): boolean {

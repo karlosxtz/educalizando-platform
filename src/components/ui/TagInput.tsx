@@ -1,13 +1,13 @@
 'use client';
 
-import { normalizeProductTags } from '@/lib/product-tags';
+import { MAX_PRODUCT_TAGS, normalizeProductTags } from '@/lib/product-tags';
 import { X } from 'lucide-react';
 import { useState,type KeyboardEvent } from 'react';
 
 export default function TagInput({
   value,
   onChange,
-  maxTags = 10,
+  maxTags = MAX_PRODUCT_TAGS,
   placeholder,
 }: {
   value: string[];

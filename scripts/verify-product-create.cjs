@@ -19,6 +19,7 @@ const db={from(table){
  };return query;
 }};
 const delivery=load('src/lib/product-delivery-files.ts',{});
+const productTags=load('src/lib/product-tags.ts',{});
 const mocks={
  '@/lib/presentation-video':load('src/lib/presentation-video.ts',{}),
  '@/lib/public-cache-invalidation':{invalidatePublicCatalog:async()=>true},
@@ -26,13 +27,15 @@ const mocks={
  'next/server':{NextResponse:Response,after:fn=>pending.push(fn)},'next/cache':{revalidatePath(){}},
  '@/lib/woocommerce-service':{syncSavedProductToWoo:async()=>{throw new Error('External sync unavailable');}},
  '@/lib/product-delivery-files':delivery,
- '@/lib/product-update-payload':load('src/lib/product-update-payload.ts',{}),
+ '@/lib/product-tags':productTags,
+ '@/lib/product-update-payload':load('src/lib/product-update-payload.ts',{'./product-tags':productTags}),
  '@/lib/product-relations-write':load('src/lib/product-relations-write.ts',{}),
  './helpers':{isValidUUID:value=>/^[0-9a-f-]{36}$/i.test(value||''),isValidProductPrice:()=>true,isValidAffiliateRate:()=>true,
  PRODUCT_TYPES:new Set(['pdf']),PRODUCT_STATUSES:new Set(['publicado']),sanitizeUUIDList:()=>[],sanitizeUUID:x=>x,normalizeInstagramVideoUrl:()=>null,normalizePreviewUrl:()=>null,uniqueProductSlug:async()=> 'teste'},
 };
 const route=load('src/app/api/produtos/post.ts',mocks);
 const payload={store_id:store,titulo:'Teste de cadastro',tipo:'pdf',preco:9,status:'publicado',color_mode:'colorido',arquivo_url:'minio://private-materials/uploads/test.pdf',creation_request_id:id};
+payload.tags=Array.from({length:51},(_,index)=>`tag-${index}`);
 async function submit(){return route.POST(new Request('https://www.educalizando.com.br/api/produtos',{method:'POST',body:JSON.stringify(payload)}));}
 (async()=>{
  failDelivery=true;
@@ -41,6 +44,8 @@ async function submit(){return route.POST(new Request('https://www.educalizando.
  failDelivery=false;
  for(let i=0;i<2;i++){const result=await submit();assert.equal(result.status,200);assert.equal((await result.json()).product.id,id);}
  assert.equal(rows.get(id).status,'publicado','Only complete deliveries can be published');
+ assert.equal(rows.get(id).tags.length,50,'Creation and recovery retain all 50 tags and cap an extra tag');
+ assert.equal(rows.get(id).tags[49],'tag-49');
  assert.equal(rows.size,1,'Retries resume the original product');assert.equal(fileWrites,2);
  const recovery=load('src/lib/product-save-recovery.ts',{});
  assert.equal(recovery.completedProductSave(rows.get(id),payload,[{delivery_type:'original',file_url:payload.arquivo_url}]),true);

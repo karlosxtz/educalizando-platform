@@ -1,4 +1,6 @@
-export function normalizeProductTags(values: string[], limit = 10) {
+export const MAX_PRODUCT_TAGS = 50;
+
+export function normalizeProductTags(values: string[], limit = MAX_PRODUCT_TAGS) {
   const normalized: string[] = [];
   for (const value of values) {
     for (const part of value.split(/[,;\n\t\s]+/)) {

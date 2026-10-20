@@ -1,4 +1,5 @@
 'use client';
+import { MAX_PRODUCT_TAGS } from '@/lib/product-tags';
 
 import { motion } from 'framer-motion';
 import {
@@ -175,8 +176,8 @@ export default function ProductWizardStepOne({ state }: { state: any }) {
 
                 <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4">
                   <label className="text-xs font-bold uppercase tracking-wider text-violet-900 block">Tags de busca do produto</label>
-                  <p className="mt-1 text-xs text-slate-500">Digite uma tag e use vírgula, espaço ou Enter para confirmar. Cada tag confirmada ficará destacada abaixo. Use até 10 tags.</p>
-                  <TagInput value={productTags} onChange={setProductTags} maxTags={10} placeholder="Ex.: alfabetização, jardim, exploradores" />
+                  <p className="mt-1 text-xs text-slate-500">Digite uma tag e use vírgula, espaço ou Enter para confirmar. Cada tag confirmada ficará destacada abaixo. Use até {MAX_PRODUCT_TAGS} tags.</p>
+                  <TagInput value={productTags} onChange={setProductTags} maxTags={MAX_PRODUCT_TAGS} placeholder="Ex.: alfabetização, jardim, exploradores" />
                 </div>
 
                 {isSeasonalPickerOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">

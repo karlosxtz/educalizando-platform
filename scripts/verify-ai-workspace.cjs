@@ -3,7 +3,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 function load(file, mocks = {}) { const exports = {}; vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText, { exports, require: name => mocks[name] || require(name), console, Date, Set, Uint16Array }); return exports; }
-const storageModule = load('src/lib/ai-workspace.ts');
+const productTags = load('src/lib/product-tags.ts');
+const storageModule = load('src/lib/ai-workspace.ts', { './product-tags': productTags });
+const fiftyTags = Array.from({length:50},(_,index)=>`tag-${index}`);
+assert.equal(storageModule.editorialFromProduct({tags:fiftyTags},'product').tags.length,50);
 const grounding = load('src/lib/ai-marketing-grounding.ts');
 const review = load('src/lib/ai-editor-review.ts', { './ai-marketing-grounding': grounding });
 const memory = new Map(); const storage = { getItem: key => memory.get(key) || null, setItem: (key, value) => memory.set(key, value) };
@@ -68,7 +71,8 @@ buttons[6].props.onClick();assert.equal(chosenBrief,'');
 const writingHtml=renderToStaticMarkup(React.createElement(writing.AiWritingOptions,{style:presets.AI_WRITING_PRESETS[0].style,brief:presets.AI_WRITING_PRESETS[0].brief,disabled:true,onStyle(){},onBrief(){}}));
 assert.ok(writingHtml.includes('Revisão completa')&&writingHtml.includes('Selecionada')&&writingHtml.includes('disabled'));
 
-const fill=load('src/lib/ai-seo-fill.ts');
+const fill=load('src/lib/ai-seo-fill.ts', { './product-tags': productTags });
+assert.equal(fill.fillAiSeoProposal(baseline,{tags:fiftyTags},'product').tags.length,50);
 const filled=fill.fillAiSeoProposal(baseline,{titles:['curto','Material pedagógico sobre emoções para imprimir'],description:'Descrição proposta',tags:['emoções'],categoryId:'cat',educationLevelId:'level'},'product');
 assert.equal(filled.title,'Material pedagógico sobre emoções para imprimir');assert.equal(filled.categoryId,'cat');
 assert.equal(fill.fillAiSeoProposal(baseline,{titles:['Novo'],description:'Licença revisada',tags:['novas']},'plr').title,baseline.title);
@@ -85,8 +89,8 @@ const editorTree=editor.AiProductEditor({proposal:{titles:['Material pedagógico
 function findFill(node){if(!node)return null;if(Array.isArray(node)){for(const child of node){const found=findFill(child);if(found)return found;}}else if(node.props){if(node.type===fillPanel.AiSeoFillPanel)return node;return findFill(node.props.children);}return null;}
 findFill(editorTree).props.onFill();assert.equal(actualFields.Description,'Descrição proposta');assert.equal(actualFields.CategoryId,'cat');assert.equal(actualFields.EducationLevelId,'level');assert.match(feedback,/Ajustes preenchidos/);
 const imageStates=[false,false];let imageHook=0;
-const imageComponent=load('src/components/ui/CatalogImage.tsx',{'react':{...React,useState:()=>{const index=imageHook++;return [imageStates[index],value=>imageStates[index]=value];}},'@/lib/catalog-image-url':{catalogImageUrl:()=>'/media/catalogo/uploads/test.webp'}});
+const imageComponent=load('src/components/ui/CatalogImage.tsx',{'react':{...React,useState:()=>{const index=imageHook++;return [imageStates[index],value=>imageStates[index]=value];}},'@/lib/catalog-image-url':{catalogImageUrl:()=>'/media/catalogo/uploads/test.webp',catalogThumbnailUrl:()=>'/media/catalogo/previews/test.webp'}});
 const imageElement=imageComponent.default({src:'https://arquivos.educalizando.com.br/public-images/uploads/test.webp',alt:'Capa'});
-let imageAttempt=imageElement.type(imageElement.props);assert.equal(imageAttempt.props.src,'/media/catalogo/uploads/test.webp');imageAttempt.props.onError();imageHook=0;
-imageAttempt=imageElement.type(imageElement.props);assert.equal(imageAttempt.props.src,'/media/catalogo/uploads/test.webp?image_retry=1');imageAttempt.props.onError();imageHook=0;
+let imageAttempt=imageElement.type(imageElement.props);assert.equal(imageAttempt.props.src,'/media/catalogo/previews/test.webp');imageAttempt.props.onError();imageHook=0;
+imageAttempt=imageElement.type(imageElement.props);assert.equal(imageAttempt.props.src,'/media/catalogo/uploads/test.webp');imageAttempt.props.onError();imageHook=0;
 imageAttempt=imageElement.type(imageElement.props);assert.equal(imageAttempt.type,'div','Only one automatic retry, then a readable fallback rather than broken img');

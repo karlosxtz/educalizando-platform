@@ -1,4 +1,5 @@
 import { invalidatePublicCatalog } from '@/lib/public-cache-invalidation';
+import { MAX_PRODUCT_TAGS } from '@/lib/product-tags';
 import { calculateProductSeoScore } from '@/lib/product-seo-score';
 import { getRequestUser } from '@/lib/api-auth';
 import { platformPublicImageUrl,resolveBucket,uploadObject } from '@/lib/object-storage';
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       ...(nextTitle ? { titulo: nextTitle } : {}),
       ...(typeof change.descricao === 'string' && change.descricao.trim() ? { descricao: change.descricao.trim().slice(0, 8000) } : {}),
       ...(typeof change.plr_descricao === 'string' && change.plr_descricao.trim() ? { plr_descricao: change.plr_descricao.trim().slice(0, 8000) } : {}),
-      ...(Array.isArray(change.tags) ? { tags: strings(change.tags, 10).map(tag => tag.toLowerCase()) } : {}),
+      ...(Array.isArray(change.tags) ? { tags: strings(change.tags, MAX_PRODUCT_TAGS).map(tag => tag.toLowerCase()) } : {}),
       ...(Array.isArray(change.seasonal_tags) ? { seasonal_tags: strings(change.seasonal_tags, 48) } : {}),
       ...(change.category_id === null || uuid(change.category_id) ? { category_id: uuid(change.category_id) } : {}),
       ...(change.education_level_id === null || uuid(change.education_level_id) ? { education_level_id: uuid(change.education_level_id) } : {}),
