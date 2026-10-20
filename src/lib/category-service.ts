@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Category,EducationLevel } from './types';
+import { BnccSkill,Category,EducationLevel } from './types';
 
 // Initial Mock Seed Data for Local Development
 // Initial Global Seed Data with valid UUIDs
@@ -259,13 +259,19 @@ export async function getBnccSkills() {
 
   if (isRealSupabase) {
     try {
-      const { data, error } = await supabase
-        .from('bncc_skills')
-        .select('*')
-        .order('code', { ascending: true });
+      const skills: BnccSkill[] = [];
+      // O catálogo excede o limite de linhas de uma única resposta do Supabase.
+      // Avançar pelo tamanho recebido também respeita limites menores no servidor.
+      while (true) {
+        const { data, error } = await supabase
+          .from('bncc_skills')
+          .select('*')
+          .order('code', { ascending: true })
+          .range(skills.length, skills.length + 499);
 
-      if (!error && data) {
-        return data;
+        if (error) throw error;
+        if (!data?.length) return skills;
+        skills.push(...data);
       }
     } catch (err) {
       console.error('[getBnccSkills] Erro:', err);
