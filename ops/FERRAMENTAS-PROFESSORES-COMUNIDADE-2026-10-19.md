@@ -43,3 +43,9 @@ Buscas salvas mantêm somente filtros permitidos, nome e consentimento. Consulta
 ## Verificação
 
 Testes de isolamento e regras em `node scripts/verify-teaching-workspace.cjs`. Regressões: seis melhorias anteriores, crescimento do comprador, relações do catálogo e temas. Lint completo, typecheck Vinext e build de produção + Wrangler dry-run são obrigatórios antes da publicação. Registros em `.cloudflare/teaching-tools-*.log` (ignorados pelo Git).
+
+Resultado: lint completo aprovado (0 erros, 14 avisos preexistentes), typecheck aprovado e build Vinext + Wrangler dry-run aprovado. Todos os testes citados passaram. Publicação do código `fd24442` confirmada pela abertura das novas rotas no domínio canônico.
+
+Conferência no navegador autenticado: enquetes e perguntas carregaram os estados vazios sem erro de banco; buscas salvas também carregaram corretamente. Na página real de “60 FICHAS DE LEITURA”, a calculadora exibiu 75 lados, 50 folhas e R$ 15,00 para 25 alunos, 3 páginas e R$ 0,20 por lado em frente e verso. O botão de planejamento abriu a área privada com esse material já selecionado. Sem transbordamento horizontal na largura observada de 862 px. Captura: `.cloudflare/teaching-planner-live.png`.
+
+Limite da conferência: o navegador foi desativado nas configurações do Work antes do teste de salvar/recarregar um plano e uma busca. Não foram criadas perguntas, votos ou enquetes fictícias na produção. As regras de gravação e propriedade foram verificadas pelos testes automatizados; não declarar gravação completa via interface como validada. Impressão/PDF e telas estreitas de celular ainda não foram conferidas visualmente.
