@@ -10,7 +10,7 @@ export const SCHOOL_CALENDAR_TAGS = [
   'Dia dos Animais', 'Dia das Crianças', 'Dia dos Professores', 'Dia do Médico', 'Halloween', '31 de outubro – Dia da Reforma Protestante',
   'Setembro Amarelo', 'Outubro Rosa', 'Dia da Consciência Negra', 'Proclamação da República', 'Dia da Bandeira', 'Natal', 'Ano Novo',
   'Formatura', 'Cabelo Maluco', 'Dia do Brinquedo', 'Dia do Amigo', 'Dia da Polícia',
-  'Educação no Trânsito', 'Educação Financeira', 'Alimentação Saudável', 'Saúde Bucal', 'Inclusão e Acessibilidade',
+  'Educação no Trânsito', 'Educação Financeira', 'Alimentação Saudável', 'Dia da Alimentação Saudável', 'Saúde Bucal', 'Inclusão e Acessibilidade',
   'Cultura Afro-Brasileira', 'Cultura Indígena', 'Semana da Criança', 'Projeto de Leitura', 'Projeto de Ciências',
   'Dia Mundial da Saúde', 'Dia da Terra',
 ] as const;
