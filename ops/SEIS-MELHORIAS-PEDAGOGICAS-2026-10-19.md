@@ -48,3 +48,13 @@ Não requer nova migration. Não altera RLS, regras de acesso, checkout, preços
 ## Validação técnica
 
 Executados testes dedicados das seis melhorias e regressões de compradores, home, temas e seleção de produtos. Consulta anônima real dos campos pedagógicos validada sem chave administrativa. Lint integral, TypeScript Vinext e build de produção com validação Wrangler dry-run fazem parte da liberação.
+
+## Conferência real após publicação
+
+- Loja de revisão autenticada: auditoria concluiu o material disponível, confirmou capa de 31 KB e sugeriu prévia ausente. Não houve edição do cadastro.
+- Assistente: busca por leitura no 1º ano retornou materiais; o filtro de 7 anos reconheceu a faixa cadastrada como “5 a 7”.
+- Comparador: dois materiais selecionados, tabela com valores reais e campos ausentes identificados; remoção de coluna atualizou URL e seleção. A seleção de teste foi limpa.
+- Blog: roteiro abriu e listou somente o produto da loja autenticada. Nenhum artigo foi salvo ou publicado durante a conferência.
+- Métricas: painel carregou sem alerta de erro; prioridades só aparecem quando há sinais suficientes.
+- Biblioteca: nova busca carregou o estado sem compras da conta de revisão. Não foi criada compra real, baixado arquivo pago ou publicada avaliação durante o teste. Autorização e convite por pedido pago cobertos pelos testes automatizados.
+- Endpoints de auditoria e convite retornaram 401 em consultas sem autenticação.
