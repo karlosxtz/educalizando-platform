@@ -21,3 +21,9 @@ Sem migration. Sem alteração de RLS, isolamento, pedidos, checkout, Asaas ou w
 ## Verificação
 
 Lint completo, typecheck Vinext, build de produção + Wrangler dry-run. Regressões: `verify-six-improvements.cjs`, `verify-buyer-growth.cjs`, `verify-teaching-workspace.cjs` e `verify-store-themes.cjs`. Logs locais ignorados em `.cloudflare/commerce-premium-*.log`.
+
+Conferência inicial em produção: nova busca por objetivo exibida e consulta “leitura” retornou 59 correspondências no cadastro naquele momento. Comparação com dois produtos reais manteve os preços de R$ 6,90 e R$ 12,90; a barra flutuante não é renderizada na página `/comparar`. Um título excepcionalmente longo encontrado nessa conferência motivou a padronização da altura dos títulos das colunas em até três linhas, evitando deslocar preço e botão.
+
+Rolagem no combo `776a7499-2e18-45be-842f-55faf28ef4ef` e no produto `60-fichas-de-leitura`, em viewport efetivamente reportado de 1280 × 720: cabeçalho termina em 130,4 px, cartão de compra começa em 147 px e termina em 700 px após rolar a página. Sem transbordamento horizontal nos dois. O conteúdo excedente do cartão continua alcançável por rolagem própria, sem bloquear o encadeamento da rolagem da página. Nenhuma compra ou cupom foi enviado.
+
+Capturas locais: `.cloudflare/finder-premium-desktop.png`, `.cloudflare/kit-price-aligned.png` e `.cloudflare/compare-premium-desktop.png`. A última captura antecede a correção do título muito longo. O controle de viewport anunciado pelo navegador não refletiu os tamanhos solicitados; não afirmar validação de celular com base nesse controle. A sessão da área do cliente expirou e foi solicitado login para validar a biblioteca real.

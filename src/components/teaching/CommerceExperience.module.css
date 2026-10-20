@@ -16,7 +16,7 @@
 .compareTable tbody tr:nth-child(odd)>*{background:#f8fafc}
 .compareTable tbody th{font-size:11px;color:#536d82;font-weight:750;width:140px}
 .compareTable th:first-child{width:145px;background:#f6f8fb}
-.compareTable h2{font-size:15px;font-weight:750;line-height:1.6;letter-spacing:-.015em;margin:12px 0}
+.compareTable h2{font-size:15px;font-weight:750;line-height:1.6;letter-spacing:-.015em;margin:12px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:72px;max-height:72px}
 .compareCover{height:175px;width:100%;border-radius:20px;object-fit:contain;background:#f5f6fa;padding:8px}
 .comparePrice{font-size:25px;font-weight:800;color:#173e56;letter-spacing:-.04em;line-height:1.5;margin:12px 0}
 .compareDetail{margin-top:8px;font-size:11px;color:#65778b}.compareDetail summary{cursor:pointer;font-weight:700;color:#7154a8;min-height:32px}.compareDetail p{margin-top:8px;white-space:pre-line;font-size:12px}
