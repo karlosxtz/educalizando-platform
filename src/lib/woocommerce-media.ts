@@ -5,6 +5,7 @@ import { resolveRemoteAddresses } from '@/lib/remote-addresses';
 import { isIP } from 'node:net';
 import { platformPublicImageUrl,platformPublicMediaUrl,resolveBucket,uploadObject } from '@/lib/object-storage';
 import { optimizeProductImage } from '@/lib/product-image-optimizer';
+import { originalPublicImage, RemoteImageHttpError } from './platform-image-recovery';
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -33,7 +34,8 @@ async function download(input: string, allowed: RegExp, maxBytes: number) {
       url = await safeRemoteUrl(new URL(location, url).toString());
       continue;
     }
-    if (!response.ok || !response.body) throw new Error(`Não foi possível baixar a mídia (${response.status}).`);
+    if (!response.ok) { await response.body?.cancel(); throw new RemoteImageHttpError(response.status); }
+    if (!response.body) throw new Error('Não foi possível baixar a mídia: resposta vazia.');
     const contentType = (response.headers.get('content-type') || 'application/octet-stream').split(';')[0].trim().toLowerCase();
     if (!allowed.test(contentType)) throw new Error(`Formato de mídia não permitido: ${contentType}.`);
     const declared = Number(response.headers.get('content-length') || 0);
@@ -81,7 +83,15 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
 
 /** Import public images only; delivery files are deliberately excluded. */
 export async function mirrorPlatformImportImage(input:string,storeId:string,productId:string,index:number) {
-  const media=await download(input,/^image\/(jpeg|png|webp|gif|avif)$/,MAX_IMAGE_BYTES);
+  const allowed=/^image\/(jpeg|png|webp|gif|avif)$/;
+  let media;
+  try { media=await download(input,allowed,MAX_IMAGE_BYTES); }
+  catch(error) {
+    const original=error instanceof RemoteImageHttpError && error.status===400 ? originalPublicImage(input) : null;
+    if(!original)throw error;
+    // The original goes through the same DNS, redirect, size and MIME validation.
+    media=await download(original,allowed,MAX_IMAGE_BYTES);
+  }
   const bucket=resolveBucket('product-covers');
   let body:Uint8Array=media.body;let optimized=false;
   if(media.contentType!=='image/gif'){try{body=await optimizeProductImage(media.body);optimized=true;}catch{/* Keep the supported original if runtime cannot transform. */}}

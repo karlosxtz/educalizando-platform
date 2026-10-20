@@ -3,6 +3,8 @@ function load(file,mocks){const exports={};vm.runInNewContext(ts.transpileModule
 const contract=load('src/lib/saber-export-contract.ts',{'./platform-delivery-contract':load('src/lib/platform-delivery-contract.ts',{}),'./platform-delivery-diagnostics':load('src/lib/platform-delivery-diagnostics.ts',{}),'./saber-product-price':load('src/lib/saber-product-price.ts',{}),'./product-description':load('src/lib/product-description.ts',{}),'./presentation-video':load('src/lib/presentation-video.ts',{})});
 const client=load('src/lib/saber-export-client.ts',{'server-only':{},'./saber-export-contract':contract});
 const item=contract.parseSaberExport({seller:{id:'origin-a'},products:[{id:'a',title:'Local test material',price:7,description:'Description from authorised export',images:['https://source.example.test/cover.png'],categories:[]}],total:1}).products[0];
+const recovery=load('src/lib/platform-image-recovery.ts',{});
+let imageFailure=null;const imagePositions=[];
 let sourceReader=null;
 let fileDownloads=0,deliveryCalls=0,deliveryAllowed=true,migrationReady=true,mirrorFailure=false;const delivered=new Map();
 const tables={platform_product_imports:[],platform_product_import_receipts:[],products:[],categories:[],education_levels:[]};
@@ -16,8 +18,9 @@ const db={from:table=>{
       const data=single?(rows[0]||null):rows;return Promise.resolve({data:data?structuredClone(data):data,error:null}).then(resolve);
     }
   };return query;
-},rpc:async(_name,args)=>{if(args.p_probe)return {data:migrationReady,error:null};if(_name==='apply_platform_import_delivery'){deliveryCalls++;const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');if(!deliveryAllowed)return {data:false,error:null};delivered.set(args.p_product+':'+args.p_index,args.p_asset);return {data:true,error:null};}const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');assert(product.import_incomplete);product.capa_url=args.p_url;return {data:true,error:null};}};
-const jobs=load('src/lib/saber-import-job.ts',{'server-only':{},'./supabase':{supabaseAdmin:db},'./saber-import-errors':load('src/lib/saber-import-errors.ts',{}),'./saber-export-client':{...client,readSaberExport:async(_token,url)=>structuredClone(sourceReader?sourceReader(url):sourcePage)},'./saber-export-contract':contract,'./platform-delivery-resume':{importedDeliveryPresent:async(_db,_store,product,_id,index)=>delivered.has(product+':'+index)},'./platform-delivery-media':{mirrorPlatformDelivery:async(file,store,product,index)=>{fileDownloads++;if(mirrorFailure)throw Error('A entrega não pôde ser baixada.');return ({url:`minio://private-materials/platform-imports/${store}/${product}/deliveries/${index}-fixture.pdf`,name:file.name,size:20,mimeType:'application/pdf',external:file.url.includes('drive.google.com')});}},'./woocommerce-media':{mirrorPlatformImportImage:async()=>{mirrorCalls++;return 'https://arquivos.educalizando.com.br/public-images/fixture.webp';}}});
+},rpc:async(_name,args)=>{if(args.p_probe)return {data:migrationReady,error:null};if(_name==='apply_platform_import_delivery'){deliveryCalls++;const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');if(!deliveryAllowed)return {data:false,error:null};delivered.set(args.p_product+':'+args.p_index,args.p_asset);return {data:true,error:null};}const product=tables.products.find(row=>row.id===args.p_product);assert.equal(product.store_id,args.p_store);assert.equal(product.status,'rascunho');assert(product.import_incomplete);imagePositions.push(args.p_index);if(args.p_index===0)product.capa_url=args.p_url;return {data:true,error:null};}};
+const jobLoad=(file,mocks)=>load(file,{...mocks,'./platform-image-recovery':recovery});
+const jobs=jobLoad('src/lib/saber-import-job.ts',{'server-only':{},'./supabase':{supabaseAdmin:db},'./saber-import-errors':load('src/lib/saber-import-errors.ts',{}),'./saber-export-client':{...client,readSaberExport:async(_token,url)=>structuredClone(sourceReader?sourceReader(url):sourcePage)},'./saber-export-contract':contract,'./platform-delivery-resume':{importedDeliveryPresent:async(_db,_store,product,_id,index)=>delivered.has(product+':'+index)},'./platform-delivery-media':{mirrorPlatformDelivery:async(file,store,product,index)=>{fileDownloads++;if(mirrorFailure)throw Error('A entrega não pôde ser baixada.');return ({url:`minio://private-materials/platform-imports/${store}/${product}/deliveries/${index}-fixture.pdf`,name:file.name,size:20,mimeType:'application/pdf',external:file.url.includes('drive.google.com')});}},'./woocommerce-media':{mirrorPlatformImportImage:async()=>{mirrorCalls++;if(imageFailure)throw imageFailure;return 'https://arquivos.educalizando.com.br/public-images/fixture.webp';}}});
 async function create(store='destination-a'){return jobs.createSaberJob(store,'fixture-token','fingerprint','origin-a');}
 const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.id===id));
 (async()=>{
@@ -193,6 +196,26 @@ const current=id=>structuredClone(tables.platform_product_imports.find(row=>row.
   assert.equal(current(unstable.id).status,'paused');assert.match(current(unstable.id).last_error,/ainda está mudando/);
   assert.equal(current(unstable.id).visited_urls.filter(url=>url===contract.SABER_EXPORT_URL).length,2);
   sourceReader=null;
+  // A permanently unavailable image must not block the other images or private files.
+  sourcePage={owner:'origin-a',label:'Fixture',products:[{...item,id:'image-error',images:['https://source.example.test/bad.png','https://source.example.test/good.png'],deliveries:[{name:'Private PDF',url:'https://source.example.test/file.pdf'}]}],total:1,nextUrl:null};
+  const missingImage=await create('destination-image-error');
+  await jobs.processSaberJob(current(missingImage.id),'fixture-token');
+  imageFailure=new recovery.RemoteImageHttpError(400);
+  await jobs.processSaberJob(current(missingImage.id),'fixture-token');
+  assert.equal(current(missingImage.id).status,'running');assert.equal(current(missingImage.id).asset_cursor,1);
+  assert.match(current(missingImage.id).issues.at(-1).message,/Imagem 1 de 2.*HTTP 400/);
+  assert(!current(missingImage.id).issues.at(-1).message.includes('https://'));
+  imageFailure=null;await jobs.processSaberJob(current(missingImage.id),'fixture-token');
+  assert.equal(imagePositions.at(-1),0,'The first available image becomes the cover');
+  for(let i=0;i<4&&current(missingImage.id).status==='running';i++)await jobs.processSaberJob(current(missingImage.id),'fixture-token');
+  assert.equal(current(missingImage.id).status,'completed');assert.equal(current(missingImage.id).imported,1);
+  assert(delivered.has(client.saberImportId('destination-image-error','origin-a','image-error')+':0'));
+  sourcePage.products[0].id='temporary-image-error';
+  const temporaryImage=await create('destination-temporary-image');
+  imageFailure=new recovery.RemoteImageHttpError(503);
+  for(let i=0;i<3;i++)await jobs.processSaberJob(current(temporaryImage.id),'fixture-token');
+  assert.equal(current(temporaryImage.id).status,'paused');assert.equal(current(temporaryImage.id).asset_cursor,0);
+  imageFailure=null;
   migrationReady=false;await assert.rejects(()=>create('destination-missing-migration'),/Ative/);
   console.log('PASS file import: sequential private deliveries, external-link notice, repeat/backfill without duplicate products, reviewed preservation, download failure and manual-delivery conflict pause, missing migration gate.');
   console.log('PASS Saber job: metadata-only draft creation, image step, receipts, completion, restart without duplication, reviewed-product preservation, foreign-store collision, duplicate page/total guards and accurate storage failures.');

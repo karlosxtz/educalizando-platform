@@ -6,6 +6,7 @@ import { mirrorPlatformImportImage } from './woocommerce-media';
 import { saberImportStorageMessage } from './saber-import-errors';
 import { mirrorPlatformDelivery } from './platform-delivery-media';
 import { importedDeliveryPresent } from './platform-delivery-resume';
+import { unavailablePublicImage } from './platform-image-recovery';
 
 export const saberJobColumns='id,source_label,status,source_total,discovered,imported,skipped,cursor,asset_cursor,issues,last_error,created_at,updated_at';
 export type SaberJob={id:string;store_id:string;source_owner:string;source_label:string;token_fingerprint:string;status:string;queue:SaberItem[];cursor:number;next_url:string|null;visited_urls:string[];seen_ids:string[];source_total:number|null;discovered:number;imported:number;skipped:number;current_product:string|null;asset_cursor:number;issues:{product:string;message:string}[];lease_token:string;lease_until:string|null};
@@ -128,7 +129,7 @@ export async function processSaberJob(job:SaberJob,token:string) {
       if(!item.deliveries?.length){await receipt({cursor:job.cursor+1,skipped:job.skipped+1,current_product:null,asset_cursor:0});return {progressed:true};}
       if(mapped.product_id!==productId)throw new Error('O produto importado não corresponde à loja autorizada.');
     }
-    const {data:product,error:productError}=await db.from('products').select('id,store_id,status,import_incomplete').eq('id',productId).maybeSingle();check({error:productError});
+    const {data:product,error:productError}=await db.from('products').select('id,store_id,status,import_incomplete,capa_url').eq('id',productId).maybeSingle();check({error:productError});
     if(product && (product.store_id!==job.store_id || product.status!=='rascunho' || !product.import_incomplete)){
       // A creator can review a draft before its last asset/receipt is committed.
       // Its deterministic ID already binds it to this source item. Preserve the
@@ -152,8 +153,14 @@ export async function processSaberJob(job:SaberJob,token:string) {
     if(!job.current_product){await receipt({current_product:productId,...(mapped?{asset_cursor:item.images.length}:{})});return {progressed:true};}
     if(job.asset_cursor<item.images.length){
       const index=job.asset_cursor;
-      const image=await mirrorPlatformImportImage(item.images[index],job.store_id,productId,index);
-      const applied=await db.rpc('apply_platform_import_image',{p_job:job.id,p_store:job.store_id,p_lease:lease,p_product:productId,p_image_id:saberImportId(job.store_id,job.source_owner,item.id+':image:'+index),p_url:image,p_index:index});check(applied);
+      let image:string;
+      try { image=await mirrorPlatformImportImage(item.images[index],job.store_id,productId,index); }
+      catch(error) {
+        if(!unavailablePublicImage(error))throw error;
+        await receipt({asset_cursor:index+1,last_error:null,issues:[...job.issues,{product:item.title,message:`Imagem ${index+1} de ${item.images.length} indisponível na origem (HTTP ${error.status}). Não foi copiada. Adicione ou substitua essa imagem no cadastro antes de publicar; os demais dados e arquivos continuam sendo importados.`}].slice(-100)});
+        return {progressed:true};
+      }
+      const applied=await db.rpc('apply_platform_import_image',{p_job:job.id,p_store:job.store_id,p_lease:lease,p_product:productId,p_image_id:saberImportId(job.store_id,job.source_owner,item.id+':image:'+index),p_url:image,p_index:product.capa_url?index:0});check(applied);
       if(!applied.data)throw new Error('O produto foi revisado ou a etapa expirou. A imagem não foi alterada.');
       await receipt({asset_cursor:index+1});return {progressed:true};
     }
