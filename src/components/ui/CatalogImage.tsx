@@ -3,7 +3,7 @@ import { useState, type ImgHTMLAttributes } from 'react';
 import Image from 'next/image';
 import { catalogImageUrl, catalogThumbnailUrl } from '@/lib/catalog-image-url';
 
-/** Static CDN preview with the exact original as fallback; no runtime proxy. */
+/** Direct MinIO preview with the exact original as fallback; no runtime proxy. */
 export default function CatalogImage({ src, thumbnail = true, ...props }: ImgHTMLAttributes<HTMLImageElement> & { thumbnail?: boolean }) {
   const original = typeof src === 'string' ? catalogImageUrl(src) : null;
   const normalized = thumbnail ? catalogThumbnailUrl(original) : original;

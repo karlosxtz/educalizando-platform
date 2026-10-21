@@ -3,7 +3,8 @@ function load(file,mocks={}){const exports={};vm.runInNewContext(ts.transpileMod
 const recovery=load('src/lib/platform-image-recovery.ts');
 let statuses=[],requests=[],uploads=[];
 async function request(url,options){requests.push([String(url),options]);const status=statuses.shift()??200;return new Response(status===200?new Uint8Array([137,80,78,71]):'unavailable',{status,headers:{'content-type':status===200?'image/png':'text/plain',...(status===302?{location:'https://127.0.0.1/private'}:{})}});}
-const media=load('src/lib/woocommerce-media.ts',{'server-only':{},'@/lib/remote-addresses':{resolveRemoteAddresses:async()=>[{address:'203.0.113.10'}]},'@/lib/object-storage':{resolveBucket:()=> 'covers',uploadObject:async asset=>uploads.push(asset),platformPublicImageUrl:(_bucket,key)=>'https://arquivos.educalizando.com.br/public-images/'+key},'@/lib/product-image-optimizer':{optimizeProductImage:async()=>{throw Error('keep original fixture');}},'./platform-image-recovery':recovery});
+const mediaLoad=(file,mocks)=>load(file,{...mocks,["./image-processor-client"]:{imageProcessorConfigured:()=>false}});
+const media=mediaLoad('src/lib/woocommerce-media.ts',{'server-only':{},'@/lib/remote-addresses':{resolveRemoteAddresses:async()=>[{address:'203.0.113.10'}]},'@/lib/object-storage':{resolveBucket:()=> 'covers',uploadObject:async asset=>uploads.push(asset),platformPublicImageUrl:(_bucket,key)=>'https://arquivos.educalizando.com.br/public-images/'+key},'@/lib/product-image-optimizer':{optimizeProductImage:async()=>{throw Error('keep original fixture');}},'./platform-image-recovery':recovery});
 (async()=>{
   const transformed='https://assets.example.test/storage/v1/render/image/public/covers/file.png?width=99999&quality=80';
   assert.equal(recovery.originalPublicImage(transformed),'https://assets.example.test/storage/v1/object/public/covers/file.png');

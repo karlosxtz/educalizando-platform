@@ -6,6 +6,7 @@ import { isIP } from 'node:net';
 import { platformPublicImageUrl,platformPublicMediaUrl,resolveBucket,uploadObject } from '@/lib/object-storage';
 import { optimizeProductImage } from '@/lib/product-image-optimizer';
 import { originalPublicImage, RemoteImageHttpError } from './platform-image-recovery';
+import { imageProcessorConfigured, processRemoteImage, RemoteVideoMedia } from './image-processor-client';
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -67,6 +68,12 @@ function extension(contentType: string, url: string) {
 function stableName(url: string) { return createHash('sha256').update(url).digest('hex').slice(0, 20); }
 
 export async function mirrorWooPublicMedia(input: string, integrationId: string, wooProductId: number, index: number) {
+  if(imageProcessorConfigured() && !/\.(mp4|webm|mov)(?:[?#]|$)/i.test(input)){
+    try{
+      const image=await processRemoteImage(input,'woocommerce',integrationId,String(wooProductId),index);
+      return {...image,contentType:'image/webp'};
+    }catch(error){if(!(error instanceof RemoteVideoMedia))throw error;}
+  }
   const media = await download(input, /^(image|video)\//, MAX_VIDEO_BYTES);
   const isImage = media.contentType.startsWith('image/');
   if (isImage && media.size > MAX_IMAGE_BYTES) throw new Error('A imagem remota ultrapassa 15 MB.');
@@ -83,6 +90,7 @@ export async function mirrorWooPublicMedia(input: string, integrationId: string,
 
 /** Import public images only; delivery files are deliberately excluded. */
 export async function mirrorPlatformImportImage(input:string,storeId:string,productId:string,index:number) {
+  if(imageProcessorConfigured())return (await processRemoteImage(input,'platform',storeId,productId,index)).url;
   const allowed=/^image\/(jpeg|png|webp|gif|avif)$/;
   let media;
   try { media=await download(input,allowed,MAX_IMAGE_BYTES); }

@@ -16,7 +16,7 @@ for (const [path, hash] of Object.entries(publishedManifest)) {
 }
 assert.equal(imageUploadProfile('product-files'), null);
 assert.equal(imageUploadProfile('plr-files'), null);
-assert.equal(imageUploadProfile('store-assets', 'avatar').maxWidthOrHeight, 320);
+assert.equal(imageUploadProfile('store-assets', 'avatar').maxWidthOrHeight, 256);
 assert.equal(imageUploadProfile('main-banners').maxWidthOrHeight, 1920);
 assert(imageUploadProfile('product-covers').maxSizeMB < 0.25);
 const original='https://arquivos.educalizando.com.br/public-images/uploads/creator/logo.png';

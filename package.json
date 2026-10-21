@@ -4,7 +4,7 @@
   "private": true,
   "overrides": { "fflate": "0.8.3" },
   "scripts": {
-    "optimize:catalog-previews": "node scripts/prepare-catalog-previews.mjs",
+    "test:image-processor": "node scripts/verify-vps-image-processor.mjs && node scripts/verify-image-processor-client.cjs",
     "test:catalog-previews": "node scripts/verify-static-catalog-previews.cjs && node scripts/verify-minio-image-performance.cjs",
     "typecheck:vinext": "tsc -p tsconfig.vinext.json --noEmit",
     "test:ai-reliability": "node scripts/verify-ai-reliability.cjs && node scripts/verify-ai-editor-safety.cjs && node scripts/verify-ai-workspace.cjs",

@@ -1,5 +1,8 @@
 # Capas e logos leves no catálogo
 
+> Atualização posterior: os assets de imagens foram transferidos para o MinIO.
+> O fluxo atual está em `IMAGENS-MINIO-AUTOMATICAS-2026-10-20.md`.
+
 ## Diagnóstico
 
 A busca por objetivo misturava miniaturas já geradas com capas importadas

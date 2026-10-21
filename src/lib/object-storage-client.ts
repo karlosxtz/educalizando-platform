@@ -14,8 +14,9 @@ export async function uploadToObjectStorage(bucket: UploadBucket, source: File, 
     }
     const profile = imageUploadProfile(bucket, options.imageRole)!;
     if (source.type !== 'image/gif') {
-      const compressed = await imageCompression(source, { ...profile, initialQuality: 0.82, useWebWorker: true, fileType: 'image/webp' });
-      file = new File([compressed], source.name.replace(/\.[^/.]+$/, '') + '.webp', { type: 'image/webp' });
+      const compressed = await imageCompression(source, { ...profile, initialQuality: 0.78, maxIteration: 15, useWebWorker: true, fileType: 'image/webp' });
+      // A conversion must not make an already small supported image larger.
+      if (compressed.size < source.size) file = new File([compressed], source.name.replace(/\.[^/.]+$/, '') + '.webp', { type: 'image/webp' });
     }
   }
   const metadata = validateUploadMetadata({ bucket, fileName: file.name, contentType: file.type || 'application/octet-stream', size: file.size, materialName: options.materialName || '' });

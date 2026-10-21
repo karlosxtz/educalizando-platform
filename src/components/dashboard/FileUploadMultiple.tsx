@@ -1,7 +1,6 @@
 'use client';
 
 import { uploadToObjectStorage } from '@/lib/object-storage-client';
-import imageCompression from 'browser-image-compression';
 import { AlertCircle,Image as ImageIcon,Info,MoveLeft,MoveRight,Sparkles,UploadCloud,X } from 'lucide-react';
 import { useRef,useState } from 'react';
 
@@ -84,26 +83,8 @@ export default function FileUploadMultiple({
           throw new Error(`Arquivo muito grande. Máximo de ${effectiveMaxSizeMB} MB.`);
         }
 
-        let finalFile = file;
-
-        // 3. Compactação Inteligente de Imagens (Se for imagem, compacta no navegador antes do upload)
-        if (file.type.startsWith('image/')) {
-          try {
-            const options = {
-              maxSizeMB: 1.5,
-              maxWidthOrHeight: 1920,
-              useWebWorker: true,
-              fileType: 'image/webp'
-            };
-            const compressedBlob = await imageCompression(file, options);
-            const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
-            finalFile = new window.File([compressedBlob], newFileName, { type: 'image/webp' });
-          } catch (error) {
-            console.warn('Erro ao compactar a imagem (FileUploadMultiple):', error);
-          }
-        }
-
-        newUrls.push(await uploadToObjectStorage(bucket, finalFile, { materialName }));
+        // The shared uploader compresses once in the browser, then sends to MinIO.
+        newUrls.push(await uploadToObjectStorage(bucket, file, { materialName }));
         setProgress(Math.round(((i + 1) / filesArray.length) * 100));
       }
 

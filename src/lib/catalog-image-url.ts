@@ -22,9 +22,11 @@ export function catalogThumbnailUrl(value: string | null | undefined): string | 
   if (!original) return null;
   try {
     const url = new URL(original);
-    // Only explicitly generated public previews are served as static CDN assets.
+    // The VPS writes both variants before returning an optimized image URL.
+    if(url.origin==='https://arquivos.educalizando.com.br'&&!url.search&&!url.hash&&/^\/public-images\/uploads\/optimized\/v1\/(platform|woocommerce)\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/\d+-[a-f0-9]{24}\/full\.webp$/.test(url.pathname))return url.href.replace('/full.webp','/thumb.webp');
+    // Existing previews are explicitly verified in MinIO before publication.
     const staticHash = !url.search && !url.hash && (staticPreviewManifest as Record<string, string>)[url.href];
-    if (staticHash && /^[a-f0-9]{32}$/.test(staticHash)) return `https://www.educalizando.com.br/images/catalog-previews/${staticHash}.webp`;
+    if (staticHash && /^[a-f0-9]{32}$/.test(staticHash)) return `https://arquivos.educalizando.com.br/public-images/uploads/previews/v1/${staticHash}.webp`;
     if (url.origin !== 'https://arquivos.educalizando.com.br' || url.search) return original;
     const hash = (previewManifest as Record<string, string>)[decodeURIComponent(url.pathname)];
     return hash && /^[a-f0-9]{32}$/.test(hash)
