@@ -8,7 +8,9 @@ export class RemoteImageHttpError extends Error {
 
 /** Recover a public original when an image transformation endpoint rejects it. */
 export function originalPublicImage(input: string): string | null {
-  const url = new URL(input);
+  let url: URL;
+  try { url = new URL(input); }
+  catch { return null; }
   if (url.pathname.startsWith('/storage/v1/render/image/public/')) {
     url.pathname = url.pathname.replace('/storage/v1/render/image/public/', '/storage/v1/object/public/');
     url.search = '';
@@ -17,8 +19,12 @@ export function originalPublicImage(input: string): string | null {
   if (url.pathname === '/_next/image') {
     const source = url.searchParams.get('url');
     if (!source) return null;
-    const original = new URL(source, url);
-    if (original.protocol === 'https:' && !original.username && !original.password && original.origin === url.origin && original.pathname !== '/_next/image') return original.toString();
+    try {
+      const original = new URL(source, url);
+      if (original.protocol === 'https:' && !original.username && !original.password && original.origin === url.origin && original.pathname !== '/_next/image') return original.toString();
+    } catch {
+      return null;
+    }
   }
   return null;
 }

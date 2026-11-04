@@ -34,7 +34,11 @@ async function main() {
   assert.match(wooMedia, /uploadObject/, 'Mídias importadas devem ser copiadas para o MinIO.');
   assert.match(wooMedia, /privateIp/, 'Downloads remotos devem bloquear redes privadas.');
   assert.match(wooService, /mirrorWooDelivery/, 'Arquivos digitais do Woo devem ser copiados para o armazenamento privado.');
-  console.log('WooCommerce: 16 verificações de segurança, seleção, MinIO, webhook, preço, preservação e entrega aprovadas.');
+  assert.match(wooService, /redirect:\s*'manual'/, 'O Worker deve tratar redirecionamentos com o modo compatível com a borda.');
+  assert.doesNotMatch(wooService, /redirect:\s*'error'/, 'O modo de redirecionamento incompatível não pode voltar a ser usado.');
+  assert.match(wooService, /Informe um endereço válido/, 'Endereços inválidos precisam retornar uma orientação legível ao criador.');
+  assert.match(wooService, /next\.origin !== endpoint\.origin/, 'Credenciais não podem acompanhar um redirecionamento para outro domínio.');
+  console.log('WooCommerce: 20 verificações de segurança, URL, redirecionamento, seleção, MinIO, webhook, preço, preservação e entrega aprovadas.');
 }
 
 void main();

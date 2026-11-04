@@ -16,7 +16,14 @@ type WooOrder = { id: number; status: string; currency?: string; total?: string;
 
 function privateIp(ip: string) { return /^(127\.|10\.|0\.|169\.254\.|192\.168\.|::1$|fc|fd|fe80)/i.test(ip) || /^172\.(1[6-9]|2\d|3[01])\./.test(ip); }
 export async function normalizeWooUrl(input: string) {
-  const url = new URL(input.trim());
+  let value = (input || '').trim();
+  if (!value) throw new Error('Informe o endereço principal da sua loja WooCommerce.');
+  if (!/^https?:\/\//i.test(value)) {
+    value = `https://${value}`;
+  }
+  let url: URL;
+  try { url = new URL(value); }
+  catch { throw new Error('Informe um endereço válido, por exemplo: https://minhaloja.com.br'); }
   if (url.protocol !== 'https:') throw new Error('A loja WooCommerce precisa usar HTTPS.');
   if (url.username || url.password || url.port) throw new Error('Informe somente o endereço principal da loja.');
   if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de loja inválido.');
@@ -25,17 +32,43 @@ export async function normalizeWooUrl(input: string) {
   return `${url.origin}${url.pathname.replace(/\/(?:wp-admin|wp-json)(?:\/.*)?$/, '').replace(/\/+$/, '')}`;
 }
 
+async function validateWooEndpoint(url: URL) {
+  if (url.protocol !== 'https:' || url.username || url.password || url.port) throw new Error('O redirecionamento da loja não é seguro. Informe o endereço principal em HTTPS.');
+  if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de loja inválido.');
+  const addresses = await resolveRemoteAddresses(url.hostname);
+  if (!addresses.length || addresses.some(item => privateIp(item.address))) throw new Error('O endereço da loja não pode apontar para uma rede privada.');
+  return url;
+}
+
 export async function wooRequest<T>(credentials: WooCredentials, path: string, init: RequestInit = {}): Promise<T> {
   const siteUrl = await normalizeWooUrl(credentials.siteUrl);
-  const endpoint = new URL(`${siteUrl}/wp-json/wc/v3/${path.replace(/^\//, '')}`);
-  const response = await fetch(endpoint, { ...init, redirect: 'error', headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Basic ${Buffer.from(`${credentials.consumerKey}:${credentials.consumerSecret}`).toString('base64')}`, ...init.headers }, signal: AbortSignal.timeout(20000), cache: 'no-store' });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message = response.status === 401 || response.status === 403 ? 'O WooCommerce recusou o acesso. Confira as chaves, as permissões de leitura e os bloqueios de segurança do WordPress.' : response.status === 429 ? 'A loja WooCommerce limitou as consultas. A importação tentará novamente.' : payload?.message || `WooCommerce respondeu com erro ${response.status}.`;
-    const error = new Error(safeWooError(new Error(message))) as Error & { code: string; status: number }; error.code = payload?.code || ''; error.status = response.status; throw error;
+  let endpoint = await validateWooEndpoint(new URL(`${siteUrl}/wp-json/wc/v3/${path.replace(/^\//, '')}`));
+  const authorization = `Basic ${Buffer.from(`${credentials.consumerKey}:${credentials.consumerSecret}`).toString('base64')}`;
+
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    // Workers only accepts "follow" or "manual". Manual handling keeps the
+    // credentials on the exact same origin and validates every destination.
+    const response = await fetch(endpoint, { ...init, redirect: 'manual', headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: authorization, ...init.headers }, signal: AbortSignal.timeout(20000), cache: 'no-store' });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      await response.body?.cancel();
+      if (!location) throw new Error('A loja respondeu com um redirecionamento sem endereço de destino.');
+      let next: URL;
+      try { next = new URL(location, endpoint); }
+      catch { throw new Error('A loja respondeu com um endereço de redirecionamento inválido.'); }
+      if (next.origin !== endpoint.origin) throw new Error(`A loja redirecionou para outro domínio (${next.origin}). Informe esse endereço diretamente no campo da loja para proteger suas chaves.`);
+      endpoint = await validateWooEndpoint(next);
+      continue;
+    }
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      const message = response.status === 401 || response.status === 403 ? 'O WooCommerce recusou o acesso. Confira as chaves, as permissões de leitura e os bloqueios de segurança do WordPress.' : response.status === 429 ? 'A loja WooCommerce limitou as consultas. A importação tentará novamente.' : payload?.message || `WooCommerce respondeu com erro ${response.status}.`;
+      const error = new Error(safeWooError(new Error(message))) as Error & { code: string; status: number }; error.code = payload?.code || ''; error.status = response.status; throw error;
+    }
+    if (payload === null) throw new Error('O endereço retornou uma página em vez de JSON. Confira a URL, os links permanentes e a REST API da loja.');
+    return payload as T;
   }
-  if (payload === null) throw new Error('O endereço retornou uma página em vez de JSON. Confira a URL, os links permanentes e a REST API da loja.');
-  return payload as T;
+  throw new Error('A loja realizou redirecionamentos demais. Informe o endereço final da loja no campo de conexão.');
 }
 
 export async function wooListAll<T>(credentials: WooCredentials, resource: string): Promise<T[]> {

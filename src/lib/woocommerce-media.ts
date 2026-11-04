@@ -17,7 +17,13 @@ function privateIp(ip: string) {
 }
 
 async function safeRemoteUrl(input: string) {
-  const url = new URL(input);
+  let value = (input || '').trim();
+  if (!value) throw new Error('Endereço de mídia ausente.');
+  if (value.startsWith('//')) value = 'https:' + value;
+  else if (/^http:\/\//i.test(value)) value = value.replace(/^http:/i, 'https:');
+  let url: URL;
+  try { url = new URL(value); }
+  catch { throw new Error('Endereço de mídia inválido.'); }
   if (url.protocol !== 'https:' || url.username || url.password) throw new Error('A mídia remota precisa usar HTTPS.');
   if (isIP(url.hostname) && privateIp(url.hostname)) throw new Error('Endereço de mídia inválido.');
   const addresses = await resolveRemoteAddresses(url.hostname);
@@ -62,7 +68,11 @@ async function download(input: string, allowed: RegExp, maxBytes: number) {
 function extension(contentType: string, url: string) {
   const byType: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'video/mp4': 'mp4', 'video/webm': 'webm', 'application/pdf': 'pdf', 'application/zip': 'zip' };
   if (byType[contentType]) return byType[contentType];
-  return new URL(url).pathname.match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toLowerCase() || 'bin';
+  try {
+    return new URL(url).pathname.match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toLowerCase() || 'bin';
+  } catch {
+    return 'bin';
+  }
 }
 
 function stableName(url: string) { return createHash('sha256').update(url).digest('hex').slice(0, 20); }
