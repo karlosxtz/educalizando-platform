@@ -91,8 +91,8 @@ export function AffiliateWallet() {
 
   async function handleWithdraw() {
     const amount = Number(withdrawAmount.replace(',', '.'));
-    if (isNaN(amount) || amount < 1) {
-      setError('Valor inválido. Mínimo R$ 1,00.');
+    if (isNaN(amount) || amount < 50) {
+      setError('Valor inválido. Mínimo R$ 50,00.');
       return;
     }
     if (amount > balance.available) {
@@ -252,7 +252,7 @@ export function AffiliateWallet() {
                 />
               </div>
               <p className="text-xs text-slate-500 mt-2 flex justify-between">
-                <span>Mínimo: R$ 1,00</span>
+                <span>Mínimo: R$ 50,00</span>
                 <button 
                   onClick={() => setWithdrawAmount(balance.available.toFixed(2).replace('.', ','))}
                   className="text-brand-primary font-medium hover:underline"
@@ -265,7 +265,7 @@ export function AffiliateWallet() {
             
             <button
               onClick={handleWithdraw}
-              disabled={isWithdrawing || !withdrawAmount || !pixKey || balance.available < 1}
+              disabled={isWithdrawing || !withdrawAmount || !pixKey || balance.available < 50}
               className="w-full py-3 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isWithdrawing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar Saque PIX'}

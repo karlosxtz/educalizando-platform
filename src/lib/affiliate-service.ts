@@ -1,4 +1,4 @@
-import { supabase,supabaseAdmin } from './supabase';
+import { isRealSupabaseConfigured,supabase,supabaseAdmin } from './supabase';
 import { Affiliate,AffiliateProfile,AffiliateStatus } from './types';
 
 // getStoreAffiliates was removed because auth.users cannot be joined securely from the client.
@@ -409,8 +409,14 @@ export async function requestAffiliateWithdrawal(data: {
     throw new Error('Os saques estão temporariamente indisponíveis.');
   }
 
-  if (data.amount < MIN_WITHDRAWAL_AMOUNT) {
-    throw new Error(`O valor mínimo para saque é de R$ ${MIN_WITHDRAWAL_AMOUNT.toFixed(2).replace('.', ',')}.`);
+  let minimumWithdrawal = MIN_WITHDRAWAL_AMOUNT;
+  if (isRealSupabaseConfigured()) {
+    const { data: settings } = await supabaseAdmin.from('platform_settings').select('minimum_withdrawal_amount').limit(1).maybeSingle();
+    minimumWithdrawal = Number(settings?.minimum_withdrawal_amount ?? MIN_WITHDRAWAL_AMOUNT);
+  }
+
+  if (data.amount < minimumWithdrawal) {
+    throw new Error(`O valor mínimo para saque é de R$ ${minimumWithdrawal.toFixed(2).replace('.', ',')}.`);
   }
 
   // 1. O Afiliado tem um perfil de loja para ancorar a chave PIX

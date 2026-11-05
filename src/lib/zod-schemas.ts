@@ -171,7 +171,7 @@ export type CouponFormValues = z.infer<typeof couponFormSchema>;
 export const withdrawalRequestSchema = z.object({
   amount: z.coerce
     .number()
-    .min(1.00, { message: 'O valor mínimo para saque é R$ 1,00.' })
+    .min(50.00, { message: 'O valor mínimo para saque é R$ 50,00.' })
     .max(50000, { message: 'O valor máximo por saque é R$ 50.000,00.' }),
   pixKeyId: z.string().uuid({ message: 'Selecione uma chave PIX válida.' })
 });

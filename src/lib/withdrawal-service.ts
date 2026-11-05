@@ -3,7 +3,7 @@ import { allowsLocalDevelopmentFallback,isRealSupabaseConfigured,supabase,supaba
 import { calculateCreatorWallet,recordWalletTransaction } from './wallet-service';
 
 // CONFIGURAÇÃO CENTRALIZADA (Item 11 & 43 da Especificação)
-export const MIN_WITHDRAWAL_AMOUNT = 0;
+export const MIN_WITHDRAWAL_AMOUNT = 50;
 export const WITHDRAWAL_ENABLED = true;
 
 export type PixKeyValidationStatus = 'PENDING' | 'VALID' | 'INVALID' | 'BLOCKED';
