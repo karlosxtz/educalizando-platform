@@ -5,12 +5,31 @@ export type OpportunityMatch = { product: OpportunityProduct; reason: string; co
 const DAY = 86400000;
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const aliases: Record<string, string[]> = {
+  'proclamacao-da-republica': ['proclamacao da republica', 'republica', 'republica brasileira'],
+  'dia-da-bandeira': ['dia da bandeira', 'bandeira do brasil', 'simbolos nacionais'],
   'dia-da-reforma-protestante': ['reforma protestante'],
-  'dia-da-consciencia-negra': ['consciencia negra', 'cultura afro brasileira'],
+  'dia-da-consciencia-negra': ['consciencia negra', 'cultura afro brasileira', 'zumbi dos palmares'],
   'dia-dos-povos-indigenas': ['povos indigenas', 'cultura indigena'],
-  'meio-ambiente': ['meio ambiente'],
-  'dia-do-livro-infantil': ['literatura infantil', 'livro infantil'],
-  'abolicao-da-escravidao': ['abolicao da escravidao'],
+  'meio-ambiente': ['meio ambiente', 'preservacao ambiental'],
+  'dia-do-livro-infantil': ['literatura infantil', 'livro infantil', 'monteiro lobato'],
+  'abolicao-da-escravidao': ['abolicao da escravidao', 'lei aurea'],
+  'dia-das-maes': ['dia das maes', 'lembrancinha dia das maes', 'cartao dia das maes'],
+  'dia-dos-pais': ['dia dos pais', 'lembrancinha dia dos pais', 'cartao dia dos pais'],
+  'dia-das-criancas': ['dia das criancas', 'semana da crianca'],
+  'dia-dos-professores': ['dia dos professores', 'dia do professor', 'homenagem professor'],
+  'volta-as-aulas': ['volta as aulas', 'acolhimento', 'primeiro dia de aula'],
+  'adaptacao-escolar': ['adaptacao escolar', 'acolhimento escolar'],
+  'festa-junina': ['festa junina', 'arraia', 'sao joao'],
+  'dia-da-arvore': ['dia da arvore', 'arvores', 'floresta'],
+  'dia-do-transito': ['dia do transito', 'semana do transito', 'transito'],
+  'dia-do-folclore': ['folclore', 'lendas folcloricas'],
+  'setembro-amarelo': ['setembro amarelo', 'emocoes', 'sentimentos', 'saude mental'],
+  'outubro-rosa': ['outubro rosa', 'saude da mulher'],
+  'ano-novo': ['ano novo', 'reveillon'],
+  'formatura': ['formatura', 'encerramento do ano letivo', 'diploma'],
+  'combate-ao-bullying': ['combate ao bullying', 'bullying', 'respeito'],
+  'dia-do-circo': ['dia do circo', 'palhaco', 'arte circense'],
+  'dia-dos-avos': ['dia dos avos', 'lembrancinha dia dos avos', 'vovo'],
 };
 
 /** UTC day arithmetic over São Paulo civil dates avoids DST and browser-zone drift. */
