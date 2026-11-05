@@ -1,29 +1,30 @@
 -- Atualiza o limite mínimo de saque para R$ 50,00 na plataforma
 BEGIN;
 
--- 1. Garante que o valor padrão da coluna minimum_withdrawal_amount seja 50.00
+-- 1. Garante que as colunas existam na tabela platform_settings
+ALTER TABLE public.platform_settings 
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS minimum_withdrawal_amount NUMERIC(10, 2) NOT NULL DEFAULT 50.00;
+
+-- 2. Define o valor padrão da coluna como 50.00
 ALTER TABLE public.platform_settings 
   ALTER COLUMN minimum_withdrawal_amount SET DEFAULT 50.00;
 
--- 2. Atualiza registros existentes para que o saque mínimo seja pelo menos R$ 50,00
+-- 3. Atualiza registros existentes para que o saque mínimo seja pelo menos R$ 50,00
 UPDATE public.platform_settings 
 SET minimum_withdrawal_amount = 50.00,
     updated_at = NOW()
 WHERE minimum_withdrawal_amount < 50.00 OR minimum_withdrawal_amount IS NULL;
 
--- 3. Se ainda não houver nenhuma linha em platform_settings, insere com os padrões
+-- 4. Se ainda não houver nenhuma linha em platform_settings, insere com os padrões
 INSERT INTO public.platform_settings (
-  platform_fee_percentage,
-  platform_fixed_fee,
-  minimum_withdrawal_amount,
-  withdrawal_fee,
-  created_at,
-  updated_at
+  minimum_withdrawal_amount
 )
-SELECT 13.00, 0.00, 50.00, 0.00, NOW(), NOW()
+SELECT 50.00
 WHERE NOT EXISTS (SELECT 1 FROM public.platform_settings);
 
--- 4. Atualiza a função process_withdrawal_safe para validar o valor mínimo no banco
+-- 5. Atualiza a função process_withdrawal_safe para validar o valor mínimo no banco
 CREATE OR REPLACE FUNCTION public.process_withdrawal_safe(
   p_store_id TEXT, p_creator_id TEXT, p_amount NUMERIC, p_pix_key_id TEXT,
   p_pix_key_type TEXT, p_pix_key_masked TEXT, p_asaas_external_ref TEXT,
@@ -48,13 +49,13 @@ BEGIN
 
   SELECT COALESCE(minimum_withdrawal_amount, 50.00), COALESCE(withdrawal_fee, 0)
   INTO v_min_amount, v_fee 
-  FROM public.platform_settings ORDER BY updated_at DESC NULLS LAST LIMIT 1;
+  FROM public.platform_settings LIMIT 1;
 
   v_min_amount := COALESCE(v_min_amount, 50.00);
   v_fee := COALESCE(v_fee, 0);
 
   IF p_amount < v_min_amount THEN
-    RETURN json_build_object('success', false, 'error', 'O valor mínimo para saque é de R$ ' || to_char(v_min_amount, 'FM999G999D00'));
+    RETURN json_build_object('success', false, 'error', 'O valor mínimo para saque é de R$ ' || REPLACE(ROUND(v_min_amount, 2)::TEXT, '.', ','));
   END IF;
 
   v_reserved_amount := p_amount + v_fee;
@@ -76,7 +77,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- 5. Atualiza a função process_affiliate_withdrawal_safe para validar o valor mínimo no banco
+-- 6. Atualiza a função process_affiliate_withdrawal_safe para validar o valor mínimo no banco
 CREATE OR REPLACE FUNCTION public.process_affiliate_withdrawal_safe(
   p_creator_id TEXT,
   p_amount NUMERIC,
@@ -104,11 +105,11 @@ BEGIN
 
   SELECT COALESCE(minimum_withdrawal_amount, 50.00)
   INTO v_min_amount
-  FROM public.platform_settings ORDER BY updated_at DESC NULLS LAST LIMIT 1;
+  FROM public.platform_settings LIMIT 1;
   v_min_amount := COALESCE(v_min_amount, 50.00);
 
   IF p_amount < v_min_amount THEN
-    RETURN json_build_object('success', false, 'error', 'O valor mínimo para saque é de R$ ' || to_char(v_min_amount, 'FM999G999D00'));
+    RETURN json_build_object('success', false, 'error', 'O valor mínimo para saque é de R$ ' || REPLACE(ROUND(v_min_amount, 2)::TEXT, '.', ','));
   END IF;
 
   SELECT COALESCE(SUM(net_amount), 0) INTO v_available_balance
@@ -140,4 +141,3 @@ REVOKE ALL ON FUNCTION public.process_affiliate_withdrawal_safe(TEXT, NUMERIC, T
 GRANT EXECUTE ON FUNCTION public.process_affiliate_withdrawal_safe(TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO service_role;
 
 COMMIT;
-
